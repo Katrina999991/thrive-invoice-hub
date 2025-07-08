@@ -7,6 +7,7 @@ import {
   Users,
   Package,
   FileText,
+  Receipt,
   BarChart3,
   Settings,
   ChevronDown
@@ -31,6 +32,7 @@ const mainItems = [
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Products & Services", url: "/products", icon: Package },
   { title: "Invoices", url: "/invoices", icon: FileText },
+  { title: "Expenses", url: "/expenses", icon: Receipt },
   { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
