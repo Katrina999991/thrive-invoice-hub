@@ -232,9 +232,14 @@ const Expenses = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full">
-                {editingExpense ? "Update Expense" : "Add Expense"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">
+                  {editingExpense ? "Update Expense" : "Add Expense"}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>

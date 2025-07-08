@@ -443,9 +443,29 @@ const Invoices = () => {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={newInvoice.items.length === 0}>
-                {editingInvoice ? "Update Invoice" : "Create Invoice"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => {
+                  setNewInvoice({
+                    client: "",
+                    dueDate: "",
+                    paymentTerms: "30",
+                    items: []
+                  });
+                  setCurrentItem({
+                    productService: "",
+                    description: "",
+                    quantity: 1,
+                    unitPrice: 0
+                  });
+                  setEditingInvoice(null);
+                  setIsDialogOpen(false);
+                }} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1" disabled={newInvoice.items.length === 0}>
+                  {editingInvoice ? "Update Invoice" : "Create Invoice"}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>

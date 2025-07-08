@@ -318,9 +318,14 @@ const Products = () => {
                   />
                 </div>
               )}
-              <Button type="submit" className="w-full">
-                {editingProduct ? "Update Item" : `Add ${newItem.type === "product" ? "Product" : "Service"}`}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">
+                  {editingProduct ? "Update Item" : `Add ${newItem.type === "product" ? "Product" : "Service"}`}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
