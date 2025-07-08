@@ -17,6 +17,7 @@ interface Client {
   company: string;
   email: string;
   phone: string;
+  address?: string;
   status: "active" | "inactive" | "pending";
   totalInvoices: number;
   totalPaid: string;
@@ -77,39 +78,83 @@ const Clients = () => {
     name: "",
     company: "",
     email: "",
-    phone: ""
+    phone: "",
+    address: ""
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const client: Client = {
-      id: Date.now().toString(),
-      name: newClient.name,
-      company: newClient.company,
-      email: newClient.email,
-      phone: newClient.phone,
-      status: "active",
-      totalInvoices: 0,
-      totalPaid: "$0",
-      lastActivity: new Date().toISOString().split('T')[0]
-    };
+    if (editingClient) {
+      // Update existing client
+      const updatedClient: Client = {
+        ...editingClient,
+        name: newClient.name,
+        company: newClient.company,
+        email: newClient.email,
+        phone: newClient.phone,
+        address: newClient.address
+      };
 
-    setClients([client, ...clients]);
+      setClients(clients.map(client => 
+        client.id === editingClient.id ? updatedClient : client
+      ));
+      
+      toast({
+        title: "Client Updated",
+        description: "The client has been updated successfully."
+      });
+    } else {
+      // Add new client
+      const client: Client = {
+        id: Date.now().toString(),
+        name: newClient.name,
+        company: newClient.company,
+        email: newClient.email,
+        phone: newClient.phone,
+        address: newClient.address,
+        status: "active",
+        totalInvoices: 0,
+        totalPaid: "$0.00",
+        lastActivity: new Date().toISOString().split('T')[0]
+      };
+
+      setClients([client, ...clients]);
+      
+      toast({
+        title: "Client Added",
+        description: "The client has been added successfully."
+      });
+    }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNewClient({
       name: "",
       company: "",
       email: "",
-      phone: ""
+      phone: "",
+      address: ""
     });
+    setEditingClient(null);
     setIsDialogOpen(false);
-    
-    toast({
-      title: "Client Added",
-      description: "The client has been added successfully."
+  };
+
+  const handleEdit = (client: Client) => {
+    setEditingClient(client);
+    setNewClient({
+      name: client.name,
+      company: client.company,
+      email: client.email,
+      phone: client.phone,
+      address: client.address
     });
+    setIsDialogOpen(true);
   };
 
   const filteredClients = clients.filter(client =>
@@ -145,9 +190,9 @@ const Clients = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Client</DialogTitle>
+              <DialogTitle>{editingClient ? "Edit Client" : "Add New Client"}</DialogTitle>
               <DialogDescription>
-                Add a new client to your customer database.
+                {editingClient ? "Update client information." : "Add a new client to your customer database."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -198,7 +243,7 @@ const Clients = () => {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Add Client
+                {editingClient ? "Update Client" : "Add Client"}
               </Button>
             </form>
           </DialogContent>
@@ -273,7 +318,7 @@ const Clients = () => {
                   <TableCell>{client.lastActivity}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm">

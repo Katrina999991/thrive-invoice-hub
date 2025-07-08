@@ -92,6 +92,7 @@ const Invoices = () => {
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   const generateInvoiceNumber = () => {
     const lastNumber = Math.max(...invoices.map(inv => parseInt(inv.number.split('-')[1]) || 0));
@@ -148,18 +149,46 @@ const Invoices = () => {
 
     const totalAmount = calculateTotal();
     
-    const invoice: Invoice = {
-      id: Date.now().toString(),
-      number: generateInvoiceNumber(),
-      client: newInvoice.client,
-      amount: `$${totalAmount.toFixed(2)}`,
-      status: "draft",
-      dueDate: newInvoice.dueDate,
-      issueDate: new Date().toISOString().split('T')[0],
-      items: newInvoice.items.length
-    };
+    if (editingInvoice) {
+      // Update existing invoice
+      const updatedInvoice: Invoice = {
+        ...editingInvoice,
+        client: newInvoice.client,
+        amount: `$${totalAmount.toFixed(2)}`,
+        dueDate: newInvoice.dueDate,
+        items: newInvoice.items.length
+      };
 
-    setInvoices([invoice, ...invoices]);
+      setInvoices(invoices.map(invoice => 
+        invoice.id === editingInvoice.id ? updatedInvoice : invoice
+      ));
+      
+      toast({
+        title: "Invoice Updated",
+        description: `Invoice ${updatedInvoice.number} has been updated successfully.`
+      });
+    } else {
+      // Create new invoice
+      const invoice: Invoice = {
+        id: Date.now().toString(),
+        number: generateInvoiceNumber(),
+        client: newInvoice.client,
+        amount: `$${totalAmount.toFixed(2)}`,
+        status: "draft",
+        dueDate: newInvoice.dueDate,
+        issueDate: new Date().toISOString().split('T')[0],
+        items: newInvoice.items.length
+      };
+
+      setInvoices([invoice, ...invoices]);
+      
+      toast({
+        title: "Invoice Created",
+        description: `Invoice ${invoice.number} has been created successfully.`
+      });
+    }
+
+    // Reset form
     setNewInvoice({
       client: "",
       dueDate: "",
@@ -173,11 +202,18 @@ const Invoices = () => {
       unitPrice: 0
     });
     setIsDialogOpen(false);
-    
-    toast({
-      title: "Invoice Created",
-      description: `Invoice ${invoice.number} has been created successfully.`
+    setEditingInvoice(null);
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setNewInvoice({
+      client: invoice.client,
+      dueDate: invoice.dueDate,
+      paymentTerms: "30", // Default since we don't store this in the invoice
+      items: [] // Would need to fetch actual items for full editing
     });
+    setIsDialogOpen(true);
   };
 
   const filteredInvoices = invoices.filter(invoice =>
@@ -223,9 +259,9 @@ const Invoices = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Invoice</DialogTitle>
+              <DialogTitle>{editingInvoice ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
               <DialogDescription>
-                Create a new invoice with multiple products or services.
+                {editingInvoice ? "Update invoice information." : "Create a new invoice with multiple products or services."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -408,7 +444,7 @@ const Invoices = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={newInvoice.items.length === 0}>
-                Create Invoice
+                {editingInvoice ? "Update Invoice" : "Create Invoice"}
               </Button>
             </form>
           </DialogContent>
@@ -502,7 +538,7 @@ const Invoices = () => {
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm">

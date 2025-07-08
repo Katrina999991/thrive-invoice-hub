@@ -76,24 +76,60 @@ const Companies = () => {
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const company: Company = {
-      id: Date.now().toString(),
-      name: newCompany.name,
-      industry: newCompany.industry,
-      address: newCompany.address,
-      phone: newCompany.phone,
-      email: newCompany.email,
-      status: "active",
-      employees: parseInt(newCompany.employees) || 0,
-      revenue: newCompany.revenue,
-      defaultPaymentTerms: newCompany.defaultPaymentTerms
-    };
+    if (editingCompany) {
+      // Update existing company
+      const updatedCompany: Company = {
+        ...editingCompany,
+        name: newCompany.name,
+        industry: newCompany.industry,
+        address: newCompany.address,
+        phone: newCompany.phone,
+        email: newCompany.email,
+        employees: parseInt(newCompany.employees) || 0,
+        revenue: newCompany.revenue,
+        defaultPaymentTerms: newCompany.defaultPaymentTerms
+      };
 
-    setCompanies([company, ...companies]);
+      setCompanies(companies.map(company => 
+        company.id === editingCompany.id ? updatedCompany : company
+      ));
+      
+      toast({
+        title: "Company Updated",
+        description: "The company has been updated successfully."
+      });
+    } else {
+      // Add new company
+      const company: Company = {
+        id: Date.now().toString(),
+        name: newCompany.name,
+        industry: newCompany.industry,
+        address: newCompany.address,
+        phone: newCompany.phone,
+        email: newCompany.email,
+        status: "active",
+        employees: parseInt(newCompany.employees) || 0,
+        revenue: newCompany.revenue,
+        defaultPaymentTerms: newCompany.defaultPaymentTerms
+      };
+
+      setCompanies([company, ...companies]);
+      
+      toast({
+        title: "Company Added",
+        description: "The company has been added successfully."
+      });
+    }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNewCompany({
       name: "",
       industry: "",
@@ -104,12 +140,23 @@ const Companies = () => {
       revenue: "",
       defaultPaymentTerms: "30"
     });
+    setEditingCompany(null);
     setIsDialogOpen(false);
-    
-    toast({
-      title: "Company Added",
-      description: "The company has been added successfully."
+  };
+
+  const handleEdit = (company: Company) => {
+    setEditingCompany(company);
+    setNewCompany({
+      name: company.name,
+      industry: company.industry,
+      address: company.address,
+      phone: company.phone,
+      email: company.email,
+      employees: company.employees.toString(),
+      revenue: company.revenue,
+      defaultPaymentTerms: company.defaultPaymentTerms
     });
+    setIsDialogOpen(true);
   };
 
   return (
@@ -130,9 +177,9 @@ const Companies = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Company</DialogTitle>
+              <DialogTitle>{editingCompany ? "Edit Company" : "Add New Company"}</DialogTitle>
               <DialogDescription>
-                Add a new company to your business management system.
+                {editingCompany ? "Update company information." : "Add a new company to your business management system."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -230,7 +277,7 @@ const Companies = () => {
                 </Select>
               </div>
               <Button type="submit" className="w-full">
-                Add Company
+                {editingCompany ? "Update Company" : "Add Company"}
               </Button>
             </form>
           </DialogContent>
@@ -284,7 +331,7 @@ const Companies = () => {
               </div>
 
               <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => handleEdit(company)}>
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="sm">

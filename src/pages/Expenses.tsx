@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Expense {
@@ -61,21 +61,54 @@ const Expenses = () => {
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const expense: Expense = {
-      id: Date.now().toString(),
-      description: newExpense.description,
-      amount: parseFloat(newExpense.amount),
-      category: newExpense.category,
-      date: newExpense.date,
-      company: newExpense.company,
-      status: "pending"
-    };
+    if (editingExpense) {
+      // Update existing expense
+      const updatedExpense: Expense = {
+        ...editingExpense,
+        description: newExpense.description,
+        amount: parseFloat(newExpense.amount) || 0,
+        category: newExpense.category,
+        company: newExpense.company,
+        date: newExpense.date
+      };
 
-    setExpenses([expense, ...expenses]);
+      setExpenses(expenses.map(expense => 
+        expense.id === editingExpense.id ? updatedExpense : expense
+      ));
+      
+      toast({
+        title: "Expense Updated",
+        description: "The expense has been updated successfully."
+      });
+    } else {
+      // Add new expense
+      const expense: Expense = {
+        id: Date.now().toString(),
+        description: newExpense.description,
+        amount: parseFloat(newExpense.amount),
+        category: newExpense.category,
+        date: newExpense.date,
+        company: newExpense.company,
+        status: "pending"
+      };
+
+      setExpenses([expense, ...expenses]);
+      
+      toast({
+        title: "Expense Added",
+        description: "Your expense has been recorded successfully."
+      });
+    }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNewExpense({
       description: "",
       amount: "",
@@ -83,12 +116,20 @@ const Expenses = () => {
       date: "",
       company: ""
     });
+    setEditingExpense(null);
     setIsDialogOpen(false);
-    
-    toast({
-      title: "Expense Added",
-      description: "Your expense has been recorded successfully."
+  };
+
+  const handleEdit = (expense: Expense) => {
+    setEditingExpense(expense);
+    setNewExpense({
+      description: expense.description,
+      amount: expense.amount.toString(),
+      category: expense.category,
+      company: expense.company,
+      date: expense.date
     });
+    setIsDialogOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -122,9 +163,9 @@ const Expenses = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Expense</DialogTitle>
+              <DialogTitle>{editingExpense ? "Edit Expense" : "Add New Expense"}</DialogTitle>
               <DialogDescription>
-                Record a new business expense here.
+                {editingExpense ? "Update expense information." : "Record a new business expense here."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -192,7 +233,7 @@ const Expenses = () => {
                 </Select>
               </div>
               <Button type="submit" className="w-full">
-                Add Expense
+                {editingExpense ? "Update Expense" : "Add Expense"}
               </Button>
             </form>
           </DialogContent>
@@ -254,8 +295,16 @@ const Expenses = () => {
                     {expense.company} • {expense.category} • {expense.date}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center space-x-2">
                   <div className="text-lg font-semibold">${expense.amount.toFixed(2)}</div>
+                  <div className="flex space-x-1">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

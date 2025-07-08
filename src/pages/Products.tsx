@@ -86,22 +86,56 @@ const Products = () => {
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const item: Product = {
-      id: Date.now().toString(),
-      name: newItem.name,
-      description: newItem.description,
-      price: newItem.price,
-      category: newItem.category,
-      stock: newItem.type === "product" ? parseInt(newItem.stock) || 0 : undefined,
-      status: "active",
-      type: newItem.type
-    };
+    if (editingProduct) {
+      // Update existing item
+      const updatedItem: Product = {
+        ...editingProduct,
+        name: newItem.name,
+        description: newItem.description,
+        price: newItem.price,
+        category: newItem.category,
+        stock: newItem.type === "product" ? parseInt(newItem.stock) || 0 : undefined,
+        type: newItem.type
+      };
 
-    setItems([item, ...items]);
+      setItems(items.map(item => 
+        item.id === editingProduct.id ? updatedItem : item
+      ));
+      
+      toast({
+        title: "Item Updated",
+        description: `The ${newItem.type} has been updated successfully.`
+      });
+    } else {
+      // Add new item
+      const item: Product = {
+        id: Date.now().toString(),
+        name: newItem.name,
+        description: newItem.description,
+        price: newItem.price,
+        category: newItem.category,
+        stock: newItem.type === "product" ? parseInt(newItem.stock) || 0 : undefined,
+        status: "active",
+        type: newItem.type
+      };
+
+      setItems([item, ...items]);
+      
+      toast({
+        title: "Item Added",
+        description: `The ${newItem.type} has been added successfully.`
+      });
+    }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNewItem({
       name: "",
       description: "",
@@ -110,12 +144,21 @@ const Products = () => {
       stock: "",
       type: "product"
     });
+    setEditingProduct(null);
     setIsDialogOpen(false);
-    
-    toast({
-      title: "Item Added",
-      description: `The ${newItem.type} has been added successfully.`
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setNewItem({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+      stock: product.stock?.toString() || "",
+      type: product.type
     });
+    setIsDialogOpen(true);
   };
 
   const filteredItems = items.filter(item =>
@@ -169,7 +212,7 @@ const Products = () => {
         )}
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
             <Edit className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm">
@@ -198,9 +241,9 @@ const Products = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Item</DialogTitle>
+              <DialogTitle>{editingProduct ? "Edit Item" : "Add New Item"}</DialogTitle>
               <DialogDescription>
-                Add a new product or service to your catalog.
+                {editingProduct ? "Update product or service information." : "Add a new product or service to your catalog."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -276,7 +319,7 @@ const Products = () => {
                 </div>
               )}
               <Button type="submit" className="w-full">
-                Add {newItem.type === "product" ? "Product" : "Service"}
+                {editingProduct ? "Update Item" : `Add ${newItem.type === "product" ? "Product" : "Service"}`}
               </Button>
             </form>
           </DialogContent>
