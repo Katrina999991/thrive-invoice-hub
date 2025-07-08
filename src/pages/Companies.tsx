@@ -20,6 +20,7 @@ interface Company {
   status: "active" | "inactive";
   employees: number;
   revenue: string;
+  defaultPaymentTerms: string;
 }
 
 const Companies = () => {
@@ -34,7 +35,8 @@ const Companies = () => {
       email: "contact@techsolutions.com",
       status: "active",
       employees: 150,
-      revenue: "$2.5M"
+      revenue: "$2.5M",
+      defaultPaymentTerms: "30"
     },
     {
       id: "2", 
@@ -45,7 +47,8 @@ const Companies = () => {
       email: "info@greenenergy.com",
       status: "active",
       employees: 89,
-      revenue: "$1.8M"
+      revenue: "$1.8M",
+      defaultPaymentTerms: "15"
     },
     {
       id: "3",
@@ -56,7 +59,8 @@ const Companies = () => {
       email: "hello@creativedesign.com",
       status: "inactive",
       employees: 25,
-      revenue: "$450K"
+      revenue: "$450K",
+      defaultPaymentTerms: "45"
     }
   ]);
 
@@ -67,7 +71,8 @@ const Companies = () => {
     phone: "",
     email: "",
     employees: "",
-    revenue: ""
+    revenue: "",
+    defaultPaymentTerms: "30"
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -84,7 +89,8 @@ const Companies = () => {
       email: newCompany.email,
       status: "active",
       employees: parseInt(newCompany.employees) || 0,
-      revenue: newCompany.revenue
+      revenue: newCompany.revenue,
+      defaultPaymentTerms: newCompany.defaultPaymentTerms
     };
 
     setCompanies([company, ...companies]);
@@ -95,7 +101,8 @@ const Companies = () => {
       phone: "",
       email: "",
       employees: "",
-      revenue: ""
+      revenue: "",
+      defaultPaymentTerms: "30"
     });
     setIsDialogOpen(false);
     
@@ -205,6 +212,22 @@ const Companies = () => {
                   value={newCompany.revenue}
                   onChange={(e) => setNewCompany({...newCompany, revenue: e.target.value})}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="defaultPaymentTerms">Default Payment Terms</Label>
+                <Select value={newCompany.defaultPaymentTerms} onValueChange={(value) => setNewCompany({...newCompany, defaultPaymentTerms: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select default payment terms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Net 7 days</SelectItem>
+                    <SelectItem value="15">Net 15 days</SelectItem>
+                    <SelectItem value="30">Net 30 days</SelectItem>
+                    <SelectItem value="45">Net 45 days</SelectItem>
+                    <SelectItem value="60">Net 60 days</SelectItem>
+                    <SelectItem value="0">Due on receipt</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button type="submit" className="w-full">
                 Add Company

@@ -80,6 +80,7 @@ const Invoices = () => {
   const [newInvoice, setNewInvoice] = useState({
     client: "",
     dueDate: "",
+    paymentTerms: "30",
     items: [] as InvoiceItem[]
   });
 
@@ -162,6 +163,7 @@ const Invoices = () => {
     setNewInvoice({
       client: "",
       dueDate: "",
+      paymentTerms: "30",
       items: []
     });
     setCurrentItem({
@@ -227,10 +229,30 @@ const Invoices = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="client">Client</Label>
-                  <Select value={newInvoice.client} onValueChange={(value) => setNewInvoice({...newInvoice, client: value})}>
+                  <Select value={newInvoice.client} onValueChange={(value) => {
+                    // Company default payment terms mapping
+                    const companyDefaults: Record<string, string> = {
+                      "ABC Corporation": "30",
+                      "XYZ Industries": "15", 
+                      "Tech Startup Inc": "45",
+                      "Design Studio LLC": "30"
+                    };
+                    
+                    const defaultTerms = companyDefaults[value] || "30";
+                    const issueDate = new Date();
+                    const dueDate = new Date(issueDate);
+                    dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
+                    
+                    setNewInvoice({
+                      ...newInvoice, 
+                      client: value,
+                      paymentTerms: defaultTerms,
+                      dueDate: dueDate.toISOString().split('T')[0]
+                    });
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select client" />
                     </SelectTrigger>
@@ -239,6 +261,35 @@ const Invoices = () => {
                       <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
                       <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
                       <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paymentTerms">Payment Terms</Label>
+                  <Select 
+                    value={newInvoice.paymentTerms} 
+                    onValueChange={(value) => {
+                      const issueDate = new Date();
+                      const dueDate = new Date(issueDate);
+                      dueDate.setDate(dueDate.getDate() + parseInt(value));
+                      
+                      setNewInvoice({
+                        ...newInvoice, 
+                        paymentTerms: value,
+                        dueDate: dueDate.toISOString().split('T')[0]
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment terms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Net 7 days</SelectItem>
+                      <SelectItem value="15">Net 15 days</SelectItem>
+                      <SelectItem value="30">Net 30 days</SelectItem>
+                      <SelectItem value="45">Net 45 days</SelectItem>
+                      <SelectItem value="60">Net 60 days</SelectItem>
+                      <SelectItem value="0">Due on receipt</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
