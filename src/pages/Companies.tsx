@@ -276,9 +276,14 @@ const Companies = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full">
-                {editingCompany ? "Update Company" : "Add Company"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">
+                  {editingCompany ? "Update Company" : "Add Company"}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
