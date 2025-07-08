@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Invoice {
@@ -68,11 +68,26 @@ const Invoices = () => {
     }
   ]);
 
+  interface InvoiceItem {
+    id: string;
+    productService: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }
+
   const [newInvoice, setNewInvoice] = useState({
     client: "",
-    amount: "",
     dueDate: "",
-    items: ""
+    items: [] as InvoiceItem[]
+  });
+
+  const [currentItem, setCurrentItem] = useState({
+    productService: "",
+    description: "",
+    quantity: 1,
+    unitPrice: 0
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -82,26 +97,78 @@ const Invoices = () => {
     return `INV-${String(lastNumber + 1).padStart(3, '0')}`;
   };
 
+  const addItem = () => {
+    if (!currentItem.productService || currentItem.unitPrice <= 0) return;
+
+    const newItem: InvoiceItem = {
+      id: Date.now().toString(),
+      productService: currentItem.productService,
+      description: currentItem.description,
+      quantity: currentItem.quantity,
+      unitPrice: currentItem.unitPrice,
+      total: currentItem.quantity * currentItem.unitPrice
+    };
+
+    setNewInvoice({
+      ...newInvoice,
+      items: [...newInvoice.items, newItem]
+    });
+
+    setCurrentItem({
+      productService: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0
+    });
+  };
+
+  const removeItem = (itemId: string) => {
+    setNewInvoice({
+      ...newInvoice,
+      items: newInvoice.items.filter(item => item.id !== itemId)
+    });
+  };
+
+  const calculateTotal = () => {
+    return newInvoice.items.reduce((sum, item) => sum + item.total, 0);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (newInvoice.items.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please add at least one item to the invoice.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const totalAmount = calculateTotal();
     
     const invoice: Invoice = {
       id: Date.now().toString(),
       number: generateInvoiceNumber(),
       client: newInvoice.client,
-      amount: newInvoice.amount,
+      amount: `$${totalAmount.toFixed(2)}`,
       status: "draft",
       dueDate: newInvoice.dueDate,
       issueDate: new Date().toISOString().split('T')[0],
-      items: parseInt(newInvoice.items) || 1
+      items: newInvoice.items.length
     };
 
     setInvoices([invoice, ...invoices]);
     setNewInvoice({
       client: "",
-      amount: "",
       dueDate: "",
-      items: ""
+      items: []
+    });
+    setCurrentItem({
+      productService: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0
     });
     setIsDialogOpen(false);
     
@@ -152,60 +219,144 @@ const Invoices = () => {
               Create Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Invoice</DialogTitle>
               <DialogDescription>
-                Create a new invoice for your client.
+                Create a new invoice with multiple products or services.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="client">Client</Label>
-                <Select value={newInvoice.client} onValueChange={(value) => setNewInvoice({...newInvoice, client: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
-                    <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
-                    <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
-                    <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
-                  </SelectContent>
-                </Select>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client">Client</Label>
+                  <Select value={newInvoice.client} onValueChange={(value) => setNewInvoice({...newInvoice, client: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
+                      <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
+                      <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
+                      <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={newInvoice.dueDate}
+                    onChange={(e) => setNewInvoice({...newInvoice, dueDate: e.target.value})}
+                    required
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  placeholder="e.g., $2,500.00"
-                  value={newInvoice.amount}
-                  onChange={(e) => setNewInvoice({...newInvoice, amount: e.target.value})}
-                  required
-                />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Add Items</h3>
+                <div className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-3">
+                    <Label htmlFor="productService">Product/Service</Label>
+                    <Input
+                      id="productService"
+                      placeholder="Enter item name"
+                      value={currentItem.productService}
+                      onChange={(e) => setCurrentItem({...currentItem, productService: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="Item description"
+                      value={currentItem.description}
+                      onChange={(e) => setCurrentItem({...currentItem, description: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="quantity">Quantity</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      min="1"
+                      value={currentItem.quantity}
+                      onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="unitPrice">Unit Price</Label>
+                    <Input
+                      id="unitPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={currentItem.unitPrice}
+                      onChange={(e) => setCurrentItem({...currentItem, unitPrice: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Button type="button" onClick={addItem} className="w-full">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {newInvoice.items.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Invoice Items</h4>
+                    <div className="border rounded-lg">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Product/Service</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Qty</TableHead>
+                            <TableHead>Unit Price</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead className="w-16"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {newInvoice.items.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">{item.productService}</TableCell>
+                              <TableCell>{item.description}</TableCell>
+                              <TableCell>{item.quantity}</TableCell>
+                              <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
+                              <TableCell>${item.total.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => removeItem(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-right font-medium">
+                              Total Amount:
+                            </TableCell>
+                            <TableCell className="font-bold text-lg">
+                              ${calculateTotal().toFixed(2)}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={newInvoice.dueDate}
-                  onChange={(e) => setNewInvoice({...newInvoice, dueDate: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="items">Number of Items</Label>
-                <Input
-                  id="items"
-                  type="number"
-                  placeholder="Enter number of items"
-                  value={newInvoice.items}
-                  onChange={(e) => setNewInvoice({...newInvoice, items: e.target.value})}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
+
+              <Button type="submit" className="w-full" disabled={newInvoice.items.length === 0}>
                 Create Invoice
               </Button>
             </form>
