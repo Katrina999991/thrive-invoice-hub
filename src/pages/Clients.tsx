@@ -3,9 +3,13 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Edit, Trash2, Phone, Mail, Building } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Client {
   id: string;
@@ -20,8 +24,9 @@ interface Client {
 }
 
 const Clients = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [clients] = useState<Client[]>([
+  const [clients, setClients] = useState<Client[]>([
     {
       id: "1",
       name: "John Smith",
@@ -68,6 +73,45 @@ const Clients = () => {
     }
   ]);
 
+  const [newClient, setNewClient] = useState({
+    name: "",
+    company: "",
+    email: "",
+    phone: ""
+  });
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const client: Client = {
+      id: Date.now().toString(),
+      name: newClient.name,
+      company: newClient.company,
+      email: newClient.email,
+      phone: newClient.phone,
+      status: "active",
+      totalInvoices: 0,
+      totalPaid: "$0",
+      lastActivity: new Date().toISOString().split('T')[0]
+    };
+
+    setClients([client, ...clients]);
+    setNewClient({
+      name: "",
+      company: "",
+      email: "",
+      phone: ""
+    });
+    setIsDialogOpen(false);
+    
+    toast({
+      title: "Client Added",
+      description: "The client has been added successfully."
+    });
+  };
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,10 +136,73 @@ const Clients = () => {
             Manage your clients and customer relationships
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Client
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Client
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Client</DialogTitle>
+              <DialogDescription>
+                Add a new client to your customer database.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Client Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter client name"
+                  value={newClient.name}
+                  onChange={(e) => setNewClient({...newClient, name: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company">Company</Label>
+                <Select value={newClient.company} onValueChange={(value) => setNewClient({...newClient, company: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
+                    <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
+                    <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
+                    <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={newClient.email}
+                  onChange={(e) => setNewClient({...newClient, email: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  placeholder="Enter phone number"
+                  value={newClient.phone}
+                  onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Add Client
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex items-center space-x-2">

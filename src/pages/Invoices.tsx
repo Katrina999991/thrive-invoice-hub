@@ -3,9 +3,13 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Eye, Edit, Download, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Invoice {
   id: string;
@@ -19,8 +23,9 @@ interface Invoice {
 }
 
 const Invoices = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [invoices] = useState<Invoice[]>([
+  const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: "1",
       number: "INV-001",
@@ -63,6 +68,49 @@ const Invoices = () => {
     }
   ]);
 
+  const [newInvoice, setNewInvoice] = useState({
+    client: "",
+    amount: "",
+    dueDate: "",
+    items: ""
+  });
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const generateInvoiceNumber = () => {
+    const lastNumber = Math.max(...invoices.map(inv => parseInt(inv.number.split('-')[1]) || 0));
+    return `INV-${String(lastNumber + 1).padStart(3, '0')}`;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const invoice: Invoice = {
+      id: Date.now().toString(),
+      number: generateInvoiceNumber(),
+      client: newInvoice.client,
+      amount: newInvoice.amount,
+      status: "draft",
+      dueDate: newInvoice.dueDate,
+      issueDate: new Date().toISOString().split('T')[0],
+      items: parseInt(newInvoice.items) || 1
+    };
+
+    setInvoices([invoice, ...invoices]);
+    setNewInvoice({
+      client: "",
+      amount: "",
+      dueDate: "",
+      items: ""
+    });
+    setIsDialogOpen(false);
+    
+    toast({
+      title: "Invoice Created",
+      description: `Invoice ${invoice.number} has been created successfully.`
+    });
+  };
+
   const filteredInvoices = invoices.filter(invoice =>
     invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.client.toLowerCase().includes(searchTerm.toLowerCase())
@@ -97,10 +145,72 @@ const Invoices = () => {
             Create and manage your invoices
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Invoice
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Invoice</DialogTitle>
+              <DialogDescription>
+                Create a new invoice for your client.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="client">Client</Label>
+                <Select value={newInvoice.client} onValueChange={(value) => setNewInvoice({...newInvoice, client: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
+                    <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
+                    <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
+                    <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount</Label>
+                <Input
+                  id="amount"
+                  placeholder="e.g., $2,500.00"
+                  value={newInvoice.amount}
+                  onChange={(e) => setNewInvoice({...newInvoice, amount: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={newInvoice.dueDate}
+                  onChange={(e) => setNewInvoice({...newInvoice, dueDate: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="items">Number of Items</Label>
+                <Input
+                  id="items"
+                  type="number"
+                  placeholder="Enter number of items"
+                  value={newInvoice.items}
+                  onChange={(e) => setNewInvoice({...newInvoice, items: e.target.value})}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Create Invoice
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

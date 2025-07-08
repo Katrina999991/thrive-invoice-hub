@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Company {
   id: string;
@@ -20,7 +23,8 @@ interface Company {
 }
 
 const Companies = () => {
-  const [companies] = useState<Company[]>([
+  const { toast } = useToast();
+  const [companies, setCompanies] = useState<Company[]>([
     {
       id: "1",
       name: "Tech Solutions Inc",
@@ -56,6 +60,51 @@ const Companies = () => {
     }
   ]);
 
+  const [newCompany, setNewCompany] = useState({
+    name: "",
+    industry: "",
+    address: "",
+    phone: "",
+    email: "",
+    employees: "",
+    revenue: ""
+  });
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const company: Company = {
+      id: Date.now().toString(),
+      name: newCompany.name,
+      industry: newCompany.industry,
+      address: newCompany.address,
+      phone: newCompany.phone,
+      email: newCompany.email,
+      status: "active",
+      employees: parseInt(newCompany.employees) || 0,
+      revenue: newCompany.revenue
+    };
+
+    setCompanies([company, ...companies]);
+    setNewCompany({
+      name: "",
+      industry: "",
+      address: "",
+      phone: "",
+      email: "",
+      employees: "",
+      revenue: ""
+    });
+    setIsDialogOpen(false);
+    
+    toast({
+      title: "Company Added",
+      description: "The company has been added successfully."
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -65,10 +114,104 @@ const Companies = () => {
             Manage your business companies and organizations
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Company
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Company
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Company</DialogTitle>
+              <DialogDescription>
+                Add a new company to your business management system.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Company Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter company name"
+                  value={newCompany.name}
+                  onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="industry">Industry</Label>
+                <Select value={newCompany.industry} onValueChange={(value) => setNewCompany({...newCompany, industry: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="Retail">Retail</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  placeholder="Enter company address"
+                  value={newCompany.address}
+                  onChange={(e) => setNewCompany({...newCompany, address: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  placeholder="Enter phone number"
+                  value={newCompany.phone}
+                  onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={newCompany.email}
+                  onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="employees">Number of Employees</Label>
+                <Input
+                  id="employees"
+                  type="number"
+                  placeholder="Enter number of employees"
+                  value={newCompany.employees}
+                  onChange={(e) => setNewCompany({...newCompany, employees: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="revenue">Annual Revenue</Label>
+                <Input
+                  id="revenue"
+                  placeholder="e.g., $1.2M"
+                  value={newCompany.revenue}
+                  onChange={(e) => setNewCompany({...newCompany, revenue: e.target.value})}
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Add Company
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
