@@ -11,6 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+interface InvoiceItem {
+  id: string;
+  productService: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
 interface Invoice {
   id: string;
   number: string;
@@ -20,11 +29,36 @@ interface Invoice {
   dueDate: string;
   issueDate: string;
   items: number;
+  itemDetails?: InvoiceItem[];
 }
 
 const Invoices = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Helper function to generate sample items for existing invoices
+  const generateSampleItems = (invoiceId: string, itemCount: number): InvoiceItem[] => {
+    const sampleItems = {
+      "1": [
+        { id: "1-1", productService: "Web Development", description: "Frontend development services", quantity: 40, unitPrice: 50, total: 2000 },
+        { id: "1-2", productService: "UI Design", description: "User interface design", quantity: 20, unitPrice: 25, total: 500 },
+      ],
+      "2": [
+        { id: "2-1", productService: "Consultation", description: "Technical consultation", quantity: 15, unitPrice: 120, total: 1800 },
+      ],
+      "3": [
+        { id: "3-1", productService: "Full Stack Development", description: "Complete web application", quantity: 1, unitPrice: 5000, total: 5000 },
+      ],
+      "4": [
+        { id: "4-1", productService: "Logo Design", description: "Brand logo creation", quantity: 1, unitPrice: 800, total: 800 },
+        { id: "4-2", productService: "Business Cards", description: "Design and printing", quantity: 500, unitPrice: 2, total: 1000 },
+        { id: "4-3", productService: "Website Mockup", description: "Initial design concepts", quantity: 3, unitPrice: 400, total: 1200 },
+        { id: "4-4", productService: "SEO Setup", description: "Search engine optimization", quantity: 1, unitPrice: 200, total: 200 },
+      ]
+    };
+    return sampleItems[invoiceId as keyof typeof sampleItems] || [];
+  };
+
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: "1",
@@ -34,7 +68,8 @@ const Invoices = () => {
       status: "paid",
       dueDate: "2024-01-15",
       issueDate: "2024-01-01",
-      items: 3
+      items: 2,
+      itemDetails: generateSampleItems("1", 2)
     },
     {
       id: "2",
@@ -44,7 +79,8 @@ const Invoices = () => {
       status: "sent",
       dueDate: "2024-01-20",
       issueDate: "2024-01-05",
-      items: 2
+      items: 1,
+      itemDetails: generateSampleItems("2", 1)
     },
     {
       id: "3",
@@ -54,7 +90,8 @@ const Invoices = () => {
       status: "overdue",
       dueDate: "2024-01-10",
       issueDate: "2023-12-25",
-      items: 1
+      items: 1,
+      itemDetails: generateSampleItems("3", 1)
     },
     {
       id: "4",
@@ -64,18 +101,10 @@ const Invoices = () => {
       status: "draft",
       dueDate: "2024-01-25",
       issueDate: "2024-01-15",
-      items: 4
+      items: 4,
+      itemDetails: generateSampleItems("4", 4)
     }
   ]);
-
-  interface InvoiceItem {
-    id: string;
-    productService: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    total: number;
-  }
 
   const [newInvoice, setNewInvoice] = useState({
     client: "",
@@ -158,7 +187,8 @@ const Invoices = () => {
         client: newInvoice.client,
         amount: `$${totalAmount.toFixed(2)}`,
         dueDate: newInvoice.dueDate,
-        items: newInvoice.items.length
+        items: newInvoice.items.length,
+        itemDetails: newInvoice.items
       };
 
       setInvoices(invoices.map(invoice => 
@@ -179,7 +209,8 @@ const Invoices = () => {
         status: "draft",
         dueDate: newInvoice.dueDate,
         issueDate: new Date().toISOString().split('T')[0],
-        items: newInvoice.items.length
+        items: newInvoice.items.length,
+        itemDetails: newInvoice.items
       };
 
       setInvoices([invoice, ...invoices]);
@@ -513,10 +544,46 @@ const Invoices = () => {
                     <p>{viewingInvoice.dueDate}</p>
                   </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Number of Items</Label>
-                  <p>{viewingInvoice.items}</p>
-                </div>
+
+                {/* Invoice Items Table */}
+                {viewingInvoice.itemDetails && viewingInvoice.itemDetails.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-muted-foreground">Invoice Items</Label>
+                    <div className="border rounded-lg">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Product/Service</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Qty</TableHead>
+                            <TableHead className="text-right">Unit Price</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {viewingInvoice.itemDetails.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">{item.productService}</TableCell>
+                              <TableCell>{item.description}</TableCell>
+                              <TableCell className="text-right">{item.quantity}</TableCell>
+                              <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
+                              <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-muted/50">
+                            <TableCell colSpan={4} className="text-right font-semibold">
+                              Total Amount:
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-lg">
+                              {viewingInvoice.amount}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <Button onClick={() => setIsViewDialogOpen(false)}>
                     Close
