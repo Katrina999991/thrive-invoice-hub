@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Tax {
   name: string;
   percentage: number;
+  displayValue?: string; // For handling partial input like "9." or "9,"
 }
 
 interface Company {
@@ -191,7 +192,7 @@ const Companies = () => {
             Manage your business companies and organizations
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) handleCancel(); }}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -319,26 +320,33 @@ const Companies = () => {
                     </div>
                     <div className="w-24">
                       <Label htmlFor={`tax-percentage-${index}`}>%</Label>
-                      <Input
-                        id={`tax-percentage-${index}`}
-                        type="text"
-                        placeholder="0.0000"
-                        value={tax.percentage.toString()}
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          // Replace comma with period for decimal separator
-                          const normalizedValue = inputValue.replace(',', '.');
-                          
-                          // Allow empty string, single period, or valid decimal numbers
-                          if (normalizedValue === '' || normalizedValue === '.' || /^\d*\.?\d*$/.test(normalizedValue)) {
-                            const updatedTaxes = [...newCompany.taxes];
-                            // Store as number if valid, otherwise keep the string representation for partial input
-                            const numericValue = parseFloat(normalizedValue);
-                            updatedTaxes[index].percentage = isNaN(numericValue) ? (normalizedValue === '' || normalizedValue === '.' ? 0 : 0) : numericValue;
-                            setNewCompany({...newCompany, taxes: updatedTaxes});
-                          }
-                        }}
-                      />
+                       <Input
+                         id={`tax-percentage-${index}`}
+                         type="text"
+                         placeholder="0.0000"
+                         value={tax.displayValue !== undefined ? tax.displayValue : tax.percentage.toString()}
+                         onChange={(e) => {
+                           const inputValue = e.target.value;
+                           // Replace comma with period for decimal separator
+                           const normalizedValue = inputValue.replace(',', '.');
+                           
+                           // Allow empty string, single period, or valid decimal numbers
+                           if (normalizedValue === '' || normalizedValue === '.' || /^\d*\.?\d*$/.test(normalizedValue)) {
+                             const updatedTaxes = [...newCompany.taxes];
+                             const numericValue = parseFloat(normalizedValue);
+                             
+                             if (normalizedValue === '' || normalizedValue === '.') {
+                               // Keep the display value for partial input
+                               updatedTaxes[index] = { ...updatedTaxes[index], percentage: 0, displayValue: normalizedValue };
+                             } else if (!isNaN(numericValue)) {
+                               // Valid number, clear display value and set percentage
+                               updatedTaxes[index] = { ...updatedTaxes[index], percentage: numericValue, displayValue: undefined };
+                             }
+                             
+                             setNewCompany({...newCompany, taxes: updatedTaxes});
+                           }
+                         }}
+                       />
                     </div>
                     <Button
                       type="button"
@@ -358,12 +366,12 @@ const Companies = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setNewCompany({
-                        ...newCompany,
-                        taxes: [...newCompany.taxes, { name: "", percentage: 0 }]
-                      });
-                    }}
+                     onClick={() => {
+                       setNewCompany({
+                         ...newCompany,
+                         taxes: [...newCompany.taxes, { name: "", percentage: 0 }]
+                       });
+                     }}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Tax
