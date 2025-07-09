@@ -23,7 +23,10 @@ const Companies = () => {
     website: "",
     tax_id: "",
     contact_person: "",
-    default_due_days: 7
+    default_due_days: 7,
+    invoice_prefix: "INV",
+    invoice_digits: 3,
+    invoice_start_number: 1
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -80,7 +83,10 @@ const Companies = () => {
       website: "",
       tax_id: "",
       contact_person: "",
-      default_due_days: 7
+      default_due_days: 7,
+      invoice_prefix: "INV",
+      invoice_digits: 3,
+      invoice_start_number: 1
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -97,7 +103,10 @@ const Companies = () => {
       website: company.website || "",
       tax_id: company.tax_id || "",
       contact_person: company.contact_person || "",
-      default_due_days: company.default_due_days || 7
+      default_due_days: company.default_due_days || 7,
+      invoice_prefix: (company as any).invoice_prefix || "INV",
+      invoice_digits: (company as any).invoice_digits || 3,
+      invoice_start_number: (company as any).invoice_start_number || 1
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
@@ -216,6 +225,45 @@ const Companies = () => {
                   value={newCompany.default_due_days}
                   onChange={(e) => setNewCompany({...newCompany, default_due_days: parseInt(e.target.value) || 7})}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Invoice Numbering</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label htmlFor="invoicePrefix" className="text-sm">Prefix</Label>
+                    <Input
+                      id="invoicePrefix"
+                      placeholder="INV"
+                      value={newCompany.invoice_prefix}
+                      onChange={(e) => setNewCompany({...newCompany, invoice_prefix: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="invoiceDigits" className="text-sm">Digits</Label>
+                    <Input
+                      id="invoiceDigits"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={newCompany.invoice_digits}
+                      onChange={(e) => setNewCompany({...newCompany, invoice_digits: Number(e.target.value)})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="invoiceStartNumber" className="text-sm">Start #</Label>
+                    <Input
+                      id="invoiceStartNumber"
+                      type="number"
+                      min="1"
+                      value={newCompany.invoice_start_number}
+                      onChange={(e) => setNewCompany({...newCompany, invoice_start_number: Number(e.target.value)})}
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Preview: {newCompany.invoice_prefix}-{String(newCompany.invoice_start_number).padStart(newCompany.invoice_digits, '0')}
+                </p>
               </div>
               
               <div className="space-y-2">

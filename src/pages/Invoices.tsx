@@ -13,6 +13,7 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useProducts } from "@/hooks/useProducts";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Client = Tables<"clients">;
@@ -170,9 +171,23 @@ const Invoices = () => {
         total: totalAmount
       });
     } else {
+      // Generate invoice number using the company's settings
+      const { data: invoiceNumber, error: numberError } = await supabase
+        .rpc('generate_invoice_number', { company_id: selectedCompanyId });
+
+      if (numberError) {
+        console.error('Error generating invoice number:', numberError);
+        toast({
+          title: "Error",
+          description: "Failed to generate invoice number",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Create new invoice
       await createInvoice({
-        invoice_number: generateInvoiceNumber(),
+        invoice_number: invoiceNumber,
         client_id: newInvoice.client_id,
         due_date: newInvoice.due_date,
         terms: newInvoice.terms,

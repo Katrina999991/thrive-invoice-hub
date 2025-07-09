@@ -69,9 +69,13 @@ export type Database = {
           address: string | null
           contact_person: string | null
           created_at: string
+          current_invoice_number: number | null
           default_due_days: number | null
           email: string | null
           id: string
+          invoice_digits: number | null
+          invoice_prefix: string | null
+          invoice_start_number: number | null
           name: string
           phone: string | null
           tax_id: string | null
@@ -84,9 +88,13 @@ export type Database = {
           address?: string | null
           contact_person?: string | null
           created_at?: string
+          current_invoice_number?: number | null
           default_due_days?: number | null
           email?: string | null
           id?: string
+          invoice_digits?: number | null
+          invoice_prefix?: string | null
+          invoice_start_number?: number | null
           name: string
           phone?: string | null
           tax_id?: string | null
@@ -99,9 +107,13 @@ export type Database = {
           address?: string | null
           contact_person?: string | null
           created_at?: string
+          current_invoice_number?: number | null
           default_due_days?: number | null
           email?: string | null
           id?: string
+          invoice_digits?: number | null
+          invoice_prefix?: string | null
+          invoice_start_number?: number | null
           name?: string
           phone?: string | null
           tax_id?: string | null
@@ -367,7 +379,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_invoice_number: {
+        Args: { company_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
