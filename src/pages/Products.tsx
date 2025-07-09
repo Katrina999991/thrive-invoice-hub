@@ -9,126 +9,48 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Package, Wrench } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProducts } from "@/hooks/useProducts";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: string;
-  category: string;
-  stock?: number;
-  status: "active" | "inactive";
-  type: "product" | "service";
-}
 
 const Products = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [items, setItems] = useState<Product[]>([
-    {
-      id: "1",
-      name: "Website Development",
-      description: "Complete website development service",
-      price: "$2,500",
-      category: "Web Development",
-      status: "active",
-      type: "service"
-    },
-    {
-      id: "2",
-      name: "Mobile App Development",
-      description: "Native mobile application development",
-      price: "$5,000",
-      category: "Mobile Development",
-      status: "active",
-      type: "service"
-    },
-    {
-      id: "3",
-      name: "Software License",
-      description: "Annual software license subscription",
-      price: "$299",
-      category: "Software",
-      stock: 50,
-      status: "active",
-      type: "product"
-    },
-    {
-      id: "4",
-      name: "Consulting Hours",
-      description: "Technical consulting service per hour",
-      price: "$150",
-      category: "Consulting",
-      status: "active",
-      type: "service"
-    },
-    {
-      id: "5",
-      name: "Hardware Package",
-      description: "Complete hardware setup package",
-      price: "$1,200",
-      category: "Hardware",
-      stock: 15,
-      status: "active",
-      type: "product"
-    }
-  ]);
+  const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
 
   const [newItem, setNewItem] = useState({
     name: "",
     description: "",
     price: "",
     category: "",
-    stock: "",
-    type: "product" as "product" | "service"
+    quantity: "",
+    unit: "piece"
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingProduct) {
-      // Update existing item
-      const updatedItem: Product = {
-        ...editingProduct,
+      await updateProduct(editingProduct.id, {
         name: newItem.name,
         description: newItem.description,
-        price: newItem.price,
+        price: parseFloat(newItem.price) || 0,
         category: newItem.category,
-        stock: newItem.type === "product" ? parseInt(newItem.stock) || 0 : undefined,
-        type: newItem.type
-      };
-
-      setItems(items.map(item => 
-        item.id === editingProduct.id ? updatedItem : item
-      ));
-      
-      toast({
-        title: "Item Updated",
-        description: `The ${newItem.type} has been updated successfully.`
+        quantity: parseInt(newItem.quantity) || 0,
+        unit: newItem.unit
       });
     } else {
-      // Add new item
-      const item: Product = {
-        id: Date.now().toString(),
+      await createProduct({
         name: newItem.name,
         description: newItem.description,
-        price: newItem.price,
+        price: parseFloat(newItem.price) || 0,
         category: newItem.category,
-        stock: newItem.type === "product" ? parseInt(newItem.stock) || 0 : undefined,
-        status: "active",
-        type: newItem.type
-      };
-
-      setItems([item, ...items]);
-      
-      toast({
-        title: "Item Added",
-        description: `The ${newItem.type} has been added successfully.`
+        quantity: parseInt(newItem.quantity) || 0,
+        unit: newItem.unit
       });
     }
 
@@ -141,42 +63,50 @@ const Products = () => {
       description: "",
       price: "",
       category: "",
-      stock: "",
-      type: "product"
+      quantity: "",
+      unit: "piece"
     });
     setEditingProduct(null);
     setIsDialogOpen(false);
   };
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product: any) => {
     setEditingProduct(product);
     setNewItem({
       name: product.name,
-      description: product.description,
-      price: product.price,
-      category: product.category,
-      stock: product.stock?.toString() || "",
-      type: product.type
+      description: product.description || "",
+      price: product.price.toString(),
+      category: product.category || "",
+      quantity: product.quantity?.toString() || "",
+      unit: product.unit || "piece"
     });
     setIsDialogOpen(true);
   };
 
-  const filteredItems = items.filter(item =>
+  const filteredItems = products.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const products = filteredItems.filter(item => item.type === "product");
-  const services = filteredItems.filter(item => item.type === "service");
+  const productsWithStock = filteredItems.filter(item => item.quantity !== null);
+  const services = filteredItems.filter(item => item.quantity === null);
 
-  const ItemCard = ({ item }: { item: Product }) => (
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  const ItemCard = ({ item }: { item: any }) => (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-              {item.type === "product" ? (
+              {item.quantity !== null ? (
                 <Package className="h-5 w-5 text-primary" />
               ) : (
                 <Wrench className="h-5 w-5 text-primary" />
@@ -187,8 +117,8 @@ const Products = () => {
               <CardDescription>{item.description}</CardDescription>
             </div>
           </div>
-          <Badge variant={item.status === "active" ? "default" : "secondary"}>
-            {item.status}
+          <Badge variant={item.is_active ? "default" : "secondary"}>
+            {item.is_active ? "Active" : "Inactive"}
           </Badge>
         </div>
       </CardHeader>
@@ -196,18 +126,18 @@ const Products = () => {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Category</p>
-            <p className="font-medium">{item.category}</p>
+            <p className="font-medium">{item.category || "—"}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Price</p>
-            <p className="text-xl font-bold text-green-600">{item.price}</p>
+            <p className="text-xl font-bold text-green-600">${item.price}</p>
           </div>
         </div>
 
-        {item.stock !== undefined && (
+        {item.quantity !== null && (
           <div>
             <p className="text-sm font-medium text-muted-foreground">Stock</p>
-            <p className="font-medium">{item.stock} units</p>
+            <p className="font-medium">{item.quantity} {item.unit}</p>
           </div>
         )}
 
@@ -215,7 +145,7 @@ const Products = () => {
           <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => deleteProduct(item.id)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -248,18 +178,6 @@ const Products = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={newItem.type} onValueChange={(value: "product" | "service") => setNewItem({...newItem, type: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="service">Service</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
@@ -282,7 +200,9 @@ const Products = () => {
                 <Label htmlFor="price">Price</Label>
                 <Input
                   id="price"
-                  placeholder="e.g., $299 or $2,500"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
                   value={newItem.price}
                   onChange={(e) => setNewItem({...newItem, price: e.target.value})}
                   required
@@ -305,24 +225,37 @@ const Products = () => {
                   </SelectContent>
                 </Select>
               </div>
-              {newItem.type === "product" && (
-                <div className="space-y-2">
-                  <Label htmlFor="stock">Stock Quantity</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    placeholder="Enter stock quantity"
-                    value={newItem.stock}
-                    onChange={(e) => setNewItem({...newItem, stock: e.target.value})}
-                  />
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity (leave empty for services)</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  placeholder="Enter quantity"
+                  value={newItem.quantity}
+                  onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unit">Unit</Label>
+                <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="piece">Piece</SelectItem>
+                    <SelectItem value="hour">Hour</SelectItem>
+                    <SelectItem value="day">Day</SelectItem>
+                    <SelectItem value="month">Month</SelectItem>
+                    <SelectItem value="year">Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
-                  {editingProduct ? "Update Item" : `Add ${newItem.type === "product" ? "Product" : "Service"}`}
+                  {editingProduct ? "Update Item" : "Add Item"}
                 </Button>
               </div>
             </form>
@@ -345,7 +278,7 @@ const Products = () => {
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">All Items ({filteredItems.length})</TabsTrigger>
-          <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
+          <TabsTrigger value="products">Products ({productsWithStock.length})</TabsTrigger>
           <TabsTrigger value="services">Services ({services.length})</TabsTrigger>
         </TabsList>
 
@@ -359,7 +292,7 @@ const Products = () => {
 
         <TabsContent value="products" className="space-y-4">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((item) => (
+            {productsWithStock.map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}
           </div>

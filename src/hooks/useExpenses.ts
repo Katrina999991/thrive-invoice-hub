@@ -1,0 +1,140 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+
+type Expense = Tables<"expenses">;
+type ExpenseInsert = TablesInsert<"expenses">;
+type ExpenseUpdate = TablesUpdate<"expenses">;
+
+export const useExpenses = () => {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const fetchExpenses = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select(`
+          *,
+          clients (
+            name,
+            contact_person
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("expense_date", { ascending: false });
+
+      if (error) throw error;
+      setExpenses(data || []);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch expenses",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createExpense = async (expenseData: Omit<ExpenseInsert, "user_id">) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from("expenses")
+        .insert({ ...expenseData, user_id: user.id })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchExpenses();
+      
+      toast({
+        title: "Success",
+        description: "Expense created successfully"
+      });
+
+      return data;
+    } catch (error) {
+      console.error("Error creating expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create expense",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updateExpense = async (id: string, updates: ExpenseUpdate) => {
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .update(updates)
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await fetchExpenses();
+      
+      toast({
+        title: "Success",
+        description: "Expense updated successfully"
+      });
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update expense",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteExpense = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await fetchExpenses();
+      
+      toast({
+        title: "Success",
+        description: "Expense deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete expense",
+        variant: "destructive"
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, [user]);
+
+  return {
+    expenses,
+    loading,
+    createExpense,
+    updateExpense,
+    deleteExpense,
+    refetch: fetchExpenses
+  };
+};

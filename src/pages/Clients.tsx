@@ -8,133 +8,50 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Phone, Mail, Building } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useClients } from "@/hooks/useClients";
+import { useCompanies } from "@/hooks/useCompanies";
 
-interface Client {
-  id: string;
-  contactName: string;
-  clientCompany: string;
-  serviceProvider: string; // Which of our companies serves this client
-  email: string;
-  phone: string;
-  address?: string;
-  status: "active" | "inactive" | "pending";
-  totalInvoices: number;
-  totalPaid: string;
-  lastActivity: string;
-}
 
 const Clients = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: "1",
-      contactName: "John Smith",
-      clientCompany: "Statis Inc",
-      serviceProvider: "Tech Solutions Inc",
-      email: "john.smith@statis.com",
-      phone: "+1 (555) 123-4567",
-      status: "active",
-      totalInvoices: 12,
-      totalPaid: "$45,230",
-      lastActivity: "2024-01-15"
-    },
-    {
-      id: "2",
-      contactName: "Sarah Johnson",
-      clientCompany: "Innovate Corp",
-      serviceProvider: "Tech Solutions Inc",
-      email: "sarah.j@innovate.com",
-      phone: "+1 (555) 987-6543",
-      status: "active",
-      totalInvoices: 8,
-      totalPaid: "$28,450",
-      lastActivity: "2024-01-14"
-    },
-    {
-      id: "3",
-      contactName: "Michael Chen",
-      clientCompany: "EcoTech Solutions",
-      serviceProvider: "Green Energy Corp",
-      email: "m.chen@ecotech.com",
-      phone: "+1 (555) 555-0123",
-      status: "pending",
-      totalInvoices: 3,
-      totalPaid: "$12,000",
-      lastActivity: "2024-01-10"
-    },
-    {
-      id: "4",
-      contactName: "Emily Davis",
-      clientCompany: "Visual Arts Ltd",
-      serviceProvider: "Creative Design Studio",
-      email: "emily@visualarts.com",
-      phone: "+1 (555) 111-2222",
-      status: "inactive",
-      totalInvoices: 15,
-      totalPaid: "$67,890",
-      lastActivity: "2023-12-20"
-    }
-  ]);
+  const { clients, loading, createClient, updateClient, deleteClient } = useClients();
+  const { companies } = useCompanies();
 
   const [newClient, setNewClient] = useState({
-    contactName: "",
-    clientCompany: "",
-    serviceProvider: "",
+    name: "",
+    contact_person: "",
+    company_id: "",
     email: "",
     phone: "",
     address: ""
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<any>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingClient) {
-      // Update existing client
-      const updatedClient: Client = {
-        ...editingClient,
-        contactName: newClient.contactName,
-        clientCompany: newClient.clientCompany,
-        serviceProvider: newClient.serviceProvider,
+      await updateClient(editingClient.id, {
+        name: newClient.name,
+        contact_person: newClient.contact_person,
+        company_id: newClient.company_id || null,
         email: newClient.email,
         phone: newClient.phone,
         address: newClient.address
-      };
-
-      setClients(clients.map(client => 
-        client.id === editingClient.id ? updatedClient : client
-      ));
-      
-      toast({
-        title: "Client Updated",
-        description: "The client has been updated successfully."
       });
     } else {
-      // Add new client
-      const client: Client = {
-        id: Date.now().toString(),
-        contactName: newClient.contactName,
-        clientCompany: newClient.clientCompany,
-        serviceProvider: newClient.serviceProvider,
+      await createClient({
+        name: newClient.name,
+        contact_person: newClient.contact_person,
+        company_id: newClient.company_id || null,
         email: newClient.email,
         phone: newClient.phone,
-        address: newClient.address,
-        status: "active",
-        totalInvoices: 0,
-        totalPaid: "$0.00",
-        lastActivity: new Date().toISOString().split('T')[0]
-      };
-
-      setClients([client, ...clients]);
-      
-      toast({
-        title: "Client Added",
-        description: "The client has been added successfully."
+        address: newClient.address
       });
     }
 
@@ -143,9 +60,9 @@ const Clients = () => {
 
   const resetForm = () => {
     setNewClient({
-      contactName: "",
-      clientCompany: "",
-      serviceProvider: "",
+      name: "",
+      contact_person: "",
+      company_id: "",
       email: "",
       phone: "",
       address: ""
@@ -154,33 +71,32 @@ const Clients = () => {
     setIsDialogOpen(false);
   };
 
-  const handleEdit = (client: Client) => {
+  const handleEdit = (client: any) => {
     setEditingClient(client);
     setNewClient({
-      contactName: client.contactName,
-      clientCompany: client.clientCompany,
-      serviceProvider: client.serviceProvider,
-      email: client.email,
-      phone: client.phone,
-      address: client.address
+      name: client.name,
+      contact_person: client.contact_person || "",
+      company_id: client.company_id || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      address: client.address || ""
     });
     setIsDialogOpen(true);
   };
 
   const filteredClients = clients.filter(client =>
-    client.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.clientCompany.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active": return "default";
-      case "inactive": return "secondary";
-      case "pending": return "outline";
-      default: return "secondary";
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -207,36 +123,36 @@ const Clients = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="contactName">Contact Name</Label>
+                <Label htmlFor="name">Client Name</Label>
                 <Input
-                  id="contactName"
-                  placeholder="Enter contact name"
-                  value={newClient.contactName}
-                  onChange={(e) => setNewClient({...newClient, contactName: e.target.value})}
+                  id="name"
+                  placeholder="Enter client name"
+                  value={newClient.name}
+                  onChange={(e) => setNewClient({...newClient, name: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="clientCompany">Client Company</Label>
+                <Label htmlFor="contact_person">Contact Person</Label>
                 <Input
-                  id="clientCompany"
-                  placeholder="Enter client company name"
-                  value={newClient.clientCompany}
-                  onChange={(e) => setNewClient({...newClient, clientCompany: e.target.value})}
-                  required
+                  id="contact_person"
+                  placeholder="Enter contact person name"
+                  value={newClient.contact_person}
+                  onChange={(e) => setNewClient({...newClient, contact_person: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="serviceProvider">Service Provider</Label>
-                <Select value={newClient.serviceProvider} onValueChange={(value) => setNewClient({...newClient, serviceProvider: value})}>
+                <Label htmlFor="company_id">Service Provider</Label>
+                <Select value={newClient.company_id} onValueChange={(value) => setNewClient({...newClient, company_id: value})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select service provider" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Tech Solutions Inc">Tech Solutions Inc</SelectItem>
-                    <SelectItem value="Green Energy Corp">Green Energy Corp</SelectItem>
-                    <SelectItem value="Creative Design Studio">Creative Design Studio</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -248,7 +164,6 @@ const Clients = () => {
                   placeholder="Enter email address"
                   value={newClient.email}
                   onChange={(e) => setNewClient({...newClient, email: e.target.value})}
-                  required
                 />
               </div>
               <div className="space-y-2">
@@ -258,7 +173,15 @@ const Clients = () => {
                   placeholder="Enter phone number"
                   value={newClient.phone}
                   onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
-                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  placeholder="Enter address"
+                  value={newClient.address}
+                  onChange={(e) => setNewClient({...newClient, address: e.target.value})}
                 />
               </div>
               <div className="flex gap-2">
@@ -297,14 +220,11 @@ const Clients = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Contact</TableHead>
-                <TableHead>Client Company</TableHead>
+                <TableHead>Client Name</TableHead>
+                <TableHead>Contact Person</TableHead>
                 <TableHead>Service Provider</TableHead>
                 <TableHead>Contact Info</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Invoices</TableHead>
-                <TableHead>Total Paid</TableHead>
-                <TableHead>Last Activity</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -312,45 +232,42 @@ const Clients = () => {
               {filteredClients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell>
-                    <div className="font-medium">{client.contactName}</div>
-                  </TableCell>
-                  <TableCell>
                     <div className="flex items-center">
                       <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="font-medium">{client.clientCompany}</span>
+                      <span className="font-medium">{client.name}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm font-medium text-primary">{client.serviceProvider}</span>
+                    <div className="font-medium">{client.contact_person || "—"}</div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm font-medium text-primary">
+                      {client.companies?.name || "—"}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="text-sm flex items-center">
-                        <Mail className="h-3 w-3 mr-1" />
-                        {client.email}
-                      </div>
-                      <div className="text-sm text-muted-foreground flex items-center">
-                        <Phone className="h-3 w-3 mr-1" />
-                        {client.phone}
-                      </div>
+                      {client.email && (
+                        <div className="text-sm flex items-center">
+                          <Mail className="h-3 w-3 mr-1" />
+                          {client.email}
+                        </div>
+                      )}
+                      {client.phone && (
+                        <div className="text-sm text-muted-foreground flex items-center">
+                          <Phone className="h-3 w-3 mr-1" />
+                          {client.phone}
+                        </div>
+                      )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusColor(client.status) as any}>
-                      {client.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{client.totalInvoices}</TableCell>
-                  <TableCell className="font-medium text-green-600">
-                    {client.totalPaid}
-                  </TableCell>
-                  <TableCell>{client.lastActivity}</TableCell>
+                  <TableCell>{client.address || "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => deleteClient(client.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
