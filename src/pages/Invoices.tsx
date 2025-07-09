@@ -93,6 +93,8 @@ const Invoices = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const generateInvoiceNumber = () => {
     const lastNumber = Math.max(...invoices.map(inv => parseInt(inv.number.split('-')[1]) || 0));
@@ -469,6 +471,61 @@ const Invoices = () => {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* View Invoice Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Invoice Details</DialogTitle>
+              <DialogDescription>
+                View invoice information
+              </DialogDescription>
+            </DialogHeader>
+            {viewingInvoice && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Invoice Number</Label>
+                    <p className="text-lg font-semibold">{viewingInvoice.number}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                    <div className="mt-1">
+                      <Badge variant={getStatusColor(viewingInvoice.status) as any}>
+                        {viewingInvoice.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Client</Label>
+                    <p className="text-lg">{viewingInvoice.client}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Amount</Label>
+                    <p className="text-lg font-semibold">{viewingInvoice.amount}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Issue Date</Label>
+                    <p>{viewingInvoice.issueDate}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Due Date</Label>
+                    <p>{viewingInvoice.dueDate}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Number of Items</Label>
+                  <p>{viewingInvoice.items}</p>
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={() => setIsViewDialogOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -555,7 +612,10 @@ const Invoices = () => {
                   <TableCell>{invoice.items}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setViewingInvoice(invoice);
+                        setIsViewDialogOpen(true);
+                      }}>
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
