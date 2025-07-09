@@ -319,13 +319,18 @@ const Companies = () => {
                         id={`tax-percentage-${index}`}
                         type="text"
                         placeholder="0.0000"
-                        value={tax.percentage}
+                        value={tax.percentage.toString()}
                         onChange={(e) => {
-                          const value = e.target.value.replace(',', '.');
-                          const numericValue = parseFloat(value);
-                          if (!isNaN(numericValue) || value === '' || value === '.') {
+                          const inputValue = e.target.value;
+                          // Replace comma with period for decimal separator
+                          const normalizedValue = inputValue.replace(',', '.');
+                          
+                          // Allow empty string, single period, or valid decimal numbers
+                          if (normalizedValue === '' || normalizedValue === '.' || /^\d*\.?\d*$/.test(normalizedValue)) {
                             const updatedTaxes = [...newCompany.taxes];
-                            updatedTaxes[index].percentage = isNaN(numericValue) ? 0 : numericValue;
+                            // Store as number if valid, otherwise keep the string representation for partial input
+                            const numericValue = parseFloat(normalizedValue);
+                            updatedTaxes[index].percentage = isNaN(numericValue) ? (normalizedValue === '' || normalizedValue === '.' ? 0 : 0) : numericValue;
                             setNewCompany({...newCompany, taxes: updatedTaxes});
                           }
                         }}
