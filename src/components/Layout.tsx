@@ -2,8 +2,22 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { LogOut, User } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function Layout() {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been successfully signed out.",
+    });
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -14,6 +28,16 @@ export default function Layout() {
             <SidebarTrigger />
             <div className="ml-4 flex-1">
               <h1 className="font-semibold">Business Management System</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span>{user?.email}</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
             </div>
           </header>
           
