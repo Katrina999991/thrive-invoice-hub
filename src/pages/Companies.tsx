@@ -22,7 +22,7 @@ const Companies = () => {
     email: "",
     website: "",
     tax_id: "",
-    default_due_time: "17:00"
+    default_due_days: 7
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -57,7 +57,7 @@ const Companies = () => {
       website: newCompany.website || null,
       tax_id: newCompany.tax_id || null,
       taxes: taxes.length > 0 ? taxes : [],
-      default_due_time: newCompany.default_due_time
+      default_due_days: newCompany.default_due_days
     };
     
     if (editingCompany) {
@@ -77,7 +77,7 @@ const Companies = () => {
       email: "",
       website: "",
       tax_id: "",
-      default_due_time: "17:00"
+      default_due_days: 7
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -93,7 +93,7 @@ const Companies = () => {
       email: company.email || "",
       website: company.website || "",
       tax_id: company.tax_id || "",
-      default_due_time: company.default_due_time || "17:00"
+      default_due_days: company.default_due_days || 7
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
@@ -193,12 +193,15 @@ const Companies = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="default_due_time">Default Due Time</Label>
+                <Label htmlFor="default_due_days">Default Due Days</Label>
                 <Input
-                  id="default_due_time"
-                  type="time"
-                  value={newCompany.default_due_time}
-                  onChange={(e) => setNewCompany({...newCompany, default_due_time: e.target.value})}
+                  id="default_due_days"
+                  type="number"
+                  min="1"
+                  max="365"
+                  placeholder="7"
+                  value={newCompany.default_due_days}
+                  onChange={(e) => setNewCompany({...newCompany, default_due_days: parseInt(e.target.value) || 7})}
                 />
               </div>
               
