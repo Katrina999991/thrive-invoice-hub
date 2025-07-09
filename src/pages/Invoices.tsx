@@ -47,11 +47,11 @@ interface Company {
 
 interface Client {
   id: string;
-  name: string;
-  company: string;
+  contactName: string;
+  clientCompany: string;
+  serviceProvider: string;
   email: string;
   phone: string;
-  address?: string;
   status: "active" | "inactive" | "pending";
   totalInvoices: number;
   totalPaid: string;
@@ -114,13 +114,13 @@ const Invoices = () => {
     }
   ]);
 
-  // Clients data
   const [clients] = useState<Client[]>([
     {
       id: "1",
-      name: "John Smith",
-      company: "ABC Corporation",
-      email: "john.smith@abc.com",
+      contactName: "John Smith",
+      clientCompany: "Statis Inc",
+      serviceProvider: "Tech Solutions Inc",
+      email: "john.smith@statis.com",
       phone: "+1 (555) 123-4567",
       status: "active",
       totalInvoices: 12,
@@ -129,9 +129,10 @@ const Invoices = () => {
     },
     {
       id: "2",
-      name: "Sarah Johnson",
-      company: "Tech Solutions Inc", 
-      email: "sarah.j@techsolutions.com",
+      contactName: "Sarah Johnson",
+      clientCompany: "Innovate Corp",
+      serviceProvider: "Tech Solutions Inc",
+      email: "sarah.j@innovate.com",
       phone: "+1 (555) 987-6543",
       status: "active",
       totalInvoices: 8,
@@ -140,9 +141,10 @@ const Invoices = () => {
     },
     {
       id: "3",
-      name: "Michael Chen",
-      company: "Green Energy Corp",
-      email: "m.chen@greenenergy.com",
+      contactName: "Michael Chen",
+      clientCompany: "EcoTech Solutions",
+      serviceProvider: "Green Energy Corp",
+      email: "m.chen@ecotech.com",
       phone: "+1 (555) 555-0123",
       status: "pending",
       totalInvoices: 3,
@@ -151,9 +153,10 @@ const Invoices = () => {
     },
     {
       id: "4",
-      name: "Emily Davis",
-      company: "Creative Design Studio",
-      email: "emily@creativedesign.com",
+      contactName: "Emily Davis",
+      clientCompany: "Visual Arts Ltd",
+      serviceProvider: "Creative Design Studio",
+      email: "emily@visualarts.com",
       phone: "+1 (555) 111-2222",
       status: "active",
       totalInvoices: 15,
@@ -367,13 +370,13 @@ const Invoices = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
-    // Find the company for this client
-    const clientData = clients.find(client => client.name === invoice.client);
-    const companyName = clientData?.company || "";
+    // Find the client data for this invoice
+    const clientData = clients.find(client => client.contactName === invoice.client);
+    const serviceProvider = clientData?.serviceProvider || "";
     
     setEditingInvoice(invoice);
     setNewInvoice({
-      company: companyName,
+      company: serviceProvider,
       client: invoice.client,
       dueDate: invoice.dueDate,
       paymentTerms: "30", // Default since we don't store this in the invoice
@@ -432,9 +435,9 @@ const Invoices = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                {/* Step 1: Select Company */}
+                {/* Step 1: Select Service Provider */}
                 <div className="space-y-2">
-                  <Label htmlFor="company">Step 1: Select Company</Label>
+                  <Label htmlFor="company">Step 1: Select Service Provider</Label>
                   <Select value={newInvoice.company} onValueChange={(value) => {
                     // Find the selected company for payment terms
                     const selectedCompany = companies.find(company => company.name === value);
@@ -492,23 +495,23 @@ const Invoices = () => {
                     disabled={!newInvoice.company}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={newInvoice.company ? "Select client from company" : "Select company first"} />
+                      <SelectValue placeholder={newInvoice.company ? "Select client" : "Select service provider first"} />
                     </SelectTrigger>
                     <SelectContent>
                       {newInvoice.company && 
                         clients
-                          .filter(client => client.company === newInvoice.company && client.status === "active")
+                          .filter(client => client.serviceProvider === newInvoice.company && client.status === "active")
                           .map((client) => (
-                            <SelectItem key={client.id} value={client.name}>
+                            <SelectItem key={client.id} value={client.contactName}>
                               <div className="flex flex-col">
-                                <span className="font-medium">{client.name}</span>
-                                <span className="text-xs text-muted-foreground">{client.email}</span>
+                                <span className="font-medium">{client.clientCompany}</span>
+                                <span className="text-sm text-muted-foreground">Contact: {client.contactName}</span>
                               </div>
                             </SelectItem>
                           ))
                       }
-                      {newInvoice.company && clients.filter(client => client.company === newInvoice.company && client.status === "active").length === 0 && (
-                        <div className="px-2 py-1.5 text-sm text-muted-foreground">No active clients for this company</div>
+                      {newInvoice.company && clients.filter(client => client.serviceProvider === newInvoice.company && client.status === "active").length === 0 && (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">No active clients for this service provider</div>
                       )}
                     </SelectContent>
                   </Select>
