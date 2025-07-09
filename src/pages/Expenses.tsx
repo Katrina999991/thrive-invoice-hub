@@ -95,16 +95,15 @@ const Expenses = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved": return "bg-green-100 text-green-800";
-      case "pending": return "bg-yellow-100 text-yellow-800";
-      case "rejected": return "bg-red-100 text-red-800";
+      case "paid": return "bg-green-100 text-green-800";
+      case "unpaid": return "bg-yellow-100 text-yellow-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-  const approvedExpenses = expenses.filter(e => e.status === "approved").reduce((sum, expense) => sum + Number(expense.amount), 0);
-  const pendingExpenses = expenses.filter(e => e.status === "pending").reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const paidExpenses = expenses.filter(e => e.status === "paid").reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const unpaidExpenses = expenses.filter(e => e.status === "unpaid").reduce((sum, expense) => sum + Number(expense.amount), 0);
 
   if (expensesLoading || clientsLoading) {
     return <div>Loading...</div>;
@@ -242,22 +241,22 @@ const Expenses = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium">Paid</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${approvedExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Approved expenses</p>
+            <div className="text-2xl font-bold">${paidExpenses.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Paid expenses</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">Unpaid</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${pendingExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
+            <div className="text-2xl font-bold">${unpaidExpenses.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Unpaid expenses</p>
           </CardContent>
         </Card>
       </div>
