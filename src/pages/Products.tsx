@@ -20,6 +20,7 @@ const Products = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
 
   const [newItem, setNewItem] = useState({
+    type: "product", // product or service
     name: "",
     description: "",
     price: "",
@@ -34,24 +35,19 @@ const Products = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const itemData = {
+      name: newItem.name,
+      description: newItem.description,
+      price: parseFloat(newItem.price) || 0,
+      category: newItem.category,
+      quantity: newItem.type === "service" ? null : (parseInt(newItem.quantity) || 0),
+      unit: newItem.unit
+    };
+    
     if (editingProduct) {
-      await updateProduct(editingProduct.id, {
-        name: newItem.name,
-        description: newItem.description,
-        price: parseFloat(newItem.price) || 0,
-        category: newItem.category,
-        quantity: parseInt(newItem.quantity) || 0,
-        unit: newItem.unit
-      });
+      await updateProduct(editingProduct.id, itemData);
     } else {
-      await createProduct({
-        name: newItem.name,
-        description: newItem.description,
-        price: parseFloat(newItem.price) || 0,
-        category: newItem.category,
-        quantity: parseInt(newItem.quantity) || 0,
-        unit: newItem.unit
-      });
+      await createProduct(itemData);
     }
 
     resetForm();
@@ -59,6 +55,7 @@ const Products = () => {
 
   const resetForm = () => {
     setNewItem({
+      type: "product",
       name: "",
       description: "",
       price: "",
@@ -73,6 +70,7 @@ const Products = () => {
   const handleEdit = (product: any) => {
     setEditingProduct(product);
     setNewItem({
+      type: product.quantity !== null ? "product" : "service",
       name: product.name,
       description: product.description || "",
       price: product.price.toString(),
@@ -178,6 +176,25 @@ const Products = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select 
+                  value={newItem.type} 
+                  onValueChange={(value) => setNewItem({
+                    ...newItem, 
+                    type: value,
+                    quantity: value === "service" ? "" : newItem.quantity
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="product">Product</SelectItem>
+                    <SelectItem value="service">Service</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
@@ -225,31 +242,35 @@ const Products = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity (leave empty for services)</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  placeholder="Enter quantity"
-                  value={newItem.quantity}
-                  onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unit">Unit</Label>
-                <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="piece">Piece</SelectItem>
-                    <SelectItem value="hour">Hour</SelectItem>
-                    <SelectItem value="day">Day</SelectItem>
-                    <SelectItem value="month">Month</SelectItem>
-                    <SelectItem value="year">Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {newItem.type === "product" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity">Quantity</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      placeholder="Enter quantity"
+                      value={newItem.quantity}
+                      onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="unit">Unit</Label>
+                    <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="piece">Piece</SelectItem>
+                        <SelectItem value="hour">Hour</SelectItem>
+                        <SelectItem value="day">Day</SelectItem>
+                        <SelectItem value="month">Month</SelectItem>
+                        <SelectItem value="year">Year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
