@@ -32,9 +32,74 @@ interface Invoice {
   itemDetails?: InvoiceItem[];
 }
 
+interface Company {
+  id: string;
+  name: string;
+  industry: string;
+  address: string;
+  phone: string;
+  email: string;
+  status: "active" | "inactive";
+  employees: number;
+  revenue: string;
+  defaultPaymentTerms: string;
+}
+
 const Invoices = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Companies data
+  const [companies] = useState<Company[]>([
+    {
+      id: "1",
+      name: "Tech Solutions Inc",
+      industry: "Technology",
+      address: "123 Tech Street, Silicon Valley, CA",
+      phone: "+1 (555) 123-4567",
+      email: "contact@techsolutions.com",
+      status: "active",
+      employees: 150,
+      revenue: "$2.5M",
+      defaultPaymentTerms: "30"
+    },
+    {
+      id: "2", 
+      name: "Green Energy Corp",
+      industry: "Renewable Energy",
+      address: "456 Green Ave, Austin, TX",
+      phone: "+1 (555) 987-6543",
+      email: "info@greenenergy.com",
+      status: "active",
+      employees: 89,
+      revenue: "$1.8M",
+      defaultPaymentTerms: "15"
+    },
+    {
+      id: "3",
+      name: "Creative Design Studio",
+      industry: "Design",
+      address: "789 Art District, NYC, NY",
+      phone: "+1 (555) 555-0123",
+      email: "hello@creativedesign.com",
+      status: "active",
+      employees: 25,
+      revenue: "$450K",
+      defaultPaymentTerms: "45"
+    },
+    {
+      id: "4",
+      name: "ABC Corporation",
+      industry: "Manufacturing",
+      address: "100 Industrial Park, Detroit, MI",
+      phone: "+1 (555) 111-2222",
+      email: "contact@abccorp.com",
+      status: "active",
+      employees: 500,
+      revenue: "$10M",
+      defaultPaymentTerms: "30"
+    }
+  ]);
   
   // Helper function to generate sample items for existing invoices
   const generateSampleItems = (invoiceId: string, itemCount: number): InvoiceItem[] => {
@@ -302,15 +367,10 @@ const Invoices = () => {
                 <div className="space-y-2">
                   <Label htmlFor="client">Client</Label>
                   <Select value={newInvoice.client} onValueChange={(value) => {
-                    // Company default payment terms mapping
-                    const companyDefaults: Record<string, string> = {
-                      "ABC Corporation": "30",
-                      "XYZ Industries": "15", 
-                      "Tech Startup Inc": "45",
-                      "Design Studio LLC": "30"
-                    };
+                    // Find the selected company
+                    const selectedCompany = companies.find(company => company.name === value);
+                    const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
                     
-                    const defaultTerms = companyDefaults[value] || "30";
                     const issueDate = new Date();
                     const dueDate = new Date(issueDate);
                     dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
@@ -323,13 +383,17 @@ const Invoices = () => {
                     });
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder="Select company" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
-                      <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
-                      <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
-                      <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                      {companies.filter(company => company.status === "active").map((company) => (
+                        <SelectItem key={company.id} value={company.name}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{company.name}</span>
+                            <span className="text-xs text-muted-foreground">{company.industry}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
