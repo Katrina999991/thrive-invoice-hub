@@ -254,6 +254,20 @@ const Invoices = () => {
                         ...newInvoice,
                         client_id: ""
                       });
+                      
+                      // Calculate due date based on company's default_due_days
+                      const selectedCompany = companies.find(c => c.id === value);
+                      if (selectedCompany?.default_due_days) {
+                        const today = new Date();
+                        const dueDate = new Date(today);
+                        dueDate.setDate(today.getDate() + selectedCompany.default_due_days);
+                        
+                        setNewInvoice(prev => ({
+                          ...prev,
+                          client_id: "",
+                          due_date: dueDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
+                        }));
+                      }
                     }}
                   >
                     <SelectTrigger>
