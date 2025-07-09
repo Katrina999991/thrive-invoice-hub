@@ -440,17 +440,27 @@ const Invoices = () => {
                     const selectedCompany = companies.find(company => company.name === value);
                     const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
                     
-                    const issueDate = new Date();
-                    const dueDate = new Date(issueDate);
-                    dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
-                    
-                    setNewInvoice({
-                      ...newInvoice, 
-                      company: value,
-                      client: "", // Reset client when company changes
-                      paymentTerms: defaultTerms,
-                      dueDate: dueDate.toISOString().split('T')[0]
-                    });
+                    // Only update due date if not editing an existing invoice
+                    if (!editingInvoice) {
+                      const issueDate = new Date();
+                      const dueDate = new Date(issueDate);
+                      dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
+                      
+                      setNewInvoice({
+                        ...newInvoice, 
+                        company: value,
+                        client: "", // Reset client when company changes only for new invoices
+                        paymentTerms: defaultTerms,
+                        dueDate: dueDate.toISOString().split('T')[0]
+                      });
+                    } else {
+                      // For editing, keep the existing client and due date
+                      setNewInvoice({
+                        ...newInvoice, 
+                        company: value,
+                        paymentTerms: defaultTerms
+                      });
+                    }
                   }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select company first" />
