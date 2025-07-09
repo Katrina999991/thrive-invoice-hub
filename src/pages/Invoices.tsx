@@ -45,6 +45,19 @@ interface Company {
   defaultPaymentTerms: string;
 }
 
+interface Client {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  address?: string;
+  status: "active" | "inactive" | "pending";
+  totalInvoices: number;
+  totalPaid: string;
+  lastActivity: string;
+}
+
 const Invoices = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -98,6 +111,54 @@ const Invoices = () => {
       employees: 500,
       revenue: "$10M",
       defaultPaymentTerms: "30"
+    }
+  ]);
+
+  // Clients data
+  const [clients] = useState<Client[]>([
+    {
+      id: "1",
+      name: "John Smith",
+      company: "ABC Corporation",
+      email: "john.smith@abc.com",
+      phone: "+1 (555) 123-4567",
+      status: "active",
+      totalInvoices: 12,
+      totalPaid: "$45,230",
+      lastActivity: "2024-01-15"
+    },
+    {
+      id: "2",
+      name: "Sarah Johnson",
+      company: "XYZ Industries", 
+      email: "sarah.j@xyz.com",
+      phone: "+1 (555) 987-6543",
+      status: "active",
+      totalInvoices: 8,
+      totalPaid: "$28,450",
+      lastActivity: "2024-01-14"
+    },
+    {
+      id: "3",
+      name: "Michael Chen",
+      company: "Tech Startup Inc",
+      email: "m.chen@techstartup.com",
+      phone: "+1 (555) 555-0123",
+      status: "pending",
+      totalInvoices: 3,
+      totalPaid: "$12,000",
+      lastActivity: "2024-01-10"
+    },
+    {
+      id: "4",
+      name: "Emily Davis",
+      company: "Design Studio LLC",
+      email: "emily@designstudio.com",
+      phone: "+1 (555) 111-2222",
+      status: "active",
+      totalInvoices: 15,
+      totalPaid: "$67,890",
+      lastActivity: "2023-12-20"
     }
   ]);
   
@@ -177,6 +238,8 @@ const Invoices = () => {
     paymentTerms: "30",
     items: [] as InvoiceItem[]
   });
+
+  const [clientType, setClientType] = useState<"company" | "client">("company");
 
   const [currentItem, setCurrentItem] = useState({
     productService: "",
@@ -363,37 +426,80 @@ const Invoices = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Client Type Toggle */}
+              <div className="space-y-2">
+                <Label>Invoice To</Label>
+                <Select value={clientType} onValueChange={(value: "company" | "client") => {
+                  setClientType(value);
+                  setNewInvoice({...newInvoice, client: "", paymentTerms: "30", dueDate: ""});
+                }}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="company">Company</SelectItem>
+                    <SelectItem value="client">Individual Client</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="client">Client</Label>
+                  <Label htmlFor="client">
+                    {clientType === "company" ? "Company" : "Client"}
+                  </Label>
                   <Select value={newInvoice.client} onValueChange={(value) => {
-                    // Find the selected company
-                    const selectedCompany = companies.find(company => company.name === value);
-                    const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
-                    
-                    const issueDate = new Date();
-                    const dueDate = new Date(issueDate);
-                    dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
-                    
-                    setNewInvoice({
-                      ...newInvoice, 
-                      client: value,
-                      paymentTerms: defaultTerms,
-                      dueDate: dueDate.toISOString().split('T')[0]
-                    });
+                    if (clientType === "company") {
+                      // Find the selected company
+                      const selectedCompany = companies.find(company => company.name === value);
+                      const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
+                      
+                      const issueDate = new Date();
+                      const dueDate = new Date(issueDate);
+                      dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
+                      
+                      setNewInvoice({
+                        ...newInvoice, 
+                        client: value,
+                        paymentTerms: defaultTerms,
+                        dueDate: dueDate.toISOString().split('T')[0]
+                      });
+                    } else {
+                      // For individual clients, use default 30-day terms
+                      const issueDate = new Date();
+                      const dueDate = new Date(issueDate);
+                      dueDate.setDate(dueDate.getDate() + 30);
+                      
+                      setNewInvoice({
+                        ...newInvoice, 
+                        client: value,
+                        paymentTerms: "30",
+                        dueDate: dueDate.toISOString().split('T')[0]
+                      });
+                    }
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
+                      <SelectValue placeholder={`Select ${clientType === "company" ? "company" : "client"}`} />
                     </SelectTrigger>
                     <SelectContent>
-                      {companies.filter(company => company.status === "active").map((company) => (
-                        <SelectItem key={company.id} value={company.name}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{company.name}</span>
-                            <span className="text-xs text-muted-foreground">{company.industry}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {clientType === "company" ? 
+                        companies.filter(company => company.status === "active").map((company) => (
+                          <SelectItem key={company.id} value={company.name}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{company.name}</span>
+                              <span className="text-xs text-muted-foreground">{company.industry}</span>
+                            </div>
+                          </SelectItem>
+                        )) :
+                        clients.filter(client => client.status === "active").map((client) => (
+                          <SelectItem key={client.id} value={client.name}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{client.name}</span>
+                              <span className="text-xs text-muted-foreground">{client.company}</span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
