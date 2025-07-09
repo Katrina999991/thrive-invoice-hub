@@ -7,8 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface Tax {
+  name: string;
+  percentage: number;
+}
 
 interface Company {
   id: string;
@@ -21,6 +26,7 @@ interface Company {
   employees: number;
   revenue: string;
   defaultPaymentTerms: string;
+  taxes: Tax[];
 }
 
 const Companies = () => {
@@ -36,7 +42,11 @@ const Companies = () => {
       status: "active",
       employees: 150,
       revenue: "$2.5M",
-      defaultPaymentTerms: "30"
+      defaultPaymentTerms: "30",
+      taxes: [
+        { name: "VAT", percentage: 21 },
+        { name: "Service Tax", percentage: 5 }
+      ]
     },
     {
       id: "2", 
@@ -48,7 +58,10 @@ const Companies = () => {
       status: "active",
       employees: 89,
       revenue: "$1.8M",
-      defaultPaymentTerms: "15"
+      defaultPaymentTerms: "15",
+      taxes: [
+        { name: "GST", percentage: 18 }
+      ]
     },
     {
       id: "3",
@@ -60,7 +73,8 @@ const Companies = () => {
       status: "inactive",
       employees: 25,
       revenue: "$450K",
-      defaultPaymentTerms: "45"
+      defaultPaymentTerms: "45",
+      taxes: []
     }
   ]);
 
@@ -72,7 +86,8 @@ const Companies = () => {
     email: "",
     employees: "",
     revenue: "",
-    defaultPaymentTerms: "30"
+    defaultPaymentTerms: "30",
+    taxes: [] as Tax[]
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -92,7 +107,8 @@ const Companies = () => {
         email: newCompany.email,
         employees: parseInt(newCompany.employees) || 0,
         revenue: newCompany.revenue,
-        defaultPaymentTerms: newCompany.defaultPaymentTerms
+        defaultPaymentTerms: newCompany.defaultPaymentTerms,
+        taxes: newCompany.taxes
       };
 
       setCompanies(companies.map(company => 
@@ -115,7 +131,8 @@ const Companies = () => {
         status: "active",
         employees: parseInt(newCompany.employees) || 0,
         revenue: newCompany.revenue,
-        defaultPaymentTerms: newCompany.defaultPaymentTerms
+        defaultPaymentTerms: newCompany.defaultPaymentTerms,
+        taxes: newCompany.taxes
       };
 
       setCompanies([company, ...companies]);
@@ -138,7 +155,8 @@ const Companies = () => {
       email: "",
       employees: "",
       revenue: "",
-      defaultPaymentTerms: "30"
+      defaultPaymentTerms: "30",
+      taxes: []
     });
     setEditingCompany(null);
     setIsDialogOpen(false);
@@ -154,7 +172,8 @@ const Companies = () => {
       email: company.email,
       employees: company.employees.toString(),
       revenue: company.revenue,
-      defaultPaymentTerms: company.defaultPaymentTerms
+      defaultPaymentTerms: company.defaultPaymentTerms,
+      taxes: [...company.taxes]
     });
     setIsDialogOpen(true);
   };
@@ -276,6 +295,71 @@ const Companies = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="space-y-3">
+                <Label>Taxes (Max 2)</Label>
+                {newCompany.taxes.map((tax, index) => (
+                  <div key={index} className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor={`tax-name-${index}`}>Tax Name</Label>
+                      <Input
+                        id={`tax-name-${index}`}
+                        placeholder="e.g., VAT, GST"
+                        value={tax.name}
+                        onChange={(e) => {
+                          const updatedTaxes = [...newCompany.taxes];
+                          updatedTaxes[index].name = e.target.value;
+                          setNewCompany({...newCompany, taxes: updatedTaxes});
+                        }}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Label htmlFor={`tax-percentage-${index}`}>%</Label>
+                      <Input
+                        id={`tax-percentage-${index}`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={tax.percentage}
+                        onChange={(e) => {
+                          const updatedTaxes = [...newCompany.taxes];
+                          updatedTaxes[index].percentage = parseFloat(e.target.value) || 0;
+                          setNewCompany({...newCompany, taxes: updatedTaxes});
+                        }}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const updatedTaxes = newCompany.taxes.filter((_, i) => i !== index);
+                        setNewCompany({...newCompany, taxes: updatedTaxes});
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {newCompany.taxes.length < 2 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setNewCompany({
+                        ...newCompany,
+                        taxes: [...newCompany.taxes, { name: "", percentage: 0 }]
+                      });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Tax
+                  </Button>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
@@ -334,6 +418,23 @@ const Companies = () => {
                   <p className="text-lg font-semibold text-green-600">{company.revenue}</p>
                 </div>
               </div>
+
+              {company.taxes.length > 0 && (
+                <div className="pt-4 border-t">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calculator className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">Taxes</p>
+                  </div>
+                  <div className="space-y-1">
+                    {company.taxes.map((tax, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{tax.name}</span>
+                        <span className="font-medium">{tax.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end space-x-2 pt-4 border-t">
                 <Button variant="outline" size="sm" onClick={() => handleEdit(company)}>
