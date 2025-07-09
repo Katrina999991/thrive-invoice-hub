@@ -99,18 +99,6 @@ const Invoices = () => {
       employees: 25,
       revenue: "$450K",
       defaultPaymentTerms: "45"
-    },
-    {
-      id: "4",
-      name: "ABC Corporation",
-      industry: "Manufacturing",
-      address: "100 Industrial Park, Detroit, MI",
-      phone: "+1 (555) 111-2222",
-      email: "contact@abccorp.com",
-      status: "active",
-      employees: 500,
-      revenue: "$10M",
-      defaultPaymentTerms: "30"
     }
   ]);
 
