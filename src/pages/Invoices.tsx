@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,250 +9,53 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useClients } from "@/hooks/useClients";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Client = Tables<"clients">;
+type Invoice = Tables<"invoices"> & {
+  clients?: {
+    name: string;
+    contact_person: string;
+    email: string;
+  };
+  invoice_items?: Array<Tables<"invoice_items"> & {
+    products?: {
+      name: string;
+    };
+  }>;
+};
 
 interface InvoiceItem {
-  id: string;
-  productService: string;
   description: string;
   quantity: number;
-  unitPrice: number;
+  unit_price: number;
   total: number;
-}
-
-interface Invoice {
-  id: string;
-  number: string;
-  client: string;
-  amount: string;
-  status: "draft" | "sent" | "paid" | "overdue";
-  dueDate: string;
-  issueDate: string;
-  items: number;
-  itemDetails?: InvoiceItem[];
-  serviceProvider?: string;
-  subtotal?: number;
-  taxAmount?: number;
-  taxes?: Tax[];
-}
-
-interface Tax {
-  name: string;
-  percentage: number;
-}
-
-interface Company {
-  id: string;
-  name: string;
-  industry: string;
-  address: string;
-  phone: string;
-  email: string;
-  status: "active" | "inactive";
-  employees: number;
-  revenue: string;
-  defaultPaymentTerms: string;
-  taxes: Tax[];
-}
-
-interface Client {
-  id: string;
-  contactName: string;
-  clientCompany: string;
-  serviceProvider: string;
-  email: string;
-  phone: string;
-  status: "active" | "inactive" | "pending";
-  totalInvoices: number;
-  totalPaid: string;
-  lastActivity: string;
+  product_id?: string;
 }
 
 const Invoices = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Companies data
-  const [companies] = useState<Company[]>([
-    {
-      id: "1",
-      name: "Tech Solutions Inc",
-      industry: "Technology",
-      address: "123 Tech Street, Silicon Valley, CA",
-      phone: "+1 (555) 123-4567",
-      email: "contact@techsolutions.com",
-      status: "active",
-      employees: 150,
-      revenue: "$2.5M",
-      defaultPaymentTerms: "30",
-      taxes: [
-        { name: "VAT", percentage: 21 },
-        { name: "Service Tax", percentage: 5 }
-      ]
-    },
-    {
-      id: "2", 
-      name: "Green Energy Corp",
-      industry: "Renewable Energy",
-      address: "456 Green Ave, Austin, TX",
-      phone: "+1 (555) 987-6543",
-      email: "info@greenenergy.com",
-      status: "active",
-      employees: 89,
-      revenue: "$1.8M",
-      defaultPaymentTerms: "15",
-      taxes: [
-        { name: "GST", percentage: 18 }
-      ]
-    },
-    {
-      id: "3",
-      name: "Creative Design Studio",
-      industry: "Design",
-      address: "789 Art District, NYC, NY",
-      phone: "+1 (555) 555-0123",
-      email: "hello@creativedesign.com",
-      status: "active",
-      employees: 25,
-      revenue: "$450K",
-      defaultPaymentTerms: "45",
-      taxes: []
-    }
-  ]);
-
-  const [clients] = useState<Client[]>([
-    {
-      id: "1",
-      contactName: "John Smith",
-      clientCompany: "Statis Inc",
-      serviceProvider: "Tech Solutions Inc",
-      email: "john.smith@statis.com",
-      phone: "+1 (555) 123-4567",
-      status: "active",
-      totalInvoices: 12,
-      totalPaid: "$45,230",
-      lastActivity: "2024-01-15"
-    },
-    {
-      id: "2",
-      contactName: "Sarah Johnson",
-      clientCompany: "Innovate Corp",
-      serviceProvider: "Tech Solutions Inc",
-      email: "sarah.j@innovate.com",
-      phone: "+1 (555) 987-6543",
-      status: "active",
-      totalInvoices: 8,
-      totalPaid: "$28,450",
-      lastActivity: "2024-01-14"
-    },
-    {
-      id: "3",
-      contactName: "Michael Chen",
-      clientCompany: "EcoTech Solutions",
-      serviceProvider: "Green Energy Corp",
-      email: "m.chen@ecotech.com",
-      phone: "+1 (555) 555-0123",
-      status: "active",
-      totalInvoices: 3,
-      totalPaid: "$12,000",
-      lastActivity: "2024-01-10"
-    },
-    {
-      id: "4",
-      contactName: "Emily Davis",
-      clientCompany: "Visual Arts Ltd",
-      serviceProvider: "Creative Design Studio",
-      email: "emily@visualarts.com",
-      phone: "+1 (555) 111-2222",
-      status: "active",
-      totalInvoices: 15,
-      totalPaid: "$67,890",
-      lastActivity: "2023-12-20"
-    }
-  ]);
   
-  // Helper function to generate sample items for existing invoices
-  const generateSampleItems = (invoiceId: string, itemCount: number): InvoiceItem[] => {
-    const sampleItems = {
-      "1": [
-        { id: "1-1", productService: "Web Development", description: "Frontend development services", quantity: 40, unitPrice: 50, total: 2000 },
-        { id: "1-2", productService: "UI Design", description: "User interface design", quantity: 20, unitPrice: 25, total: 500 },
-      ],
-      "2": [
-        { id: "2-1", productService: "Consultation", description: "Technical consultation", quantity: 15, unitPrice: 120, total: 1800 },
-      ],
-      "3": [
-        { id: "3-1", productService: "Full Stack Development", description: "Complete web application", quantity: 1, unitPrice: 5000, total: 5000 },
-      ],
-      "4": [
-        { id: "4-1", productService: "Logo Design", description: "Brand logo creation", quantity: 1, unitPrice: 800, total: 800 },
-        { id: "4-2", productService: "Business Cards", description: "Design and printing", quantity: 500, unitPrice: 2, total: 1000 },
-        { id: "4-3", productService: "Website Mockup", description: "Initial design concepts", quantity: 3, unitPrice: 400, total: 1200 },
-        { id: "4-4", productService: "SEO Setup", description: "Search engine optimization", quantity: 1, unitPrice: 200, total: 200 },
-      ]
-    };
-    return sampleItems[invoiceId as keyof typeof sampleItems] || [];
-  };
-
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: "1",
-      number: "INV-001",
-      client: "ABC Corporation",
-      amount: "$2,500.00",
-      status: "paid",
-      dueDate: "2024-01-15",
-      issueDate: "2024-01-01",
-      items: 2,
-      itemDetails: generateSampleItems("1", 2)
-    },
-    {
-      id: "2",
-      number: "INV-002",
-      client: "XYZ Industries",
-      amount: "$1,800.00",
-      status: "sent",
-      dueDate: "2024-01-20",
-      issueDate: "2024-01-05",
-      items: 1,
-      itemDetails: generateSampleItems("2", 1)
-    },
-    {
-      id: "3",
-      number: "INV-003",
-      client: "Tech Startup Inc",
-      amount: "$5,000.00",
-      status: "overdue",
-      dueDate: "2024-01-10",
-      issueDate: "2023-12-25",
-      items: 1,
-      itemDetails: generateSampleItems("3", 1)
-    },
-    {
-      id: "4",
-      number: "INV-004",
-      client: "Design Studio LLC",
-      amount: "$3,200.00",
-      status: "draft",
-      dueDate: "2024-01-25",
-      issueDate: "2024-01-15",
-      items: 4,
-      itemDetails: generateSampleItems("4", 4)
-    }
-  ]);
+  // Database hooks
+  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
+  const { clients } = useClients();
 
   const [newInvoice, setNewInvoice] = useState({
-    company: "",
-    client: "",
-    dueDate: "",
-    paymentTerms: "30",
+    client_id: "",
+    due_date: "",
+    terms: "",
+    notes: "",
     items: [] as InvoiceItem[]
   });
 
   const [currentItem, setCurrentItem] = useState({
-    productService: "",
     description: "",
     quantity: 1,
-    unitPrice: 0
+    unit_price: 0,
+    product_id: ""
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -262,20 +64,19 @@ const Invoices = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const generateInvoiceNumber = () => {
-    const lastNumber = Math.max(...invoices.map(inv => parseInt(inv.number.split('-')[1]) || 0));
+    const lastNumber = Math.max(...invoices.map(inv => parseInt(inv.invoice_number.split('-')[1]) || 0));
     return `INV-${String(lastNumber + 1).padStart(3, '0')}`;
   };
 
   const addItem = () => {
-    if (!currentItem.productService || currentItem.unitPrice <= 0) return;
+    if (!currentItem.description || currentItem.unit_price <= 0) return;
 
     const newItem: InvoiceItem = {
-      id: Date.now().toString(),
-      productService: currentItem.productService,
       description: currentItem.description,
       quantity: currentItem.quantity,
-      unitPrice: currentItem.unitPrice,
-      total: currentItem.quantity * currentItem.unitPrice
+      unit_price: currentItem.unit_price,
+      total: currentItem.quantity * currentItem.unit_price,
+      product_id: currentItem.product_id || undefined
     };
 
     setNewInvoice({
@@ -284,17 +85,17 @@ const Invoices = () => {
     });
 
     setCurrentItem({
-      productService: "",
       description: "",
       quantity: 1,
-      unitPrice: 0
+      unit_price: 0,
+      product_id: ""
     });
   };
 
-  const removeItem = (itemId: string) => {
+  const removeItem = (index: number) => {
     setNewInvoice({
       ...newInvoice,
-      items: newInvoice.items.filter(item => item.id !== itemId)
+      items: newInvoice.items.filter((_, i) => i !== index)
     });
   };
 
@@ -303,22 +104,8 @@ const Invoices = () => {
   };
 
   const calculateTaxes = () => {
-    const selectedCompany = companies.find(company => company.name === newInvoice.company);
     const subtotal = calculateSubtotal();
-    
-    if (!selectedCompany || !selectedCompany.taxes || selectedCompany.taxes.length === 0) {
-      return { taxes: [], totalTax: 0 };
-    }
-
-    const taxes = selectedCompany.taxes.map(tax => ({
-      name: tax.name,
-      percentage: tax.percentage,
-      amount: (subtotal * tax.percentage) / 100
-    }));
-
-    const totalTax = taxes.reduce((sum, tax) => sum + tax.amount, 0);
-    
-    return { taxes, totalTax };
+    return { totalTax: subtotal * 0.1 }; // 10% tax
   };
 
   const calculateTotal = () => {
@@ -327,7 +114,7 @@ const Invoices = () => {
     return subtotal + totalTax;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newInvoice.items.length === 0) {
@@ -341,94 +128,65 @@ const Invoices = () => {
 
     const totalAmount = calculateTotal();
     const subtotal = calculateSubtotal();
-    const { taxes, totalTax } = calculateTaxes();
+    const { totalTax } = calculateTaxes();
     
     if (editingInvoice) {
       // Update existing invoice
-      const updatedInvoice: Invoice = {
-        ...editingInvoice,
-        client: newInvoice.client,
-        amount: `$${totalAmount.toFixed(2)}`,
-        dueDate: newInvoice.dueDate,
-        items: newInvoice.items.length,
-        itemDetails: newInvoice.items,
-        serviceProvider: newInvoice.company,
+      await updateInvoice(editingInvoice.id, {
+        client_id: newInvoice.client_id,
+        due_date: newInvoice.due_date,
+        terms: newInvoice.terms,
+        notes: newInvoice.notes,
         subtotal: subtotal,
-        taxAmount: totalTax,
-        taxes: taxes.map(tax => ({ name: tax.name, percentage: tax.percentage }))
-      };
-
-      setInvoices(invoices.map(invoice => 
-        invoice.id === editingInvoice.id ? updatedInvoice : invoice
-      ));
-      
-      toast({
-        title: "Invoice Updated",
-        description: `Invoice ${updatedInvoice.number} has been updated successfully.`
+        tax_amount: totalTax,
+        total: totalAmount
       });
     } else {
       // Create new invoice
-      const invoice: Invoice = {
-        id: Date.now().toString(),
-        number: generateInvoiceNumber(),
-        client: newInvoice.client,
-        amount: `$${totalAmount.toFixed(2)}`,
-        status: "draft",
-        dueDate: newInvoice.dueDate,
-        issueDate: new Date().toISOString().split('T')[0],
-        items: newInvoice.items.length,
-        itemDetails: newInvoice.items,
-        serviceProvider: newInvoice.company,
+      await createInvoice({
+        invoice_number: generateInvoiceNumber(),
+        client_id: newInvoice.client_id,
+        due_date: newInvoice.due_date,
+        terms: newInvoice.terms,
+        notes: newInvoice.notes,
         subtotal: subtotal,
-        taxAmount: totalTax,
-        taxes: taxes.map(tax => ({ name: tax.name, percentage: tax.percentage }))
-      };
-
-      setInvoices([invoice, ...invoices]);
-      
-      toast({
-        title: "Invoice Created",
-        description: `Invoice ${invoice.number} has been created successfully.`
-      });
+        tax_amount: totalTax,
+        total: totalAmount
+      }, newInvoice.items);
     }
 
     // Reset form
     setNewInvoice({
-      company: "",
-      client: "",
-      dueDate: "",
-      paymentTerms: "30",
+      client_id: "",
+      due_date: "",
+      terms: "",
+      notes: "",
       items: []
     });
     setCurrentItem({
-      productService: "",
       description: "",
       quantity: 1,
-      unitPrice: 0
+      unit_price: 0,
+      product_id: ""
     });
     setIsDialogOpen(false);
     setEditingInvoice(null);
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
-    // Find the client data for this invoice
-    const clientData = clients.find(client => client.contactName === invoice.client);
-    const serviceProvider = clientData?.serviceProvider || "";
-    
     setEditingInvoice(invoice);
     setNewInvoice({
-      company: serviceProvider,
-      client: invoice.client,
-      dueDate: invoice.dueDate,
-      paymentTerms: "30", // Default since we don't store this in the invoice
-      items: invoice.itemDetails || []
+      client_id: invoice.client_id || "",
+      due_date: invoice.due_date || "",
+      terms: invoice.terms || "",
+      notes: invoice.notes || "",
+      items: []
     });
     setIsDialogOpen(true);
   };
 
   const filteredInvoices = invoices.filter(invoice =>
-    invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.client.toLowerCase().includes(searchTerm.toLowerCase())
+    invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -441,15 +199,15 @@ const Invoices = () => {
     }
   };
 
-  const totalAmount = invoices.reduce((sum, invoice) => {
-    return sum + parseFloat(invoice.amount.replace('$', '').replace(',', ''));
-  }, 0);
+  const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
 
   const paidAmount = invoices
     .filter(invoice => invoice.status === "paid")
-    .reduce((sum, invoice) => {
-      return sum + parseFloat(invoice.amount.replace('$', '').replace(',', ''));
-    }, 0);
+    .reduce((sum, invoice) => sum + invoice.total, 0);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -476,127 +234,61 @@ const Invoices = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                {/* Step 1: Select Service Provider */}
                 <div className="space-y-2">
-                  <Label htmlFor="company">Step 1: Select Service Provider</Label>
-                  <Select value={newInvoice.company} onValueChange={(value) => {
-                    // Find the selected company for payment terms
-                    const selectedCompany = companies.find(company => company.name === value);
-                    const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
-                    
-                    // Only update due date if not editing an existing invoice
-                    if (!editingInvoice) {
-                      const issueDate = new Date();
-                      const dueDate = new Date(issueDate);
-                      dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
-                      
+                  <Label htmlFor="client">Select Client</Label>
+                  <Select 
+                    value={newInvoice.client_id} 
+                    onValueChange={(value) => {
                       setNewInvoice({
                         ...newInvoice, 
-                        company: value,
-                        client: "", // Reset client when company changes only for new invoices
-                        paymentTerms: defaultTerms,
-                        dueDate: dueDate.toISOString().split('T')[0]
+                        client_id: value
                       });
-                    } else {
-                      // For editing, keep the existing client and due date
-                      setNewInvoice({
-                        ...newInvoice, 
-                        company: value,
-                        paymentTerms: defaultTerms
-                      });
-                    }
-                  }}>
+                    }}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company first" />
+                      <SelectValue placeholder="Select client" />
                     </SelectTrigger>
                     <SelectContent>
-                      {companies.filter(company => company.status === "active").map((company) => (
-                        <SelectItem key={company.id} value={company.name}>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
                           <div className="flex flex-col">
-                            <span className="font-medium">{company.name}</span>
-                            <span className="text-xs text-muted-foreground">{company.industry}</span>
+                            <span className="font-medium">{client.name}</span>
+                            <span className="text-sm text-muted-foreground">{client.contact_person}</span>
                           </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* Step 2: Select Client from Company */}
                 <div className="space-y-2">
-                  <Label htmlFor="client">Step 2: Select Client</Label>
-                  <Select 
-                    value={newInvoice.client} 
-                    onValueChange={(value) => {
-                      setNewInvoice({
-                        ...newInvoice, 
-                        client: value
-                      });
-                    }}
-                    disabled={!newInvoice.company}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={newInvoice.company ? "Select client" : "Select service provider first"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {newInvoice.company && 
-                        clients
-                          .filter(client => client.serviceProvider === newInvoice.company && client.status === "active")
-                          .map((client) => (
-                            <SelectItem key={client.id} value={client.contactName}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{client.clientCompany}</span>
-                                <span className="text-sm text-muted-foreground">Contact: {client.contactName}</span>
-                              </div>
-                            </SelectItem>
-                          ))
-                      }
-                      {newInvoice.company && clients.filter(client => client.serviceProvider === newInvoice.company && client.status === "active").length === 0 && (
-                        <div className="px-2 py-1.5 text-sm text-muted-foreground">No active clients for this service provider</div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="due_date">Due Date</Label>
+                  <Input
+                    id="due_date"
+                    type="date"
+                    value={newInvoice.due_date}
+                    onChange={(e) => setNewInvoice({...newInvoice, due_date: e.target.value})}
+                    required
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="paymentTerms">Payment Terms</Label>
-                  <Select 
-                    value={newInvoice.paymentTerms} 
-                    onValueChange={(value) => {
-                      const issueDate = new Date();
-                      const dueDate = new Date(issueDate);
-                      dueDate.setDate(dueDate.getDate() + parseInt(value));
-                      
-                      setNewInvoice({
-                        ...newInvoice, 
-                        paymentTerms: value,
-                        dueDate: dueDate.toISOString().split('T')[0]
-                      });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select payment terms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7">Net 7 days</SelectItem>
-                      <SelectItem value="15">Net 15 days</SelectItem>
-                      <SelectItem value="30">Net 30 days</SelectItem>
-                      <SelectItem value="45">Net 45 days</SelectItem>
-                      <SelectItem value="60">Net 60 days</SelectItem>
-                      <SelectItem value="0">Due on receipt</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="terms">Terms</Label>
+                  <Input
+                    id="terms"
+                    placeholder="Payment terms"
+                    value={newInvoice.terms}
+                    onChange={(e) => setNewInvoice({...newInvoice, terms: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Label htmlFor="notes">Notes</Label>
                   <Input
-                    id="dueDate"
-                    type="date"
-                    value={newInvoice.dueDate}
-                    onChange={(e) => setNewInvoice({...newInvoice, dueDate: e.target.value})}
-                    required
+                    id="notes"
+                    placeholder="Additional notes"
+                    value={newInvoice.notes}
+                    onChange={(e) => setNewInvoice({...newInvoice, notes: e.target.value})}
                   />
                 </div>
               </div>
@@ -604,16 +296,7 @@ const Invoices = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Add Items</h3>
                 <div className="grid grid-cols-12 gap-2 items-end">
-                  <div className="col-span-3">
-                    <Label htmlFor="productService">Product/Service</Label>
-                    <Input
-                      id="productService"
-                      placeholder="Enter item name"
-                      value={currentItem.productService}
-                      onChange={(e) => setCurrentItem({...currentItem, productService: e.target.value})}
-                    />
-                  </div>
-                  <div className="col-span-3">
+                  <div className="col-span-4">
                     <Label htmlFor="description">Description</Label>
                     <Input
                       id="description"
@@ -632,22 +315,22 @@ const Invoices = () => {
                       onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Label htmlFor="unitPrice">Unit Price</Label>
+                  <div className="col-span-3">
+                    <Label htmlFor="unit_price">Unit Price</Label>
                     <Input
-                      id="unitPrice"
+                      id="unit_price"
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="0.00"
-                      value={currentItem.unitPrice}
-                      onChange={(e) => setCurrentItem({...currentItem, unitPrice: parseFloat(e.target.value) || 0})}
+                      value={currentItem.unit_price}
+                      onChange={(e) => setCurrentItem({...currentItem, unit_price: parseFloat(e.target.value) || 0})}
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     <Button type="button" onClick={addItem} className="w-full">
                       <Plus className="h-4 w-4 mr-1" />
-                      Add
+                      Add Item
                     </Button>
                   </div>
                 </div>
@@ -659,7 +342,6 @@ const Invoices = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Product/Service</TableHead>
                             <TableHead>Description</TableHead>
                             <TableHead>Qty</TableHead>
                             <TableHead>Unit Price</TableHead>
@@ -668,19 +350,18 @@ const Invoices = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {newInvoice.items.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell className="font-medium">{item.productService}</TableCell>
-                              <TableCell>{item.description}</TableCell>
+                          {newInvoice.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{item.description}</TableCell>
                               <TableCell>{item.quantity}</TableCell>
-                              <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
+                              <TableCell>${item.unit_price.toFixed(2)}</TableCell>
                               <TableCell>${item.total.toFixed(2)}</TableCell>
                               <TableCell>
                                 <Button
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => removeItem(item.id)}
+                                  onClick={() => removeItem(index)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -688,7 +369,7 @@ const Invoices = () => {
                             </TableRow>
                           ))}
                            <TableRow>
-                             <TableCell colSpan={4} className="text-right font-medium">
+                             <TableCell colSpan={3} className="text-right font-medium">
                                Subtotal:
                              </TableCell>
                              <TableCell className="font-medium">
@@ -696,20 +377,17 @@ const Invoices = () => {
                              </TableCell>
                              <TableCell></TableCell>
                            </TableRow>
-                           {/* Tax rows */}
-                           {calculateTaxes().taxes.map((tax, index) => (
-                             <TableRow key={index}>
-                               <TableCell colSpan={4} className="text-right font-medium">
-                                 {tax.name} ({tax.percentage}%):
-                               </TableCell>
-                               <TableCell className="font-medium">
-                                 ${tax.amount.toFixed(2)}
-                               </TableCell>
-                               <TableCell></TableCell>
-                             </TableRow>
-                           ))}
+                           <TableRow>
+                             <TableCell colSpan={3} className="text-right font-medium">
+                               Tax (10%):
+                             </TableCell>
+                             <TableCell className="font-medium">
+                               ${calculateTaxes().totalTax.toFixed(2)}
+                             </TableCell>
+                             <TableCell></TableCell>
+                           </TableRow>
                            <TableRow className="border-t-2">
-                             <TableCell colSpan={4} className="text-right font-bold">
+                             <TableCell colSpan={3} className="text-right font-bold">
                                Total Amount:
                              </TableCell>
                              <TableCell className="font-bold text-lg">
@@ -727,17 +405,17 @@ const Invoices = () => {
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => {
                   setNewInvoice({
-                    company: "",
-                    client: "",
-                    dueDate: "",
-                    paymentTerms: "30",
+                    client_id: "",
+                    due_date: "",
+                    terms: "",
+                    notes: "",
                     items: []
                   });
                   setCurrentItem({
-                    productService: "",
                     description: "",
                     quantity: 1,
-                    unitPrice: 0
+                    unit_price: 0,
+                    product_id: ""
                   });
                   setEditingInvoice(null);
                   setIsDialogOpen(false);
@@ -766,7 +444,7 @@ const Invoices = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Invoice Number</Label>
-                    <p className="text-lg font-semibold">{viewingInvoice.number}</p>
+                    <p className="text-lg font-semibold">{viewingInvoice.invoice_number}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Status</Label>
@@ -778,31 +456,32 @@ const Invoices = () => {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Client</Label>
-                    <p className="text-lg">{viewingInvoice.client}</p>
+                    <p className="text-lg">
+                      {clients.find(c => c.id === viewingInvoice.client_id)?.name || 'Unknown Client'}
+                    </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Amount</Label>
-                    <p className="text-lg font-semibold">{viewingInvoice.amount}</p>
+                    <p className="text-lg font-semibold">${viewingInvoice.total.toFixed(2)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Issue Date</Label>
-                    <p>{viewingInvoice.issueDate}</p>
+                    <p>{viewingInvoice.issue_date}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Due Date</Label>
-                    <p>{viewingInvoice.dueDate}</p>
+                    <p>{viewingInvoice.due_date}</p>
                   </div>
                 </div>
 
                 {/* Invoice Items Table */}
-                {viewingInvoice.itemDetails && viewingInvoice.itemDetails.length > 0 && (
+                {false && (
                   <div className="space-y-3">
                     <Label className="text-sm font-medium text-muted-foreground">Invoice Items</Label>
                     <div className="border rounded-lg">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Product/Service</TableHead>
                             <TableHead>Description</TableHead>
                             <TableHead className="text-right">Qty</TableHead>
                             <TableHead className="text-right">Unit Price</TableHead>
@@ -810,40 +489,36 @@ const Invoices = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {viewingInvoice.itemDetails.map((item) => (
+                          {viewingInvoice.invoice_items.map((item) => (
                             <TableRow key={item.id}>
-                              <TableCell className="font-medium">{item.productService}</TableCell>
-                              <TableCell>{item.description}</TableCell>
+                              <TableCell className="font-medium">{item.description}</TableCell>
                               <TableCell className="text-right">{item.quantity}</TableCell>
-                              <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
+                              <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
                               <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
                             </TableRow>
                           ))}
                            <TableRow className="bg-muted/30">
-                             <TableCell colSpan={4} className="text-right font-medium">
+                             <TableCell colSpan={3} className="text-right font-medium">
                                Subtotal:
                              </TableCell>
                              <TableCell className="text-right font-medium">
-                               ${viewingInvoice.subtotal?.toFixed(2) || "0.00"}
+                               ${viewingInvoice.subtotal.toFixed(2)}
                              </TableCell>
                            </TableRow>
-                           {/* Tax rows in view */}
-                           {viewingInvoice.taxes && viewingInvoice.taxes.map((tax, index) => (
-                             <TableRow key={index} className="bg-muted/30">
-                               <TableCell colSpan={4} className="text-right font-medium">
-                                 {tax.name} ({tax.percentage}%):
-                               </TableCell>
-                               <TableCell className="text-right font-medium">
-                                 ${((viewingInvoice.subtotal || 0) * tax.percentage / 100).toFixed(2)}
-                               </TableCell>
-                             </TableRow>
-                           ))}
+                           <TableRow className="bg-muted/30">
+                             <TableCell colSpan={3} className="text-right font-medium">
+                               Tax:
+                             </TableCell>
+                             <TableCell className="text-right font-medium">
+                               ${viewingInvoice.tax_amount.toFixed(2)}
+                             </TableCell>
+                           </TableRow>
                            <TableRow className="bg-muted/50 border-t-2">
-                             <TableCell colSpan={4} className="text-right font-semibold">
+                             <TableCell colSpan={3} className="text-right font-semibold">
                                Total Amount:
                              </TableCell>
                              <TableCell className="text-right font-bold text-lg">
-                               {viewingInvoice.amount}
+                               ${viewingInvoice.total.toFixed(2)}
                              </TableCell>
                            </TableRow>
                         </TableBody>
@@ -934,17 +609,19 @@ const Invoices = () => {
             <TableBody>
               {filteredInvoices.map((invoice) => (
                 <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">{invoice.number}</TableCell>
-                  <TableCell>{invoice.client}</TableCell>
-                  <TableCell className="font-medium">{invoice.amount}</TableCell>
+                  <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                  <TableCell>
+                    {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown Client'}
+                  </TableCell>
+                  <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusColor(invoice.status) as any}>
                       {invoice.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{invoice.issueDate}</TableCell>
-                  <TableCell>{invoice.dueDate}</TableCell>
-                  <TableCell>{invoice.items}</TableCell>
+                  <TableCell>{invoice.issue_date}</TableCell>
+                  <TableCell>{invoice.due_date}</TableCell>
+                  <TableCell>0</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="outline" size="sm" onClick={() => {
