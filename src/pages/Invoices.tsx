@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
+import { useProducts } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Client = Tables<"clients">;
@@ -44,6 +45,7 @@ const Invoices = () => {
   const { invoices, loading, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
   const { clients } = useClients();
   const { companies } = useCompanies();
+  const { products } = useProducts();
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
@@ -352,6 +354,75 @@ const Invoices = () => {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Add Items</h3>
+                
+                {/* Product Selector */}
+                <div className="space-y-2">
+                  <Label htmlFor="product">Select Product/Service (optional)</Label>
+                  <Select 
+                    value={currentItem.product_id} 
+                    onValueChange={(value) => {
+                      if (value === "new") {
+                        // Open products page or show add product form
+                        toast({
+                          title: "Add New Product",
+                          description: "Please go to Products page to add new products/services first."
+                        });
+                        return;
+                      }
+                      
+                      if (value === "custom") {
+                        // Reset to custom entry
+                        setCurrentItem({
+                          ...currentItem,
+                          product_id: "",
+                          description: "",
+                          unit_price: 0
+                        });
+                        return;
+                      }
+
+                      // Auto-fill from selected product
+                      const selectedProduct = products.find(p => p.id === value);
+                      if (selectedProduct) {
+                        setCurrentItem({
+                          ...currentItem,
+                          product_id: value,
+                          description: selectedProduct.name,
+                          unit_price: selectedProduct.price
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select existing product/service or enter custom" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="custom">
+                        <div className="flex items-center">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Custom Item
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="new">
+                        <div className="flex items-center">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add New Product/Service
+                        </div>
+                      </SelectItem>
+                      {products.filter(p => p.is_active).map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{product.name}</span>
+                            <span className="text-sm text-muted-foreground">
+                              ${product.price.toFixed(2)} {product.unit && `per ${product.unit}`}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid grid-cols-12 gap-2 items-end">
                   <div className="col-span-4">
                     <Label htmlFor="description">Description</Label>
