@@ -317,16 +317,17 @@ const Companies = () => {
                       <Label htmlFor={`tax-percentage-${index}`}>%</Label>
                       <Input
                         id={`tax-percentage-${index}`}
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.0001"
-                        placeholder="0.00"
+                        type="text"
+                        placeholder="0.0000"
                         value={tax.percentage}
                         onChange={(e) => {
-                          const updatedTaxes = [...newCompany.taxes];
-                          updatedTaxes[index].percentage = parseFloat(e.target.value) || 0;
-                          setNewCompany({...newCompany, taxes: updatedTaxes});
+                          const value = e.target.value.replace(',', '.');
+                          const numericValue = parseFloat(value);
+                          if (!isNaN(numericValue) || value === '' || value === '.') {
+                            const updatedTaxes = [...newCompany.taxes];
+                            updatedTaxes[index].percentage = isNaN(numericValue) ? 0 : numericValue;
+                            setNewCompany({...newCompany, taxes: updatedTaxes});
+                          }
                         }}
                       />
                     </div>
