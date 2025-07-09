@@ -276,7 +276,6 @@ const Products = () => {
                   placeholder="Enter item description"
                   value={newItem.description}
                   onChange={(e) => setNewItem({...newItem, description: e.target.value})}
-                  required
                 />
               </div>
               <div className="space-y-2">
