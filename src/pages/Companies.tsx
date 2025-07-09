@@ -162,6 +162,10 @@ const Companies = () => {
     setIsDialogOpen(false);
   };
 
+  const handleCancel = () => {
+    resetForm();
+  };
+
   const handleEdit = (company: Company) => {
     setEditingCompany(company);
     setNewCompany({
@@ -187,7 +191,7 @@ const Companies = () => {
             Manage your business companies and organizations
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) handleCancel(); }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -367,7 +371,7 @@ const Companies = () => {
                 )}
               </div>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
+                <Button type="button" variant="outline" onClick={handleCancel} className="flex-1">
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
