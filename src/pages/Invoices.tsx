@@ -35,6 +35,7 @@ interface InvoiceItem {
   unit_price: number;
   total: number;
   product_id?: string;
+  notes?: string;
 }
 
 const Invoices = () => {
@@ -60,7 +61,8 @@ const Invoices = () => {
     description: "",
     quantity: 1,
     unit_price: 0,
-    product_id: ""
+    product_id: "",
+    notes: ""
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -86,7 +88,8 @@ const Invoices = () => {
       quantity: currentItem.quantity,
       unit_price: currentItem.unit_price,
       total: currentItem.quantity * currentItem.unit_price,
-      product_id: currentItem.product_id || undefined
+      product_id: currentItem.product_id || undefined,
+      notes: currentItem.notes || undefined
     };
 
     setNewInvoice({
@@ -98,7 +101,8 @@ const Invoices = () => {
       description: "",
       quantity: 1,
       unit_price: 0,
-      product_id: ""
+      product_id: "",
+      notes: ""
     });
   };
 
@@ -178,7 +182,8 @@ const Invoices = () => {
       description: "",
       quantity: 1,
       unit_price: 0,
-      product_id: ""
+      product_id: "",
+      notes: ""
     });
     setIsDialogOpen(false);
     setEditingInvoice(null);
@@ -424,7 +429,7 @@ const Invoices = () => {
                 </div>
 
                 <div className="grid grid-cols-12 gap-2 items-end">
-                  <div className="col-span-4">
+                  <div className="col-span-3">
                     <Label htmlFor="description">Description</Label>
                     <Input
                       id="description"
@@ -443,7 +448,7 @@ const Invoices = () => {
                       onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
                     />
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-2">
                     <Label htmlFor="unit_price">Unit Price</Label>
                     <Input
                       id="unit_price"
@@ -456,6 +461,15 @@ const Invoices = () => {
                     />
                   </div>
                   <div className="col-span-3">
+                    <Label htmlFor="item_notes">Notes (optional)</Label>
+                    <Input
+                      id="item_notes"
+                      placeholder="Item notes"
+                      value={currentItem.notes}
+                      onChange={(e) => setCurrentItem({...currentItem, notes: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-span-2">
                     <Button type="button" onClick={addItem} className="w-full">
                       <Plus className="h-4 w-4 mr-1" />
                       Add Item
@@ -468,36 +482,38 @@ const Invoices = () => {
                     <h4 className="font-medium">Invoice Items</h4>
                     <div className="border rounded-lg">
                       <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Qty</TableHead>
-                            <TableHead>Unit Price</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead className="w-16"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {newInvoice.items.map((item, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium">{item.description}</TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>${item.unit_price.toFixed(2)}</TableCell>
-                              <TableCell>${item.total.toFixed(2)}</TableCell>
-                              <TableCell>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removeItem(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                         <TableHeader>
                            <TableRow>
-                             <TableCell colSpan={3} className="text-right font-medium">
+                             <TableHead>Description</TableHead>
+                             <TableHead>Notes</TableHead>
+                             <TableHead>Qty</TableHead>
+                             <TableHead>Unit Price</TableHead>
+                             <TableHead>Total</TableHead>
+                             <TableHead className="w-16"></TableHead>
+                           </TableRow>
+                         </TableHeader>
+                        <TableBody>
+                           {newInvoice.items.map((item, index) => (
+                             <TableRow key={index}>
+                               <TableCell className="font-medium">{item.description}</TableCell>
+                               <TableCell className="text-sm text-muted-foreground">{item.notes || "-"}</TableCell>
+                               <TableCell>{item.quantity}</TableCell>
+                               <TableCell>${item.unit_price.toFixed(2)}</TableCell>
+                               <TableCell>${item.total.toFixed(2)}</TableCell>
+                               <TableCell>
+                                 <Button
+                                   type="button"
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => removeItem(index)}
+                                 >
+                                   <Trash2 className="h-4 w-4" />
+                                 </Button>
+                               </TableCell>
+                             </TableRow>
+                           ))}
+                           <TableRow>
+                             <TableCell colSpan={4} className="text-right font-medium">
                                Subtotal:
                              </TableCell>
                              <TableCell className="font-medium">
@@ -506,7 +522,7 @@ const Invoices = () => {
                              <TableCell></TableCell>
                            </TableRow>
                            <TableRow>
-                             <TableCell colSpan={3} className="text-right font-medium">
+                             <TableCell colSpan={4} className="text-right font-medium">
                                Tax (10%):
                              </TableCell>
                              <TableCell className="font-medium">
@@ -515,7 +531,7 @@ const Invoices = () => {
                              <TableCell></TableCell>
                            </TableRow>
                            <TableRow className="border-t-2">
-                             <TableCell colSpan={3} className="text-right font-bold">
+                             <TableCell colSpan={4} className="text-right font-bold">
                                Total Amount:
                              </TableCell>
                              <TableCell className="font-bold text-lg">
@@ -544,7 +560,8 @@ const Invoices = () => {
                     description: "",
                     quantity: 1,
                     unit_price: 0,
-                    product_id: ""
+                    product_id: "",
+                    notes: ""
                   });
                   setEditingInvoice(null);
                   setIsDialogOpen(false);
