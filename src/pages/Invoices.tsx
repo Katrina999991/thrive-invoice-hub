@@ -367,13 +367,17 @@ const Invoices = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
+    // Find the company for this client
+    const clientData = clients.find(client => client.name === invoice.client);
+    const companyName = clientData?.company || "";
+    
     setEditingInvoice(invoice);
     setNewInvoice({
-      company: "",
+      company: companyName,
       client: invoice.client,
       dueDate: invoice.dueDate,
       paymentTerms: "30", // Default since we don't store this in the invoice
-      items: [] // Would need to fetch actual items for full editing
+      items: invoice.itemDetails || []
     });
     setIsDialogOpen(true);
   };
