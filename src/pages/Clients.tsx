@@ -31,8 +31,8 @@ const Clients = () => {
     {
       id: "1",
       name: "John Smith",
-      company: "ABC Corporation",
-      email: "john.smith@abc.com",
+      company: "Tech Solutions Inc",
+      email: "john.smith@techsolutions.com",
       phone: "+1 (555) 123-4567",
       status: "active",
       totalInvoices: 12,
@@ -42,8 +42,8 @@ const Clients = () => {
     {
       id: "2",
       name: "Sarah Johnson",
-      company: "XYZ Industries",
-      email: "sarah.j@xyz.com",
+      company: "Tech Solutions Inc",
+      email: "sarah.j@techsolutions.com",
       phone: "+1 (555) 987-6543",
       status: "active",
       totalInvoices: 8,
@@ -53,8 +53,8 @@ const Clients = () => {
     {
       id: "3",
       name: "Michael Chen",
-      company: "Tech Startup Inc",
-      email: "m.chen@techstartup.com",
+      company: "Green Energy Corp",
+      email: "m.chen@greenenergy.com",
       phone: "+1 (555) 555-0123",
       status: "pending",
       totalInvoices: 3,
@@ -64,8 +64,8 @@ const Clients = () => {
     {
       id: "4",
       name: "Emily Davis",
-      company: "Design Studio LLC",
-      email: "emily@designstudio.com",
+      company: "Creative Design Studio",
+      email: "emily@creativedesign.com",
       phone: "+1 (555) 111-2222",
       status: "inactive",
       totalInvoices: 15,
@@ -213,10 +213,9 @@ const Clients = () => {
                     <SelectValue placeholder="Select company" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
-                    <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
-                    <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
-                    <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                    <SelectItem value="Tech Solutions Inc">Tech Solutions Inc</SelectItem>
+                    <SelectItem value="Green Energy Corp">Green Energy Corp</SelectItem>
+                    <SelectItem value="Creative Design Studio">Creative Design Studio</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
