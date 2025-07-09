@@ -13,8 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Client {
   id: string;
-  name: string;
-  company: string;
+  contactName: string;
+  clientCompany: string;
+  serviceProvider: string; // Which of our companies serves this client
   email: string;
   phone: string;
   address?: string;
@@ -30,9 +31,10 @@ const Clients = () => {
   const [clients, setClients] = useState<Client[]>([
     {
       id: "1",
-      name: "John Smith",
-      company: "Tech Solutions Inc",
-      email: "john.smith@techsolutions.com",
+      contactName: "John Smith",
+      clientCompany: "Statis Inc",
+      serviceProvider: "Tech Solutions Inc",
+      email: "john.smith@statis.com",
       phone: "+1 (555) 123-4567",
       status: "active",
       totalInvoices: 12,
@@ -41,9 +43,10 @@ const Clients = () => {
     },
     {
       id: "2",
-      name: "Sarah Johnson",
-      company: "Tech Solutions Inc",
-      email: "sarah.j@techsolutions.com",
+      contactName: "Sarah Johnson",
+      clientCompany: "Innovate Corp",
+      serviceProvider: "Tech Solutions Inc",
+      email: "sarah.j@innovate.com",
       phone: "+1 (555) 987-6543",
       status: "active",
       totalInvoices: 8,
@@ -52,9 +55,10 @@ const Clients = () => {
     },
     {
       id: "3",
-      name: "Michael Chen",
-      company: "Green Energy Corp",
-      email: "m.chen@greenenergy.com",
+      contactName: "Michael Chen",
+      clientCompany: "EcoTech Solutions",
+      serviceProvider: "Green Energy Corp",
+      email: "m.chen@ecotech.com",
       phone: "+1 (555) 555-0123",
       status: "pending",
       totalInvoices: 3,
@@ -63,9 +67,10 @@ const Clients = () => {
     },
     {
       id: "4",
-      name: "Emily Davis",
-      company: "Creative Design Studio",
-      email: "emily@creativedesign.com",
+      contactName: "Emily Davis",
+      clientCompany: "Visual Arts Ltd",
+      serviceProvider: "Creative Design Studio",
+      email: "emily@visualarts.com",
       phone: "+1 (555) 111-2222",
       status: "inactive",
       totalInvoices: 15,
@@ -75,8 +80,9 @@ const Clients = () => {
   ]);
 
   const [newClient, setNewClient] = useState({
-    name: "",
-    company: "",
+    contactName: "",
+    clientCompany: "",
+    serviceProvider: "",
     email: "",
     phone: "",
     address: ""
@@ -92,8 +98,9 @@ const Clients = () => {
       // Update existing client
       const updatedClient: Client = {
         ...editingClient,
-        name: newClient.name,
-        company: newClient.company,
+        contactName: newClient.contactName,
+        clientCompany: newClient.clientCompany,
+        serviceProvider: newClient.serviceProvider,
         email: newClient.email,
         phone: newClient.phone,
         address: newClient.address
@@ -111,8 +118,9 @@ const Clients = () => {
       // Add new client
       const client: Client = {
         id: Date.now().toString(),
-        name: newClient.name,
-        company: newClient.company,
+        contactName: newClient.contactName,
+        clientCompany: newClient.clientCompany,
+        serviceProvider: newClient.serviceProvider,
         email: newClient.email,
         phone: newClient.phone,
         address: newClient.address,
@@ -135,8 +143,9 @@ const Clients = () => {
 
   const resetForm = () => {
     setNewClient({
-      name: "",
-      company: "",
+      contactName: "",
+      clientCompany: "",
+      serviceProvider: "",
       email: "",
       phone: "",
       address: ""
@@ -148,8 +157,9 @@ const Clients = () => {
   const handleEdit = (client: Client) => {
     setEditingClient(client);
     setNewClient({
-      name: client.name,
-      company: client.company,
+      contactName: client.contactName,
+      clientCompany: client.clientCompany,
+      serviceProvider: client.serviceProvider,
       email: client.email,
       phone: client.phone,
       address: client.address
@@ -158,8 +168,8 @@ const Clients = () => {
   };
 
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.clientCompany.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -197,20 +207,30 @@ const Clients = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Client Name</Label>
+                <Label htmlFor="contactName">Contact Name</Label>
                 <Input
-                  id="name"
-                  placeholder="Enter client name"
-                  value={newClient.name}
-                  onChange={(e) => setNewClient({...newClient, name: e.target.value})}
+                  id="contactName"
+                  placeholder="Enter contact name"
+                  value={newClient.contactName}
+                  onChange={(e) => setNewClient({...newClient, contactName: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Select value={newClient.company} onValueChange={(value) => setNewClient({...newClient, company: value})}>
+                <Label htmlFor="clientCompany">Client Company</Label>
+                <Input
+                  id="clientCompany"
+                  placeholder="Enter client company name"
+                  value={newClient.clientCompany}
+                  onChange={(e) => setNewClient({...newClient, clientCompany: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="serviceProvider">Service Provider</Label>
+                <Select value={newClient.serviceProvider} onValueChange={(value) => setNewClient({...newClient, serviceProvider: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select company" />
+                    <SelectValue placeholder="Select service provider" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Tech Solutions Inc">Tech Solutions Inc</SelectItem>
@@ -277,9 +297,10 @@ const Clients = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Company</TableHead>
                 <TableHead>Contact</TableHead>
+                <TableHead>Client Company</TableHead>
+                <TableHead>Service Provider</TableHead>
+                <TableHead>Contact Info</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Invoices</TableHead>
                 <TableHead>Total Paid</TableHead>
@@ -291,13 +312,16 @@ const Clients = () => {
               {filteredClients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell>
-                    <div className="font-medium">{client.name}</div>
+                    <div className="font-medium">{client.contactName}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="font-medium">{client.company}</span>
+                      <span className="font-medium">{client.clientCompany}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm font-medium text-primary">{client.serviceProvider}</span>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
