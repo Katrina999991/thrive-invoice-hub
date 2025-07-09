@@ -30,6 +30,15 @@ interface Invoice {
   issueDate: string;
   items: number;
   itemDetails?: InvoiceItem[];
+  serviceProvider?: string;
+  subtotal?: number;
+  taxAmount?: number;
+  taxes?: Tax[];
+}
+
+interface Tax {
+  name: string;
+  percentage: number;
 }
 
 interface Company {
@@ -43,6 +52,7 @@ interface Company {
   employees: number;
   revenue: string;
   defaultPaymentTerms: string;
+  taxes: Tax[];
 }
 
 interface Client {
@@ -74,7 +84,11 @@ const Invoices = () => {
       status: "active",
       employees: 150,
       revenue: "$2.5M",
-      defaultPaymentTerms: "30"
+      defaultPaymentTerms: "30",
+      taxes: [
+        { name: "VAT", percentage: 21 },
+        { name: "Service Tax", percentage: 5 }
+      ]
     },
     {
       id: "2", 
@@ -86,7 +100,10 @@ const Invoices = () => {
       status: "active",
       employees: 89,
       revenue: "$1.8M",
-      defaultPaymentTerms: "15"
+      defaultPaymentTerms: "15",
+      taxes: [
+        { name: "GST", percentage: 18 }
+      ]
     },
     {
       id: "3",
@@ -98,7 +115,8 @@ const Invoices = () => {
       status: "active",
       employees: 25,
       revenue: "$450K",
-      defaultPaymentTerms: "45"
+      defaultPaymentTerms: "45",
+      taxes: []
     }
   ]);
 
@@ -280,8 +298,33 @@ const Invoices = () => {
     });
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return newInvoice.items.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculateTaxes = () => {
+    const selectedCompany = companies.find(company => company.name === newInvoice.company);
+    const subtotal = calculateSubtotal();
+    
+    if (!selectedCompany || !selectedCompany.taxes || selectedCompany.taxes.length === 0) {
+      return { taxes: [], totalTax: 0 };
+    }
+
+    const taxes = selectedCompany.taxes.map(tax => ({
+      name: tax.name,
+      percentage: tax.percentage,
+      amount: (subtotal * tax.percentage) / 100
+    }));
+
+    const totalTax = taxes.reduce((sum, tax) => sum + tax.amount, 0);
+    
+    return { taxes, totalTax };
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const { totalTax } = calculateTaxes();
+    return subtotal + totalTax;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -297,6 +340,8 @@ const Invoices = () => {
     }
 
     const totalAmount = calculateTotal();
+    const subtotal = calculateSubtotal();
+    const { taxes, totalTax } = calculateTaxes();
     
     if (editingInvoice) {
       // Update existing invoice
@@ -306,7 +351,11 @@ const Invoices = () => {
         amount: `$${totalAmount.toFixed(2)}`,
         dueDate: newInvoice.dueDate,
         items: newInvoice.items.length,
-        itemDetails: newInvoice.items
+        itemDetails: newInvoice.items,
+        serviceProvider: newInvoice.company,
+        subtotal: subtotal,
+        taxAmount: totalTax,
+        taxes: taxes.map(tax => ({ name: tax.name, percentage: tax.percentage }))
       };
 
       setInvoices(invoices.map(invoice => 
@@ -328,7 +377,11 @@ const Invoices = () => {
         dueDate: newInvoice.dueDate,
         issueDate: new Date().toISOString().split('T')[0],
         items: newInvoice.items.length,
-        itemDetails: newInvoice.items
+        itemDetails: newInvoice.items,
+        serviceProvider: newInvoice.company,
+        subtotal: subtotal,
+        taxAmount: totalTax,
+        taxes: taxes.map(tax => ({ name: tax.name, percentage: tax.percentage }))
       };
 
       setInvoices([invoice, ...invoices]);
@@ -634,15 +687,36 @@ const Invoices = () => {
                               </TableCell>
                             </TableRow>
                           ))}
-                          <TableRow>
-                            <TableCell colSpan={4} className="text-right font-medium">
-                              Total Amount:
-                            </TableCell>
-                            <TableCell className="font-bold text-lg">
-                              ${calculateTotal().toFixed(2)}
-                            </TableCell>
-                            <TableCell></TableCell>
-                          </TableRow>
+                           <TableRow>
+                             <TableCell colSpan={4} className="text-right font-medium">
+                               Subtotal:
+                             </TableCell>
+                             <TableCell className="font-medium">
+                               ${calculateSubtotal().toFixed(2)}
+                             </TableCell>
+                             <TableCell></TableCell>
+                           </TableRow>
+                           {/* Tax rows */}
+                           {calculateTaxes().taxes.map((tax, index) => (
+                             <TableRow key={index}>
+                               <TableCell colSpan={4} className="text-right font-medium">
+                                 {tax.name} ({tax.percentage}%):
+                               </TableCell>
+                               <TableCell className="font-medium">
+                                 ${tax.amount.toFixed(2)}
+                               </TableCell>
+                               <TableCell></TableCell>
+                             </TableRow>
+                           ))}
+                           <TableRow className="border-t-2">
+                             <TableCell colSpan={4} className="text-right font-bold">
+                               Total Amount:
+                             </TableCell>
+                             <TableCell className="font-bold text-lg">
+                               ${calculateTotal().toFixed(2)}
+                             </TableCell>
+                             <TableCell></TableCell>
+                           </TableRow>
                         </TableBody>
                       </Table>
                     </div>
@@ -745,14 +819,33 @@ const Invoices = () => {
                               <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
                             </TableRow>
                           ))}
-                          <TableRow className="bg-muted/50">
-                            <TableCell colSpan={4} className="text-right font-semibold">
-                              Total Amount:
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-lg">
-                              {viewingInvoice.amount}
-                            </TableCell>
-                          </TableRow>
+                           <TableRow className="bg-muted/30">
+                             <TableCell colSpan={4} className="text-right font-medium">
+                               Subtotal:
+                             </TableCell>
+                             <TableCell className="text-right font-medium">
+                               ${viewingInvoice.subtotal?.toFixed(2) || "0.00"}
+                             </TableCell>
+                           </TableRow>
+                           {/* Tax rows in view */}
+                           {viewingInvoice.taxes && viewingInvoice.taxes.map((tax, index) => (
+                             <TableRow key={index} className="bg-muted/30">
+                               <TableCell colSpan={4} className="text-right font-medium">
+                                 {tax.name} ({tax.percentage}%):
+                               </TableCell>
+                               <TableCell className="text-right font-medium">
+                                 ${((viewingInvoice.subtotal || 0) * tax.percentage / 100).toFixed(2)}
+                               </TableCell>
+                             </TableRow>
+                           ))}
+                           <TableRow className="bg-muted/50 border-t-2">
+                             <TableCell colSpan={4} className="text-right font-semibold">
+                               Total Amount:
+                             </TableCell>
+                             <TableCell className="text-right font-bold text-lg">
+                               {viewingInvoice.amount}
+                             </TableCell>
+                           </TableRow>
                         </TableBody>
                       </Table>
                     </div>
