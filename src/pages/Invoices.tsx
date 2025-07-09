@@ -11,6 +11,7 @@ import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
+import { useCompanies } from "@/hooks/useCompanies";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Client = Tables<"clients">;
@@ -42,7 +43,9 @@ const Invoices = () => {
   // Database hooks
   const { invoices, loading, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
   const { clients } = useClients();
+  const { companies } = useCompanies();
 
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
     client_id: "",
     due_date: "",
@@ -62,6 +65,11 @@ const Invoices = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  // Filter clients based on selected company
+  const filteredClients = selectedCompanyId 
+    ? clients.filter(client => client.company_id === selectedCompanyId)
+    : clients;
 
   const generateInvoiceNumber = () => {
     const lastNumber = Math.max(...invoices.map(inv => parseInt(inv.invoice_number.split('-')[1]) || 0));
@@ -156,6 +164,7 @@ const Invoices = () => {
     }
 
     // Reset form
+    setSelectedCompanyId("");
     setNewInvoice({
       client_id: "",
       due_date: "",
@@ -235,6 +244,36 @@ const Invoices = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="company">Select Company</Label>
+                  <Select 
+                    value={selectedCompanyId} 
+                    onValueChange={(value) => {
+                      setSelectedCompanyId(value);
+                      // Reset client selection when company changes
+                      setNewInvoice({
+                        ...newInvoice,
+                        client_id: ""
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{company.name}</span>
+                            {company.contact_person && (
+                              <span className="text-sm text-muted-foreground">{company.contact_person}</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="client">Select Client</Label>
                   <Select 
                     value={newInvoice.client_id} 
@@ -244,12 +283,13 @@ const Invoices = () => {
                         client_id: value
                       });
                     }}
+                    disabled={!selectedCompanyId}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder={selectedCompanyId ? "Select client" : "Select company first"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((client) => (
+                      {filteredClients.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
                           <div className="flex flex-col">
                             <span className="font-medium">{client.name}</span>
@@ -260,6 +300,9 @@ const Invoices = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="due_date">Due Date</Label>
                   <Input
@@ -404,6 +447,7 @@ const Invoices = () => {
 
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => {
+                  setSelectedCompanyId("");
                   setNewInvoice({
                     client_id: "",
                     due_date: "",
