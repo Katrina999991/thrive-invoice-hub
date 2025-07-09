@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanies } from "@/hooks/useCompanies";
 import type { Tables } from "@/integrations/supabase/types";
@@ -24,32 +24,44 @@ const Companies = () => {
     tax_id: ""
   });
 
+  const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+
+  const addTax = () => {
+    if (taxes.length < 2) {
+      setTaxes([...taxes, { name: "", percentage: 0 }]);
+    }
+  };
+
+  const removeTax = (index: number) => {
+    setTaxes(taxes.filter((_, i) => i !== index));
+  };
+
+  const updateTax = (index: number, field: 'name' | 'percentage', value: string | number) => {
+    const newTaxes = [...taxes];
+    newTaxes[index] = { ...newTaxes[index], [field]: value };
+    setTaxes(newTaxes);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const companyData = {
+      name: newCompany.name,
+      address: newCompany.address || null,
+      phone: newCompany.phone || null,
+      email: newCompany.email || null,
+      website: newCompany.website || null,
+      tax_id: newCompany.tax_id || null,
+      taxes: taxes.length > 0 ? taxes : []
+    };
+    
     if (editingCompany) {
-      // Update existing company
-      await updateCompany(editingCompany.id, {
-        name: newCompany.name,
-        address: newCompany.address || null,
-        phone: newCompany.phone || null,
-        email: newCompany.email || null,
-        website: newCompany.website || null,
-        tax_id: newCompany.tax_id || null
-      });
+      await updateCompany(editingCompany.id, companyData);
     } else {
-      // Add new company
-      await createCompany({
-        name: newCompany.name,
-        address: newCompany.address || null,
-        phone: newCompany.phone || null,
-        email: newCompany.email || null,
-        website: newCompany.website || null,
-        tax_id: newCompany.tax_id || null
-      });
+      await createCompany(companyData);
     }
 
     resetForm();
@@ -64,6 +76,7 @@ const Companies = () => {
       website: "",
       tax_id: ""
     });
+    setTaxes([]);
     setEditingCompany(null);
     setIsDialogOpen(false);
   };
@@ -78,6 +91,12 @@ const Companies = () => {
       website: company.website || "",
       tax_id: company.tax_id || ""
     });
+    // Handle taxes - parse JSON if it exists
+    if (company.taxes && Array.isArray(company.taxes)) {
+      setTaxes(company.taxes as Array<{name: string, percentage: number}>);
+    } else {
+      setTaxes([]);
+    }
     setIsDialogOpen(true);
   };
 
@@ -169,6 +188,57 @@ const Companies = () => {
                   onChange={(e) => setNewCompany({...newCompany, tax_id: e.target.value})}
                 />
               </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Taxes (Max 2)</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addTax}
+                    disabled={taxes.length >= 2}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Tax
+                  </Button>
+                </div>
+                {taxes.map((tax, index) => (
+                  <div key={index} className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor={`tax-name-${index}`}>Tax Name</Label>
+                      <Input
+                        id={`tax-name-${index}`}
+                        placeholder="e.g. GST, VAT"
+                        value={tax.name}
+                        onChange={(e) => updateTax(index, 'name', e.target.value)}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Label htmlFor={`tax-percentage-${index}`}>%</Label>
+                      <Input
+                        id={`tax-percentage-${index}`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="0"
+                        value={tax.percentage}
+                        onChange={(e) => updateTax(index, 'percentage', parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeTax(index)}
+                      className="mb-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
@@ -220,7 +290,7 @@ const Companies = () => {
                 )}
               </div>
 
-              {(company.website || company.tax_id) && (
+              {(company.website || company.tax_id || (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0)) && (
                 <div className="pt-4 border-t space-y-2">
                   {company.website && (
                     <div>
@@ -232,6 +302,19 @@ const Companies = () => {
                     <div>
                       <p className="text-sm font-medium">Tax ID</p>
                       <p className="text-sm text-muted-foreground">{company.tax_id}</p>
+                    </div>
+                  )}
+                  {company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium">Taxes</p>
+                      <div className="space-y-1">
+                        {(company.taxes as Array<{name: string, percentage: number}>).map((tax, index) => (
+                          <div key={index} className="flex items-center text-sm text-muted-foreground">
+                            <Percent className="h-4 w-4 mr-2" />
+                            {tax.name}: {tax.percentage}%
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
