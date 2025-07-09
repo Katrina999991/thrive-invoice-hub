@@ -279,6 +279,7 @@ const Clients = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Client</TableHead>
+                <TableHead>Company</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Invoices</TableHead>
@@ -291,12 +292,12 @@ const Clients = () => {
               {filteredClients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell>
-                    <div>
-                      <div className="font-medium">{client.name}</div>
-                      <div className="text-sm text-muted-foreground flex items-center">
-                        <Building className="h-3 w-3 mr-1" />
-                        {client.company}
-                      </div>
+                    <div className="font-medium">{client.name}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="font-medium">{client.company}</span>
                     </div>
                   </TableCell>
                   <TableCell>
