@@ -320,7 +320,7 @@ const Companies = () => {
                         type="number"
                         min="0"
                         max="100"
-                        step="0.01"
+                        step="0.0001"
                         placeholder="0.00"
                         value={tax.percentage}
                         onChange={(e) => {
