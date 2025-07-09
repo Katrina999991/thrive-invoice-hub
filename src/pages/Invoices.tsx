@@ -119,7 +119,21 @@ const Invoices = () => {
 
   const calculateTaxes = () => {
     const subtotal = calculateSubtotal();
-    return { totalTax: subtotal * 0.1 }; // 10% tax
+    const selectedCompany = companies.find(c => c.id === selectedCompanyId);
+    
+    if (!selectedCompany?.taxes || !Array.isArray(selectedCompany.taxes) || selectedCompany.taxes.length === 0) {
+      return { totalTax: 0, taxes: [] };
+    }
+    
+    const taxes = selectedCompany.taxes.map((tax: any) => ({
+      name: tax.name,
+      percentage: tax.percentage,
+      amount: subtotal * (tax.percentage / 100)
+    }));
+    
+    const totalTax = taxes.reduce((sum, tax) => sum + tax.amount, 0);
+    
+    return { totalTax, taxes };
   };
 
   const calculateTotal = () => {
@@ -521,15 +535,34 @@ const Invoices = () => {
                              </TableCell>
                              <TableCell></TableCell>
                            </TableRow>
-                           <TableRow>
-                             <TableCell colSpan={4} className="text-right font-medium">
-                               Tax (10%):
-                             </TableCell>
-                             <TableCell className="font-medium">
-                               ${calculateTaxes().totalTax.toFixed(2)}
-                             </TableCell>
-                             <TableCell></TableCell>
-                           </TableRow>
+                           {(() => {
+                             const { taxes } = calculateTaxes();
+                             if (taxes.length === 0) {
+                               return (
+                                 <TableRow>
+                                   <TableCell colSpan={4} className="text-right font-medium">
+                                     Tax:
+                                   </TableCell>
+                                   <TableCell className="font-medium">
+                                     $0.00
+                                   </TableCell>
+                                   <TableCell></TableCell>
+                                 </TableRow>
+                               );
+                             }
+                             
+                             return taxes.map((tax, index) => (
+                               <TableRow key={index}>
+                                 <TableCell colSpan={4} className="text-right font-medium">
+                                   {tax.name} ({tax.percentage}%):
+                                 </TableCell>
+                                 <TableCell className="font-medium">
+                                   ${tax.amount.toFixed(2)}
+                                 </TableCell>
+                                 <TableCell></TableCell>
+                               </TableRow>
+                             ));
+                           })()}
                            <TableRow className="border-t-2">
                              <TableCell colSpan={4} className="text-right font-bold">
                                Total Amount:
