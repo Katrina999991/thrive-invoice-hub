@@ -327,11 +327,20 @@ const Companies = () => {
                          value={tax.displayValue !== undefined ? tax.displayValue : tax.percentage.toString()}
                          onChange={(e) => {
                            const inputValue = e.target.value;
+                           console.log('Input value:', inputValue);
+                           
                            // Replace comma with period for decimal separator
                            const normalizedValue = inputValue.replace(',', '.');
+                           console.log('Normalized value:', normalizedValue);
                            
-                           // Allow empty string, single period, or valid decimal numbers
-                           if (normalizedValue === '' || normalizedValue === '.' || /^\d*\.?\d*$/.test(normalizedValue)) {
+                           // Allow empty string, single period, or valid decimal numbers with up to 4 decimals
+                           const isValid = normalizedValue === '' || 
+                                         normalizedValue === '.' || 
+                                         /^\d*\.?\d{0,4}$/.test(normalizedValue);
+                           
+                           console.log('Is valid:', isValid);
+                           
+                           if (isValid) {
                              const updatedTaxes = [...newCompany.taxes];
                              const numericValue = parseFloat(normalizedValue);
                              
@@ -340,9 +349,10 @@ const Companies = () => {
                                updatedTaxes[index] = { ...updatedTaxes[index], percentage: 0, displayValue: normalizedValue };
                              } else if (!isNaN(numericValue)) {
                                // Valid number, clear display value and set percentage
-                               updatedTaxes[index] = { ...updatedTaxes[index], percentage: numericValue, displayValue: undefined };
+                               updatedTaxes[index] = { ...updatedTaxes[index], percentage: numericValue, displayValue: normalizedValue };
                              }
                              
+                             console.log('Updated tax:', updatedTaxes[index]);
                              setNewCompany({...newCompany, taxes: updatedTaxes});
                            }
                          }}
