@@ -494,7 +494,7 @@ const Invoices = () => {
                           ))
                       }
                       {newInvoice.company && clients.filter(client => client.company === newInvoice.company && client.status === "active").length === 0 && (
-                        <SelectItem value="" disabled>No active clients for this company</SelectItem>
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">No active clients for this company</div>
                       )}
                     </SelectContent>
                   </Select>
