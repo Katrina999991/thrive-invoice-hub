@@ -73,6 +73,7 @@ export type Database = {
           name: string
           phone: string | null
           tax_id: string | null
+          taxes: Json | null
           updated_at: string
           user_id: string
           website: string | null
@@ -85,6 +86,7 @@ export type Database = {
           name: string
           phone?: string | null
           tax_id?: string | null
+          taxes?: Json | null
           updated_at?: string
           user_id: string
           website?: string | null
@@ -97,6 +99,7 @@ export type Database = {
           name?: string
           phone?: string | null
           tax_id?: string | null
+          taxes?: Json | null
           updated_at?: string
           user_id?: string
           website?: string | null
