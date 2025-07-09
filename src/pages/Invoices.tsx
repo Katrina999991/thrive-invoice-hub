@@ -221,12 +221,24 @@ const Invoices = () => {
 
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice);
+    
+    // Find the company ID for this invoice
+    const client = clients.find(c => c.id === invoice.client_id);
+    setSelectedCompanyId(client?.company_id || "");
+    
     setNewInvoice({
       client_id: invoice.client_id || "",
       due_date: invoice.due_date || "",
       terms: invoice.terms || "",
       notes: invoice.notes || "",
-      items: []
+      items: invoice.invoice_items?.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.total,
+        product_id: item.product_id || "",
+        notes: item.notes || ""
+      })) || []
     });
     setIsDialogOpen(true);
   };
