@@ -9,99 +9,54 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useExpenses } from "@/hooks/useExpenses";
+import { useClients } from "@/hooks/useClients";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface Expense {
-  id: string;
-  description: string;
-  amount: number;
-  category: string;
-  date: string;
-  company: string;
-  status: "pending" | "approved" | "rejected";
-}
+type Expense = Tables<"expenses">;
 
 const Expenses = () => {
   const { toast } = useToast();
-  const [expenses, setExpenses] = useState<Expense[]>([
-    {
-      id: "1",
-      description: "Office supplies",
-      amount: 250.00,
-      category: "Office",
-      date: "2024-01-15",
-      company: "ABC Corporation",
-      status: "approved"
-    },
-    {
-      id: "2", 
-      description: "Business lunch with client",
-      amount: 85.50,
-      category: "Meals",
-      date: "2024-01-14",
-      company: "XYZ Industries",
-      status: "pending"
-    },
-    {
-      id: "3",
-      description: "Software subscription",
-      amount: 99.99,
-      category: "Software",
-      date: "2024-01-12",
-      company: "Tech Startup Inc",
-      status: "approved"
-    }
-  ]);
+  const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
+  const { clients, loading: clientsLoading } = useClients();
 
   const [newExpense, setNewExpense] = useState({
     description: "",
     amount: "",
     category: "",
-    date: "",
-    company: ""
+    expense_date: "",
+    client_id: "",
+    notes: "",
+    vendor: ""
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingExpense) {
       // Update existing expense
-      const updatedExpense: Expense = {
-        ...editingExpense,
+      await updateExpense(editingExpense.id, {
         description: newExpense.description,
         amount: parseFloat(newExpense.amount) || 0,
         category: newExpense.category,
-        company: newExpense.company,
-        date: newExpense.date
-      };
-
-      setExpenses(expenses.map(expense => 
-        expense.id === editingExpense.id ? updatedExpense : expense
-      ));
-      
-      toast({
-        title: "Expense Updated",
-        description: "The expense has been updated successfully."
+        client_id: newExpense.client_id || null,
+        expense_date: newExpense.expense_date,
+        notes: newExpense.notes || null,
+        vendor: newExpense.vendor || null
       });
     } else {
       // Add new expense
-      const expense: Expense = {
-        id: Date.now().toString(),
+      await createExpense({
         description: newExpense.description,
-        amount: parseFloat(newExpense.amount),
+        amount: parseFloat(newExpense.amount) || 0,
         category: newExpense.category,
-        date: newExpense.date,
-        company: newExpense.company,
-        status: "pending"
-      };
-
-      setExpenses([expense, ...expenses]);
-      
-      toast({
-        title: "Expense Added",
-        description: "Your expense has been recorded successfully."
+        client_id: newExpense.client_id || null,
+        expense_date: newExpense.expense_date,
+        notes: newExpense.notes || null,
+        vendor: newExpense.vendor || null
       });
     }
 
@@ -113,8 +68,10 @@ const Expenses = () => {
       description: "",
       amount: "",
       category: "",
-      date: "",
-      company: ""
+      expense_date: "",
+      client_id: "",
+      notes: "",
+      vendor: ""
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
@@ -126,10 +83,16 @@ const Expenses = () => {
       description: expense.description,
       amount: expense.amount.toString(),
       category: expense.category,
-      company: expense.company,
-      date: expense.date
+      client_id: expense.client_id || "",
+      expense_date: expense.expense_date,
+      notes: expense.notes || "",
+      vendor: expense.vendor || ""
     });
     setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (expenseId: string) => {
+    await deleteExpense(expenseId);
   };
 
   const getStatusColor = (status: string) => {
@@ -141,9 +104,13 @@ const Expenses = () => {
     }
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const approvedExpenses = expenses.filter(e => e.status === "approved").reduce((sum, expense) => sum + expense.amount, 0);
-  const pendingExpenses = expenses.filter(e => e.status === "pending").reduce((sum, expense) => sum + expense.amount, 0);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const approvedExpenses = expenses.filter(e => e.status === "approved").reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const pendingExpenses = expenses.filter(e => e.status === "pending").reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+  if (expensesLoading || clientsLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -209,28 +176,47 @@ const Expenses = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="expense_date">Date</Label>
                 <Input
-                  id="date"
+                  id="expense_date"
                   type="date"
-                  value={newExpense.date}
-                  onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
+                  value={newExpense.expense_date}
+                  onChange={(e) => setNewExpense({...newExpense, expense_date: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Select value={newExpense.company} onValueChange={(value) => setNewExpense({...newExpense, company: value})}>
+                <Label htmlFor="client_id">Client</Label>
+                <Select value={newExpense.client_id} onValueChange={(value) => setNewExpense({...newExpense, client_id: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select company" />
+                    <SelectValue placeholder="Select client (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
-                    <SelectItem value="XYZ Industries">XYZ Industries</SelectItem>
-                    <SelectItem value="Tech Startup Inc">Tech Startup Inc</SelectItem>
-                    <SelectItem value="Design Studio LLC">Design Studio LLC</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vendor">Vendor</Label>
+                <Input
+                  id="vendor"
+                  placeholder="Enter vendor name"
+                  value={newExpense.vendor}
+                  onChange={(e) => setNewExpense({...newExpense, vendor: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Additional notes (optional)"
+                  value={newExpense.notes}
+                  onChange={(e) => setNewExpense({...newExpense, notes: e.target.value})}
+                />
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
@@ -297,16 +283,16 @@ const Expenses = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {expense.company} • {expense.category} • {expense.date}
+                    {expense.vendor ? `${expense.vendor} • ` : ""}{expense.category} • {expense.expense_date}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="text-lg font-semibold">${expense.amount.toFixed(2)}</div>
+                  <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
                   <div className="flex space-x-1">
                     <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(expense.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
