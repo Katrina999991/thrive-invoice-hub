@@ -146,7 +146,7 @@ const Invoices = () => {
       serviceProvider: "Green Energy Corp",
       email: "m.chen@ecotech.com",
       phone: "+1 (555) 555-0123",
-      status: "pending",
+      status: "active",
       totalInvoices: 3,
       totalPaid: "$12,000",
       lastActivity: "2024-01-10"
