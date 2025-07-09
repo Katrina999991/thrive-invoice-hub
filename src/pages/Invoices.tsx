@@ -233,13 +233,12 @@ const Invoices = () => {
   ]);
 
   const [newInvoice, setNewInvoice] = useState({
+    company: "",
     client: "",
     dueDate: "",
     paymentTerms: "30",
     items: [] as InvoiceItem[]
   });
-
-  const [clientType, setClientType] = useState<"company" | "client">("company");
 
   const [currentItem, setCurrentItem] = useState({
     productService: "",
@@ -351,6 +350,7 @@ const Invoices = () => {
 
     // Reset form
     setNewInvoice({
+      company: "",
       client: "",
       dueDate: "",
       paymentTerms: "30",
@@ -369,6 +369,7 @@ const Invoices = () => {
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice);
     setNewInvoice({
+      company: "",
       client: invoice.client,
       dueDate: invoice.dueDate,
       paymentTerms: "30", // Default since we don't store this in the invoice
@@ -426,83 +427,81 @@ const Invoices = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Client Type Toggle */}
-              <div className="space-y-2">
-                <Label>Invoice To</Label>
-                <Select value={clientType} onValueChange={(value: "company" | "client") => {
-                  setClientType(value);
-                  setNewInvoice({...newInvoice, client: "", paymentTerms: "30", dueDate: ""});
-                }}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="company">Company</SelectItem>
-                    <SelectItem value="client">Individual Client</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Step 1: Select Company */}
                 <div className="space-y-2">
-                  <Label htmlFor="client">
-                    {clientType === "company" ? "Company" : "Client"}
-                  </Label>
-                  <Select value={newInvoice.client} onValueChange={(value) => {
-                    if (clientType === "company") {
-                      // Find the selected company
-                      const selectedCompany = companies.find(company => company.name === value);
-                      const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
-                      
-                      const issueDate = new Date();
-                      const dueDate = new Date(issueDate);
-                      dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
-                      
-                      setNewInvoice({
-                        ...newInvoice, 
-                        client: value,
-                        paymentTerms: defaultTerms,
-                        dueDate: dueDate.toISOString().split('T')[0]
-                      });
-                    } else {
-                      // For individual clients, use default 30-day terms
-                      const issueDate = new Date();
-                      const dueDate = new Date(issueDate);
-                      dueDate.setDate(dueDate.getDate() + 30);
-                      
-                      setNewInvoice({
-                        ...newInvoice, 
-                        client: value,
-                        paymentTerms: "30",
-                        dueDate: dueDate.toISOString().split('T')[0]
-                      });
-                    }
+                  <Label htmlFor="company">Step 1: Select Company</Label>
+                  <Select value={newInvoice.company} onValueChange={(value) => {
+                    // Find the selected company for payment terms
+                    const selectedCompany = companies.find(company => company.name === value);
+                    const defaultTerms = selectedCompany?.defaultPaymentTerms || "30";
+                    
+                    const issueDate = new Date();
+                    const dueDate = new Date(issueDate);
+                    dueDate.setDate(dueDate.getDate() + parseInt(defaultTerms));
+                    
+                    setNewInvoice({
+                      ...newInvoice, 
+                      company: value,
+                      client: "", // Reset client when company changes
+                      paymentTerms: defaultTerms,
+                      dueDate: dueDate.toISOString().split('T')[0]
+                    });
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder={`Select ${clientType === "company" ? "company" : "client"}`} />
+                      <SelectValue placeholder="Select company first" />
                     </SelectTrigger>
                     <SelectContent>
-                      {clientType === "company" ? 
-                        companies.filter(company => company.status === "active").map((company) => (
-                          <SelectItem key={company.id} value={company.name}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{company.name}</span>
-                              <span className="text-xs text-muted-foreground">{company.industry}</span>
-                            </div>
-                          </SelectItem>
-                        )) :
-                        clients.filter(client => client.status === "active").map((client) => (
-                          <SelectItem key={client.id} value={client.name}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{client.name}</span>
-                              <span className="text-xs text-muted-foreground">{client.company}</span>
-                            </div>
-                          </SelectItem>
-                        ))
-                      }
+                      {companies.filter(company => company.status === "active").map((company) => (
+                        <SelectItem key={company.id} value={company.name}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{company.name}</span>
+                            <span className="text-xs text-muted-foreground">{company.industry}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Step 2: Select Client from Company */}
+                <div className="space-y-2">
+                  <Label htmlFor="client">Step 2: Select Client</Label>
+                  <Select 
+                    value={newInvoice.client} 
+                    onValueChange={(value) => {
+                      setNewInvoice({
+                        ...newInvoice, 
+                        client: value
+                      });
+                    }}
+                    disabled={!newInvoice.company}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={newInvoice.company ? "Select client from company" : "Select company first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {newInvoice.company && 
+                        clients
+                          .filter(client => client.company === newInvoice.company && client.status === "active")
+                          .map((client) => (
+                            <SelectItem key={client.id} value={client.name}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{client.name}</span>
+                                <span className="text-xs text-muted-foreground">{client.email}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                      }
+                      {newInvoice.company && clients.filter(client => client.company === newInvoice.company && client.status === "active").length === 0 && (
+                        <SelectItem value="" disabled>No active clients for this company</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="paymentTerms">Payment Terms</Label>
                   <Select 
@@ -649,6 +648,7 @@ const Invoices = () => {
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => {
                   setNewInvoice({
+                    company: "",
                     client: "",
                     dueDate: "",
                     paymentTerms: "30",
