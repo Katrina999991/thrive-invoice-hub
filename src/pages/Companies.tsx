@@ -224,7 +224,10 @@ const Companies = () => {
                         step="0.0001"
                         placeholder="0"
                         value={tax.percentage}
-                        onChange={(e) => updateTax(index, 'percentage', parseFloat(e.target.value) || 0)}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(',', '.');
+                          updateTax(index, 'percentage', parseFloat(value) || 0);
+                        }}
                       />
                     </div>
                     <Button
