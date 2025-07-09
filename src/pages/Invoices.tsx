@@ -261,10 +261,10 @@ const Invoices = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="due_date">Due Date</Label>
+                  <Label htmlFor="due_date">Due Date & Time</Label>
                   <Input
                     id="due_date"
-                    type="date"
+                    type="datetime-local"
                     value={newInvoice.due_date}
                     onChange={(e) => setNewInvoice({...newInvoice, due_date: e.target.value})}
                     required

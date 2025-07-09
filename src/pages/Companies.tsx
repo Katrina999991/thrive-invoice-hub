@@ -21,7 +21,8 @@ const Companies = () => {
     phone: "",
     email: "",
     website: "",
-    tax_id: ""
+    tax_id: "",
+    default_due_time: "17:00"
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -55,7 +56,8 @@ const Companies = () => {
       email: newCompany.email || null,
       website: newCompany.website || null,
       tax_id: newCompany.tax_id || null,
-      taxes: taxes.length > 0 ? taxes : []
+      taxes: taxes.length > 0 ? taxes : [],
+      default_due_time: newCompany.default_due_time
     };
     
     if (editingCompany) {
@@ -74,7 +76,8 @@ const Companies = () => {
       phone: "",
       email: "",
       website: "",
-      tax_id: ""
+      tax_id: "",
+      default_due_time: "17:00"
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -89,7 +92,8 @@ const Companies = () => {
       phone: company.phone || "",
       email: company.email || "",
       website: company.website || "",
-      tax_id: company.tax_id || ""
+      tax_id: company.tax_id || "",
+      default_due_time: company.default_due_time || "17:00"
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
@@ -186,6 +190,15 @@ const Companies = () => {
                   placeholder="Enter tax identification number"
                   value={newCompany.tax_id}
                   onChange={(e) => setNewCompany({...newCompany, tax_id: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="default_due_time">Default Due Time</Label>
+                <Input
+                  id="default_due_time"
+                  type="time"
+                  value={newCompany.default_due_time}
+                  onChange={(e) => setNewCompany({...newCompany, default_due_time: e.target.value})}
                 />
               </div>
               
