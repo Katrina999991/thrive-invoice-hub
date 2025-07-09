@@ -50,7 +50,7 @@ export const useExpenses = () => {
     try {
       const { data, error } = await supabase
         .from("expenses")
-        .insert({ ...expenseData, user_id: user.id })
+        .insert({ ...expenseData, user_id: user.id, status: "unpaid" })
         .select()
         .single();
 
