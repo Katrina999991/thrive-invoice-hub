@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanies } from "@/hooks/useCompanies";
 import type { Tables } from "@/integrations/supabase/types";
@@ -22,6 +22,7 @@ const Companies = () => {
     email: "",
     website: "",
     tax_id: "",
+    contact_person: "",
     default_due_days: 7
   });
 
@@ -56,6 +57,7 @@ const Companies = () => {
       email: newCompany.email || null,
       website: newCompany.website || null,
       tax_id: newCompany.tax_id || null,
+      contact_person: newCompany.contact_person || null,
       taxes: taxes.length > 0 ? taxes : [],
       default_due_days: newCompany.default_due_days
     };
@@ -77,6 +79,7 @@ const Companies = () => {
       email: "",
       website: "",
       tax_id: "",
+      contact_person: "",
       default_due_days: 7
     });
     setTaxes([]);
@@ -93,6 +96,7 @@ const Companies = () => {
       email: company.email || "",
       website: company.website || "",
       tax_id: company.tax_id || "",
+      contact_person: company.contact_person || "",
       default_due_days: company.default_due_days || 7
     });
     // Handle taxes - parse JSON if it exists
@@ -172,6 +176,15 @@ const Companies = () => {
                   placeholder="Enter email address"
                   value={newCompany.email}
                   onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact_person">Contact Person</Label>
+                <Input
+                  id="contact_person"
+                  placeholder="Enter contact person name"
+                  value={newCompany.contact_person}
+                  onChange={(e) => setNewCompany({...newCompany, contact_person: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
@@ -305,6 +318,12 @@ const Companies = () => {
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Mail className="h-4 w-4 mr-2" />
                     {company.email}
+                  </div>
+                )}
+                {company.contact_person && (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <User className="h-4 w-4 mr-2" />
+                    {company.contact_person}
                   </div>
                 )}
               </div>

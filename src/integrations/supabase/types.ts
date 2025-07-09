@@ -67,6 +67,7 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          contact_person: string | null
           created_at: string
           default_due_days: number | null
           email: string | null
@@ -81,6 +82,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          contact_person?: string | null
           created_at?: string
           default_due_days?: number | null
           email?: string | null
@@ -95,6 +97,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          contact_person?: string | null
           created_at?: string
           default_due_days?: number | null
           email?: string | null
