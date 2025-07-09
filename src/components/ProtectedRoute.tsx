@@ -9,6 +9,8 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
+  console.log("ProtectedRoute - loading:", loading, "user:", user);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -18,8 +20,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
+    console.log("No user found, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
+  console.log("User authenticated, rendering children");
   return <>{children}</>;
 }
