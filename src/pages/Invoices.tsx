@@ -130,8 +130,8 @@ const Invoices = () => {
     {
       id: "2",
       name: "Sarah Johnson",
-      company: "XYZ Industries", 
-      email: "sarah.j@xyz.com",
+      company: "Tech Solutions Inc", 
+      email: "sarah.j@techsolutions.com",
       phone: "+1 (555) 987-6543",
       status: "active",
       totalInvoices: 8,
@@ -141,8 +141,8 @@ const Invoices = () => {
     {
       id: "3",
       name: "Michael Chen",
-      company: "Tech Startup Inc",
-      email: "m.chen@techstartup.com",
+      company: "Green Energy Corp",
+      email: "m.chen@greenenergy.com",
       phone: "+1 (555) 555-0123",
       status: "pending",
       totalInvoices: 3,
@@ -152,8 +152,8 @@ const Invoices = () => {
     {
       id: "4",
       name: "Emily Davis",
-      company: "Design Studio LLC",
-      email: "emily@designstudio.com",
+      company: "Creative Design Studio",
+      email: "emily@creativedesign.com",
       phone: "+1 (555) 111-2222",
       status: "active",
       totalInvoices: 15,
