@@ -822,9 +822,17 @@ const Invoices = () => {
                   </TableCell>
                   <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusColor(invoice.status) as any}>
-                      {invoice.status}
-                    </Badge>
+                    <Select value={invoice.status} onValueChange={(value) => updateInvoice(invoice.id, { status: value })}>
+                      <SelectTrigger className="w-28 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="sent">Sent</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>{invoice.issue_date}</TableCell>
                   <TableCell>{invoice.due_date}</TableCell>

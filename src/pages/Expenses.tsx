@@ -28,7 +28,8 @@ const Expenses = () => {
     expense_date: "",
     client_id: "",
     notes: "",
-    vendor: ""
+    vendor: "",
+    status: "unpaid"
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,7 +47,8 @@ const Expenses = () => {
         client_id: newExpense.client_id || null,
         expense_date: newExpense.expense_date,
         notes: newExpense.notes || null,
-        vendor: newExpense.vendor || null
+        vendor: newExpense.vendor || null,
+        status: newExpense.status
       });
     } else {
       // Add new expense
@@ -57,7 +59,8 @@ const Expenses = () => {
         client_id: newExpense.client_id || null,
         expense_date: newExpense.expense_date,
         notes: newExpense.notes || null,
-        vendor: newExpense.vendor || null
+        vendor: newExpense.vendor || null,
+        status: newExpense.status
       });
     }
 
@@ -72,7 +75,8 @@ const Expenses = () => {
       expense_date: "",
       client_id: "",
       notes: "",
-      vendor: ""
+      vendor: "",
+      status: "unpaid"
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
@@ -87,7 +91,8 @@ const Expenses = () => {
       client_id: expense.client_id || "",
       expense_date: expense.expense_date,
       notes: expense.notes || "",
-      vendor: expense.vendor || ""
+      vendor: expense.vendor || "",
+      status: expense.status
     });
     setIsDialogOpen(true);
   };
@@ -207,6 +212,18 @@ const Expenses = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={newExpense.status || "unpaid"} onValueChange={(value) => setNewExpense({...newExpense, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea
                   id="notes"
@@ -286,6 +303,15 @@ const Expenses = () => {
                 <div className="flex items-center space-x-2">
                   <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
                   <div className="flex space-x-1">
+                    <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
+                      <SelectTrigger className="w-24 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unpaid">Unpaid</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
                       <Edit className="h-4 w-4" />
                     </Button>
