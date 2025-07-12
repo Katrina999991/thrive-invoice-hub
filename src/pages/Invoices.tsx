@@ -827,11 +827,13 @@ const Invoices = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Clients</SelectItem>
-              {clients.map((client) => (
+              {clients && clients.length > 0 ? clients.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
-                  {client.name}
+                  {client.name || 'Unnamed Client'}
                 </SelectItem>
-              ))}
+              )) : (
+                <SelectItem value="" disabled>No clients available</SelectItem>
+              )}
             </SelectContent>
           </Select>
         )}
@@ -842,11 +844,13 @@ const Invoices = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Companies</SelectItem>
-              {companies.map((company) => (
+              {companies && companies.length > 0 ? companies.map((company) => (
                 <SelectItem key={company.id} value={company.id}>
-                  {company.name}
+                  {company.name || 'Unnamed Company'}
                 </SelectItem>
-              ))}
+              )) : (
+                <SelectItem value="" disabled>No companies available</SelectItem>
+              )}
             </SelectContent>
           </Select>
         )}
