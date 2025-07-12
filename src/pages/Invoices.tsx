@@ -43,6 +43,8 @@ interface InvoiceItem {
 const Invoices = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterValue, setFilterValue] = useState("");
   
   // Database hooks
   const { invoices, loading, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
@@ -243,9 +245,24 @@ const Invoices = () => {
     setIsDialogOpen(true);
   };
 
-  const filteredInvoices = invoices.filter(invoice =>
-    invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInvoices = invoices.filter(invoice => {
+    // Filter by search term
+    const clientName = clients.find(c => c.id === invoice.client_id)?.name || "";
+    const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      clientName.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filter by type
+    if (filterType === "all") {
+      return matchesSearch;
+    } else if (filterType === "client") {
+      return matchesSearch && (!filterValue || invoice.client_id === filterValue);
+    } else if (filterType === "company") {
+      const client = clients.find(c => c.id === invoice.client_id);
+      return matchesSearch && (!filterValue || client?.company_id === filterValue);
+    }
+    
+    return matchesSearch;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -780,16 +797,59 @@ const Invoices = () => {
         </Card>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Search invoices..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-8"
           />
         </div>
+        <Select value={filterType} onValueChange={(value) => {
+          setFilterType(value);
+          setFilterValue("");
+        }}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Invoices</SelectItem>
+            <SelectItem value="client">By Client</SelectItem>
+            <SelectItem value="company">By Company</SelectItem>
+          </SelectContent>
+        </Select>
+        {filterType === "client" && (
+          <Select value={filterValue} onValueChange={setFilterValue}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select client" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Clients</SelectItem>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {filterType === "company" && (
+          <Select value={filterValue} onValueChange={setFilterValue}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Companies</SelectItem>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <Card>
