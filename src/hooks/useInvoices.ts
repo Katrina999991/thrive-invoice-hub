@@ -62,14 +62,27 @@ export const useInvoices = () => {
     if (!user) return null;
 
     try {
+      // Ensure notes is null if empty string
+      const cleanedInvoiceData = {
+        ...invoiceData,
+        notes: invoiceData.notes?.trim() || null,
+        user_id: user.id
+      };
+
       // Create invoice
       const { data: invoice, error: invoiceError } = await supabase
         .from("invoices")
-        .insert({ ...invoiceData, user_id: user.id })
+        .insert(cleanedInvoiceData)
         .select()
         .single();
 
-      if (invoiceError) throw invoiceError;
+      if (invoiceError) {
+        // If duplicate invoice number, show more specific error
+        if (invoiceError.code === '23505' && invoiceError.message?.includes('invoices_user_id_invoice_number_key')) {
+          throw new Error('An invoice with this number already exists. Please try again.');
+        }
+        throw invoiceError;
+      }
 
       // Create invoice items
       if (items.length > 0) {
