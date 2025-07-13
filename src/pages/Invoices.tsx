@@ -17,7 +17,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -369,7 +369,7 @@ const Invoices = () => {
       tableData.push(['', '', 'Total:', `$${invoice.total.toFixed(2)}`]);
       
       // Use autoTable for better table formatting
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [tableHeaders],
         body: tableData,
         startY: startY,
@@ -400,7 +400,7 @@ const Invoices = () => {
       
       // Add notes if available
       if (invoice.notes) {
-        const finalY = (doc as any).lastAutoTable.finalY + 20;
+        const finalY = (doc as any).autoTable.previous.finalY + 20;
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
         doc.text('Notes:', 20, finalY);
@@ -412,7 +412,7 @@ const Invoices = () => {
       
       // Add terms if available
       if (invoice.terms) {
-        const finalY = (doc as any).lastAutoTable.finalY + (invoice.notes ? 40 : 20);
+        const finalY = (doc as any).autoTable.previous.finalY + (invoice.notes ? 40 : 20);
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
         doc.text('Terms:', 20, finalY);
