@@ -16,6 +16,8 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -271,6 +273,170 @@ const Invoices = () => {
       case "overdue": return "destructive";
       case "draft": return "secondary";
       default: return "secondary";
+    }
+  };
+
+  const downloadInvoicePDF = async (invoice: Invoice) => {
+    try {
+      // Find client and company information
+      const client = clients.find(c => c.id === invoice.client_id);
+      const company = companies.find(c => c.id === client?.company_id);
+      
+      // Create new PDF document
+      const doc = new jsPDF();
+      
+      // Set font
+      doc.setFont('helvetica');
+      
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text('INVOICE', 20, 30);
+      
+      // Company information (top right)
+      if (company) {
+        doc.setFontSize(12);
+        doc.setTextColor(100, 100, 100);
+        const companyLines = [
+          company.name,
+          ...(company.address ? [company.address] : []),
+          ...(company.phone ? [`Phone: ${company.phone}`] : []),
+          ...(company.email ? [`Email: ${company.email}`] : []),
+          ...(company.website ? [`Website: ${company.website}`] : [])
+        ];
+        
+        let yPos = 30;
+        companyLines.forEach(line => {
+          const textWidth = doc.getTextWidth(line);
+          doc.text(line, 210 - 20 - textWidth, yPos);
+          yPos += 6;
+        });
+      }
+      
+      // Invoice details
+      doc.setFontSize(12);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`Invoice Number: ${invoice.invoice_number}`, 20, 60);
+      doc.text(`Issue Date: ${invoice.issue_date}`, 20, 70);
+      doc.text(`Due Date: ${invoice.due_date || 'N/A'}`, 20, 80);
+      doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 90);
+      
+      // Client information
+      if (client) {
+        doc.setFontSize(14);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Bill To:', 20, 110);
+        
+        doc.setFontSize(12);
+        const clientLines = [
+          client.name,
+          ...(client.contact_person ? [client.contact_person] : []),
+          ...(client.address ? [client.address] : []),
+          ...(client.phone ? [`Phone: ${client.phone}`] : []),
+          ...(client.email ? [`Email: ${client.email}`] : [])
+        ];
+        
+        let yPos = 120;
+        clientLines.forEach(line => {
+          doc.text(line, 20, yPos);
+          yPos += 6;
+        });
+      }
+      
+      // Items table
+      const startY = 160;
+      const tableHeaders = ['Description', 'Qty', 'Unit Price', 'Total'];
+      const tableData: any[] = [];
+      
+      // Add invoice items (if available)
+      if (invoice.invoice_items && invoice.invoice_items.length > 0) {
+        invoice.invoice_items.forEach(item => {
+          tableData.push([
+            item.description,
+            item.quantity.toString(),
+            `$${item.unit_price.toFixed(2)}`,
+            `$${item.total.toFixed(2)}`
+          ]);
+        });
+      } else {
+        // If no items available, show totals only
+        tableData.push(['Invoice items not available', '', '', '']);
+      }
+      
+      // Add subtotal, tax, and total rows
+      tableData.push(['', '', 'Subtotal:', `$${invoice.subtotal.toFixed(2)}`]);
+      tableData.push(['', '', 'Tax:', `$${invoice.tax_amount.toFixed(2)}`]);
+      tableData.push(['', '', 'Total:', `$${invoice.total.toFixed(2)}`]);
+      
+      // Use autoTable for better table formatting
+      (doc as any).autoTable({
+        head: [tableHeaders],
+        body: tableData,
+        startY: startY,
+        theme: 'grid',
+        styles: {
+          fontSize: 10,
+          cellPadding: 5,
+        },
+        headStyles: {
+          fillColor: [40, 40, 40],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+        },
+        columnStyles: {
+          1: { halign: 'center' },
+          2: { halign: 'right' },
+          3: { halign: 'right' },
+        },
+        didDrawPage: function(data: any) {
+          // Footer
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          doc.text('Thank you for your business!', 20, pageHeight - 20);
+        }
+      });
+      
+      // Add notes if available
+      if (invoice.notes) {
+        const finalY = (doc as any).lastAutoTable.finalY + 20;
+        doc.setFontSize(12);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Notes:', 20, finalY);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        const splitNotes = doc.splitTextToSize(invoice.notes, 170);
+        doc.text(splitNotes, 20, finalY + 10);
+      }
+      
+      // Add terms if available
+      if (invoice.terms) {
+        const finalY = (doc as any).lastAutoTable.finalY + (invoice.notes ? 40 : 20);
+        doc.setFontSize(12);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Terms:', 20, finalY);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        const splitTerms = doc.splitTextToSize(invoice.terms, 170);
+        doc.text(splitTerms, 20, finalY + 10);
+      }
+      
+      // Save the PDF
+      doc.save(`invoice-${invoice.invoice_number}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "Invoice PDF downloaded successfully!",
+      });
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -912,7 +1078,7 @@ const Invoices = () => {
                       <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)}>
                         <Download className="h-4 w-4" />
                       </Button>
                       {invoice.status === "draft" && (
