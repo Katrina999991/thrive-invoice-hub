@@ -255,10 +255,10 @@ const Invoices = () => {
     if (filterType === "all") {
       return matchesSearch;
     } else if (filterType === "client") {
-      return matchesSearch && (!filterValue || invoice.client_id === filterValue);
+      return matchesSearch && (!filterValue || filterValue === "all" || invoice.client_id === filterValue);
     } else if (filterType === "company") {
       const client = clients.find(c => c.id === invoice.client_id);
-      return matchesSearch && (!filterValue || client?.company_id === filterValue);
+      return matchesSearch && (!filterValue || filterValue === "all" || client?.company_id === filterValue);
     }
     
     return matchesSearch;
@@ -826,7 +826,7 @@ const Invoices = () => {
               <SelectValue placeholder="Select client" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Clients</SelectItem>
+              <SelectItem value="all">All Clients</SelectItem>
               {clients && clients.length > 0 ? clients.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name || 'Unnamed Client'}
@@ -843,7 +843,7 @@ const Invoices = () => {
               <SelectValue placeholder="Select company" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Companies</SelectItem>
+              <SelectItem value="all">All Companies</SelectItem>
               {companies && companies.length > 0 ? companies.map((company) => (
                 <SelectItem key={company.id} value={company.id}>
                   {company.name || 'Unnamed Company'}
