@@ -49,7 +49,7 @@ const Invoices = () => {
   const [filterValue, setFilterValue] = useState("");
   
   // Database hooks
-  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
+  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, refetch: fetchInvoices } = useInvoices();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -435,6 +435,31 @@ const Invoices = () => {
       toast({
         title: "Error",
         description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendInvoiceEmail = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('send-invoice-email', {
+        body: { invoiceId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Invoice email sent successfully!",
+      });
+      
+      // Refresh invoices to update status
+      await fetchInvoices();
+    } catch (error) {
+      console.error('Error sending invoice email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send invoice email. Please try again.",
         variant: "destructive"
       });
     }
@@ -1082,7 +1107,11 @@ const Invoices = () => {
                         <Download className="h-4 w-4" />
                       </Button>
                       {invoice.status === "draft" && (
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => sendInvoiceEmail(invoice.id)}
+                        >
                           <Send className="h-4 w-4" />
                         </Button>
                       )}
