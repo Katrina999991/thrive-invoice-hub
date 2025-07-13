@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
@@ -75,6 +76,13 @@ const Invoices = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailingInvoice, setEmailingInvoice] = useState<Invoice | null>(null);
+  const [emailType, setEmailType] = useState<"new" | "overdue">("new");
+  const [emailForm, setEmailForm] = useState({
+    subject: "",
+    message: ""
+  });
 
   // Filter clients based on selected company
   const filteredClients = selectedCompanyId 
@@ -440,10 +448,151 @@ const Invoices = () => {
     }
   };
 
-  const sendInvoiceEmail = async (invoiceId: string) => {
+  const openEmailDialog = (invoice: Invoice) => {
+    setEmailingInvoice(invoice);
+    
+    // Find client and company for template variables
+    const client = clients.find(c => c.id === invoice.client_id);
+    const company = companies.find(c => c.id === client?.company_id);
+    
+    if (company) {
+      // Calculate template variables
+      const dueDate = new Date(invoice.due_date || '');
+      const today = new Date();
+      const timeDiff = dueDate.getTime() - today.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      const daysOverdue = Math.max(0, -daysDiff);
+      
+      const templateVars = {
+        '{client_name}': client?.name || '',
+        '{invoice_number}': invoice.invoice_number,
+        '{issue_date}': invoice.issue_date,
+        '{due_date}': invoice.due_date || 'N/A',
+        '{total}': invoice.total.toFixed(2),
+        '{subtotal}': invoice.subtotal.toFixed(2),
+        '{tax_amount}': invoice.tax_amount.toFixed(2),
+        '{company_name}': company.name,
+        '{days_until_due}': daysDiff.toString(),
+        '{days_overdue}': daysOverdue.toString(),
+      };
+
+      // Default to new invoice template
+      let defaultSubject = company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
+      let defaultMessage = company.invoice_email_message || `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`;
+
+      // Replace template variables
+      Object.entries(templateVars).forEach(([placeholder, value]) => {
+        defaultSubject = defaultSubject.replace(new RegExp(placeholder, 'g'), value);
+        defaultMessage = defaultMessage.replace(new RegExp(placeholder, 'g'), value);
+      });
+
+      setEmailForm({
+        subject: defaultSubject,
+        message: defaultMessage
+      });
+    }
+    
+    setEmailType("new");
+    setIsEmailDialogOpen(true);
+  };
+
+  const handleEmailTypeChange = (type: "new" | "overdue") => {
+    setEmailType(type);
+    
+    if (!emailingInvoice) return;
+    
+    const client = clients.find(c => c.id === emailingInvoice.client_id);
+    const company = companies.find(c => c.id === client?.company_id);
+    
+    if (company) {
+      const dueDate = new Date(emailingInvoice.due_date || '');
+      const today = new Date();
+      const timeDiff = dueDate.getTime() - today.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      const daysOverdue = Math.max(0, -daysDiff);
+      
+      const templateVars = {
+        '{client_name}': client?.name || '',
+        '{invoice_number}': emailingInvoice.invoice_number,
+        '{issue_date}': emailingInvoice.issue_date,
+        '{due_date}': emailingInvoice.due_date || 'N/A',
+        '{total}': emailingInvoice.total.toFixed(2),
+        '{subtotal}': emailingInvoice.subtotal.toFixed(2),
+        '{tax_amount}': emailingInvoice.tax_amount.toFixed(2),
+        '{company_name}': company.name,
+        '{days_until_due}': daysDiff.toString(),
+        '{days_overdue}': daysOverdue.toString(),
+      };
+
+      let subject, message;
+      
+      if (type === "overdue") {
+        subject = company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
+        message = company.overdue_email_message || `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: {total}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`;
+      } else {
+        subject = company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
+        message = company.invoice_email_message || `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`;
+      }
+
+      // Replace template variables
+      Object.entries(templateVars).forEach(([placeholder, value]) => {
+        subject = subject.replace(new RegExp(placeholder, 'g'), value);
+        message = message.replace(new RegExp(placeholder, 'g'), value);
+      });
+
+      setEmailForm({
+        subject,
+        message
+      });
+    }
+  };
+
+  const sendInvoiceEmail = async () => {
+    if (!emailingInvoice) return;
+    
     try {
       const { error } = await supabase.functions.invoke('send-invoice-email', {
-        body: { invoiceId }
+        body: { 
+          invoiceId: emailingInvoice.id,
+          customSubject: emailForm.subject,
+          customMessage: emailForm.message,
+          emailType
+        }
       });
 
       if (error) throw error;
@@ -452,6 +601,9 @@ const Invoices = () => {
         title: "Success",
         description: "Invoice email sent successfully!",
       });
+      
+      setIsEmailDialogOpen(false);
+      setEmailingInvoice(null);
       
       // Refresh invoices to update status
       await fetchInvoices();
@@ -1110,7 +1262,7 @@ const Invoices = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => sendInvoiceEmail(invoice.id)}
+                          onClick={() => openEmailDialog(invoice)}
                         >
                           <Send className="h-4 w-4" />
                         </Button>
@@ -1151,6 +1303,94 @@ const Invoices = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Send Invoice Email</DialogTitle>
+            <DialogDescription>
+              Choose email type and customize the message before sending
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Email Type Selection */}
+            <div className="space-y-2">
+              <Label>Email Type</Label>
+              <Select value={emailType} onValueChange={handleEmailTypeChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">New Invoice</SelectItem>
+                  <SelectItem value="overdue">Overdue Payment Reminder</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Client Email Info */}
+            {emailingInvoice && (
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Sending to:</p>
+                <p className="font-medium">
+                  {clients.find(c => c.id === emailingInvoice.client_id)?.name} 
+                  ({clients.find(c => c.id === emailingInvoice.client_id)?.email})
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Invoice: {emailingInvoice.invoice_number} - ${emailingInvoice.total.toFixed(2)}
+                </p>
+              </div>
+            )}
+
+            {/* Email Subject */}
+            <div className="space-y-2">
+              <Label htmlFor="email-subject">Email Subject</Label>
+              <Input
+                id="email-subject"
+                value={emailForm.subject}
+                onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                placeholder="Email subject"
+              />
+            </div>
+
+            {/* Email Message */}
+            <div className="space-y-2">
+              <Label htmlFor="email-message">Email Message</Label>
+              <Textarea
+                id="email-message"
+                value={emailForm.message}
+                onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
+                placeholder="Email message"
+                rows={8}
+                className="min-h-[200px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Available placeholders: {'{client_name}'}, {'{invoice_number}'}, {'{issue_date}'}, {'{due_date}'}, {'{total}'}, {'{company_name}'}, {'{days_overdue}'}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEmailDialogOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={sendInvoiceEmail}
+                className="flex-1"
+                disabled={!emailForm.subject || !emailForm.message}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send Email
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -12,6 +12,9 @@ const corsHeaders = {
 
 interface SendInvoiceEmailRequest {
   invoiceId: string;
+  customSubject?: string;
+  customMessage?: string;
+  emailType?: "new" | "overdue";
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { invoiceId }: SendInvoiceEmailRequest = await req.json();
+    const { invoiceId, customSubject, customMessage, emailType = "new" }: SendInvoiceEmailRequest = await req.json();
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -43,7 +46,9 @@ const handler = async (req: Request): Promise<Response> => {
           companies (
             name,
             invoice_email_subject,
-            invoice_email_message
+            invoice_email_message,
+            overdue_email_subject,
+            overdue_email_message
           )
         ),
         invoice_items (
@@ -90,11 +95,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Calculate days until due date
+    // Calculate days until due date and overdue days
     const dueDate = new Date(invoice.due_date);
     const today = new Date();
     const timeDiff = dueDate.getTime() - today.getTime();
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const daysOverdue = Math.max(0, -daysDiff);
 
     // Prepare template variables
     const templateVars = {
@@ -107,26 +113,54 @@ const handler = async (req: Request): Promise<Response> => {
       '{tax_amount}': invoice.tax_amount.toFixed(2),
       '{company_name}': company.name,
       '{days_until_due}': daysDiff.toString(),
+      '{days_overdue}': daysOverdue.toString(),
     };
 
-    // Replace template variables in subject and message
-    let emailSubject = company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
-    let emailMessage = company.invoice_email_message || `Dear {client_name},
+    // Use custom email content if provided, otherwise use company templates
+    let emailSubject = customSubject;
+    let emailMessage = customMessage;
+
+    if (!emailSubject || !emailMessage) {
+      // Fallback to company templates
+      if (emailType === "overdue") {
+        emailSubject = emailSubject || company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
+        emailMessage = emailMessage || company.overdue_email_message || `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: {total}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`;
+      } else {
+        emailSubject = emailSubject || company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
+        emailMessage = emailMessage || company.invoice_email_message || `Dear {client_name},
 
 Please find attached your invoice {invoice_number} dated {issue_date}.
 
-Amount due: ${total}
+Amount due: {total}
 Due date: {due_date}
 
 Thank you for your business!
 
 Best regards,
 {company_name}`;
+      }
 
-    Object.entries(templateVars).forEach(([placeholder, value]) => {
-      emailSubject = emailSubject.replace(new RegExp(placeholder, 'g'), value);
-      emailMessage = emailMessage.replace(new RegExp(placeholder, 'g'), value);
-    });
+      // Replace template variables in subject and message
+      Object.entries(templateVars).forEach(([placeholder, value]) => {
+        emailSubject = emailSubject.replace(new RegExp(placeholder, 'g'), value);
+        emailMessage = emailMessage.replace(new RegExp(placeholder, 'g'), value);
+      });
+    }
 
     // Create HTML email content
     const htmlContent = `
