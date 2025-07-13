@@ -63,7 +63,10 @@ const Companies = () => {
       tax_id: newCompany.tax_id || null,
       contact_person: newCompany.contact_person || null,
       taxes: taxes.length > 0 ? taxes : [],
-      default_due_days: newCompany.default_due_days
+      default_due_days: newCompany.default_due_days,
+      invoice_prefix: newCompany.invoice_prefix,
+      invoice_digits: newCompany.invoice_digits,
+      invoice_start_number: newCompany.invoice_start_number
     };
     
     if (editingCompany) {
