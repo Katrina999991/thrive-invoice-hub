@@ -40,6 +40,23 @@ Due date: {due_date}
 Thank you for your business!
 
 Best regards,
+{company_name}`,
+    overdue_email_subject: "Payment Overdue - Invoice {invoice_number}",
+    overdue_email_message: `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: ${"{total}"}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
 {company_name}`
   });
 
@@ -81,7 +98,9 @@ Best regards,
       invoice_digits: newCompany.invoice_digits,
       invoice_start_number: newCompany.invoice_start_number,
       invoice_email_subject: newCompany.invoice_email_subject,
-      invoice_email_message: newCompany.invoice_email_message
+      invoice_email_message: newCompany.invoice_email_message,
+      overdue_email_subject: newCompany.overdue_email_subject,
+      overdue_email_message: newCompany.overdue_email_message
     };
     
     if (editingCompany) {
@@ -117,6 +136,23 @@ Due date: {due_date}
 Thank you for your business!
 
 Best regards,
+{company_name}`,
+      overdue_email_subject: "Payment Overdue - Invoice {invoice_number}",
+      overdue_email_message: `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: ${"{total}"}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
 {company_name}`
     });
     setTaxes([]);
@@ -147,6 +183,23 @@ Amount due: ${"{total}"}
 Due date: {due_date}
 
 Thank you for your business!
+
+Best regards,
+{company_name}`,
+      overdue_email_subject: (company as any).overdue_email_subject || "Payment Overdue - Invoice {invoice_number}",
+      overdue_email_message: (company as any).overdue_email_message || `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: ${"{total}"}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
 
 Best regards,
 {company_name}`
@@ -389,6 +442,39 @@ Best regards,
                   />
                   <p className="text-xs text-muted-foreground">
                     Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Overdue Email Settings */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Send className="h-4 w-4" />
+                  <Label className="text-base font-medium">Overdue Payment Email Settings</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="overdue_email_subject">Overdue Email Subject</Label>
+                  <Input
+                    id="overdue_email_subject"
+                    placeholder="Payment Overdue - Invoice {invoice_number}"
+                    value={newCompany.overdue_email_subject}
+                    onChange={(e) => setNewCompany({...newCompany, overdue_email_subject: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="overdue_email_message">Overdue Email Message</Label>
+                  <Textarea
+                    id="overdue_email_message"
+                    rows={6}
+                    placeholder="Your overdue payment reminder email template..."
+                    value={newCompany.overdue_email_message}
+                    onChange={(e) => setNewCompany({...newCompany, overdue_email_message: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
                   </p>
                 </div>
               </div>
