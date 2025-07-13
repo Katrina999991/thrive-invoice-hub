@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent, User } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent, User, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanies } from "@/hooks/useCompanies";
 import type { Tables } from "@/integrations/supabase/types";
@@ -27,7 +28,19 @@ const Companies = () => {
     default_due_days: 7,
     invoice_prefix: "INV",
     invoice_digits: 3,
-    invoice_start_number: 1
+    invoice_start_number: 1,
+    invoice_email_subject: "Invoice {invoice_number} from {company_name}",
+    invoice_email_message: `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: ${"{total}"}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -66,7 +79,9 @@ const Companies = () => {
       default_due_days: newCompany.default_due_days,
       invoice_prefix: newCompany.invoice_prefix,
       invoice_digits: newCompany.invoice_digits,
-      invoice_start_number: newCompany.invoice_start_number
+      invoice_start_number: newCompany.invoice_start_number,
+      invoice_email_subject: newCompany.invoice_email_subject,
+      invoice_email_message: newCompany.invoice_email_message
     };
     
     if (editingCompany) {
@@ -90,7 +105,19 @@ const Companies = () => {
       default_due_days: 7,
       invoice_prefix: "INV",
       invoice_digits: 3,
-      invoice_start_number: 1
+      invoice_start_number: 1,
+      invoice_email_subject: "Invoice {invoice_number} from {company_name}",
+      invoice_email_message: `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: ${"{total}"}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -110,7 +137,19 @@ const Companies = () => {
       default_due_days: company.default_due_days || 7,
       invoice_prefix: (company as any).invoice_prefix || "INV",
       invoice_digits: (company as any).invoice_digits || 3,
-      invoice_start_number: (company as any).invoice_start_number || 1
+      invoice_start_number: (company as any).invoice_start_number || 1,
+      invoice_email_subject: (company as any).invoice_email_subject || "Invoice {invoice_number} from {company_name}",
+      invoice_email_message: (company as any).invoice_email_message || `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: ${"{total}"}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
@@ -319,6 +358,39 @@ const Companies = () => {
                     </Button>
                   </div>
                 ))}
+              </div>
+
+              {/* Invoice Email Settings */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Send className="h-4 w-4" />
+                  <Label className="text-base font-medium">Invoice Email Settings</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invoice_email_subject">Email Subject</Label>
+                  <Input
+                    id="invoice_email_subject"
+                    placeholder="Invoice {invoice_number} from {company_name}"
+                    value={newCompany.invoice_email_subject}
+                    onChange={(e) => setNewCompany({...newCompany, invoice_email_subject: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invoice_email_message">Email Message</Label>
+                  <Textarea
+                    id="invoice_email_message"
+                    rows={6}
+                    placeholder="Your invoice email message template..."
+                    value={newCompany.invoice_email_message}
+                    onChange={(e) => setNewCompany({...newCompany, invoice_email_message: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
+                  </p>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
