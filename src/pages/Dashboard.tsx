@@ -75,29 +75,39 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Payment received from ABC Corp</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
+              {isLoading ? (
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded animate-pulse"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse"></div>
                 </div>
-                <div className="text-sm font-medium text-green-600">+$2,400</div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New client added: XYZ Ltd</p>
-                  <p className="text-xs text-muted-foreground">5 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Invoice #INV-001 overdue</p>
-                  <p className="text-xs text-muted-foreground">1 day ago</p>
-                </div>
-                <div className="text-sm font-medium text-orange-600">$1,200</div>
-              </div>
+              ) : dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
+                dashboardData.recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center space-x-4">
+                    <div className={`w-2 h-2 rounded-full ${
+                      activity.color === 'green' ? 'bg-green-500' :
+                      activity.color === 'blue' ? 'bg-blue-500' :
+                      activity.color === 'orange' ? 'bg-orange-500' :
+                      'bg-gray-500'
+                    }`}></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <p className="text-xs text-muted-foreground">{activity.timeAgo}</p>
+                    </div>
+                    {activity.amount && (
+                      <div className={`text-sm font-medium ${
+                        activity.color === 'green' ? 'text-green-600' :
+                        activity.color === 'orange' ? 'text-orange-600' :
+                        'text-muted-foreground'
+                      }`}>
+                        {activity.amount}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No recent activity</p>
+              )}
             </div>
           </CardContent>
         </Card>
