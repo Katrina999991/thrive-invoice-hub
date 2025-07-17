@@ -300,6 +300,48 @@ const Invoices = () => {
       doc.setFontSize(20);
       doc.setTextColor(40, 40, 40);
       
+      // Define translations based on client language
+      const isClientFrench = client?.language === 'french';
+      const translations = isClientFrench ? {
+        invoice: 'FACTURE',
+        billTo: 'Facturer à :',
+        invoiceNumber: 'Numéro de facture',
+        issueDate: 'Date d\'émission',
+        dueDate: 'Date d\'échéance',
+        status: 'Statut',
+        description: 'Description',
+        qty: 'Qté',
+        unitPrice: 'Prix unitaire',
+        total: 'Total',
+        subtotal: 'Sous-total',
+        tax: 'Taxe',
+        notes: 'Notes',
+        terms: 'Conditions',
+        thankYou: 'Merci pour votre confiance !',
+        phone: 'Téléphone',
+        email: 'Courriel',
+        website: 'Site web'
+      } : {
+        invoice: 'INVOICE',
+        billTo: 'Bill To:',
+        invoiceNumber: 'Invoice Number',
+        issueDate: 'Issue Date',
+        dueDate: 'Due Date',
+        status: 'Status',
+        description: 'Description',
+        qty: 'Qty',
+        unitPrice: 'Unit Price',
+        total: 'Total',
+        subtotal: 'Subtotal',
+        tax: 'Tax',
+        notes: 'Notes',
+        terms: 'Terms',
+        thankYou: 'Thank you for your business!',
+        phone: 'Phone',
+        email: 'Email',
+        website: 'Website'
+      };
+      
       // Check if company has a logo
       if (company && company.logo_url) {
         try {
@@ -313,20 +355,20 @@ const Invoices = () => {
               try {
                 // Add logo (positioned at top left)
                 doc.addImage(logoImg, 'JPEG', 20, 15, 40, 30);
-                // Add INVOICE text next to logo
-                doc.text('INVOICE', 70, 35);
+                // Add INVOICE text next to logo (translated)
+                doc.text(translations.invoice, 70, 35);
                 resolve(undefined);
               } catch (error) {
                 console.error('Error adding logo to PDF:', error);
                 // Fallback: just add text without logo
-                doc.text('INVOICE', 20, 30);
+                doc.text(translations.invoice, 20, 30);
                 resolve(undefined);
               }
             };
             logoImg.onerror = () => {
               console.error('Error loading logo image');
               // Fallback: just add text without logo
-              doc.text('INVOICE', 20, 30);
+              doc.text(translations.invoice, 20, 30);
               resolve(undefined);
             };
             logoImg.src = company.logo_url;
@@ -334,11 +376,11 @@ const Invoices = () => {
         } catch (error) {
           console.error('Error handling logo:', error);
           // Fallback: just add text without logo
-          doc.text('INVOICE', 20, 30);
+          doc.text(translations.invoice, 20, 30);
         }
       } else {
-        // No logo, just add INVOICE text
-        doc.text('INVOICE', 20, 30);
+        // No logo, just add INVOICE text (translated)
+        doc.text(translations.invoice, 20, 30);
       }
       
       // Company information (top right)
@@ -348,9 +390,9 @@ const Invoices = () => {
         const companyLines = [
           company.name,
           ...(company.address ? [company.address] : []),
-          ...(company.phone ? [`Phone: ${company.phone}`] : []),
-          ...(company.email ? [`Email: ${company.email}`] : []),
-          ...(company.website ? [`Website: ${company.website}`] : [])
+          ...(company.phone ? [`${translations.phone}: ${company.phone}`] : []),
+          ...(company.email ? [`${translations.email}: ${company.email}`] : []),
+          ...(company.website ? [`${translations.website}: ${company.website}`] : [])
         ];
         
         let yPos = company.logo_url ? 50 : 30; // Adjust position if logo is present
@@ -365,25 +407,25 @@ const Invoices = () => {
       const invoiceDetailsY = company?.logo_url ? 70 : 60;
       doc.setFontSize(12);
       doc.setTextColor(40, 40, 40);
-      doc.text(`Invoice Number: ${invoice.invoice_number}`, 20, invoiceDetailsY);
-      doc.text(`Issue Date: ${invoice.issue_date}`, 20, invoiceDetailsY + 10);
-      doc.text(`Due Date: ${invoice.due_date || 'N/A'}`, 20, invoiceDetailsY + 20);
-      doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
+      doc.text(`${translations.invoiceNumber}: ${invoice.invoice_number}`, 20, invoiceDetailsY);
+      doc.text(`${translations.issueDate}: ${invoice.issue_date}`, 20, invoiceDetailsY + 10);
+      doc.text(`${translations.dueDate}: ${invoice.due_date || 'N/A'}`, 20, invoiceDetailsY + 20);
+      doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
       
       // Client information (adjust position based on logo presence)
       const clientInfoY = company?.logo_url ? 120 : 110;
       if (client) {
         doc.setFontSize(14);
         doc.setTextColor(40, 40, 40);
-        doc.text('Bill To:', 20, clientInfoY);
+        doc.text(translations.billTo, 20, clientInfoY);
         
         doc.setFontSize(12);
         const clientLines = [
           client.name,
           ...(client.contact_person ? [client.contact_person] : []),
           ...(client.address ? [client.address] : []),
-          ...(client.phone ? [`Phone: ${client.phone}`] : []),
-          ...(client.email ? [`Email: ${client.email}`] : [])
+          ...(client.phone ? [`${translations.phone}: ${client.phone}`] : []),
+          ...(client.email ? [`${translations.email}: ${client.email}`] : [])
         ];
         
         let yPos = clientInfoY + 10;
@@ -395,7 +437,7 @@ const Invoices = () => {
       
       // Items table (adjust position based on logo presence)  
       const startY = company?.logo_url ? 180 : 160;
-      const tableHeaders = ['Description', 'Qty', 'Unit Price', 'Total'];
+      const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
       const tableData: any[] = [];
       
       // Add invoice items (if available)
@@ -414,7 +456,7 @@ const Invoices = () => {
       }
       
       // Add subtotal, individual taxes, and total rows
-      tableData.push(['', '', 'Subtotal:', `$${invoice.subtotal.toFixed(2)}`]);
+      tableData.push(['', '', `${translations.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
       
       // Add individual taxes if company has multiple taxes
       if (company?.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
@@ -424,10 +466,10 @@ const Invoices = () => {
         });
       } else if (invoice.tax_amount > 0) {
         // Fallback to generic tax if no specific taxes are configured
-        tableData.push(['', '', 'Tax:', `$${invoice.tax_amount.toFixed(2)}`]);
+        tableData.push(['', '', `${translations.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
       }
       
-      tableData.push(['', '', 'Total:', `$${invoice.total.toFixed(2)}`]);
+      tableData.push(['', '', `${translations.total}:`, `$${invoice.total.toFixed(2)}`]);
       
       // Use autoTable for better table formatting
       autoTable(doc, {
@@ -455,7 +497,7 @@ const Invoices = () => {
           const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
           doc.setFontSize(8);
           doc.setTextColor(100, 100, 100);
-          doc.text('Thank you for your business!', 20, pageHeight - 20);
+          doc.text(translations.thankYou, 20, pageHeight - 20);
         }
       });
       
@@ -464,7 +506,7 @@ const Invoices = () => {
         const finalY = (doc as any).autoTable.previous.finalY + 20;
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
-        doc.text('Notes:', 20, finalY);
+        doc.text(`${translations.notes}:`, 20, finalY);
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         const splitNotes = doc.splitTextToSize(invoice.notes, 170);
@@ -476,7 +518,7 @@ const Invoices = () => {
         const finalY = (doc as any).autoTable.previous.finalY + (invoice.notes ? 40 : 20);
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
-        doc.text('Terms:', 20, finalY);
+        doc.text(`${translations.terms}:`, 20, finalY);
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         const splitTerms = doc.splitTextToSize(invoice.terms, 170);
