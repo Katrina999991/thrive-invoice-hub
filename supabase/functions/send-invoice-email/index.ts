@@ -42,6 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
           email,
           address,
           phone,
+          language,
           company_id,
           companies (
             name,
@@ -119,15 +120,75 @@ const handler = async (req: Request): Promise<Response> => {
       '{payment_date}': today.toLocaleDateString(),
     };
 
+    // Define French translations
+    const frenchTemplates = {
+      overdue: {
+        subject: 'Paiement en retard - Facture {invoice_number}',
+        message: `Cher/Chère {client_name},
+
+Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+
+Montant original : {total}$
+Date d'échéance : {due_date}
+Jours de retard : {days_overdue}
+
+Veuillez effectuer le paiement à votre plus tôt possible pour éviter des frais de retard.
+
+Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
+
+Merci pour votre attention prompte à cette question.
+
+Meilleures salutations,
+{company_name}`
+      },
+      payment_confirmation: {
+        subject: 'Confirmation de paiement - Facture {invoice_number}',
+        message: `Cher/Chère {client_name},
+
+Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
+
+Détails du paiement :
+- Facture : {invoice_number}
+- Montant : {total}$
+- Date de paiement : {payment_date}
+
+Merci pour votre paiement rapide et votre fidélité !
+
+Meilleures salutations,
+{company_name}`
+      },
+      new: {
+        subject: 'Facture {invoice_number} de {company_name}',
+        message: `Cher/Chère {client_name},
+
+Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
+
+Montant dû : {total}$
+Date d'échéance : {due_date}
+
+Merci pour votre confiance !
+
+Meilleures salutations,
+{company_name}`
+      }
+    };
+
+    // Determine if we should use French templates
+    const clientLanguage = client.language || 'english';
+
     // Use custom email content if provided, otherwise use company templates
     let emailSubject = customSubject;
     let emailMessage = customMessage;
 
     if (!emailSubject || !emailMessage) {
-      // Fallback to company templates or defaults
+      // Fallback to company templates or defaults based on client language
       if (emailType === "overdue") {
-        emailSubject = emailSubject || company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
-        emailMessage = emailMessage || company.overdue_email_message || `Dear {client_name},
+        if (clientLanguage === 'french') {
+          emailSubject = emailSubject || frenchTemplates.overdue.subject;
+          emailMessage = emailMessage || frenchTemplates.overdue.message;
+        } else {
+          emailSubject = emailSubject || company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
+          emailMessage = emailMessage || company.overdue_email_message || `Dear {client_name},
 
 This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
 
@@ -143,9 +204,14 @@ Thank you for your prompt attention to this matter.
 
 Best regards,
 {company_name}`;
+        }
       } else if (emailType === "payment_confirmation") {
-        emailSubject = emailSubject || company.payment_confirmation_email_subject || 'Payment Confirmation - Invoice {invoice_number}';
-        emailMessage = emailMessage || company.payment_confirmation_email_message || `Dear {client_name},
+        if (clientLanguage === 'french') {
+          emailSubject = emailSubject || frenchTemplates.payment_confirmation.subject;
+          emailMessage = emailMessage || frenchTemplates.payment_confirmation.message;
+        } else {
+          emailSubject = emailSubject || company.payment_confirmation_email_subject || 'Payment Confirmation - Invoice {invoice_number}';
+          emailMessage = emailMessage || company.payment_confirmation_email_message || `Dear {client_name},
 
 We have successfully received your payment for invoice {invoice_number}.
 
@@ -158,9 +224,14 @@ Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`;
+        }
       } else {
-        emailSubject = emailSubject || company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
-        emailMessage = emailMessage || company.invoice_email_message || `Dear {client_name},
+        if (clientLanguage === 'french') {
+          emailSubject = emailSubject || frenchTemplates.new.subject;
+          emailMessage = emailMessage || frenchTemplates.new.message;
+        } else {
+          emailSubject = emailSubject || company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
+          emailMessage = emailMessage || company.invoice_email_message || `Dear {client_name},
 
 Please find attached your invoice {invoice_number} dated {issue_date}.
 
@@ -171,6 +242,7 @@ Thank you for your business!
 
 Best regards,
 {company_name}`;
+        }
       }
 
       // Replace template variables in subject and message
@@ -180,12 +252,33 @@ Best regards,
       });
     }
 
+    // Define table headers based on language
+    const tableHeaders = clientLanguage === 'french' ? {
+      invoiceSummary: 'Résumé de la facture',
+      description: 'Description',
+      qty: 'Qté',
+      unitPrice: 'Prix unitaire',
+      total: 'Total',
+      subtotal: 'Sous-total',
+      tax: 'Taxe',
+      totalAmount: 'Montant total'
+    } : {
+      invoiceSummary: 'Invoice Summary',
+      description: 'Description',
+      qty: 'Qty',
+      unitPrice: 'Unit Price',
+      total: 'Total',
+      subtotal: 'Subtotal',
+      tax: 'Tax',
+      totalAmount: 'Total Amount'
+    };
+
     // Create HTML email content
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
           <h1 style="color: #333; margin: 0;">${company.name}</h1>
-          <h2 style="color: #666; margin: 5px 0 0 0;">Invoice ${invoice.invoice_number}</h2>
+          <h2 style="color: #666; margin: 5px 0 0 0;">${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}</h2>
         </div>
         
         <div style="background-color: white; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px;">
@@ -194,14 +287,14 @@ Best regards,
           </div>
           
           <div style="border-top: 2px solid #e9ecef; padding-top: 20px;">
-            <h3 style="color: #333; margin-bottom: 15px;">Invoice Summary</h3>
+            <h3 style="color: #333; margin-bottom: 15px;">${tableHeaders.invoiceSummary}</h3>
             <table style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="background-color: #f8f9fa;">
-                  <th style="padding: 10px; text-align: left; border: 1px solid #dee2e6;">Description</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">Qty</th>
-                  <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">Unit Price</th>
-                  <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">Total</th>
+                  <th style="padding: 10px; text-align: left; border: 1px solid #dee2e6;">${tableHeaders.description}</th>
+                  <th style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">${tableHeaders.qty}</th>
+                  <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.unitPrice}</th>
+                  <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.total}</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,15 +307,15 @@ Best regards,
                   </tr>
                 `).join('') || ''}
                 <tr style="background-color: #f8f9fa; font-weight: bold;">
-                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">Subtotal:</td>
+                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.subtotal}:</td>
                   <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.subtotal.toFixed(2)}</td>
                 </tr>
                 <tr style="background-color: #f8f9fa;">
-                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">Tax:</td>
+                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.tax}:</td>
                   <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.tax_amount.toFixed(2)}</td>
                 </tr>
                 <tr style="background-color: #e9ecef; font-weight: bold; font-size: 16px;">
-                  <td colspan="3" style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">Total Amount:</td>
+                  <td colspan="3" style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.totalAmount}:</td>
                   <td style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">$${invoice.total.toFixed(2)}</td>
                 </tr>
               </tbody>
