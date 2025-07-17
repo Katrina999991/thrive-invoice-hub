@@ -1,34 +1,37 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, Package, FileText, DollarSign, TrendingUp } from "lucide-react";
+import { useDashboard } from "@/hooks/useDashboard";
 
 const Dashboard = () => {
+  const { data: dashboardData, isLoading } = useDashboard();
+
   const stats = [
     {
       title: "Total Revenue",
-      value: "$45,231.89",
-      description: "+20.1% from last month",
+      value: isLoading ? "Loading..." : `$${dashboardData?.totalRevenue.toLocaleString() || "0"}`,
+      description: "From paid invoices",
       icon: DollarSign,
       color: "text-green-600"
     },
     {
       title: "Active Clients",
-      value: "245",
-      description: "+12 new this month",
+      value: isLoading ? "Loading..." : (dashboardData?.activeClients || 0).toString(),
+      description: `+${dashboardData?.newClientsThisMonth || 0} new this month`,
       icon: Users,
       color: "text-blue-600"
     },
     {
       title: "Open Invoices",
-      value: "32",
-      description: "Total: $12,450",
+      value: isLoading ? "Loading..." : (dashboardData?.openInvoicesCount || 0).toString(),
+      description: `Total: $${dashboardData?.openInvoicesTotal.toLocaleString() || "0"}`,
       icon: FileText,
       color: "text-orange-600"
     },
     {
       title: "Products/Services",
-      value: "89",
-      description: "Across all companies",
+      value: isLoading ? "Loading..." : (dashboardData?.activeProducts || 0).toString(),
+      description: "Active products",
       icon: Package,
       color: "text-purple-600"
     }
