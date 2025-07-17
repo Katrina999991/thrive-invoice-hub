@@ -371,9 +371,20 @@ const Invoices = () => {
         tableData.push(['Invoice items not available', '', '', '']);
       }
       
-      // Add subtotal, tax, and total rows
+      // Add subtotal, individual taxes, and total rows
       tableData.push(['', '', 'Subtotal:', `$${invoice.subtotal.toFixed(2)}`]);
-      tableData.push(['', '', 'Tax:', `$${invoice.tax_amount.toFixed(2)}`]);
+      
+      // Add individual taxes if company has multiple taxes
+      if (company?.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
+        company.taxes.forEach((tax: any) => {
+          const taxAmount = invoice.subtotal * (tax.percentage / 100);
+          tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
+        });
+      } else if (invoice.tax_amount > 0) {
+        // Fallback to generic tax if no specific taxes are configured
+        tableData.push(['', '', 'Tax:', `$${invoice.tax_amount.toFixed(2)}`]);
+      }
+      
       tableData.push(['', '', 'Total:', `$${invoice.total.toFixed(2)}`]);
       
       // Use autoTable for better table formatting
