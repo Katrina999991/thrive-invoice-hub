@@ -78,7 +78,7 @@ const Invoices = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailingInvoice, setEmailingInvoice] = useState<Invoice | null>(null);
-  const [emailType, setEmailType] = useState<"new" | "overdue">("new");
+  const [emailType, setEmailType] = useState<"new" | "overdue" | "payment_confirmation">("new");
   const [emailForm, setEmailForm] = useState({
     subject: "",
     message: ""
@@ -506,7 +506,7 @@ Best regards,
     setIsEmailDialogOpen(true);
   };
 
-  const handleEmailTypeChange = (type: "new" | "overdue") => {
+  const handleEmailTypeChange = (type: "new" | "overdue" | "payment_confirmation") => {
     setEmailType(type);
     
     if (!emailingInvoice) return;
@@ -551,6 +551,21 @@ Please remit payment at your earliest convenience to avoid any late fees.
 If you have already sent payment, please disregard this notice.
 
 Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`;
+      } else if (type === "payment_confirmation") {
+        subject = 'Payment Confirmation - Invoice {invoice_number}';
+        message = `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: {total}
+- Date paid: ${new Date().toLocaleDateString()}
+
+Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`;
@@ -1258,7 +1273,7 @@ Best regards,
                       <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)}>
                         <Download className="h-4 w-4" />
                       </Button>
-                      {invoice.status === "draft" && (
+                      {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid") && (
                         <Button 
                           variant="outline" 
                           size="sm" 
@@ -1325,6 +1340,7 @@ Best regards,
                 <SelectContent>
                   <SelectItem value="new">New Invoice</SelectItem>
                   <SelectItem value="overdue">Overdue Payment Reminder</SelectItem>
+                  <SelectItem value="payment_confirmation">Payment Confirmation</SelectItem>
                 </SelectContent>
               </Select>
             </div>

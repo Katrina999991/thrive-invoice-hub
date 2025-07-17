@@ -14,7 +14,7 @@ interface SendInvoiceEmailRequest {
   invoiceId: string;
   customSubject?: string;
   customMessage?: string;
-  emailType?: "new" | "overdue";
+  emailType?: "new" | "overdue" | "payment_confirmation";
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -114,6 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
       '{company_name}': company.name,
       '{days_until_due}': daysDiff.toString(),
       '{days_overdue}': daysOverdue.toString(),
+      '{payment_date}': today.toLocaleDateString(),
     };
 
     // Use custom email content if provided, otherwise use company templates
@@ -121,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
     let emailMessage = customMessage;
 
     if (!emailSubject || !emailMessage) {
-      // Fallback to company templates
+      // Fallback to company templates or defaults
       if (emailType === "overdue") {
         emailSubject = emailSubject || company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
         emailMessage = emailMessage || company.overdue_email_message || `Dear {client_name},
@@ -137,6 +138,21 @@ Please remit payment at your earliest convenience to avoid any late fees.
 If you have already sent payment, please disregard this notice.
 
 Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`;
+      } else if (emailType === "payment_confirmation") {
+        emailSubject = emailSubject || 'Payment Confirmation - Invoice {invoice_number}';
+        emailMessage = emailMessage || `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: {total}
+- Date paid: {payment_date}
+
+Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`;
@@ -224,14 +240,16 @@ Best regards,
 
     console.log("Email sent successfully:", emailResponse);
 
-    // Update invoice status to 'sent'
-    const { error: updateError } = await supabase
-      .from('invoices')
-      .update({ status: 'sent' })
-      .eq('id', invoiceId);
+    // Update invoice status only for new invoices (not for confirmations or reminders)
+    if (emailType === "new") {
+      const { error: updateError } = await supabase
+        .from('invoices')
+        .update({ status: 'sent' })
+        .eq('id', invoiceId);
 
-    if (updateError) {
-      console.error('Error updating invoice status:', updateError);
+      if (updateError) {
+        console.error('Error updating invoice status:', updateError);
+      }
     }
 
     return new Response(JSON.stringify({ 
