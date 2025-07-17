@@ -57,6 +57,20 @@ If you have already sent payment, please disregard this notice.
 Thank you for your prompt attention to this matter.
 
 Best regards,
+{company_name}`,
+    payment_confirmation_email_subject: "Payment Confirmation - Invoice {invoice_number}",
+    payment_confirmation_email_message: `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: ${"{total}"}
+- Date paid: {payment_date}
+
+Thank you for your prompt payment and continued business!
+
+Best regards,
 {company_name}`
   });
 
@@ -100,7 +114,9 @@ Best regards,
       invoice_email_subject: newCompany.invoice_email_subject,
       invoice_email_message: newCompany.invoice_email_message,
       overdue_email_subject: newCompany.overdue_email_subject,
-      overdue_email_message: newCompany.overdue_email_message
+      overdue_email_message: newCompany.overdue_email_message,
+      payment_confirmation_email_subject: newCompany.payment_confirmation_email_subject,
+      payment_confirmation_email_message: newCompany.payment_confirmation_email_message
     };
     
     if (editingCompany) {
@@ -153,6 +169,20 @@ If you have already sent payment, please disregard this notice.
 Thank you for your prompt attention to this matter.
 
 Best regards,
+{company_name}`,
+      payment_confirmation_email_subject: "Payment Confirmation - Invoice {invoice_number}",
+      payment_confirmation_email_message: `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: ${"{total}"}
+- Date paid: {payment_date}
+
+Thank you for your prompt payment and continued business!
+
+Best regards,
 {company_name}`
     });
     setTaxes([]);
@@ -200,6 +230,20 @@ Please remit payment at your earliest convenience to avoid any late fees.
 If you have already sent payment, please disregard this notice.
 
 Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`,
+      payment_confirmation_email_subject: (company as any).payment_confirmation_email_subject || "Payment Confirmation - Invoice {invoice_number}",
+      payment_confirmation_email_message: (company as any).payment_confirmation_email_message || `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: ${"{total}"}
+- Date paid: {payment_date}
+
+Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`
@@ -478,6 +522,40 @@ Best regards,
                   </p>
                 </div>
               </div>
+
+              {/* Payment Confirmation Email Settings */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Send className="h-4 w-4" />
+                  <Label className="text-base font-medium">Payment Confirmation Email Settings</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment_confirmation_email_subject">Payment Confirmation Email Subject</Label>
+                  <Input
+                    id="payment_confirmation_email_subject"
+                    placeholder="Payment Confirmation - Invoice {invoice_number}"
+                    value={newCompany.payment_confirmation_email_subject}
+                    onChange={(e) => setNewCompany({...newCompany, payment_confirmation_email_subject: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment_confirmation_email_message">Payment Confirmation Email Message</Label>
+                  <Textarea
+                    id="payment_confirmation_email_message"
+                    rows={6}
+                    placeholder="Your payment confirmation email template..."
+                    value={newCompany.payment_confirmation_email_message}
+                    onChange={(e) => setNewCompany({...newCompany, payment_confirmation_email_message: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel

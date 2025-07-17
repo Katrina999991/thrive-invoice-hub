@@ -81,6 +81,8 @@ export type Database = {
           name: string
           overdue_email_message: string | null
           overdue_email_subject: string | null
+          payment_confirmation_email_message: string | null
+          payment_confirmation_email_subject: string | null
           phone: string | null
           tax_id: string | null
           taxes: Json | null
@@ -104,6 +106,8 @@ export type Database = {
           name: string
           overdue_email_message?: string | null
           overdue_email_subject?: string | null
+          payment_confirmation_email_message?: string | null
+          payment_confirmation_email_subject?: string | null
           phone?: string | null
           tax_id?: string | null
           taxes?: Json | null
@@ -127,6 +131,8 @@ export type Database = {
           name?: string
           overdue_email_message?: string | null
           overdue_email_subject?: string | null
+          payment_confirmation_email_message?: string | null
+          payment_confirmation_email_subject?: string | null
           phone?: string | null
           tax_id?: string | null
           taxes?: Json | null

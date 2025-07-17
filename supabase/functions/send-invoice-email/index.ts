@@ -48,7 +48,9 @@ const handler = async (req: Request): Promise<Response> => {
             invoice_email_subject,
             invoice_email_message,
             overdue_email_subject,
-            overdue_email_message
+            overdue_email_message,
+            payment_confirmation_email_subject,
+            payment_confirmation_email_message
           )
         ),
         invoice_items (
@@ -142,8 +144,8 @@ Thank you for your prompt attention to this matter.
 Best regards,
 {company_name}`;
       } else if (emailType === "payment_confirmation") {
-        emailSubject = emailSubject || 'Payment Confirmation - Invoice {invoice_number}';
-        emailMessage = emailMessage || `Dear {client_name},
+        emailSubject = emailSubject || company.payment_confirmation_email_subject || 'Payment Confirmation - Invoice {invoice_number}';
+        emailMessage = emailMessage || company.payment_confirmation_email_message || `Dear {client_name},
 
 We have successfully received your payment for invoice {invoice_number}.
 

@@ -555,8 +555,8 @@ Thank you for your prompt attention to this matter.
 Best regards,
 {company_name}`;
       } else if (type === "payment_confirmation") {
-        subject = 'Payment Confirmation - Invoice {invoice_number}';
-        message = `Dear {client_name},
+        subject = company.payment_confirmation_email_subject || 'Payment Confirmation - Invoice {invoice_number}';
+        message = company.payment_confirmation_email_message || `Dear {client_name},
 
 We have successfully received your payment for invoice {invoice_number}.
 
