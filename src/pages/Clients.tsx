@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -27,7 +27,8 @@ const Clients = () => {
     company_id: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
+    language: "english"
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,7 +44,8 @@ const Clients = () => {
         company_id: newClient.company_id || null,
         email: newClient.email,
         phone: newClient.phone,
-        address: newClient.address
+        address: newClient.address,
+        language: newClient.language
       });
     } else {
       await createClient({
@@ -52,7 +54,8 @@ const Clients = () => {
         company_id: newClient.company_id || null,
         email: newClient.email,
         phone: newClient.phone,
-        address: newClient.address
+        address: newClient.address,
+        language: newClient.language
       });
     }
 
@@ -66,7 +69,8 @@ const Clients = () => {
       company_id: "",
       email: "",
       phone: "",
-      address: ""
+      address: "",
+      language: "english"
     });
     setEditingClient(null);
     setIsDialogOpen(false);
@@ -80,7 +84,8 @@ const Clients = () => {
       company_id: client.company_id || "",
       email: client.email || "",
       phone: client.phone || "",
-      address: client.address || ""
+      address: client.address || "",
+      language: client.language || "english"
     });
     setIsDialogOpen(true);
   };
@@ -185,6 +190,28 @@ const Clients = () => {
                   onChange={(e) => setNewClient({...newClient, address: e.target.value})}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="language">Language</Label>
+                <Select value={newClient.language} onValueChange={(value) => setNewClient({...newClient, language: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">
+                      <div className="flex items-center">
+                        <Languages className="h-4 w-4 mr-2" />
+                        English
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="french">
+                      <div className="flex items-center">
+                        <Languages className="h-4 w-4 mr-2" />
+                        Français
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
@@ -226,6 +253,7 @@ const Clients = () => {
                 <TableHead>Service Provider</TableHead>
                 <TableHead>Contact Info</TableHead>
                 <TableHead>Address</TableHead>
+                <TableHead>Language</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -263,6 +291,12 @@ const Clients = () => {
                     </div>
                   </TableCell>
                   <TableCell>{client.address || "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="flex items-center w-fit">
+                      <Languages className="h-3 w-3 mr-1" />
+                      {client.language === 'french' ? 'Français' : 'English'}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
