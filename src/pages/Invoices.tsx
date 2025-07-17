@@ -296,10 +296,50 @@ const Invoices = () => {
       // Set font
       doc.setFont('helvetica');
       
-      // Header
+      // Header with logo
       doc.setFontSize(20);
       doc.setTextColor(40, 40, 40);
-      doc.text('INVOICE', 20, 30);
+      
+      // Check if company has a logo
+      if (company && company.logo_url) {
+        try {
+          // Load and add logo
+          const logoImg = new Image();
+          logoImg.crossOrigin = 'anonymous';
+          
+          // Create a promise to handle image loading
+          await new Promise((resolve, reject) => {
+            logoImg.onload = () => {
+              try {
+                // Add logo (positioned at top left)
+                doc.addImage(logoImg, 'JPEG', 20, 15, 40, 30);
+                // Add INVOICE text next to logo
+                doc.text('INVOICE', 70, 35);
+                resolve(undefined);
+              } catch (error) {
+                console.error('Error adding logo to PDF:', error);
+                // Fallback: just add text without logo
+                doc.text('INVOICE', 20, 30);
+                resolve(undefined);
+              }
+            };
+            logoImg.onerror = () => {
+              console.error('Error loading logo image');
+              // Fallback: just add text without logo
+              doc.text('INVOICE', 20, 30);
+              resolve(undefined);
+            };
+            logoImg.src = company.logo_url;
+          });
+        } catch (error) {
+          console.error('Error handling logo:', error);
+          // Fallback: just add text without logo
+          doc.text('INVOICE', 20, 30);
+        }
+      } else {
+        // No logo, just add INVOICE text
+        doc.text('INVOICE', 20, 30);
+      }
       
       // Company information (top right)
       if (company) {
@@ -313,7 +353,7 @@ const Invoices = () => {
           ...(company.website ? [`Website: ${company.website}`] : [])
         ];
         
-        let yPos = 30;
+        let yPos = company.logo_url ? 50 : 30; // Adjust position if logo is present
         companyLines.forEach(line => {
           const textWidth = doc.getTextWidth(line);
           doc.text(line, 210 - 20 - textWidth, yPos);
@@ -321,19 +361,21 @@ const Invoices = () => {
         });
       }
       
-      // Invoice details
+      // Invoice details (adjust position based on logo presence)
+      const invoiceDetailsY = company?.logo_url ? 70 : 60;
       doc.setFontSize(12);
       doc.setTextColor(40, 40, 40);
-      doc.text(`Invoice Number: ${invoice.invoice_number}`, 20, 60);
-      doc.text(`Issue Date: ${invoice.issue_date}`, 20, 70);
-      doc.text(`Due Date: ${invoice.due_date || 'N/A'}`, 20, 80);
-      doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 90);
+      doc.text(`Invoice Number: ${invoice.invoice_number}`, 20, invoiceDetailsY);
+      doc.text(`Issue Date: ${invoice.issue_date}`, 20, invoiceDetailsY + 10);
+      doc.text(`Due Date: ${invoice.due_date || 'N/A'}`, 20, invoiceDetailsY + 20);
+      doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
       
-      // Client information
+      // Client information (adjust position based on logo presence)
+      const clientInfoY = company?.logo_url ? 120 : 110;
       if (client) {
         doc.setFontSize(14);
         doc.setTextColor(40, 40, 40);
-        doc.text('Bill To:', 20, 110);
+        doc.text('Bill To:', 20, clientInfoY);
         
         doc.setFontSize(12);
         const clientLines = [
@@ -344,15 +386,15 @@ const Invoices = () => {
           ...(client.email ? [`Email: ${client.email}`] : [])
         ];
         
-        let yPos = 120;
+        let yPos = clientInfoY + 10;
         clientLines.forEach(line => {
           doc.text(line, 20, yPos);
           yPos += 6;
         });
       }
       
-      // Items table
-      const startY = 160;
+      // Items table (adjust position based on logo presence)  
+      const startY = company?.logo_url ? 180 : 160;
       const tableHeaders = ['Description', 'Qty', 'Unit Price', 'Total'];
       const tableData: any[] = [];
       

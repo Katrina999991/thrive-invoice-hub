@@ -78,6 +78,7 @@ export type Database = {
           invoice_email_subject: string | null
           invoice_prefix: string | null
           invoice_start_number: number | null
+          logo_url: string | null
           name: string
           overdue_email_message: string | null
           overdue_email_subject: string | null
@@ -103,6 +104,7 @@ export type Database = {
           invoice_email_subject?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
+          logo_url?: string | null
           name: string
           overdue_email_message?: string | null
           overdue_email_subject?: string | null
@@ -128,6 +130,7 @@ export type Database = {
           invoice_email_subject?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
+          logo_url?: string | null
           name?: string
           overdue_email_message?: string | null
           overdue_email_subject?: string | null

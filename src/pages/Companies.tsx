@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent, User, Send } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent, User, Send, Upload, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanies } from "@/hooks/useCompanies";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Company = Tables<"companies">;
@@ -25,6 +26,7 @@ const Companies = () => {
     website: "",
     tax_id: "",
     contact_person: "",
+    logo_url: "",
     default_due_days: 7,
     invoice_prefix: "INV",
     invoice_digits: 3,
@@ -78,6 +80,8 @@ Best regards,
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const addTax = () => {
     if (taxes.length < 2) {
@@ -97,7 +101,41 @@ Best regards,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploadingLogo(true);
     
+    let logoUrl = newCompany.logo_url;
+    
+    // Upload logo if a new file is selected
+    if (logoFile) {
+      try {
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('company-logos')
+          .upload(filePath, logoFile);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('company-logos')
+          .getPublicUrl(filePath);
+
+        logoUrl = publicUrl;
+      } catch (error) {
+        console.error('Error uploading logo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to upload logo. Please try again.",
+          variant: "destructive"
+        });
+        setUploadingLogo(false);
+        return;
+      }
+    }
     const companyData = {
       name: newCompany.name,
       address: newCompany.address || null,
@@ -106,6 +144,7 @@ Best regards,
       website: newCompany.website || null,
       tax_id: newCompany.tax_id || null,
       contact_person: newCompany.contact_person || null,
+      logo_url: logoUrl || null,
       taxes: taxes.length > 0 ? taxes : [],
       default_due_days: newCompany.default_due_days,
       invoice_prefix: newCompany.invoice_prefix,
@@ -126,9 +165,11 @@ Best regards,
     }
 
     resetForm();
+    setUploadingLogo(false);
   };
 
   const resetForm = () => {
+    setLogoFile(null);
     setNewCompany({
       name: "",
       address: "",
@@ -137,6 +178,7 @@ Best regards,
       website: "",
       tax_id: "",
       contact_person: "",
+      logo_url: "",
       default_due_days: 7,
       invoice_prefix: "INV",
       invoice_digits: 3,
@@ -192,6 +234,7 @@ Best regards,
 
   const handleEdit = (company: Company) => {
     setEditingCompany(company);
+    setLogoFile(null);
     setNewCompany({
       name: company.name,
       address: company.address || "",
@@ -200,6 +243,7 @@ Best regards,
       website: company.website || "",
       tax_id: company.tax_id || "",
       contact_person: company.contact_person || "",
+      logo_url: company.logo_url || "",
       default_due_days: company.default_due_days || 7,
       invoice_prefix: (company as any).invoice_prefix || "INV",
       invoice_digits: (company as any).invoice_digits || 3,
@@ -333,6 +377,45 @@ Best regards,
                   onChange={(e) => setNewCompany({...newCompany, contact_person: e.target.value})}
                 />
               </div>
+              
+              {/* Logo Upload */}
+              <div className="space-y-2">
+                <Label htmlFor="logo">Company Logo</Label>
+                <div className="flex items-center space-x-4">
+                  {newCompany.logo_url && (
+                    <div className="w-16 h-16 border rounded-lg overflow-hidden">
+                      <img 
+                        src={newCompany.logo_url} 
+                        alt="Company logo" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setLogoFile(file);
+                          // Show preview
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            setNewCompany({...newCompany, logo_url: e.target?.result as string});
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload PNG, JPG, or GIF (max 2MB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
                 <Input
@@ -560,8 +643,8 @@ Best regards,
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1">
-                  {editingCompany ? "Update Company" : "Add Company"}
+                <Button type="submit" className="flex-1" disabled={uploadingLogo}>
+                  {uploadingLogo ? "Uploading..." : editingCompany ? "Update Company" : "Add Company"}
                 </Button>
               </div>
             </form>
@@ -575,8 +658,16 @@ Best regards,
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                    {company.logo_url ? (
+                      <img 
+                        src={company.logo_url} 
+                        alt={`${company.name} logo`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Building2 className="h-5 w-5 text-primary" />
+                    )}
                   </div>
                   <div>
                     <CardTitle className="text-lg">{company.name}</CardTitle>
