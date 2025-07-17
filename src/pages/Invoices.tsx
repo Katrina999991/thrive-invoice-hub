@@ -284,7 +284,7 @@ const Invoices = () => {
     }
   };
 
-  const downloadInvoicePDF = async (invoice: Invoice) => {
+  const downloadInvoicePDF = async (invoice: Invoice, emailType?: "new" | "overdue" | "payment_confirmation") => {
     try {
       // Find client and company information
       const client = clients.find(c => c.id === invoice.client_id);
@@ -410,10 +410,16 @@ const Invoices = () => {
       doc.text(`${translations.invoiceNumber}: ${invoice.invoice_number}`, 20, invoiceDetailsY);
       doc.text(`${translations.issueDate}: ${invoice.issue_date}`, 20, invoiceDetailsY + 10);
       doc.text(`${translations.dueDate}: ${invoice.due_date || 'N/A'}`, 20, invoiceDetailsY + 20);
-      doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
       
-      // Client information (adjust position based on logo presence)
-      const clientInfoY = company?.logo_url ? 120 : 110;
+      // Only show status for payment confirmations
+      if (emailType === "payment_confirmation") {
+        doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
+      }
+      
+      // Client information (adjust position based on logo presence and status display)
+      const clientInfoY = company?.logo_url ? 
+        (emailType === "payment_confirmation" ? 130 : 120) : 
+        (emailType === "payment_confirmation" ? 120 : 110);
       if (client) {
         doc.setFontSize(14);
         doc.setTextColor(40, 40, 40);
@@ -435,8 +441,10 @@ const Invoices = () => {
         });
       }
       
-      // Items table (adjust position based on logo presence)  
-      const startY = company?.logo_url ? 180 : 160;
+      // Items table (adjust position based on logo presence and status display)  
+      const startY = company?.logo_url ? 
+        (emailType === "payment_confirmation" ? 190 : 180) : 
+        (emailType === "payment_confirmation" ? 170 : 160);
       const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
       const tableData: any[] = [];
       
