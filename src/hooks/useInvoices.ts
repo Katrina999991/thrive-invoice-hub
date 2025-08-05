@@ -27,7 +27,8 @@ export const useInvoices = () => {
           clients (
             name,
             contact_person,
-            email
+            email,
+            company_id
           ),
           invoice_items (
             id,
