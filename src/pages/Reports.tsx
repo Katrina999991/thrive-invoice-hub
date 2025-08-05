@@ -54,7 +54,12 @@ const Reports = () => {
     }
   }, [activeTab, customStartDate, customEndDate, selectedMonth, selectedYear]);
   
-  const { revenueData: realRevenueData, loading, error } = useReports(startDate, endDate);
+  const { revenueData: realRevenueData, loading, error } = useReports(
+    startDate, 
+    endDate, 
+    filterType, 
+    filterType === 'company' ? selectedCompanyId : selectedClientId
+  );
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();

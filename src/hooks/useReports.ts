@@ -14,7 +14,7 @@ export interface RevenueData {
   yearlyData: RevenueByPeriod[];
 }
 
-export const useReports = (startDate?: Date, endDate?: Date) => {
+export const useReports = (startDate?: Date, endDate?: Date, filterType?: 'all' | 'company' | 'client', filterId?: string) => {
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,15 @@ export const useReports = (startDate?: Date, endDate?: Date) => {
       // Construire la requête avec filtres de date
       let query = supabase
         .from('invoices')
-        .select('total, issue_date, status')
+        .select(`
+          total, 
+          issue_date, 
+          status,
+          client_id,
+          clients!inner (
+            company_id
+          )
+        `)
         .eq('user_id', user.id)
         .eq('status', 'paid');
 
@@ -51,6 +59,14 @@ export const useReports = (startDate?: Date, endDate?: Date) => {
       }
       if (endDate) {
         query = query.lte('issue_date', endDate.toISOString().split('T')[0]);
+      }
+      
+      // Ajouter filtres additionnels
+      if (filterType === 'company' && filterId) {
+        query = query.eq('clients.company_id', filterId);
+      }
+      if (filterType === 'client' && filterId) {
+        query = query.eq('client_id', filterId);
       }
 
       const { data: invoices, error: invoicesError } = await query;
@@ -134,7 +150,7 @@ export const useReports = (startDate?: Date, endDate?: Date) => {
 
   useEffect(() => {
     fetchRevenueData();
-  }, [user, startDate, endDate]);
+  }, [user, startDate, endDate, filterType, filterId]);
 
   return {
     revenueData,
