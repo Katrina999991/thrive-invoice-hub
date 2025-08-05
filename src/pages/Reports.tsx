@@ -171,7 +171,13 @@ const Reports = () => {
               <p className="text-muted-foreground">Analyze revenue by custom date range, month, or year</p>
             </div>
 
-            <Tabs defaultValue="custom" className="w-full">
+            <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
+              // Effacer les dates quand on change d'onglet si aucune période spécifique n'est sélectionnée
+              if (value !== "custom" && !selectedPeriod) {
+                setStartDate(undefined);
+                setEndDate(undefined);
+              }
+            }}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="custom">Custom Date Range</TabsTrigger>
                 <TabsTrigger value="month">By Month</TabsTrigger>
