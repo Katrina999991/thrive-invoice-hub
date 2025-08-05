@@ -1374,7 +1374,7 @@ Best regards,
                   </TableCell>
                   <TableCell>{invoice.issue_date}</TableCell>
                   <TableCell>{invoice.due_date}</TableCell>
-                  <TableCell>0</TableCell>
+                  <TableCell>{(invoice as any).invoice_items?.length || 0}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="outline" size="sm" onClick={() => {
