@@ -286,43 +286,65 @@ Best regards,
       try {
         console.log('Attempting to load logo from:', company.logo_url);
         
-        // Fetch the logo image
-        const logoResponse = await fetch(company.logo_url);
+        // Fetch the logo image with explicit headers
+        const logoResponse = await fetch(company.logo_url, {
+          headers: {
+            'Accept': 'image/*',
+            'User-Agent': 'Mozilla/5.0 (compatible; PDF-Generator/1.0)'
+          }
+        });
         console.log('Logo fetch response status:', logoResponse.status);
         
         if (logoResponse.ok) {
           const logoBuffer = await logoResponse.arrayBuffer();
-          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
+          console.log('Logo buffer size:', logoBuffer.byteLength);
           
-          // Detect image format from URL or content-type
+          // Convert to base64
+          const uint8Array = new Uint8Array(logoBuffer);
+          let binary = '';
+          for (let i = 0; i < uint8Array.byteLength; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+          }
+          const logoBase64 = btoa(binary);
+          
+          // Detect image format from URL
           let imageFormat = 'JPEG'; // default
-          const contentType = logoResponse.headers.get('content-type');
-          console.log('Logo content-type:', contentType);
-          
-          if (contentType?.includes('png') || company.logo_url.toLowerCase().includes('.png')) {
+          const url = company.logo_url.toLowerCase();
+          if (url.includes('.png')) {
             imageFormat = 'PNG';
-          } else if (contentType?.includes('jpeg') || contentType?.includes('jpg') || 
-                   company.logo_url.toLowerCase().includes('.jpg') || 
-                   company.logo_url.toLowerCase().includes('.jpeg')) {
+          } else if (url.includes('.jpg') || url.includes('.jpeg')) {
             imageFormat = 'JPEG';
           }
           
-          console.log('Using image format:', imageFormat);
-          const logoDataUrl = `data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`;
+          console.log('Using image format:', imageFormat, 'Base64 length:', logoBase64.length);
           
-          // Add logo (positioned at top left)
-          doc.addImage(logoDataUrl, imageFormat, 20, 15, 40, 30);
-          logoLoaded = true;
-          console.log('Logo successfully added to PDF');
+          // Try to add the image with error handling
+          try {
+            doc.addImage(logoBase64, imageFormat, 20, 15, 40, 30);
+            logoLoaded = true;
+            console.log('Logo successfully added to PDF');
+          } catch (imageError) {
+            console.error('Error adding image to PDF:', imageError);
+            // Try with different format
+            try {
+              const altFormat = imageFormat === 'PNG' ? 'JPEG' : 'PNG';
+              console.log('Trying alternative format:', altFormat);
+              doc.addImage(logoBase64, altFormat, 20, 15, 40, 30);
+              logoLoaded = true;
+              console.log('Logo added with alternative format:', altFormat);
+            } catch (altError) {
+              console.error('Failed with alternative format too:', altError);
+            }
+          }
         } else {
-          console.error('Failed to fetch logo, status:', logoResponse.status);
+          console.error('Failed to fetch logo, status:', logoResponse.status, 'statusText:', logoResponse.statusText);
         }
       } catch (error) {
         console.error('Error loading logo:', error);
         // Continue without logo
       }
     } else {
-      console.log('No logo URL provided for company');
+      console.log('No logo URL provided for company:', company.name);
     }
     
     // Header - adjust position based on whether logo was added
