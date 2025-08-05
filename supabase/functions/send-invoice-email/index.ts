@@ -282,26 +282,39 @@ Best regards,
     
     // Load and add logo if available
     let logoLoaded = false;
+    let logoBase64 = '';
     if (company.logo_url) {
       try {
         console.log('Attempting to load logo from:', company.logo_url);
         
         // Fetch the logo image
         const logoResponse = await fetch(company.logo_url);
+        console.log('Logo response status:', logoResponse.status);
         
         if (logoResponse.ok) {
           const logoBuffer = await logoResponse.arrayBuffer();
-          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
+          console.log('Logo buffer size:', logoBuffer.byteLength);
+          
+          // Convert to base64 using a more reliable method
+          const bytes = new Uint8Array(logoBuffer);
+          let binary = '';
+          const chunkSize = 0x8000; // 32KB chunks to avoid stack overflow
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, Array.from(chunk));
+          }
+          logoBase64 = btoa(binary);
           
           // Detect image format from URL
-          let imageFormat = 'PNG'; // default to PNG as it's more common
+          let imageFormat = 'PNG';
           if (company.logo_url.toLowerCase().includes('.jpg') || 
               company.logo_url.toLowerCase().includes('.jpeg')) {
             imageFormat = 'JPEG';
           }
           
+          console.log('Adding logo to PDF with format:', imageFormat);
           // Add logo (positioned at top left)
-          doc.addImage(logoBase64, imageFormat, 20, 15, 40, 30);
+          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, 40, 30);
           logoLoaded = true;
           console.log('Logo successfully added to PDF');
         }
@@ -378,9 +391,12 @@ Best regards,
     // Create HTML email content
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-          <h1 style="color: #333; margin: 0;">${company.name}</h1>
-          <h2 style="color: #666; margin: 5px 0 0 0;">${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}</h2>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
+          ${company.logo_url && logoBase64 ? `<img src="data:image/png;base64,${logoBase64}" alt="${company.name} Logo" style="max-width: 80px; max-height: 60px; object-fit: contain;" />` : ''}
+          <div>
+            <h1 style="color: #333; margin: 0;">${company.name}</h1>
+            <h2 style="color: #666; margin: 5px 0 0 0;">${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}</h2>
+          </div>
         </div>
         
         <div style="background-color: white; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px;">
