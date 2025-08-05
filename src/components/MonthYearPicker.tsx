@@ -30,6 +30,7 @@ export function MonthYearPicker({
   mode,
   className
 }: MonthYearPickerProps) {
+  const [open, setOpen] = React.useState(false)
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i)
   
@@ -51,6 +52,7 @@ export function MonthYearPicker({
   const handleYearChange = (year: string) => {
     if (mode === 'year') {
       onDateChange(new Date(parseInt(year), 0, 1))
+      setOpen(false)
     } else {
       const currentMonth = selectedDate?.getMonth() || 0
       onDateChange(new Date(parseInt(year), currentMonth, 1))
@@ -60,6 +62,7 @@ export function MonthYearPicker({
   const handleMonthChange = (month: string) => {
     const currentYear = selectedDate?.getFullYear() || new Date().getFullYear()
     onDateChange(new Date(currentYear, parseInt(month), 1))
+    setOpen(false)
   }
 
   const navigateYear = (direction: 'prev' | 'next') => {
@@ -88,7 +91,7 @@ export function MonthYearPicker({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
