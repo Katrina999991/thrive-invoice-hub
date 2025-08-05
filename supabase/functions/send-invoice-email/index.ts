@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
+import jsPDF from "npm:jspdf@2.5.1";
+import autoTable from "npm:jspdf-autotable@3.8.2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -273,6 +275,64 @@ Best regards,
       totalAmount: 'Total Amount'
     };
 
+    // Generate PDF
+    const doc = new jsPDF();
+    doc.setFont('helvetica');
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text(company.name, 20, 30);
+    
+    // Invoice title
+    doc.setFontSize(16);
+    doc.text(`${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}`, 20, 45);
+    
+    // Company and client info
+    doc.setFontSize(10);
+    doc.text(`${clientLanguage === 'french' ? 'Date d\'émission' : 'Issue Date'}: ${invoice.issue_date}`, 20, 60);
+    doc.text(`${clientLanguage === 'french' ? 'Date d\'échéance' : 'Due Date'}: ${invoice.due_date}`, 20, 70);
+    
+    // Client info
+    doc.text(`${clientLanguage === 'french' ? 'Facturé à' : 'Bill To'}:`, 20, 85);
+    doc.text(client.name, 20, 95);
+    if (client.contact_person) {
+      doc.text(client.contact_person, 20, 105);
+    }
+    
+    // Invoice items table
+    const tableData = invoice.invoice_items?.map((item: any) => [
+      item.description,
+      item.quantity.toString(),
+      `$${item.unit_price.toFixed(2)}`,
+      `$${item.total.toFixed(2)}`
+    ]) || [];
+    
+    autoTable(doc, {
+      head: [[
+        tableHeaders.description,
+        tableHeaders.qty,
+        tableHeaders.unitPrice,
+        tableHeaders.total
+      ]],
+      body: tableData,
+      startY: 120,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [248, 249, 250] },
+    });
+    
+    // Totals
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.text(`${tableHeaders.subtotal}: $${invoice.subtotal.toFixed(2)}`, 120, finalY);
+    doc.text(`${tableHeaders.tax}: $${invoice.tax_amount.toFixed(2)}`, 120, finalY + 10);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${tableHeaders.totalAmount}: $${invoice.total.toFixed(2)}`, 120, finalY + 20);
+    
+    // Generate PDF as buffer
+    const pdfBuffer = doc.output('arraybuffer');
+    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
+
     // Create HTML email content
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -325,12 +385,19 @@ Best regards,
       </div>
     `;
 
-    // Send email
+    // Send email with PDF attachment
     const emailResponse = await resend.emails.send({
       from: `${company.name} <info@gestionflow.net>`,
       to: [client.email],
       subject: emailSubject,
       html: htmlContent,
+      attachments: [
+        {
+          filename: `invoice-${invoice.invoice_number}.pdf`,
+          content: pdfBase64,
+          type: 'application/pdf',
+        },
+      ],
     });
 
     console.log("Email sent successfully:", emailResponse);
