@@ -295,15 +295,9 @@ Best regards,
           const logoBuffer = await logoResponse.arrayBuffer();
           console.log('Logo buffer size:', logoBuffer.byteLength);
           
-          // Convert to base64 using a more reliable method
+          // Convert to base64 using Deno's built-in encoder
           const bytes = new Uint8Array(logoBuffer);
-          let binary = '';
-          const chunkSize = 0x8000; // 32KB chunks to avoid stack overflow
-          for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.subarray(i, i + chunkSize);
-            binary += String.fromCharCode.apply(null, Array.from(chunk));
-          }
-          logoBase64 = btoa(binary);
+          logoBase64 = btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join(''));
           
           // Detect image format from URL
           let imageFormat = 'PNG';
