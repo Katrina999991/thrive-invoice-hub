@@ -4,10 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { useReports } from "@/hooks/useReports";
+import { useInvoices } from "@/hooks/useInvoices";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
@@ -44,6 +46,7 @@ const Reports = () => {
   }, [activeTab, customStartDate, customEndDate, selectedMonth, selectedYear]);
   
   const { revenueData: realRevenueData, loading, error } = useReports(startDate, endDate);
+  const { invoices } = useInvoices();
   
   const revenueData = [
     { month: "Jan", revenue: 45000, expenses: 35000 },
@@ -70,6 +73,23 @@ const Reports = () => {
   };
 
   const chartData = formatRevenueDataForChart();
+
+  // Filter invoices based on selected date range and paid status
+  const filteredInvoices = useMemo(() => {
+    if (!invoices || (!startDate && !endDate)) return [];
+    
+    return invoices.filter(invoice => {
+      // Only show paid invoices
+      if (invoice.status !== 'paid') return false;
+      
+      const invoiceDate = new Date(invoice.issue_date);
+      
+      if (startDate && invoiceDate < startDate) return false;
+      if (endDate && invoiceDate > endDate) return false;
+      
+      return true;
+    });
+  }, [invoices, startDate, endDate]);
 
   const clientData = [
     { name: "ABC Corporation", value: 35, color: "#8884d8" },
@@ -501,6 +521,51 @@ const Reports = () => {
                         </tbody>
                       </table>
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Invoices Table */}
+              {filteredInvoices.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Invoices List</CardTitle>
+                    <CardDescription>
+                      Detailed list of paid invoices in the selected period
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Invoice Number</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Issue Date</TableHead>
+                          <TableHead className="text-right">Total Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredInvoices.map((invoice) => (
+                          <TableRow key={invoice.id}>
+                            <TableCell className="font-medium">
+                              {invoice.invoice_number}
+                            </TableCell>
+                            <TableCell>
+                              {(invoice as any).clients?.name || 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(Number(invoice.total))}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </CardContent>
                 </Card>
               )}
