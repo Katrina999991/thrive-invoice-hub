@@ -295,15 +295,15 @@ Best regards,
           const logoBuffer = await logoResponse.arrayBuffer();
           console.log('Logo buffer size:', logoBuffer.byteLength);
           
-          // Convert to base64 using chunked approach to avoid stack overflow
+          // Convert to base64 safely without stack overflow
           const bytes = new Uint8Array(logoBuffer);
-          let binary = '';
-          const chunkSize = 8192; // 8KB chunks to avoid stack overflow
-          for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.subarray(i, i + chunkSize);
-            binary += String.fromCharCode(...chunk);
+          
+          // Use a simple approach that works in Deno
+          let binaryString = '';
+          for (let i = 0; i < bytes.length; i++) {
+            binaryString += String.fromCharCode(bytes[i]);
           }
-          logoBase64 = btoa(binary);
+          logoBase64 = btoa(binaryString);
           
           // Detect image format from URL
           let imageFormat = 'PNG';
@@ -386,7 +386,14 @@ Best regards,
     
     // Generate PDF as buffer
     const pdfBuffer = doc.output('arraybuffer');
-    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
+    const pdfBytes = new Uint8Array(pdfBuffer);
+    
+    // Convert PDF to base64 safely
+    let pdfBinaryString = '';
+    for (let i = 0; i < pdfBytes.length; i++) {
+      pdfBinaryString += String.fromCharCode(pdfBytes[i]);
+    }
+    const pdfBase64 = btoa(pdfBinaryString);
 
     // Create HTML email content
     const htmlContent = `
