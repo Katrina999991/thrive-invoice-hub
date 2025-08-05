@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { useReports } from "@/hooks/useReports";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
@@ -19,31 +19,29 @@ const Reports = () => {
   const [selectedMonth, setSelectedMonth] = useState<Date | undefined>();
   const [selectedYear, setSelectedYear] = useState<Date | undefined>();
   
-  // Déterminer les dates à utiliser selon l'onglet actif
-  const getActiveDates = () => {
+  // Mémoriser les dates actives pour éviter les re-renders
+  const { startDate, endDate } = useMemo(() => {
     switch (activeTab) {
       case 'custom':
-        return { start: customStartDate, end: customEndDate };
+        return { startDate: customStartDate, endDate: customEndDate };
       case 'month':
         if (selectedMonth) {
           const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
           const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
-          return { start: startOfMonth, end: endOfMonth };
+          return { startDate: startOfMonth, endDate: endOfMonth };
         }
-        return { start: undefined, end: undefined };
+        return { startDate: undefined, endDate: undefined };
       case 'year':
         if (selectedYear) {
           const startOfYear = new Date(selectedYear.getFullYear(), 0, 1);
           const endOfYear = new Date(selectedYear.getFullYear(), 11, 31);
-          return { start: startOfYear, end: endOfYear };
+          return { startDate: startOfYear, endDate: endOfYear };
         }
-        return { start: undefined, end: undefined };
+        return { startDate: undefined, endDate: undefined };
       default:
-        return { start: undefined, end: undefined };
+        return { startDate: undefined, endDate: undefined };
     }
-  };
-  
-  const { start: startDate, end: endDate } = getActiveDates();
+  }, [activeTab, customStartDate, customEndDate, selectedMonth, selectedYear]);
   
   const { revenueData: realRevenueData, loading, error } = useReports(startDate, endDate);
   
