@@ -327,7 +327,7 @@ Best regards,
 
     // Send email
     const emailResponse = await resend.emails.send({
-      from: `${company.name} <admin@statis.ca>`,
+      from: `${company.name} <info@gestionflow.net>`,
       to: [client.email],
       subject: emailSubject,
       html: htmlContent,
