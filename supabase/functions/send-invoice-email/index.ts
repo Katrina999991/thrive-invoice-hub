@@ -327,7 +327,7 @@ Best regards,
 
     // Send email
     const emailResponse = await resend.emails.send({
-      from: "Invoice <onboarding@resend.dev>",
+      from: `${company.name} <admin@statis.ca>`,
       to: [client.email],
       subject: emailSubject,
       html: htmlContent,
