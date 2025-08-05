@@ -48,6 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
           company_id,
           companies (
             name,
+            logo_url,
             invoice_email_subject,
             invoice_email_message,
             overdue_email_subject,
@@ -279,25 +280,56 @@ Best regards,
     const doc = new jsPDF();
     doc.setFont('helvetica');
     
-    // Header
+    // Load and add logo if available
+    let logoLoaded = false;
+    if (company.logo_url) {
+      try {
+        // Fetch the logo image
+        const logoResponse = await fetch(company.logo_url);
+        if (logoResponse.ok) {
+          const logoBuffer = await logoResponse.arrayBuffer();
+          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
+          const logoDataUrl = `data:image/jpeg;base64,${logoBase64}`;
+          
+          // Add logo (positioned at top left)
+          doc.addImage(logoDataUrl, 'JPEG', 20, 15, 40, 30);
+          logoLoaded = true;
+        }
+      } catch (error) {
+        console.error('Error loading logo:', error);
+        // Continue without logo
+      }
+    }
+    
+    // Header - adjust position based on whether logo was added
     doc.setFontSize(20);
     doc.setTextColor(40, 40, 40);
-    doc.text(company.name, 20, 30);
+    if (logoLoaded) {
+      doc.text(company.name, 70, 25);
+    } else {
+      doc.text(company.name, 20, 30);
+    }
     
-    // Invoice title
+    // Invoice title - adjust position based on whether logo was added
     doc.setFontSize(16);
-    doc.text(`${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}`, 20, 45);
+    if (logoLoaded) {
+      doc.text(`${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}`, 70, 40);
+    } else {
+      doc.text(`${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}`, 20, 45);
+    }
     
-    // Company and client info
+    // Company and client info - adjust position based on layout
     doc.setFontSize(10);
-    doc.text(`${clientLanguage === 'french' ? 'Date d\'émission' : 'Issue Date'}: ${invoice.issue_date}`, 20, 60);
-    doc.text(`${clientLanguage === 'french' ? 'Date d\'échéance' : 'Due Date'}: ${invoice.due_date}`, 20, 70);
+    const infoStartY = logoLoaded ? 55 : 60;
+    doc.text(`${clientLanguage === 'french' ? 'Date d\'émission' : 'Issue Date'}: ${invoice.issue_date}`, 20, infoStartY);
+    doc.text(`${clientLanguage === 'french' ? 'Date d\'échéance' : 'Due Date'}: ${invoice.due_date}`, 20, infoStartY + 10);
     
     // Client info
-    doc.text(`${clientLanguage === 'french' ? 'Facturé à' : 'Bill To'}:`, 20, 85);
-    doc.text(client.name, 20, 95);
+    const clientInfoStartY = infoStartY + 25;
+    doc.text(`${clientLanguage === 'french' ? 'Facturé à' : 'Bill To'}:`, 20, clientInfoStartY);
+    doc.text(client.name, 20, clientInfoStartY + 10);
     if (client.contact_person) {
-      doc.text(client.contact_person, 20, 105);
+      doc.text(client.contact_person, 20, clientInfoStartY + 20);
     }
     
     // Invoice items table
@@ -316,7 +348,7 @@ Best regards,
         tableHeaders.total
       ]],
       body: tableData,
-      startY: 120,
+      startY: clientInfoStartY + 35,
       styles: { fontSize: 10 },
       headStyles: { fillColor: [248, 249, 250] },
     });
