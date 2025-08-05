@@ -134,11 +134,11 @@ export function MonthYearPicker({
               
               {mode === 'month' && (
                 <Select
-                  value={(selectedDate?.getMonth() || 0).toString()}
+                  value={selectedDate ? selectedDate.getMonth().toString() : ""}
                   onValueChange={handleMonthChange}
                 >
                   <SelectTrigger className="w-32">
-                    <SelectValue />
+                    <SelectValue placeholder="Month" />
                   </SelectTrigger>
                   <SelectContent>
                     {months.map((month) => (
