@@ -14,7 +14,7 @@ export interface RevenueData {
   yearlyData: RevenueByPeriod[];
 }
 
-export const useReports = () => {
+export const useReports = (startDate?: Date, endDate?: Date) => {
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +27,22 @@ export const useReports = () => {
       setLoading(true);
       setError(null);
 
-      // Récupérer toutes les factures payées
-      const { data: invoices, error: invoicesError } = await supabase
+      // Construire la requête avec filtres de date
+      let query = supabase
         .from('invoices')
         .select('total, issue_date, status')
         .eq('user_id', user.id)
         .eq('status', 'paid');
+
+      // Ajouter filtres de date si spécifiés
+      if (startDate) {
+        query = query.gte('issue_date', startDate.toISOString().split('T')[0]);
+      }
+      if (endDate) {
+        query = query.lte('issue_date', endDate.toISOString().split('T')[0]);
+      }
+
+      const { data: invoices, error: invoicesError } = await query;
 
       if (invoicesError) throw invoicesError;
 
@@ -113,7 +123,7 @@ export const useReports = () => {
 
   useEffect(() => {
     fetchRevenueData();
-  }, [user]);
+  }, [user, startDate, endDate]);
 
   return {
     revenueData,

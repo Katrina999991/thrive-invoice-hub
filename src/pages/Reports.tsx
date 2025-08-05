@@ -7,10 +7,16 @@ import { useReports } from "@/hooks/useReports";
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { DateRangePicker } from "@/components/DateRangePicker";
+import { MonthYearPicker } from "@/components/MonthYearPicker";
 
 const Reports = () => {
-  const { revenueData: realRevenueData, loading, error } = useReports();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [selectedPeriod, setSelectedPeriod] = useState<Date | undefined>();
+  
+  const { revenueData: realRevenueData, loading, error } = useReports(startDate, endDate);
   
   const revenueData = [
     { month: "Jan", revenue: 45000, expenses: 35000 },
@@ -161,7 +167,7 @@ const Reports = () => {
 
         <TabsContent value="revenue" className="space-y-4">
           {/* Contrôles de vue */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h2 className="text-2xl font-bold">Revenus par période</h2>
               <p className="text-muted-foreground">Analyse des revenus par mois ou par année</p>
@@ -183,6 +189,71 @@ const Reports = () => {
               </Button>
             </div>
           </div>
+
+          {/* Sélecteurs de dates */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtres de période</CardTitle>
+              <CardDescription>
+                Sélectionnez une plage de dates ou une période spécifique
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Plage de dates personnalisée</label>
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={setStartDate}
+                  onEndDateChange={setEndDate}
+                />
+              </div>
+              
+              <div className="border-t pt-4">
+                <label className="text-sm font-medium mb-2 block">
+                  Ou sélectionnez {viewMode === 'monthly' ? 'un mois' : 'une année'} spécifique
+                </label>
+                <MonthYearPicker
+                  selectedDate={selectedPeriod}
+                  onDateChange={(date) => {
+                    setSelectedPeriod(date);
+                    if (date) {
+                      if (viewMode === 'monthly') {
+                        // Pour un mois, définir début et fin du mois
+                        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                        setStartDate(startOfMonth);
+                        setEndDate(endOfMonth);
+                      } else {
+                        // Pour une année, définir début et fin de l'année
+                        const startOfYear = new Date(date.getFullYear(), 0, 1);
+                        const endOfYear = new Date(date.getFullYear(), 11, 31);
+                        setStartDate(startOfYear);
+                        setEndDate(endOfYear);
+                      }
+                    }
+                  }}
+                  mode={viewMode === 'monthly' ? 'month' : 'year'}
+                />
+              </div>
+              
+              {(startDate || endDate || selectedPeriod) && (
+                <div className="flex justify-end pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setStartDate(undefined);
+                      setEndDate(undefined);
+                      setSelectedPeriod(undefined);
+                    }}
+                  >
+                    Réinitialiser tous les filtres
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {loading && (
             <Card>
