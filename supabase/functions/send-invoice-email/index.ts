@@ -286,65 +286,29 @@ Best regards,
       try {
         console.log('Attempting to load logo from:', company.logo_url);
         
-        // Fetch the logo image with explicit headers
-        const logoResponse = await fetch(company.logo_url, {
-          headers: {
-            'Accept': 'image/*',
-            'User-Agent': 'Mozilla/5.0 (compatible; PDF-Generator/1.0)'
-          }
-        });
-        console.log('Logo fetch response status:', logoResponse.status);
+        // Fetch the logo image
+        const logoResponse = await fetch(company.logo_url);
         
         if (logoResponse.ok) {
           const logoBuffer = await logoResponse.arrayBuffer();
-          console.log('Logo buffer size:', logoBuffer.byteLength);
-          
-          // Convert to base64
-          const uint8Array = new Uint8Array(logoBuffer);
-          let binary = '';
-          for (let i = 0; i < uint8Array.byteLength; i++) {
-            binary += String.fromCharCode(uint8Array[i]);
-          }
-          const logoBase64 = btoa(binary);
+          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
           
           // Detect image format from URL
-          let imageFormat = 'JPEG'; // default
-          const url = company.logo_url.toLowerCase();
-          if (url.includes('.png')) {
-            imageFormat = 'PNG';
-          } else if (url.includes('.jpg') || url.includes('.jpeg')) {
+          let imageFormat = 'PNG'; // default to PNG as it's more common
+          if (company.logo_url.toLowerCase().includes('.jpg') || 
+              company.logo_url.toLowerCase().includes('.jpeg')) {
             imageFormat = 'JPEG';
           }
           
-          console.log('Using image format:', imageFormat, 'Base64 length:', logoBase64.length);
-          
-          // Try to add the image with error handling
-          try {
-            doc.addImage(logoBase64, imageFormat, 20, 15, 40, 30);
-            logoLoaded = true;
-            console.log('Logo successfully added to PDF');
-          } catch (imageError) {
-            console.error('Error adding image to PDF:', imageError);
-            // Try with different format
-            try {
-              const altFormat = imageFormat === 'PNG' ? 'JPEG' : 'PNG';
-              console.log('Trying alternative format:', altFormat);
-              doc.addImage(logoBase64, altFormat, 20, 15, 40, 30);
-              logoLoaded = true;
-              console.log('Logo added with alternative format:', altFormat);
-            } catch (altError) {
-              console.error('Failed with alternative format too:', altError);
-            }
-          }
-        } else {
-          console.error('Failed to fetch logo, status:', logoResponse.status, 'statusText:', logoResponse.statusText);
+          // Add logo (positioned at top left)
+          doc.addImage(logoBase64, imageFormat, 20, 15, 40, 30);
+          logoLoaded = true;
+          console.log('Logo successfully added to PDF');
         }
       } catch (error) {
-        console.error('Error loading logo:', error);
-        // Continue without logo
+        console.error('Error loading logo, continuing without logo:', error);
+        // Continue without logo - don't let this break the email
       }
-    } else {
-      console.log('No logo URL provided for company:', company.name);
     }
     
     // Header - adjust position based on whether logo was added
