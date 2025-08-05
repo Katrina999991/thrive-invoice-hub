@@ -111,10 +111,14 @@ const Invoices = () => {
       items: [...newInvoice.items, newItem]
     });
 
+    // Auto-populate unit price with client's hourly rate for next item
+    const selectedClient = clients.find(client => client.id === newInvoice.client_id);
+    const defaultUnitPrice = selectedClient?.hourly_rate || 0;
+
     setCurrentItem({
       description: "",
       quantity: 1,
-      unit_price: 0,
+      unit_price: defaultUnitPrice,
       product_id: "",
       notes: ""
     });
@@ -822,6 +826,15 @@ Best regards,
                       setNewInvoice({
                         ...newInvoice, 
                         client_id: value
+                      });
+                      
+                      // Auto-populate unit price with client's hourly rate
+                      const selectedClient = clients.find(client => client.id === value);
+                      const defaultUnitPrice = selectedClient?.hourly_rate || 0;
+                      
+                      setCurrentItem({
+                        ...currentItem,
+                        unit_price: defaultUnitPrice
                       });
                     }}
                     disabled={!selectedCompanyId}

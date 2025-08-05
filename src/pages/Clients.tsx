@@ -28,7 +28,8 @@ const Clients = () => {
     email: "",
     phone: "",
     address: "",
-    language: "english"
+    language: "english",
+    hourly_rate: 0
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -45,7 +46,8 @@ const Clients = () => {
         email: newClient.email,
         phone: newClient.phone,
         address: newClient.address,
-        language: newClient.language
+        language: newClient.language,
+        hourly_rate: newClient.hourly_rate
       });
     } else {
       await createClient({
@@ -55,7 +57,8 @@ const Clients = () => {
         email: newClient.email,
         phone: newClient.phone,
         address: newClient.address,
-        language: newClient.language
+        language: newClient.language,
+        hourly_rate: newClient.hourly_rate
       });
     }
 
@@ -70,7 +73,8 @@ const Clients = () => {
       email: "",
       phone: "",
       address: "",
-      language: "english"
+      language: "english",
+      hourly_rate: 0
     });
     setEditingClient(null);
     setIsDialogOpen(false);
@@ -85,7 +89,8 @@ const Clients = () => {
       email: client.email || "",
       phone: client.phone || "",
       address: client.address || "",
-      language: client.language || "english"
+      language: client.language || "english",
+      hourly_rate: client.hourly_rate || 0
     });
     setIsDialogOpen(true);
   };
@@ -212,6 +217,17 @@ const Clients = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
+                <Input
+                  id="hourly_rate"
+                  type="number"
+                  step="0.01"
+                  placeholder="Enter hourly rate"
+                  value={newClient.hourly_rate}
+                  onChange={(e) => setNewClient({...newClient, hourly_rate: parseFloat(e.target.value) || 0})}
+                />
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
@@ -254,6 +270,7 @@ const Clients = () => {
                 <TableHead>Contact Info</TableHead>
                 <TableHead>Address</TableHead>
                 <TableHead>Language</TableHead>
+                <TableHead>Hourly Rate</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -296,6 +313,9 @@ const Clients = () => {
                       <Languages className="h-3 w-3 mr-1" />
                       {client.language === 'french' ? 'Français' : 'English'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-medium">${client.hourly_rate || 0}/hr</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
