@@ -287,7 +287,7 @@ const Reports = () => {
             </Card>
           )}
 
-          {!loading && !error && realRevenueData && (
+          {!loading && !error && realRevenueData && (startDate || endDate) && (
             <>
               {/* Statistics Cards */}
               <div className="grid gap-4 md:grid-cols-3">
@@ -480,6 +480,19 @@ const Reports = () => {
                 </Card>
               )}
             </>
+          )}
+
+          {!loading && !error && (!startDate && !endDate) && (
+            <Card>
+              <CardContent className="flex justify-center items-center h-96">
+                <div className="text-center">
+                  <p className="text-lg font-medium">No period selected</p>
+                  <p className="text-muted-foreground">
+                    Please select a date range, month, or year to view revenue data.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
