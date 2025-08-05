@@ -23,6 +23,17 @@ export const useReports = (startDate?: Date, endDate?: Date) => {
   const fetchRevenueData = async () => {
     if (!user) return;
 
+    // Si aucune date n'est spécifiée, ne pas afficher de données
+    if (!startDate && !endDate) {
+      setRevenueData({
+        totalRevenue: 0,
+        monthlyData: [],
+        yearlyData: []
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
