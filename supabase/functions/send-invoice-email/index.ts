@@ -284,21 +284,45 @@ Best regards,
     let logoLoaded = false;
     if (company.logo_url) {
       try {
+        console.log('Attempting to load logo from:', company.logo_url);
+        
         // Fetch the logo image
         const logoResponse = await fetch(company.logo_url);
+        console.log('Logo fetch response status:', logoResponse.status);
+        
         if (logoResponse.ok) {
           const logoBuffer = await logoResponse.arrayBuffer();
           const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
-          const logoDataUrl = `data:image/jpeg;base64,${logoBase64}`;
+          
+          // Detect image format from URL or content-type
+          let imageFormat = 'JPEG'; // default
+          const contentType = logoResponse.headers.get('content-type');
+          console.log('Logo content-type:', contentType);
+          
+          if (contentType?.includes('png') || company.logo_url.toLowerCase().includes('.png')) {
+            imageFormat = 'PNG';
+          } else if (contentType?.includes('jpeg') || contentType?.includes('jpg') || 
+                   company.logo_url.toLowerCase().includes('.jpg') || 
+                   company.logo_url.toLowerCase().includes('.jpeg')) {
+            imageFormat = 'JPEG';
+          }
+          
+          console.log('Using image format:', imageFormat);
+          const logoDataUrl = `data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`;
           
           // Add logo (positioned at top left)
-          doc.addImage(logoDataUrl, 'JPEG', 20, 15, 40, 30);
+          doc.addImage(logoDataUrl, imageFormat, 20, 15, 40, 30);
           logoLoaded = true;
+          console.log('Logo successfully added to PDF');
+        } else {
+          console.error('Failed to fetch logo, status:', logoResponse.status);
         }
       } catch (error) {
         console.error('Error loading logo:', error);
         // Continue without logo
       }
+    } else {
+      console.log('No logo URL provided for company');
     }
     
     // Header - adjust position based on whether logo was added
