@@ -14,6 +14,10 @@ import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Download, FileSpreadsheet } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
@@ -91,6 +95,149 @@ const Reports = () => {
   const chartData = formatRevenueDataForChart();
 
   // Filter invoices based on selected date range and paid status
+  // Export functions
+  const exportToPDF = () => {
+    if (!realRevenueData || !chartData.length) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Revenue Report', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    let dateRangeText = '';
+    if (startDate && endDate) {
+      dateRangeText = `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')}`;
+    } else if (startDate) {
+      dateRangeText = `From ${format(startDate, 'MMM dd, yyyy')}`;
+    } else if (endDate) {
+      dateRangeText = `Until ${format(endDate, 'MMM dd, yyyy')}`;
+    }
+    
+    doc.setFontSize(12);
+    doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
+    
+    // Filter info
+    let filterText = 'All Data';
+    if (filterType === 'company' && selectedCompanyId) {
+      const company = companies.find(c => c.id === selectedCompanyId);
+      filterText = `Company: ${company?.name || 'Unknown'}`;
+    } else if (filterType === 'client' && selectedClientId) {
+      const client = clients.find(c => c.id === selectedClientId);
+      filterText = `Client: ${client?.name || 'Unknown'}`;
+    }
+    doc.text(`Filter: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
+    
+    // Summary statistics
+    doc.setFontSize(14);
+    doc.text('Summary', 20, 60);
+    doc.setFontSize(10);
+    doc.text(`Total Revenue: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue)}`, 20, 70);
+    doc.text(`Number of ${viewMode === 'monthly' ? 'Months' : 'Years'}: ${viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}`, 20, 80);
+    doc.text(`Average Revenue per ${viewMode === 'monthly' ? 'Month' : 'Year'}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue / Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length))}`, 20, 90);
+    
+    // Revenue by period table
+    const tableData = chartData.map(item => [
+      item.period,
+      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.revenue),
+      item.invoiceCount.toString(),
+      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.revenue / item.invoiceCount)
+    ]);
+    
+    let finalY = 110;
+    autoTable(doc, {
+      head: [['Period', 'Revenue', 'Invoices', 'Avg per Invoice']],
+      body: tableData,
+      startY: finalY,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+      didDrawPage: (data) => {
+        finalY = data.cursor.y;
+      }
+    });
+    
+    // Invoices table (if space permits)
+    if (filteredInvoices.length > 0 && finalY < 200) {
+      const invoiceTableData = filteredInvoices.slice(0, 20).map(invoice => [
+        invoice.invoice_number,
+        (invoice as any).clients?.name || 'N/A',
+        format(new Date(invoice.issue_date), 'MMM dd, yyyy'),
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(invoice.total))
+      ]);
+      
+      autoTable(doc, {
+        head: [['Invoice #', 'Client', 'Date', 'Amount']],
+        body: invoiceTableData,
+        startY: finalY + 20,
+        theme: 'striped',
+        headStyles: { fillColor: [34, 197, 94] },
+      });
+    }
+    
+    // Generate filename
+    const filename = `revenue-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+  
+  const exportToExcel = () => {
+    if (!realRevenueData || !chartData.length) return;
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const summaryData = [
+      ['Revenue Report Summary'],
+      [''],
+      ['Date Range:', startDate && endDate ? `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')}` : 'Custom range'],
+      ['Filter:', filterType === 'company' && selectedCompanyId ? `Company: ${companies.find(c => c.id === selectedCompanyId)?.name}` : 
+                filterType === 'client' && selectedClientId ? `Client: ${clients.find(c => c.id === selectedClientId)?.name}` : 'All Data'],
+      [''],
+      ['Total Revenue:', realRevenueData.totalRevenue],
+      [`Number of ${viewMode === 'monthly' ? 'Months' : 'Years'}:`, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length],
+      [`Average Revenue per ${viewMode === 'monthly' ? 'Month' : 'Year'}:`, realRevenueData.totalRevenue / Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length)]
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    
+    // Revenue by period sheet
+    const revenueData = [
+      ['Period', 'Revenue', 'Number of Invoices', 'Average Revenue per Invoice'],
+      ...chartData.map(item => [
+        item.period,
+        item.revenue,
+        item.invoiceCount,
+        item.revenue / item.invoiceCount
+      ])
+    ];
+    
+    const revenueWS = XLSX.utils.aoa_to_sheet(revenueData);
+    XLSX.utils.book_append_sheet(wb, revenueWS, 'Revenue by Period');
+    
+    // Invoices sheet
+    if (filteredInvoices.length > 0) {
+      const invoicesData = [
+        ['Invoice Number', 'Client', 'Issue Date', 'Total Amount'],
+        ...filteredInvoices.map(invoice => [
+          invoice.invoice_number,
+          (invoice as any).clients?.name || 'N/A',
+          format(new Date(invoice.issue_date), 'MMM dd, yyyy'),
+          Number(invoice.total)
+        ])
+      ];
+      
+      const invoicesWS = XLSX.utils.aoa_to_sheet(invoicesData);
+      XLSX.utils.book_append_sheet(wb, invoicesWS, 'Invoices');
+    }
+    
+    // Generate filename and save
+    const filename = `revenue-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredInvoices = useMemo(() => {
     if (!invoices || (!startDate && !endDate)) return [];
     
@@ -539,6 +686,30 @@ const Reports = () => {
 
           {!loading && !error && realRevenueData && (startDate || endDate) && (
             <>
+              {/* Export buttons */}
+              <div className="flex justify-end gap-2 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportToPDF}
+                  disabled={!realRevenueData || !chartData.length}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportToExcel}
+                  disabled={!realRevenueData || !chartData.length}
+                  className="flex items-center gap-2"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export Excel
+                </Button>
+              </div>
+
               {/* Statistics Cards */}
               <div className="grid gap-4 md:grid-cols-3">
                 <Card>
