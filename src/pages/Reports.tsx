@@ -212,6 +212,10 @@ const Reports = () => {
                           const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
                           setStartDate(startOfMonth);
                           setEndDate(endOfMonth);
+                        } else {
+                          // Effacer les dates quand on efface la sélection
+                          setStartDate(undefined);
+                          setEndDate(undefined);
                         }
                       }}
                       mode="month"
@@ -237,6 +241,10 @@ const Reports = () => {
                           const endOfYear = new Date(date.getFullYear(), 11, 31);
                           setStartDate(startOfYear);
                           setEndDate(endOfYear);
+                        } else {
+                          // Effacer les dates quand on efface la sélection
+                          setStartDate(undefined);
+                          setEndDate(undefined);
                         }
                       }}
                       mode="year"
