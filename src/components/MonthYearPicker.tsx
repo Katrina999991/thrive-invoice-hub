@@ -117,11 +117,11 @@ export function MonthYearPicker({
             </Button>
             <div className="flex gap-2">
               <Select
-                value={(selectedDate?.getFullYear() || currentYear).toString()}
+                value={selectedDate ? selectedDate.getFullYear().toString() : ""}
                 onValueChange={handleYearChange}
               >
                 <SelectTrigger className="w-24">
-                  <SelectValue />
+                  <SelectValue placeholder="Year" />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((year) => (
