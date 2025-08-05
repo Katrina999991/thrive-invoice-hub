@@ -297,10 +297,7 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'EUR'
-                      }).format(realRevenueData.totalRevenue)}
+                      {new Intl.NumberFormat('en-US').format(realRevenueData.totalRevenue)}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Paid invoices only
@@ -328,10 +325,7 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'EUR'
-                      }).format(
+                      {new Intl.NumberFormat('en-US').format(
                         realRevenueData.totalRevenue / 
                         Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length)
                       )}
@@ -364,8 +358,6 @@ const Reports = () => {
                       <YAxis 
                         tickFormatter={(value) => 
                           new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'EUR',
                             notation: 'compact'
                           }).format(value)
                         }
@@ -373,10 +365,7 @@ const Reports = () => {
                       <Tooltip 
                         formatter={(value: number, name: string) => [
                           name === 'revenue' 
-                            ? new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'EUR'
-                              }).format(value)
+                            ? new Intl.NumberFormat('en-US').format(value)
                             : value,
                           name === 'revenue' ? 'Revenue' : 'Invoices'
                         ]}
@@ -414,18 +403,13 @@ const Reports = () => {
                       <YAxis 
                         tickFormatter={(value) => 
                           new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'EUR',
                             notation: 'compact'
                           }).format(value)
                         }
                       />
                       <Tooltip 
                         formatter={(value: number) => [
-                          new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'EUR'
-                          }).format(value),
+                          new Intl.NumberFormat('en-US').format(value),
                           'Revenue'
                         ]}
                         labelFormatter={(label) => `Period: ${label}`}
@@ -468,17 +452,11 @@ const Reports = () => {
                             <tr key={index} className="border-b">
                               <td className="py-2">{item.period}</td>
                               <td className="text-right py-2 font-medium">
-                                {new Intl.NumberFormat('en-US', {
-                                  style: 'currency',
-                                  currency: 'EUR'
-                                }).format(item.revenue)}
+                                {new Intl.NumberFormat('en-US').format(item.revenue)}
                               </td>
                               <td className="text-right py-2">{item.invoiceCount}</td>
                               <td className="text-right py-2">
-                                {new Intl.NumberFormat('en-US', {
-                                  style: 'currency',
-                                  currency: 'EUR'
-                                }).format(item.revenue / item.invoiceCount)}
+                                {new Intl.NumberFormat('en-US').format(item.revenue / item.invoiceCount)}
                               </td>
                             </tr>
                           ))}
