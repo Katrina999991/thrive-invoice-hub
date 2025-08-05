@@ -56,6 +56,7 @@ export function MonthYearPicker({
     } else {
       const currentMonth = selectedDate?.getMonth() || 0
       onDateChange(new Date(parseInt(year), currentMonth, 1))
+      // Ne pas fermer si c'est mode month car l'utilisateur doit encore choisir un mois
     }
   }
 

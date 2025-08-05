@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from './useAuth';
 
@@ -20,7 +20,7 @@ export const useReports = (startDate?: Date, endDate?: Date) => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const fetchRevenueData = async () => {
+  const fetchRevenueData = useCallback(async () => {
     if (!user) return;
 
     // Si aucune date n'est spécifiée, ne pas afficher de données
@@ -130,11 +130,11 @@ export const useReports = (startDate?: Date, endDate?: Date) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, startDate, endDate]);
 
   useEffect(() => {
     fetchRevenueData();
-  }, [user, startDate, endDate]);
+  }, [user, startDate, endDate, fetchRevenueData]);
 
   return {
     revenueData,
