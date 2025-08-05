@@ -1,6 +1,5 @@
 import * as React from "react"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -40,7 +39,7 @@ export function DateRangePicker({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {startDate ? format(startDate, "dd/MM/yyyy", { locale: fr }) : "Date de début"}
+            {startDate ? format(startDate, "MM/dd/yyyy") : "Start Date"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -65,7 +64,7 @@ export function DateRangePicker({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {endDate ? format(endDate, "dd/MM/yyyy", { locale: fr }) : "Date de fin"}
+            {endDate ? format(endDate, "MM/dd/yyyy") : "End Date"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -89,7 +88,7 @@ export function DateRangePicker({
             onEndDateChange(undefined)
           }}
         >
-          Effacer
+          Clear
         </Button>
       )}
     </div>

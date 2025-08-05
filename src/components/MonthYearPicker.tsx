@@ -1,6 +1,5 @@
 import * as React from "react"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -35,18 +34,18 @@ export function MonthYearPicker({
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i)
   
   const months = [
-    { value: 0, label: 'Janvier' },
-    { value: 1, label: 'Février' },
-    { value: 2, label: 'Mars' },
-    { value: 3, label: 'Avril' },
-    { value: 4, label: 'Mai' },
-    { value: 5, label: 'Juin' },
-    { value: 6, label: 'Juillet' },
-    { value: 7, label: 'Août' },
-    { value: 8, label: 'Septembre' },
-    { value: 9, label: 'Octobre' },
-    { value: 10, label: 'Novembre' },
-    { value: 11, label: 'Décembre' },
+    { value: 0, label: 'January' },
+    { value: 1, label: 'February' },
+    { value: 2, label: 'March' },
+    { value: 3, label: 'April' },
+    { value: 4, label: 'May' },
+    { value: 5, label: 'June' },
+    { value: 6, label: 'July' },
+    { value: 7, label: 'August' },
+    { value: 8, label: 'September' },
+    { value: 9, label: 'October' },
+    { value: 10, label: 'November' },
+    { value: 11, label: 'December' },
   ]
 
   const handleYearChange = (year: string) => {
@@ -77,13 +76,13 @@ export function MonthYearPicker({
 
   const getDisplayText = () => {
     if (!selectedDate) {
-      return mode === 'month' ? 'Choisir un mois' : 'Choisir une année'
+      return mode === 'month' ? 'Choose a month' : 'Choose a year'
     }
     
     if (mode === 'month') {
-      return format(selectedDate, 'MMMM yyyy', { locale: fr })
+      return format(selectedDate, 'MMMM yyyy')
     } else {
-      return format(selectedDate, 'yyyy', { locale: fr })
+      return format(selectedDate, 'yyyy')
     }
   }
 
@@ -164,7 +163,7 @@ export function MonthYearPicker({
           size="sm"
           onClick={() => onDateChange(undefined)}
         >
-          Effacer
+          Clear
         </Button>
       )}
     </div>

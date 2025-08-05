@@ -6,7 +6,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useReports } from "@/hooks/useReports";
 import { useState } from "react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
 
@@ -27,7 +26,7 @@ const Reports = () => {
     { month: "Jun", revenue: 67000, expenses: 48000 },
   ];
 
-  // Formater les données pour les graphiques
+  // Format data for charts
   const formatRevenueDataForChart = () => {
     if (!realRevenueData) return [];
     
@@ -35,7 +34,7 @@ const Reports = () => {
     
     return data.map(item => ({
       period: viewMode === 'monthly' 
-        ? format(new Date(item.period + '-01'), 'MMM yyyy', { locale: fr })
+        ? format(new Date(item.period + '-01'), 'MMM yyyy')
         : item.period,
       revenue: item.revenue,
       invoiceCount: item.invoiceCount
@@ -166,99 +165,108 @@ const Reports = () => {
         </TabsContent>
 
         <TabsContent value="revenue" className="space-y-4">
-          {/* Contrôles de vue */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Revenus par période</h2>
-              <p className="text-muted-foreground">Analyse des revenus par mois ou par année</p>
+              <h2 className="text-2xl font-bold">Revenue by Period</h2>
+              <p className="text-muted-foreground">Analyze revenue by custom date range, month, or year</p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === 'monthly' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('monthly')}
-              >
-                Par mois
-              </Button>
-              <Button
-                variant={viewMode === 'yearly' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('yearly')}
-              >
-                Par année
-              </Button>
-            </div>
-          </div>
 
-          {/* Sélecteurs de dates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Filtres de période</CardTitle>
-              <CardDescription>
-                Sélectionnez une plage de dates ou une période spécifique
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Plage de dates personnalisée</label>
-                <DateRangePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onStartDateChange={setStartDate}
-                  onEndDateChange={setEndDate}
-                />
-              </div>
+            <Tabs defaultValue="custom" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="custom">Custom Date Range</TabsTrigger>
+                <TabsTrigger value="month">By Month</TabsTrigger>
+                <TabsTrigger value="year">By Year</TabsTrigger>
+              </TabsList>
               
-              <div className="border-t pt-4">
-                <label className="text-sm font-medium mb-2 block">
-                  Ou sélectionnez {viewMode === 'monthly' ? 'un mois' : 'une année'} spécifique
-                </label>
-                <MonthYearPicker
-                  selectedDate={selectedPeriod}
-                  onDateChange={(date) => {
-                    setSelectedPeriod(date);
-                    if (date) {
-                      if (viewMode === 'monthly') {
-                        // Pour un mois, définir début et fin du mois
-                        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-                        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                        setStartDate(startOfMonth);
-                        setEndDate(endOfMonth);
-                      } else {
-                        // Pour une année, définir début et fin de l'année
-                        const startOfYear = new Date(date.getFullYear(), 0, 1);
-                        const endOfYear = new Date(date.getFullYear(), 11, 31);
-                        setStartDate(startOfYear);
-                        setEndDate(endOfYear);
-                      }
-                    }
+              <TabsContent value="custom" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Custom Date Range</CardTitle>
+                    <CardDescription>Select a specific date range for revenue analysis</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DateRangePicker
+                      startDate={startDate}
+                      endDate={endDate}
+                      onStartDateChange={setStartDate}
+                      onEndDateChange={setEndDate}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="month" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Monthly Revenue</CardTitle>
+                    <CardDescription>Select a specific month to view revenue data</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <MonthYearPicker
+                      selectedDate={selectedPeriod}
+                      onDateChange={(date) => {
+                        setSelectedPeriod(date);
+                        setViewMode('monthly');
+                        if (date) {
+                          const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                          const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                          setStartDate(startOfMonth);
+                          setEndDate(endOfMonth);
+                        }
+                      }}
+                      mode="month"
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="year" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Yearly Revenue</CardTitle>
+                    <CardDescription>Select a specific year to view revenue data</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <MonthYearPicker
+                      selectedDate={selectedPeriod}
+                      onDateChange={(date) => {
+                        setSelectedPeriod(date);
+                        setViewMode('yearly');
+                        if (date) {
+                          const startOfYear = new Date(date.getFullYear(), 0, 1);
+                          const endOfYear = new Date(date.getFullYear(), 11, 31);
+                          setStartDate(startOfYear);
+                          setEndDate(endOfYear);
+                        }
+                      }}
+                      mode="year"
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+
+            {(startDate || endDate || selectedPeriod) && (
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setStartDate(undefined);
+                    setEndDate(undefined);
+                    setSelectedPeriod(undefined);
                   }}
-                  mode={viewMode === 'monthly' ? 'month' : 'year'}
-                />
+                >
+                  Reset All Filters
+                </Button>
               </div>
-              
-              {(startDate || endDate || selectedPeriod) && (
-                <div className="flex justify-end pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setStartDate(undefined);
-                      setEndDate(undefined);
-                      setSelectedPeriod(undefined);
-                    }}
-                  >
-                    Réinitialiser tous les filtres
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           {loading && (
             <Card>
               <CardContent className="flex justify-center items-center h-96">
-                <p>Chargement des données...</p>
+                <p>Loading data...</p>
               </CardContent>
             </Card>
           )}
@@ -266,35 +274,35 @@ const Reports = () => {
           {error && (
             <Card>
               <CardContent className="flex justify-center items-center h-96">
-                <p className="text-destructive">Erreur: {error}</p>
+                <p className="text-destructive">Error: {error}</p>
               </CardContent>
             </Card>
           )}
 
           {!loading && !error && realRevenueData && (
             <>
-              {/* Cartes de statistiques */}
+              {/* Statistics Cards */}
               <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Revenu total</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('fr-FR', {
+                      {new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: 'EUR'
                       }).format(realRevenueData.totalRevenue)}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Factures payées uniquement
+                      Paid invoices only
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Nombre de {viewMode === 'monthly' ? 'mois' : 'années'}
+                      Number of {viewMode === 'monthly' ? 'months' : 'years'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -302,17 +310,17 @@ const Reports = () => {
                       {viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Avec des revenus
+                      With revenue
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Revenu moyen</CardTitle>
+                    <CardTitle className="text-sm font-medium">Average Revenue</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('fr-FR', {
+                      {new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: 'EUR'
                       }).format(
@@ -321,18 +329,18 @@ const Reports = () => {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Par {viewMode === 'monthly' ? 'mois' : 'année'}
+                      Per {viewMode === 'monthly' ? 'month' : 'year'}
                     </p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Graphique en barres */}
+              {/* Bar Chart */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Évolution des revenus</CardTitle>
+                  <CardTitle>Revenue Evolution</CardTitle>
                   <CardDescription>
-                    Revenus par {viewMode === 'monthly' ? 'mois' : 'année'}
+                    Revenue by {viewMode === 'monthly' ? 'month' : 'year'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -347,7 +355,7 @@ const Reports = () => {
                       />
                       <YAxis 
                         tickFormatter={(value) => 
-                          new Intl.NumberFormat('fr-FR', {
+                          new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'EUR',
                             notation: 'compact'
@@ -357,14 +365,14 @@ const Reports = () => {
                       <Tooltip 
                         formatter={(value: number, name: string) => [
                           name === 'revenue' 
-                            ? new Intl.NumberFormat('fr-FR', {
+                            ? new Intl.NumberFormat('en-US', {
                                 style: 'currency',
                                 currency: 'EUR'
                               }).format(value)
                             : value,
-                          name === 'revenue' ? 'Revenus' : 'Factures'
+                          name === 'revenue' ? 'Revenue' : 'Invoices'
                         ]}
-                        labelFormatter={(label) => `Période: ${label}`}
+                        labelFormatter={(label) => `Period: ${label}`}
                       />
                       <Bar 
                         dataKey="revenue" 
@@ -377,12 +385,12 @@ const Reports = () => {
                 </CardContent>
               </Card>
 
-              {/* Graphique en ligne */}
+              {/* Line Chart */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Tendance des revenus</CardTitle>
+                  <CardTitle>Revenue Trend</CardTitle>
                   <CardDescription>
-                    Évolution temporelle des revenus
+                    Revenue evolution over time
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -397,7 +405,7 @@ const Reports = () => {
                       />
                       <YAxis 
                         tickFormatter={(value) => 
-                          new Intl.NumberFormat('fr-FR', {
+                          new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'EUR',
                             notation: 'compact'
@@ -406,13 +414,13 @@ const Reports = () => {
                       />
                       <Tooltip 
                         formatter={(value: number) => [
-                          new Intl.NumberFormat('fr-FR', {
+                          new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'EUR'
                           }).format(value),
-                          'Revenus'
+                          'Revenue'
                         ]}
-                        labelFormatter={(label) => `Période: ${label}`}
+                        labelFormatter={(label) => `Period: ${label}`}
                       />
                       <Line 
                         type="monotone" 
@@ -427,13 +435,13 @@ const Reports = () => {
                 </CardContent>
               </Card>
 
-              {/* Tableau détaillé */}
+              {/* Detailed Table */}
               {chartData.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Détails par période</CardTitle>
+                    <CardTitle>Details by Period</CardTitle>
                     <CardDescription>
-                      Données détaillées par {viewMode === 'monthly' ? 'mois' : 'année'}
+                      Detailed data by {viewMode === 'monthly' ? 'month' : 'year'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -441,10 +449,10 @@ const Reports = () => {
                       <table className="w-full">
                         <thead>
                           <tr className="border-b">
-                            <th className="text-left py-2">Période</th>
-                            <th className="text-right py-2">Revenus</th>
-                            <th className="text-right py-2">Nombre de factures</th>
-                            <th className="text-right py-2">Revenu moyen par facture</th>
+                            <th className="text-left py-2">Period</th>
+                            <th className="text-right py-2">Revenue</th>
+                            <th className="text-right py-2">Number of Invoices</th>
+                            <th className="text-right py-2">Average Revenue per Invoice</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -452,14 +460,14 @@ const Reports = () => {
                             <tr key={index} className="border-b">
                               <td className="py-2">{item.period}</td>
                               <td className="text-right py-2 font-medium">
-                                {new Intl.NumberFormat('fr-FR', {
+                                {new Intl.NumberFormat('en-US', {
                                   style: 'currency',
                                   currency: 'EUR'
                                 }).format(item.revenue)}
                               </td>
                               <td className="text-right py-2">{item.invoiceCount}</td>
                               <td className="text-right py-2">
-                                {new Intl.NumberFormat('fr-FR', {
+                                {new Intl.NumberFormat('en-US', {
                                   style: 'currency',
                                   currency: 'EUR'
                                 }).format(item.revenue / item.invoiceCount)}
@@ -477,9 +485,9 @@ const Reports = () => {
                 <Card>
                   <CardContent className="flex justify-center items-center h-96">
                     <div className="text-center">
-                      <p className="text-lg font-medium">Aucune donnée de revenus</p>
+                      <p className="text-lg font-medium">No revenue data</p>
                       <p className="text-muted-foreground">
-                        Créez et payez quelques factures pour voir les données apparaître ici.
+                        Create and pay some invoices to see data appear here.
                       </p>
                     </div>
                   </CardContent>
