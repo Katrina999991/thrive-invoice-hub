@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { useReports } from "@/hooks/useReports";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useClients } from "@/hooks/useClients";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
@@ -20,6 +24,11 @@ const Reports = () => {
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<Date | undefined>();
   const [selectedYear, setSelectedYear] = useState<Date | undefined>();
+  
+  // États pour les filtres
+  const [filterType, setFilterType] = useState<'all' | 'company' | 'client'>('all');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
   
   // Mémoriser les dates actives pour éviter les re-renders
   const { startDate, endDate } = useMemo(() => {
@@ -47,6 +56,8 @@ const Reports = () => {
   
   const { revenueData: realRevenueData, loading, error } = useReports(startDate, endDate);
   const { invoices } = useInvoices();
+  const { companies } = useCompanies();
+  const { clients } = useClients();
   
   const revenueData = [
     { month: "Jan", revenue: 45000, expenses: 35000 },
@@ -87,9 +98,17 @@ const Reports = () => {
       if (startDate && invoiceDate < startDate) return false;
       if (endDate && invoiceDate > endDate) return false;
       
+      // Apply additional filters
+      if (filterType === 'company' && selectedCompanyId) {
+        return (invoice as any).clients?.company_id === selectedCompanyId;
+      }
+      if (filterType === 'client' && selectedClientId) {
+        return invoice.client_id === selectedClientId;
+      }
+      
       return true;
     });
-  }, [invoices, startDate, endDate]);
+  }, [invoices, startDate, endDate, filterType, selectedCompanyId, selectedClientId]);
 
   const clientData = [
     { name: "ABC Corporation", value: 35, color: "#8884d8" },
@@ -234,13 +253,69 @@ const Reports = () => {
                     <CardTitle>Custom Date Range</CardTitle>
                     <CardDescription>Select a specific date range for revenue analysis</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <DateRangePicker
                       startDate={customStartDate}
                       endDate={customEndDate}
                       onStartDateChange={setCustomStartDate}
                       onEndDateChange={setCustomEndDate}
                     />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="filter-type">Filter by</Label>
+                        <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'client') => {
+                          setFilterType(value);
+                          setSelectedCompanyId('');
+                          setSelectedClientId('');
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select filter" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Data</SelectItem>
+                            <SelectItem value="company">By Company</SelectItem>
+                            <SelectItem value="client">By Client</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {filterType === 'company' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="company-select">Company</Label>
+                          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select company" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {companies.map(company => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      
+                      {filterType === 'client' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="client-select">Client</Label>
+                          <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select client" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {clients.map(client => (
+                                <SelectItem key={client.id} value={client.id}>
+                                  {client.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -251,7 +326,7 @@ const Reports = () => {
                     <CardTitle>Monthly Revenue</CardTitle>
                     <CardDescription>Select a specific month to view revenue data</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <MonthYearPicker
                       selectedDate={selectedMonth}
                       onDateChange={(date) => {
@@ -260,6 +335,62 @@ const Reports = () => {
                       }}
                       mode="month"
                     />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="filter-type">Filter by</Label>
+                        <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'client') => {
+                          setFilterType(value);
+                          setSelectedCompanyId('');
+                          setSelectedClientId('');
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select filter" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Data</SelectItem>
+                            <SelectItem value="company">By Company</SelectItem>
+                            <SelectItem value="client">By Client</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {filterType === 'company' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="company-select">Company</Label>
+                          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select company" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {companies.map(company => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      
+                      {filterType === 'client' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="client-select">Client</Label>
+                          <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select client" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {clients.map(client => (
+                                <SelectItem key={client.id} value={client.id}>
+                                  {client.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -270,7 +401,7 @@ const Reports = () => {
                     <CardTitle>Yearly Revenue</CardTitle>
                     <CardDescription>Select a specific year to view revenue data</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <MonthYearPicker
                       selectedDate={selectedYear}
                       onDateChange={(date) => {
@@ -279,6 +410,62 @@ const Reports = () => {
                       }}
                       mode="year"
                     />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="filter-type">Filter by</Label>
+                        <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'client') => {
+                          setFilterType(value);
+                          setSelectedCompanyId('');
+                          setSelectedClientId('');
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select filter" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Data</SelectItem>
+                            <SelectItem value="company">By Company</SelectItem>
+                            <SelectItem value="client">By Client</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {filterType === 'company' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="company-select">Company</Label>
+                          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select company" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {companies.map(company => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      
+                      {filterType === 'client' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="client-select">Client</Label>
+                          <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select client" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {clients.map(client => (
+                                <SelectItem key={client.id} value={client.id}>
+                                  {client.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
