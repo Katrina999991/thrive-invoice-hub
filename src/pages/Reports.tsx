@@ -11,9 +11,39 @@ import { MonthYearPicker } from "@/components/MonthYearPicker";
 
 const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  const [selectedPeriod, setSelectedPeriod] = useState<Date | undefined>();
+  const [activeTab, setActiveTab] = useState('custom');
+  
+  // États séparés pour chaque onglet
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+  const [selectedMonth, setSelectedMonth] = useState<Date | undefined>();
+  const [selectedYear, setSelectedYear] = useState<Date | undefined>();
+  
+  // Déterminer les dates à utiliser selon l'onglet actif
+  const getActiveDates = () => {
+    switch (activeTab) {
+      case 'custom':
+        return { start: customStartDate, end: customEndDate };
+      case 'month':
+        if (selectedMonth) {
+          const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+          const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
+          return { start: startOfMonth, end: endOfMonth };
+        }
+        return { start: undefined, end: undefined };
+      case 'year':
+        if (selectedYear) {
+          const startOfYear = new Date(selectedYear.getFullYear(), 0, 1);
+          const endOfYear = new Date(selectedYear.getFullYear(), 11, 31);
+          return { start: startOfYear, end: endOfYear };
+        }
+        return { start: undefined, end: undefined };
+      default:
+        return { start: undefined, end: undefined };
+    }
+  };
+  
+  const { start: startDate, end: endDate } = getActiveDates();
   
   const { revenueData: realRevenueData, loading, error } = useReports(startDate, endDate);
   
@@ -172,11 +202,7 @@ const Reports = () => {
             </div>
 
             <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
-              // Effacer les dates quand on change d'onglet si aucune période spécifique n'est sélectionnée
-              if (value !== "custom" && !selectedPeriod) {
-                setStartDate(undefined);
-                setEndDate(undefined);
-              }
+              setActiveTab(value);
             }}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="custom">Custom Date Range</TabsTrigger>
@@ -192,10 +218,10 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent>
                     <DateRangePicker
-                      startDate={startDate}
-                      endDate={endDate}
-                      onStartDateChange={setStartDate}
-                      onEndDateChange={setEndDate}
+                      startDate={customStartDate}
+                      endDate={customEndDate}
+                      onStartDateChange={setCustomStartDate}
+                      onEndDateChange={setCustomEndDate}
                     />
                   </CardContent>
                 </Card>
@@ -209,20 +235,10 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent>
                     <MonthYearPicker
-                      selectedDate={selectedPeriod}
+                      selectedDate={selectedMonth}
                       onDateChange={(date) => {
-                        setSelectedPeriod(date);
+                        setSelectedMonth(date);
                         setViewMode('monthly');
-                        if (date) {
-                          const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-                          const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                          setStartDate(startOfMonth);
-                          setEndDate(endOfMonth);
-                        } else {
-                          // Effacer les dates quand on efface la sélection
-                          setStartDate(undefined);
-                          setEndDate(undefined);
-                        }
                       }}
                       mode="month"
                     />
@@ -238,20 +254,10 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent>
                     <MonthYearPicker
-                      selectedDate={selectedPeriod}
+                      selectedDate={selectedYear}
                       onDateChange={(date) => {
-                        setSelectedPeriod(date);
+                        setSelectedYear(date);
                         setViewMode('yearly');
-                        if (date) {
-                          const startOfYear = new Date(date.getFullYear(), 0, 1);
-                          const endOfYear = new Date(date.getFullYear(), 11, 31);
-                          setStartDate(startOfYear);
-                          setEndDate(endOfYear);
-                        } else {
-                          // Effacer les dates quand on efface la sélection
-                          setStartDate(undefined);
-                          setEndDate(undefined);
-                        }
                       }}
                       mode="year"
                     />
@@ -260,18 +266,46 @@ const Reports = () => {
               </TabsContent>
             </Tabs>
 
-            {(startDate || endDate || selectedPeriod) && (
+            {/* Boutons Clear spécifiques à chaque onglet */}
+            {activeTab === 'custom' && (customStartDate || customEndDate) && (
               <div className="flex justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setStartDate(undefined);
-                    setEndDate(undefined);
-                    setSelectedPeriod(undefined);
+                    setCustomStartDate(undefined);
+                    setCustomEndDate(undefined);
                   }}
                 >
-                  Reset All Filters
+                  Clear Custom Range
+                </Button>
+              </div>
+            )}
+
+            {activeTab === 'month' && selectedMonth && (
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedMonth(undefined);
+                  }}
+                >
+                  Clear Month
+                </Button>
+              </div>
+            )}
+
+            {activeTab === 'year' && selectedYear && (
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedYear(undefined);
+                  }}
+                >
+                  Clear Year
                 </Button>
               </div>
             )}
