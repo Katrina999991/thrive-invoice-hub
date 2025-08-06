@@ -314,24 +314,25 @@ Best regards,
           
           console.log('Adding logo to PDF with format:', imageFormat);
           
-          // Since we can't reliably get image dimensions in Deno environment,
-          // we'll use reasonable defaults that maintain common aspect ratios
-          const maxWidth = 40;
-          const maxHeight = 30;
+          // Use more conservative dimensions that work well for most logos
+          // Most company logos are either horizontal rectangles or squares
+          const maxWidth = 35;
+          const maxHeight = 25;
           
-          // Assume a common logo aspect ratio (4:3 landscape)
-          // This will work well for most logos
-          let scaledWidth = maxWidth;
-          let scaledHeight = maxWidth * 0.75; // 4:3 ratio
+          // For horizontal logos (most common), use max width with proportional height
+          let logoWidth = maxWidth;
+          let logoHeight = maxHeight * 0.6; // Conservative ratio for horizontal logos
           
-          // If the calculated height exceeds maxHeight, scale down
-          if (scaledHeight > maxHeight) {
-            scaledHeight = maxHeight;
-            scaledWidth = maxHeight * (4/3);
+          // If the logo URL suggests it might be square or vertical, adjust
+          const fileName = company.logo_url.toLowerCase();
+          if (fileName.includes('square') || fileName.includes('icon')) {
+            // Likely a square logo
+            logoWidth = maxHeight;
+            logoHeight = maxHeight;
           }
           
-          // Add logo with preserved aspect ratio
-          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, scaledWidth, scaledHeight);
+          // Add logo with calculated dimensions
+          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, logoWidth, logoHeight);
           logoLoaded = true;
           console.log('Logo successfully added to PDF');
         }
