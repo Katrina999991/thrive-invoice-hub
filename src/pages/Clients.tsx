@@ -125,7 +125,7 @@ const Clients = () => {
               Add Client
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingClient ? "Edit Client" : "Add New Client"}</DialogTitle>
               <DialogDescription>
