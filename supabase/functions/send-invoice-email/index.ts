@@ -313,8 +313,40 @@ Best regards,
           }
           
           console.log('Adding logo to PDF with format:', imageFormat);
-          // Add logo (positioned at top left)
-          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, 40, 30);
+          
+          // Create a temporary image element to get dimensions
+          const img = new Image();
+          img.src = `data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`;
+          
+          // Calculate logo dimensions while maintaining aspect ratio
+          const logoWidth = img.width || 400; // fallback width
+          const logoHeight = img.height || 300; // fallback height
+          const maxWidth = 40;
+          const maxHeight = 30;
+          
+          let scaledWidth = maxWidth;
+          let scaledHeight = maxHeight;
+          
+          const aspectRatio = logoWidth / logoHeight;
+          
+          if (aspectRatio > 1) {
+            // Landscape orientation
+            scaledHeight = maxWidth / aspectRatio;
+            if (scaledHeight > maxHeight) {
+              scaledHeight = maxHeight;
+              scaledWidth = maxHeight * aspectRatio;
+            }
+          } else {
+            // Portrait or square orientation
+            scaledWidth = maxHeight * aspectRatio;
+            if (scaledWidth > maxWidth) {
+              scaledWidth = maxWidth;
+              scaledHeight = maxWidth / aspectRatio;
+            }
+          }
+          
+          // Add logo with preserved aspect ratio
+          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, scaledWidth, scaledHeight);
           logoLoaded = true;
           console.log('Logo successfully added to PDF');
         }
