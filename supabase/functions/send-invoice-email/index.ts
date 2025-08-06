@@ -314,35 +314,20 @@ Best regards,
           
           console.log('Adding logo to PDF with format:', imageFormat);
           
-          // Create a temporary image element to get dimensions
-          const img = new Image();
-          img.src = `data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`;
-          
-          // Calculate logo dimensions while maintaining aspect ratio
-          const logoWidth = img.width || 400; // fallback width
-          const logoHeight = img.height || 300; // fallback height
+          // Since we can't reliably get image dimensions in Deno environment,
+          // we'll use reasonable defaults that maintain common aspect ratios
           const maxWidth = 40;
           const maxHeight = 30;
           
+          // Assume a common logo aspect ratio (4:3 landscape)
+          // This will work well for most logos
           let scaledWidth = maxWidth;
-          let scaledHeight = maxHeight;
+          let scaledHeight = maxWidth * 0.75; // 4:3 ratio
           
-          const aspectRatio = logoWidth / logoHeight;
-          
-          if (aspectRatio > 1) {
-            // Landscape orientation
-            scaledHeight = maxWidth / aspectRatio;
-            if (scaledHeight > maxHeight) {
-              scaledHeight = maxHeight;
-              scaledWidth = maxHeight * aspectRatio;
-            }
-          } else {
-            // Portrait or square orientation
-            scaledWidth = maxHeight * aspectRatio;
-            if (scaledWidth > maxWidth) {
-              scaledWidth = maxWidth;
-              scaledHeight = maxWidth / aspectRatio;
-            }
+          // If the calculated height exceeds maxHeight, scale down
+          if (scaledHeight > maxHeight) {
+            scaledHeight = maxHeight;
+            scaledWidth = maxHeight * (4/3);
           }
           
           // Add logo with preserved aspect ratio
