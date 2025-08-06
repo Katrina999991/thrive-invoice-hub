@@ -357,8 +357,35 @@ const Invoices = () => {
           await new Promise((resolve, reject) => {
             logoImg.onload = () => {
               try {
-                // Add logo (positioned at top left)
-                doc.addImage(logoImg, 'JPEG', 20, 15, 40, 30);
+                // Calculate logo dimensions while maintaining aspect ratio
+                const logoWidth = logoImg.width;
+                const logoHeight = logoImg.height;
+                const maxWidth = 40;
+                const maxHeight = 30;
+                
+                let scaledWidth = maxWidth;
+                let scaledHeight = maxHeight;
+                
+                const aspectRatio = logoWidth / logoHeight;
+                
+                if (aspectRatio > 1) {
+                  // Landscape orientation
+                  scaledHeight = maxWidth / aspectRatio;
+                  if (scaledHeight > maxHeight) {
+                    scaledHeight = maxHeight;
+                    scaledWidth = maxHeight * aspectRatio;
+                  }
+                } else {
+                  // Portrait or square orientation
+                  scaledWidth = maxHeight * aspectRatio;
+                  if (scaledWidth > maxWidth) {
+                    scaledWidth = maxWidth;
+                    scaledHeight = maxWidth / aspectRatio;
+                  }
+                }
+                
+                // Add logo with preserved aspect ratio
+                doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
                 // Add INVOICE text next to logo (translated)
                 doc.text(translations.invoice, 70, 35);
                 resolve(undefined);
