@@ -314,24 +314,12 @@ Best regards,
           
           console.log('Adding logo to PDF with format:', imageFormat);
           
-          // Use more conservative dimensions that work well for most logos
-          // Most company logos are either horizontal rectangles or squares
-          const maxWidth = 35;
-          const maxHeight = 25;
+          // Use same dimensions as the frontend PDF generation
+          // These are the optimal dimensions that work well for most company logos
+          const logoWidth = 30;   // Reduced width for better proportions
+          const logoHeight = 22;  // Proportional height
           
-          // For horizontal logos (most common), use max width with proportional height
-          let logoWidth = maxWidth;
-          let logoHeight = maxHeight * 0.6; // Conservative ratio for horizontal logos
-          
-          // If the logo URL suggests it might be square or vertical, adjust
-          const fileName = company.logo_url.toLowerCase();
-          if (fileName.includes('square') || fileName.includes('icon')) {
-            // Likely a square logo
-            logoWidth = maxHeight;
-            logoHeight = maxHeight;
-          }
-          
-          // Add logo with calculated dimensions
+          // Add logo with same dimensions as frontend
           doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, logoWidth, logoHeight);
           logoLoaded = true;
           console.log('Logo successfully added to PDF');
