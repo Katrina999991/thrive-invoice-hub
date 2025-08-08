@@ -1934,6 +1934,13 @@ const Reports = () => {
             </Card>
 
             {/* Résumé des taxes */}
+            {taxData && (
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground">
+                  Debug: taxData trouvé, taxSummary: {taxData.taxSummary?.length || 0} éléments
+                </p>
+              </div>
+            )}
             {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>

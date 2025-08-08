@@ -238,6 +238,14 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
         taxSummary: taxSummary.length
       });
 
+      console.log('Setting tax data:', {
+        totalTaxAmount,
+        monthlyData: monthlyData.length,
+        yearlyData: yearlyData.length,
+        taxSummary: taxSummary.length,
+        taxSummaryData: taxSummary
+      });
+
       setTaxData({
         totalTaxAmount,
         monthlyData,
