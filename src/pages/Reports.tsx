@@ -1933,19 +1933,23 @@ const Reports = () => {
               </CardContent>
             </Card>
 
+            {/* Test graphique simple */}
+            <Card className="mb-4">
+              <CardHeader>
+                <CardTitle>Test Graphique</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={[{name: 'Test', value: 100}]}>
+                    <Bar dataKey="value" fill="#8884d8" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
             {/* Résumé des taxes */}
-            {taxData && (
-              <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-                <h3 className="font-semibold mb-2">Debug Info:</h3>
-                <p>Total Tax Amount: {taxData.totalTaxAmount}</p>
-                <p>Tax Summary Length: {taxData.taxSummary?.length || 0}</p>
-                <p>Monthly Data Length: {taxData.monthlyData?.length || 0}</p>
-                <p>Yearly Data Length: {taxData.yearlyData?.length || 0}</p>
-                {taxData.taxSummary && taxData.taxSummary.length > 0 && (
-                  <p>Tax Summary: {taxData.taxSummary.map(t => `${t.name}: ${t.amount}`).join(', ')}</p>
-                )}
-              </div>
-            )}
             {taxData && taxData.totalTaxAmount > 0 && (
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
