@@ -14,7 +14,11 @@ import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Download, FileSpreadsheet, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -34,6 +38,9 @@ const Reports = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   
+  // États pour les filtres de clients par date de création
+  const [createdFromDate, setCreatedFromDate] = useState<Date | undefined>();
+  const [createdToDate, setCreatedToDate] = useState<Date | undefined>();
   // Mémoriser les dates actives pour éviter les re-renders
   const { startDate, endDate } = useMemo(() => {
     switch (activeTab) {
@@ -68,6 +75,34 @@ const Reports = () => {
   const { companies } = useCompanies();
   const { clients } = useClients();
   
+  // Fonction pour récupérer la dernière facture d'un client
+  const getLastInvoiceDate = (clientId: string) => {
+    const clientInvoices = invoices.filter(invoice => invoice.client_id === clientId);
+    if (clientInvoices.length === 0) return null;
+    
+    const sortedInvoices = clientInvoices.sort((a, b) => 
+      new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime()
+    );
+    
+    return sortedInvoices[0].issue_date;
+  };
+
+  // Filtrer les clients par date de création
+  const filteredClientsByDate = useMemo(() => {
+    return clients.filter(client => {
+      const clientCreatedDate = new Date(client.created_at);
+      
+      if (createdFromDate && clientCreatedDate < createdFromDate) {
+        return false;
+      }
+      
+      if (createdToDate && clientCreatedDate > createdToDate) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [clients, createdFromDate, createdToDate]);
   const revenueData = [
     { month: "Jan", revenue: 45000, expenses: 35000 },
     { month: "Feb", revenue: 52000, expenses: 38000 },
@@ -1291,6 +1326,84 @@ const Reports = () => {
               </div>
             </div>
 
+            {/* Filtre par date de création */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtres</CardTitle>
+                <CardDescription>Filtrer les clients par date de création</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Date de création (du)</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !createdFromDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {createdFromDate ? format(createdFromDate, "dd/MM/yyyy") : "Sélectionner une date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={createdFromDate}
+                          onSelect={setCreatedFromDate}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date de création (au)</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !createdToDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {createdToDate ? format(createdToDate, "dd/MM/yyyy") : "Sélectionner une date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={createdToDate}
+                          onSelect={setCreatedToDate}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                {(createdFromDate || createdToDate) && (
+                  <div className="flex justify-end mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCreatedFromDate(undefined);
+                        setCreatedToDate(undefined);
+                      }}
+                    >
+                      Effacer les filtres
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid gap-6">
               {/* Section: Tous les clients */}
               <Card>
@@ -1321,22 +1434,33 @@ const Reports = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Téléphone</TableHead>
                         <TableHead>Personne de contact</TableHead>
+                        <TableHead>Date de création</TableHead>
+                        <TableHead>Dernière facture</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {clients.map((client) => (
+                      {filteredClientsByDate.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell className="font-medium">{client.name}</TableCell>
                           <TableCell>{client.companies?.name || 'Aucune compagnie'}</TableCell>
                           <TableCell>{client.email || 'N/A'}</TableCell>
                           <TableCell>{client.phone || 'N/A'}</TableCell>
                           <TableCell>{client.contact_person || 'N/A'}</TableCell>
+                          <TableCell>
+                            {format(new Date(client.created_at), 'dd/MM/yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            {getLastInvoiceDate(client.id) 
+                              ? format(new Date(getLastInvoiceDate(client.id)!), 'dd/MM/yyyy')
+                              : 'Aucune facture'
+                            }
+                          </TableCell>
                         </TableRow>
                       ))}
-                      {clients.length === 0 && (
+                      {filteredClientsByDate.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground">
-                            Aucun client trouvé
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            Aucun client trouvé pour cette période
                           </TableCell>
                         </TableRow>
                       )}
@@ -1354,7 +1478,7 @@ const Reports = () => {
                 <CardContent>
                   <div className="space-y-6">
                     {companies.map((company) => {
-                      const companyClients = clients.filter(client => client.company_id === company.id);
+                      const companyClients = filteredClientsByDate.filter(client => client.company_id === company.id);
                       
                       return (
                         <div key={company.id} className="border rounded-lg p-4">
@@ -1385,6 +1509,8 @@ const Reports = () => {
                                   <TableHead>Email</TableHead>
                                   <TableHead>Téléphone</TableHead>
                                   <TableHead>Personne de contact</TableHead>
+                                  <TableHead>Date de création</TableHead>
+                                  <TableHead>Dernière facture</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -1394,6 +1520,15 @@ const Reports = () => {
                                     <TableCell>{client.email || 'N/A'}</TableCell>
                                     <TableCell>{client.phone || 'N/A'}</TableCell>
                                     <TableCell>{client.contact_person || 'N/A'}</TableCell>
+                                    <TableCell>
+                                      {format(new Date(client.created_at), 'dd/MM/yyyy')}
+                                    </TableCell>
+                                    <TableCell>
+                                      {getLastInvoiceDate(client.id) 
+                                        ? format(new Date(getLastInvoiceDate(client.id)!), 'dd/MM/yyyy')
+                                        : 'Aucune facture'
+                                      }
+                                    </TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -1407,7 +1542,7 @@ const Reports = () => {
                     
                     {/* Clients sans compagnie */}
                     {(() => {
-                      const clientsWithoutCompany = clients.filter(client => !client.company_id);
+                      const clientsWithoutCompany = filteredClientsByDate.filter(client => !client.company_id);
                       
                       return clientsWithoutCompany.length > 0 && (
                         <div className="border rounded-lg p-4">
@@ -1432,13 +1567,15 @@ const Reports = () => {
                           
                           <Table>
                             <TableHeader>
-                              <TableRow>
-                                <TableHead>Nom du client</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Téléphone</TableHead>
-                                <TableHead>Personne de contact</TableHead>
-                              </TableRow>
-                            </TableHeader>
+                            <TableRow>
+                              <TableHead>Nom du client</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Téléphone</TableHead>
+                              <TableHead>Personne de contact</TableHead>
+                              <TableHead>Date de création</TableHead>
+                              <TableHead>Dernière facture</TableHead>
+                            </TableRow>
+                          </TableHeader>
                             <TableBody>
                               {clientsWithoutCompany.map((client) => (
                                 <TableRow key={client.id}>
@@ -1446,6 +1583,15 @@ const Reports = () => {
                                   <TableCell>{client.email || 'N/A'}</TableCell>
                                   <TableCell>{client.phone || 'N/A'}</TableCell>
                                   <TableCell>{client.contact_person || 'N/A'}</TableCell>
+                                  <TableCell>
+                                    {format(new Date(client.created_at), 'dd/MM/yyyy')}
+                                  </TableCell>
+                                  <TableCell>
+                                    {getLastInvoiceDate(client.id) 
+                                      ? format(new Date(getLastInvoiceDate(client.id)!), 'dd/MM/yyyy')
+                                      : 'Aucune facture'
+                                    }
+                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
