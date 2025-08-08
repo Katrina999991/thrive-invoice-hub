@@ -238,6 +238,190 @@ const Reports = () => {
     XLSX.writeFile(wb, filename);
   };
 
+  // Export functions for clients
+  const exportClientsToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Rapport des Clients', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Résumé', 20, 50);
+    doc.setFontSize(10);
+    doc.text(`Nombre total de clients: ${clients.length}`, 20, 60);
+    doc.text(`Nombre de compagnies: ${companies.length}`, 20, 70);
+    
+    let yPosition = 90;
+    
+    // All clients table
+    const allClientsData = clients.map(client => [
+      client.name,
+      client.companies?.name || 'Aucune compagnie',
+      client.email || 'N/A',
+      client.phone || 'N/A',
+      client.contact_person || 'N/A'
+    ]);
+    
+    autoTable(doc, {
+      head: [['Nom du client', 'Compagnie', 'Email', 'Téléphone', 'Contact']],
+      body: allClientsData,
+      startY: yPosition,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+      styles: { fontSize: 8 },
+      didDrawPage: (data) => {
+        yPosition = data.cursor.y;
+      }
+    });
+    
+    // Add new page for company breakdown if needed
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    } else {
+      yPosition += 20;
+    }
+    
+    // Company breakdown
+    doc.setFontSize(14);
+    doc.text('Répartition par compagnie', 20, yPosition);
+    yPosition += 20;
+    
+    companies.forEach(company => {
+      const companyClients = clients.filter(client => client.company_id === company.id);
+      
+      if (companyClients.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.text(`${company.name} (${companyClients.length} clients)`, 20, yPosition);
+        yPosition += 10;
+        
+        const companyClientsData = companyClients.map(client => [
+          client.name,
+          client.email || 'N/A',
+          client.phone || 'N/A',
+          client.contact_person || 'N/A'
+        ]);
+        
+        autoTable(doc, {
+          head: [['Nom du client', 'Email', 'Téléphone', 'Contact']],
+          body: companyClientsData,
+          startY: yPosition,
+          theme: 'grid',
+          headStyles: { fillColor: [34, 197, 94] },
+          styles: { fontSize: 8 },
+          margin: { left: 30 },
+          didDrawPage: (data) => {
+            yPosition = data.cursor.y + 10;
+          }
+        });
+      }
+    });
+    
+    // Generate filename
+    const filename = `rapport-clients-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+  
+  const exportClientsToExcel = () => {
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const summaryData = [
+      ['Rapport des Clients'],
+      [''],
+      ['Généré le:', format(new Date(), 'dd/MM/yyyy')],
+      [''],
+      ['Nombre total de clients:', clients.length],
+      ['Nombre de compagnies:', companies.length],
+      ['Clients sans compagnie:', clients.filter(client => !client.company_id).length]
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Résumé');
+    
+    // All clients sheet
+    const allClientsData = [
+      ['Nom du client', 'Compagnie', 'Email', 'Téléphone', 'Personne de contact', 'Adresse', 'Notes'],
+      ...clients.map(client => [
+        client.name,
+        client.companies?.name || 'Aucune compagnie',
+        client.email || '',
+        client.phone || '',
+        client.contact_person || '',
+        client.address || '',
+        client.notes || ''
+      ])
+    ];
+    
+    const allClientsWS = XLSX.utils.aoa_to_sheet(allClientsData);
+    XLSX.utils.book_append_sheet(wb, allClientsWS, 'Tous les clients');
+    
+    // Company breakdown sheets
+    companies.forEach(company => {
+      const companyClients = clients.filter(client => client.company_id === company.id);
+      
+      if (companyClients.length > 0) {
+        const companyData = [
+          [`Clients de ${company.name}`],
+          [''],
+          ['Nom du client', 'Email', 'Téléphone', 'Personne de contact', 'Adresse', 'Notes'],
+          ...companyClients.map(client => [
+            client.name,
+            client.email || '',
+            client.phone || '',
+            client.contact_person || '',
+            client.address || '',
+            client.notes || ''
+          ])
+        ];
+        
+        const companyWS = XLSX.utils.aoa_to_sheet(companyData);
+        // Sanitize sheet name (max 31 chars, no special chars)
+        const sheetName = company.name.substring(0, 31).replace(/[\\/:*?[\]]/g, '');
+        XLSX.utils.book_append_sheet(wb, companyWS, sheetName);
+      }
+    });
+    
+    // Clients without company sheet
+    const clientsWithoutCompany = clients.filter(client => !client.company_id);
+    if (clientsWithoutCompany.length > 0) {
+      const noCompanyData = [
+        ['Clients sans compagnie'],
+        [''],
+        ['Nom du client', 'Email', 'Téléphone', 'Personne de contact', 'Adresse', 'Notes'],
+        ...clientsWithoutCompany.map(client => [
+          client.name,
+          client.email || '',
+          client.phone || '',
+          client.contact_person || '',
+          client.address || '',
+          client.notes || ''
+        ])
+      ];
+      
+      const noCompanyWS = XLSX.utils.aoa_to_sheet(noCompanyData);
+      XLSX.utils.book_append_sheet(wb, noCompanyWS, 'Sans compagnie');
+    }
+    
+    // Generate filename and save
+    const filename = `rapport-clients-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredInvoices = useMemo(() => {
     if (!invoices || (!startDate && !endDate)) return [];
     
@@ -875,9 +1059,22 @@ const Reports = () => {
 
         <TabsContent value="clients" className="space-y-4">
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">Rapport des clients</h2>
-              <p className="text-muted-foreground">Liste des clients par compagnie et statistiques</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Rapport des clients</h2>
+                <p className="text-muted-foreground">Liste des clients par compagnie et statistiques</p>
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button onClick={exportClientsToPDF} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button onClick={exportClientsToExcel} variant="outline" size="sm">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+              </div>
             </div>
 
             <div className="grid gap-6">
