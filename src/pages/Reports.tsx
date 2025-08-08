@@ -1947,25 +1947,42 @@ const Reports = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="text-2xl font-bold">
-                        {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
-                          style: 'currency', 
-                          currency: 'CAD' 
-                        })}
+                    <div className="space-y-6">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Total général des taxes</p>
+                        <div className="text-3xl font-bold text-primary">
+                          {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
+                            style: 'currency', 
+                            currency: 'CAD' 
+                          })}
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {taxData.taxSummary.map((tax, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">{tax.name}</span>
-                            <span className="font-medium">
-                              {tax.amount.toLocaleString('fr-FR', { 
-                                style: 'currency', 
-                                currency: 'CAD' 
-                              })}
-                            </span>
-                          </div>
-                        ))}
+                      
+                      <div className="border-t pt-4">
+                        <h4 className="text-lg font-semibold mb-4">Total par type de taxe</h4>
+                        <div className="space-y-3">
+                          {taxData.taxSummary.map((tax, index) => (
+                            <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                              <div>
+                                <span className="font-medium text-base">{tax.name}</span>
+                                <p className="text-sm text-muted-foreground">
+                                  {tax.invoiceCount} facture{tax.invoiceCount > 1 ? 's' : ''}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-xl font-semibold">
+                                  {tax.amount.toLocaleString('fr-FR', { 
+                                    style: 'currency', 
+                                    currency: 'CAD' 
+                                  })}
+                                </span>
+                                <p className="text-sm text-muted-foreground">
+                                  {((tax.amount / taxData.totalTaxAmount) * 100).toFixed(1)}%
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
