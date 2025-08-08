@@ -874,32 +874,141 @@ const Reports = () => {
         </TabsContent>
 
         <TabsContent value="clients" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Client Revenue Distribution</CardTitle>
-              <CardDescription>Revenue breakdown by client</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={clientData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
-                  >
-                    {clientData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">Rapport des clients</h2>
+              <p className="text-muted-foreground">Liste des clients par compagnie et statistiques</p>
+            </div>
+
+            <div className="grid gap-6">
+              {/* Section: Tous les clients */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tous les clients</CardTitle>
+                  <CardDescription>Liste complète de tous les clients</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nom du client</TableHead>
+                        <TableHead>Compagnie</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Téléphone</TableHead>
+                        <TableHead>Personne de contact</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clients.map((client) => (
+                        <TableRow key={client.id}>
+                          <TableCell className="font-medium">{client.name}</TableCell>
+                          <TableCell>{client.companies?.name || 'Aucune compagnie'}</TableCell>
+                          <TableCell>{client.email || 'N/A'}</TableCell>
+                          <TableCell>{client.phone || 'N/A'}</TableCell>
+                          <TableCell>{client.contact_person || 'N/A'}</TableCell>
+                        </TableRow>
+                      ))}
+                      {clients.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            Aucun client trouvé
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Section: Clients par compagnie */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Clients par compagnie</CardTitle>
+                  <CardDescription>Répartition des clients selon leurs compagnies</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {companies.map((company) => {
+                      const companyClients = clients.filter(client => client.company_id === company.id);
+                      
+                      return (
+                        <div key={company.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-lg">{company.name}</h3>
+                            <span className="text-sm text-muted-foreground">
+                              {companyClients.length} client{companyClients.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          
+                          {companyClients.length > 0 ? (
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Nom du client</TableHead>
+                                  <TableHead>Email</TableHead>
+                                  <TableHead>Téléphone</TableHead>
+                                  <TableHead>Personne de contact</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {companyClients.map((client) => (
+                                  <TableRow key={client.id}>
+                                    <TableCell className="font-medium">{client.name}</TableCell>
+                                    <TableCell>{client.email || 'N/A'}</TableCell>
+                                    <TableCell>{client.phone || 'N/A'}</TableCell>
+                                    <TableCell>{client.contact_person || 'N/A'}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          ) : (
+                            <p className="text-muted-foreground text-sm">Aucun client associé à cette compagnie</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Clients sans compagnie */}
+                    {(() => {
+                      const clientsWithoutCompany = clients.filter(client => !client.company_id);
+                      
+                      return clientsWithoutCompany.length > 0 && (
+                        <div className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-lg">Clients sans compagnie assignée</h3>
+                            <span className="text-sm text-muted-foreground">
+                              {clientsWithoutCompany.length} client{clientsWithoutCompany.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Nom du client</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Téléphone</TableHead>
+                                <TableHead>Personne de contact</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {clientsWithoutCompany.map((client) => (
+                                <TableRow key={client.id}>
+                                  <TableCell className="font-medium">{client.name}</TableCell>
+                                  <TableCell>{client.email || 'N/A'}</TableCell>
+                                  <TableCell>{client.phone || 'N/A'}</TableCell>
+                                  <TableCell>{client.contact_person || 'N/A'}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="invoices" className="space-y-4">
