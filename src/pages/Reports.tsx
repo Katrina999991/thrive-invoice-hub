@@ -422,6 +422,220 @@ const Reports = () => {
     XLSX.writeFile(wb, filename);
   };
 
+  // Export all clients functions
+  const exportAllClientsToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text("Tous les clients", pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Résumé', 20, 50);
+    doc.setFontSize(10);
+    doc.text(`Nombre total de clients: ${clients.length}`, 20, 60);
+    
+    // All clients table
+    const allClientsData = clients.map(client => [
+      client.name,
+      client.companies?.name || 'Aucune compagnie',
+      client.email || 'N/A',
+      client.phone || 'N/A',
+      client.contact_person || 'N/A'
+    ]);
+    
+    autoTable(doc, {
+      head: [['Nom du client', 'Compagnie', 'Email', 'Téléphone', 'Contact']],
+      body: allClientsData,
+      startY: 80,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+      styles: { fontSize: 9 }
+    });
+    
+    const filename = `tous-les-clients-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportAllClientsToExcel = () => {
+    const wb = XLSX.utils.book_new();
+    
+    // All clients data
+    const allClientsData = [
+      ['Nom du client', 'Compagnie', 'Email', 'Téléphone', 'Personne de contact', 'Adresse', 'Notes'],
+      ...clients.map(client => [
+        client.name,
+        client.companies?.name || 'Aucune compagnie',
+        client.email || '',
+        client.phone || '',
+        client.contact_person || '',
+        client.address || '',
+        client.notes || ''
+      ])
+    ];
+    
+    const allClientsWS = XLSX.utils.aoa_to_sheet(allClientsData);
+    XLSX.utils.book_append_sheet(wb, allClientsWS, 'Tous les clients');
+    
+    const filename = `tous-les-clients-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
+  // Export company-specific clients functions
+  const exportCompanyClientsToPDF = (company: any) => {
+    const companyClients = clients.filter(client => client.company_id === company.id);
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text(`Clients de ${company.name}`, pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Résumé', 20, 50);
+    doc.setFontSize(10);
+    doc.text(`Compagnie: ${company.name}`, 20, 60);
+    doc.text(`Nombre de clients: ${companyClients.length}`, 20, 70);
+    
+    if (companyClients.length > 0) {
+      const companyClientsData = companyClients.map(client => [
+        client.name,
+        client.email || 'N/A',
+        client.phone || 'N/A',
+        client.contact_person || 'N/A'
+      ]);
+      
+      autoTable(doc, {
+        head: [['Nom du client', 'Email', 'Téléphone', 'Contact']],
+        body: companyClientsData,
+        startY: 90,
+        theme: 'striped',
+        headStyles: { fillColor: [34, 197, 94] },
+        styles: { fontSize: 10 }
+      });
+    } else {
+      doc.text('Aucun client pour cette compagnie', 20, 90);
+    }
+    
+    const filename = `clients-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportCompanyClientsToExcel = (company: any) => {
+    const companyClients = clients.filter(client => client.company_id === company.id);
+    
+    const wb = XLSX.utils.book_new();
+    
+    const companyData = [
+      [`Clients de ${company.name}`],
+      [''],
+      [`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`],
+      [`Nombre de clients: ${companyClients.length}`],
+      [''],
+      ['Nom du client', 'Email', 'Téléphone', 'Personne de contact', 'Adresse', 'Notes'],
+      ...companyClients.map(client => [
+        client.name,
+        client.email || '',
+        client.phone || '',
+        client.contact_person || '',
+        client.address || '',
+        client.notes || ''
+      ])
+    ];
+    
+    const companyWS = XLSX.utils.aoa_to_sheet(companyData);
+    XLSX.utils.book_append_sheet(wb, companyWS, 'Clients');
+    
+    const filename = `clients-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
+  // Export clients without company functions
+  const exportClientsWithoutCompanyToPDF = () => {
+    const clientsWithoutCompany = clients.filter(client => !client.company_id);
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text("Clients sans compagnie", pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Résumé', 20, 50);
+    doc.setFontSize(10);
+    doc.text(`Nombre de clients sans compagnie: ${clientsWithoutCompany.length}`, 20, 60);
+    
+    if (clientsWithoutCompany.length > 0) {
+      const clientsData = clientsWithoutCompany.map(client => [
+        client.name,
+        client.email || 'N/A',
+        client.phone || 'N/A',
+        client.contact_person || 'N/A'
+      ]);
+      
+      autoTable(doc, {
+        head: [['Nom du client', 'Email', 'Téléphone', 'Contact']],
+        body: clientsData,
+        startY: 80,
+        theme: 'striped',
+        headStyles: { fillColor: [168, 85, 247] },
+        styles: { fontSize: 10 }
+      });
+    } else {
+      doc.text('Aucun client sans compagnie', 20, 80);
+    }
+    
+    const filename = `clients-sans-compagnie-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportClientsWithoutCompanyToExcel = () => {
+    const clientsWithoutCompany = clients.filter(client => !client.company_id);
+    
+    const wb = XLSX.utils.book_new();
+    
+    const noCompanyData = [
+      ['Clients sans compagnie'],
+      [''],
+      [`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`],
+      [`Nombre de clients: ${clientsWithoutCompany.length}`],
+      [''],
+      ['Nom du client', 'Email', 'Téléphone', 'Personne de contact', 'Adresse', 'Notes'],
+      ...clientsWithoutCompany.map(client => [
+        client.name,
+        client.email || '',
+        client.phone || '',
+        client.contact_person || '',
+        client.address || '',
+        client.notes || ''
+      ])
+    ];
+    
+    const noCompanyWS = XLSX.utils.aoa_to_sheet(noCompanyData);
+    XLSX.utils.book_append_sheet(wb, noCompanyWS, 'Sans compagnie');
+    
+    const filename = `clients-sans-compagnie-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredInvoices = useMemo(() => {
     if (!invoices || (!startDate && !endDate)) return [];
     
@@ -1081,8 +1295,22 @@ const Reports = () => {
               {/* Section: Tous les clients */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Tous les clients</CardTitle>
-                  <CardDescription>Liste complète de tous les clients</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Tous les clients</CardTitle>
+                      <CardDescription>Liste complète de tous les clients</CardDescription>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
+                        <Download className="w-4 h-4 mr-2" />
+                        PDF
+                      </Button>
+                      <Button onClick={exportAllClientsToExcel} variant="outline" size="sm">
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        Excel
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -1131,10 +1359,22 @@ const Reports = () => {
                       return (
                         <div key={company.id} className="border rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-lg">{company.name}</h3>
-                            <span className="text-sm text-muted-foreground">
-                              {companyClients.length} client{companyClients.length > 1 ? 's' : ''}
-                            </span>
+                            <div>
+                              <h3 className="font-semibold text-lg">{company.name}</h3>
+                              <span className="text-sm text-muted-foreground">
+                                {companyClients.length} client{companyClients.length > 1 ? 's' : ''}
+                              </span>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button onClick={() => exportCompanyClientsToPDF(company)} variant="outline" size="sm">
+                                <Download className="w-4 h-4 mr-2" />
+                                PDF
+                              </Button>
+                              <Button onClick={() => exportCompanyClientsToExcel(company)} variant="outline" size="sm">
+                                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                                Excel
+                              </Button>
+                            </div>
                           </div>
                           
                           {companyClients.length > 0 ? (
@@ -1172,10 +1412,22 @@ const Reports = () => {
                       return clientsWithoutCompany.length > 0 && (
                         <div className="border rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-lg">Clients sans compagnie assignée</h3>
-                            <span className="text-sm text-muted-foreground">
-                              {clientsWithoutCompany.length} client{clientsWithoutCompany.length > 1 ? 's' : ''}
-                            </span>
+                            <div>
+                              <h3 className="font-semibold text-lg">Clients sans compagnie assignée</h3>
+                              <span className="text-sm text-muted-foreground">
+                                {clientsWithoutCompany.length} client{clientsWithoutCompany.length > 1 ? 's' : ''}
+                              </span>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button onClick={exportClientsWithoutCompanyToPDF} variant="outline" size="sm">
+                                <Download className="w-4 h-4 mr-2" />
+                                PDF
+                              </Button>
+                              <Button onClick={exportClientsWithoutCompanyToExcel} variant="outline" size="sm">
+                                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                                Excel
+                              </Button>
+                            </div>
                           </div>
                           
                           <Table>
