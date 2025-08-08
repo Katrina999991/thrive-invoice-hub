@@ -2053,6 +2053,41 @@ const Reports = () => {
               </Card>
             )}
 
+            {/* Tableau résumé des taxes */}
+            {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Résumé des taxes collectées</CardTitle>
+                  <CardDescription>Vue d'ensemble des taxes par type</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type de taxe</TableHead>
+                        <TableHead>Montant total</TableHead>
+                        <TableHead>Nombre de factures</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {taxData.taxSummary.map((tax, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{tax.name}</TableCell>
+                          <TableCell>
+                            {tax.amount.toLocaleString('fr-FR', { 
+                              style: 'currency', 
+                              currency: 'CAD' 
+                            })}
+                          </TableCell>
+                          <TableCell>{tax.invoiceCount}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Tableau détaillé des taxes par période */}
             {taxData && (
               <Card>
