@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { useReports } from "@/hooks/useReports";
+import { useTaxReports } from "@/hooks/useTaxReports";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
@@ -74,6 +75,45 @@ const Reports = () => {
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
+  
+  // États pour le rapport de taxes
+  const [taxDateFilter, setTaxDateFilter] = useState<'custom' | 'month' | 'year'>('custom');
+  const [taxStartDate, setTaxStartDate] = useState<Date | undefined>();
+  const [taxEndDate, setTaxEndDate] = useState<Date | undefined>();
+  const [taxSelectedMonth, setTaxSelectedMonth] = useState<Date | undefined>();
+  const [taxSelectedYear, setTaxSelectedYear] = useState<Date | undefined>();
+  const [taxSelectedCompany, setTaxSelectedCompany] = useState<string>('');
+  const [taxViewMode, setTaxViewMode] = useState<'monthly' | 'yearly'>('monthly');
+  
+  // Calculer les dates pour le rapport de taxes
+  const { startDate: taxEffectiveStart, endDate: taxEffectiveEnd } = useMemo(() => {
+    switch (taxDateFilter) {
+      case 'custom':
+        return { startDate: taxStartDate, endDate: taxEndDate };
+      case 'month':
+        if (taxSelectedMonth) {
+          const startOfMonth = new Date(taxSelectedMonth.getFullYear(), taxSelectedMonth.getMonth(), 1);
+          const endOfMonth = new Date(taxSelectedMonth.getFullYear(), taxSelectedMonth.getMonth() + 1, 0);
+          return { startDate: startOfMonth, endDate: endOfMonth };
+        }
+        return { startDate: undefined, endDate: undefined };
+      case 'year':
+        if (taxSelectedYear) {
+          const startOfYear = new Date(taxSelectedYear.getFullYear(), 0, 1);
+          const endOfYear = new Date(taxSelectedYear.getFullYear(), 11, 31);
+          return { startDate: startOfYear, endDate: endOfYear };
+        }
+        return { startDate: undefined, endDate: undefined };
+      default:
+        return { startDate: undefined, endDate: undefined };
+    }
+  }, [taxDateFilter, taxStartDate, taxEndDate, taxSelectedMonth, taxSelectedYear]);
+  
+  const { taxData, loading: taxLoading } = useTaxReports(
+    taxEffectiveStart,
+    taxEffectiveEnd,
+    taxSelectedCompany || undefined
+  );
   
   // Fonction pour récupérer la dernière facture d'un client
   const getLastInvoiceDate = (clientId: string) => {
@@ -1603,6 +1643,299 @@ const Reports = () => {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="taxes" className="space-y-4">
+          <div className="grid gap-4">
+            {/* Filtres pour le rapport de taxes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtres du rapport de taxes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Filtre par compagnie */}
+                  <div className="space-y-2">
+                    <Label>Compagnie</Label>
+                    <Select value={taxSelectedCompany} onValueChange={setTaxSelectedCompany}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Toutes les compagnies" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Toutes les compagnies</SelectItem>
+                        {companies.map(company => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Filtre de période */}
+                  <div className="space-y-2">
+                    <Label>Type de période</Label>
+                    <Select value={taxDateFilter} onValueChange={(value: 'custom' | 'month' | 'year') => setTaxDateFilter(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom">Dates personnalisées</SelectItem>
+                        <SelectItem value="month">Par mois</SelectItem>
+                        <SelectItem value="year">Par année</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Mode d'affichage */}
+                  <div className="space-y-2">
+                    <Label>Affichage</Label>
+                    <Select value={taxViewMode} onValueChange={(value: 'monthly' | 'yearly') => setTaxViewMode(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Mensuel</SelectItem>
+                        <SelectItem value="yearly">Annuel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Sélection de dates selon le type */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {taxDateFilter === 'custom' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Date de début</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !taxStartDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {taxStartDate ? format(taxStartDate, "dd/MM/yyyy") : "Sélectionner"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={taxStartDate}
+                              onSelect={setTaxStartDate}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Date de fin</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !taxEndDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {taxEndDate ? format(taxEndDate, "dd/MM/yyyy") : "Sélectionner"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={taxEndDate}
+                              onSelect={setTaxEndDate}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </>
+                  )}
+                  
+                  {taxDateFilter === 'month' && (
+                    <div className="space-y-2">
+                      <Label>Mois</Label>
+                      <MonthYearPicker
+                        selectedDate={taxSelectedMonth}
+                        onDateChange={setTaxSelectedMonth}
+                        mode="month"
+                      />
+                    </div>
+                  )}
+                  
+                  {taxDateFilter === 'year' && (
+                    <div className="space-y-2">
+                      <Label>Année</Label>
+                      <MonthYearPicker
+                        selectedDate={taxSelectedYear}
+                        onDateChange={setTaxSelectedYear}
+                        mode="year"
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Résumé des taxes */}
+            {taxData && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Résumé des taxes</CardTitle>
+                    <CardDescription>
+                      {taxSelectedCompany 
+                        ? `Compagnie: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
+                        : 'Toutes les compagnies'
+                      }
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="text-2xl font-bold">
+                        {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
+                          style: 'currency', 
+                          currency: 'CAD' 
+                        })}
+                      </div>
+                      <div className="space-y-2">
+                        {taxData.taxSummary.map((tax, index) => (
+                          <div key={index} className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">{tax.name}</span>
+                            <span className="font-medium">
+                              {tax.amount.toLocaleString('fr-FR', { 
+                                style: 'currency', 
+                                currency: 'CAD' 
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Répartition des taxes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={taxData.taxSummary}
+                          dataKey="amount"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="#8884d8"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {taxData.taxSummary.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={`hsl(${index * 45}, 70%, 60%)`} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value: number) => [
+                            value.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+                            'Montant'
+                          ]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Graphique des taxes par période */}
+            {taxData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Évolution des taxes par {taxViewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="period" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value: number) => [
+                          value.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+                          'Montant des taxes'
+                        ]}
+                      />
+                      <Bar dataKey="totalTaxAmount" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Tableau détaillé des taxes par période */}
+            {taxData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Détail des taxes par {taxViewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Période</TableHead>
+                        <TableHead>Total taxes</TableHead>
+                        <TableHead>Factures</TableHead>
+                        <TableHead>Détail par taxe</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData).map((period) => (
+                        <TableRow key={period.period}>
+                          <TableCell className="font-medium">{period.period}</TableCell>
+                          <TableCell>
+                            {period.totalTaxAmount.toLocaleString('fr-FR', { 
+                              style: 'currency', 
+                              currency: 'CAD' 
+                            })}
+                          </TableCell>
+                          <TableCell>{period.invoiceCount}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {period.taxBreakdown.map((tax, index) => (
+                                <div key={index} className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">{tax.name}:</span>
+                                  <span>
+                                    {tax.amount.toLocaleString('fr-FR', { 
+                                      style: 'currency', 
+                                      currency: 'CAD' 
+                                    })}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
