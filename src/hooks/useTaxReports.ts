@@ -205,6 +205,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
         }))
         .sort((a, b) => a.period.localeCompare(b.period));
 
+      console.log('Tax Reports - Monthly data:', monthlyData);
+
       const yearlyData: TaxByPeriod[] = Array.from(yearlyMap.entries())
         .map(([period, data]) => ({
           period,
@@ -217,6 +219,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           invoiceCount: data.count
         }))
         .sort((a, b) => a.period.localeCompare(b.period));
+
+      console.log('Tax Reports - Yearly data:', yearlyData);
 
       const taxSummary: TaxBreakdown[] = Array.from(taxSummaryMap.entries())
         .map(([name, amount]) => ({
