@@ -1934,7 +1934,7 @@ const Reports = () => {
             </Card>
 
             {/* Résumé des taxes */}
-            {taxData && (
+            {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -1988,11 +1988,12 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Répartition des taxes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                {taxData.taxSummary && taxData.taxSummary.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Répartition des taxes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
@@ -2022,6 +2023,7 @@ const Reports = () => {
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
+                )}
               </div>
             )}
 
