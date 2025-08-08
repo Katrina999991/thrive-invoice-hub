@@ -2033,7 +2033,10 @@ const Reports = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData}>
+                    <BarChart 
+                      data={taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData}
+                      key={`${taxViewMode}-${taxData.monthlyData.length}-${taxData.yearlyData.length}`}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="period" />
                       <YAxis />
