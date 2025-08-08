@@ -83,6 +83,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
 
       if (invoicesError) throw invoicesError;
 
+      console.log('Tax Reports - Invoices found:', invoices?.length || 0);
+      console.log('Tax Reports - Sample invoice:', invoices?.[0]);
+
       if (!invoices) {
         setTaxData({
           totalTaxAmount: 0,
@@ -94,6 +97,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
       }
 
       const totalTaxAmount = invoices.reduce((sum, invoice) => sum + Number(invoice.tax_amount), 0);
+      console.log('Tax Reports - Total tax amount:', totalTaxAmount);
       
       const monthlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, number>; count: number; invoiceIds: Set<string> }>();
       const yearlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, number>; count: number; invoiceIds: Set<string> }>();
@@ -221,6 +225,13 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           invoiceCount: invoices.length
         }))
         .sort((a, b) => b.amount - a.amount);
+
+      console.log('Tax Reports - Final data:', {
+        totalTaxAmount,
+        monthlyData: monthlyData.length,
+        yearlyData: yearlyData.length,
+        taxSummary: taxSummary.length
+      });
 
       setTaxData({
         totalTaxAmount,
