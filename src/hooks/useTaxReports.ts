@@ -49,6 +49,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
       let query = supabase
         .from('invoices')
         .select(`
+          id,
           total,
           tax_amount,
           tax_rate,
@@ -94,8 +95,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
 
       const totalTaxAmount = invoices.reduce((sum, invoice) => sum + Number(invoice.tax_amount), 0);
       
-      const monthlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, number>; count: number }>();
-      const yearlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, number>; count: number }>();
+      const monthlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, number>; count: number; invoiceIds: Set<string> }>();
+      const yearlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, number>; count: number; invoiceIds: Set<string> }>();
       const taxSummaryMap = new Map<string, number>();
 
       invoices.forEach(invoice => {
@@ -104,6 +105,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
         const yearKey = String(date.getFullYear());
         const taxAmount = Number(invoice.tax_amount);
         const taxRate = Number(invoice.tax_rate);
+        const invoiceId = invoice.id;
 
         // Récupérer les taxes de la compagnie
         const companyTaxes = invoice.clients?.companies?.taxes || [];
@@ -122,21 +124,31 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             
             // Données mensuelles
             if (!monthlyMap.has(monthKey)) {
-              monthlyMap.set(monthKey, { totalTax: 0, taxBreakdown: new Map(), count: 0 });
+              monthlyMap.set(monthKey, { totalTax: 0, taxBreakdown: new Map(), count: 0, invoiceIds: new Set() });
             }
             const monthData = monthlyMap.get(monthKey)!;
             monthData.totalTax += proportionalAmount;
             monthData.taxBreakdown.set(taxName, (monthData.taxBreakdown.get(taxName) || 0) + proportionalAmount);
-            monthData.count++;
+            
+            // Compter chaque facture une seule fois
+            if (!monthData.invoiceIds.has(invoiceId)) {
+              monthData.invoiceIds.add(invoiceId);
+              monthData.count++;
+            }
             
             // Données annuelles
             if (!yearlyMap.has(yearKey)) {
-              yearlyMap.set(yearKey, { totalTax: 0, taxBreakdown: new Map(), count: 0 });
+              yearlyMap.set(yearKey, { totalTax: 0, taxBreakdown: new Map(), count: 0, invoiceIds: new Set() });
             }
             const yearData = yearlyMap.get(yearKey)!;
             yearData.totalTax += proportionalAmount;
             yearData.taxBreakdown.set(taxName, (yearData.taxBreakdown.get(taxName) || 0) + proportionalAmount);
-            yearData.count++;
+            
+            // Compter chaque facture une seule fois
+            if (!yearData.invoiceIds.has(invoiceId)) {
+              yearData.invoiceIds.add(invoiceId);
+              yearData.count++;
+            }
           });
         } else {
           // Si pas de taxes spécifiques définies, utiliser une taxe générique
@@ -147,21 +159,31 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           
           // Données mensuelles
           if (!monthlyMap.has(monthKey)) {
-            monthlyMap.set(monthKey, { totalTax: 0, taxBreakdown: new Map(), count: 0 });
+            monthlyMap.set(monthKey, { totalTax: 0, taxBreakdown: new Map(), count: 0, invoiceIds: new Set() });
           }
           const monthData = monthlyMap.get(monthKey)!;
           monthData.totalTax += taxAmount;
           monthData.taxBreakdown.set(taxName, (monthData.taxBreakdown.get(taxName) || 0) + taxAmount);
-          monthData.count++;
+          
+          // Compter chaque facture une seule fois
+          if (!monthData.invoiceIds.has(invoiceId)) {
+            monthData.invoiceIds.add(invoiceId);
+            monthData.count++;
+          }
           
           // Données annuelles
           if (!yearlyMap.has(yearKey)) {
-            yearlyMap.set(yearKey, { totalTax: 0, taxBreakdown: new Map(), count: 0 });
+            yearlyMap.set(yearKey, { totalTax: 0, taxBreakdown: new Map(), count: 0, invoiceIds: new Set() });
           }
           const yearData = yearlyMap.get(yearKey)!;
           yearData.totalTax += taxAmount;
           yearData.taxBreakdown.set(taxName, (yearData.taxBreakdown.get(taxName) || 0) + taxAmount);
-          yearData.count++;
+          
+          // Compter chaque facture une seule fois
+          if (!yearData.invoiceIds.has(invoiceId)) {
+            yearData.invoiceIds.add(invoiceId);
+            yearData.count++;
+          }
         }
       });
 
