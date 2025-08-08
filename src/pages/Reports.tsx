@@ -255,6 +255,151 @@ const Reports = () => {
     const filename = `revenue-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
+
+  // Export functions for taxes
+  const exportTaxesToPDF = () => {
+    if (!taxData) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Rapport des Taxes', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Company filter
+    if (taxSelectedCompany && taxSelectedCompany !== 'all') {
+      const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
+      doc.text(`Compagnie: ${companyName}`, pageWidth / 2, 40, { align: 'center' });
+    }
+    
+    // Date range
+    if (taxEffectiveStart && taxEffectiveEnd) {
+      doc.text(`Période: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, 50, { align: 'center' });
+    }
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Résumé des taxes', 20, 70);
+    doc.setFontSize(10);
+    doc.text(`Total des taxes: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
+    
+    let yPosition = 100;
+    
+    // Tax breakdown table
+    if (taxData.taxSummary.length > 0) {
+      const taxSummaryData = taxData.taxSummary.map(tax => [
+        tax.name,
+        tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+        tax.invoiceCount.toString()
+      ]);
+      
+      autoTable(doc, {
+        head: [['Type de taxe', 'Montant', 'Nombre de factures']],
+        body: taxSummaryData,
+        startY: yPosition,
+        theme: 'striped',
+        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 8 }
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY + 20;
+    }
+    
+    // Monthly/Yearly breakdown
+    if (yPosition + 50 > doc.internal.pageSize.height) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.text(`Évolution ${taxViewMode === 'monthly' ? 'mensuelle' : 'annuelle'}`, 20, yPosition);
+    yPosition += 20;
+    
+    const periodData = taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData;
+    const periodTableData = periodData.map(period => [
+      period.period,
+      period.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+      period.invoiceCount.toString(),
+      period.taxBreakdown.map(tax => `${tax.name}: ${tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`).join(', ')
+    ]);
+    
+    autoTable(doc, {
+      head: [['Période', 'Total taxes', 'Factures', 'Détail par taxe']],
+      body: periodTableData,
+      startY: yPosition,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+      styles: { fontSize: 8 },
+      columnStyles: {
+        3: { cellWidth: 'wrap' }
+      }
+    });
+    
+    // Generate filename and save
+    const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `rapport-taxes${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportTaxesToExcel = () => {
+    if (!taxData) return;
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const summaryData = [
+      ['Type de taxe', 'Montant', 'Nombre de factures'],
+      ...taxData.taxSummary.map(tax => [
+        tax.name,
+        tax.amount,
+        tax.invoiceCount
+      ])
+    ];
+    
+    const summaryWs = XLSX.utils.aoa_to_sheet([
+      [`Rapport des Taxes - ${format(new Date(), 'dd/MM/yyyy')}`],
+      taxSelectedCompany && taxSelectedCompany !== 'all' 
+        ? [`Compagnie: ${companies.find(c => c.id === taxSelectedCompany)?.name}`]
+        : ['Toutes les compagnies'],
+      taxEffectiveStart && taxEffectiveEnd 
+        ? [`Période: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`]
+        : [],
+      [`Total des taxes: ${taxData.totalTaxAmount}`],
+      [],
+      ...summaryData
+    ].filter(row => row.length > 0));
+    
+    XLSX.utils.book_append_sheet(wb, summaryWs, 'Résumé');
+    
+    // Monthly/Yearly data sheet
+    const periodData = taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData;
+    const periodSheetData = [
+      ['Période', 'Total taxes', 'Nombre factures', 'Détail par taxe'],
+      ...periodData.map(period => [
+        period.period,
+        period.totalTaxAmount,
+        period.invoiceCount,
+        period.taxBreakdown.map(tax => `${tax.name}: ${tax.amount}`).join(', ')
+      ])
+    ];
+    
+    const periodWs = XLSX.utils.aoa_to_sheet(periodSheetData);
+    XLSX.utils.book_append_sheet(wb, periodWs, taxViewMode === 'monthly' ? 'Mensuel' : 'Annuel');
+    
+    // Generate filename and save
+    const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `rapport-taxes${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
   
   const exportToExcel = () => {
     if (!realRevenueData || !chartData.length) return;
@@ -1934,6 +2079,28 @@ const Reports = () => {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Export buttons */}
+            {taxData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Téléchargement</CardTitle>
+                  <CardDescription>Exporter le rapport de taxes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Button onClick={exportTaxesToPDF} variant="outline" size="sm">
+                      <Download className="mr-2 h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button onClick={exportTaxesToExcel} variant="outline" size="sm">
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Excel
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
