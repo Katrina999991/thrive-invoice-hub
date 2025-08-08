@@ -2026,7 +2026,7 @@ const Reports = () => {
             )}
 
             {/* Graphique des taxes par période */}
-            {taxData && (
+            {taxData && (taxViewMode === 'monthly' ? taxData.monthlyData.length > 0 : taxData.yearlyData.length > 0) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Évolution des taxes par {taxViewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
@@ -2049,6 +2049,20 @@ const Reports = () => {
                       <Bar dataKey="totalTaxAmount" fill="#8884d8" />
                     </BarChart>
                   </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Message si aucune donnée de taxes */}
+            {taxData && taxData.totalTaxAmount === 0 && (
+              <Card>
+                <CardContent className="flex justify-center items-center h-96">
+                  <div className="text-center">
+                    <p className="text-lg font-medium">Aucune donnée de taxes</p>
+                    <p className="text-muted-foreground">
+                      Aucune facture payée avec taxes trouvée pour cette période.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
