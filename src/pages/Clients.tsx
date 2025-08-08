@@ -29,7 +29,8 @@ const Clients = () => {
     phone: "",
     address: "",
     language: "english",
-    hourly_rate: 0
+    hourly_rate: 0,
+    created_at: new Date().toISOString().split('T')[0]
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -58,7 +59,8 @@ const Clients = () => {
         phone: newClient.phone,
         address: newClient.address,
         language: newClient.language,
-        hourly_rate: newClient.hourly_rate
+        hourly_rate: newClient.hourly_rate,
+        created_at: newClient.created_at
       });
     }
 
@@ -74,7 +76,8 @@ const Clients = () => {
       phone: "",
       address: "",
       language: "english",
-      hourly_rate: 0
+      hourly_rate: 0,
+      created_at: new Date().toISOString().split('T')[0]
     });
     setEditingClient(null);
     setIsDialogOpen(false);
@@ -90,7 +93,8 @@ const Clients = () => {
       phone: client.phone || "",
       address: client.address || "",
       language: client.language || "english",
-      hourly_rate: client.hourly_rate || 0
+      hourly_rate: client.hourly_rate || 0,
+      created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     });
     setIsDialogOpen(true);
   };
@@ -228,6 +232,15 @@ const Clients = () => {
                   onChange={(e) => setNewClient({...newClient, hourly_rate: parseFloat(e.target.value) || 0})}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="created_at">Creation Date</Label>
+                <Input
+                  id="created_at"
+                  type="date"
+                  value={newClient.created_at}
+                  onChange={(e) => setNewClient({...newClient, created_at: e.target.value})}
+                />
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
@@ -271,6 +284,7 @@ const Clients = () => {
                 <TableHead>Address</TableHead>
                 <TableHead>Language</TableHead>
                 <TableHead>Hourly Rate</TableHead>
+                <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -316,6 +330,11 @@ const Clients = () => {
                   </TableCell>
                   <TableCell>
                     <span className="font-medium">${client.hourly_rate || 0}/hr</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(client.created_at).toLocaleDateString('fr-FR')}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
