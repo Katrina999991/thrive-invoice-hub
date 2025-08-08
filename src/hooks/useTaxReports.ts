@@ -206,6 +206,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
         .sort((a, b) => a.period.localeCompare(b.period));
 
       console.log('Tax Reports - Monthly data:', monthlyData);
+      console.log('Tax Reports - Monthly data details:', JSON.stringify(monthlyData, null, 2));
 
       const yearlyData: TaxByPeriod[] = Array.from(yearlyMap.entries())
         .map(([period, data]) => ({
