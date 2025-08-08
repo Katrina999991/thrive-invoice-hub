@@ -82,7 +82,7 @@ const Reports = () => {
   const [taxEndDate, setTaxEndDate] = useState<Date | undefined>();
   const [taxSelectedMonth, setTaxSelectedMonth] = useState<Date | undefined>();
   const [taxSelectedYear, setTaxSelectedYear] = useState<Date | undefined>();
-  const [taxSelectedCompany, setTaxSelectedCompany] = useState<string>('');
+  const [taxSelectedCompany, setTaxSelectedCompany] = useState<string>('all');
   const [taxViewMode, setTaxViewMode] = useState<'monthly' | 'yearly'>('monthly');
   
   // Calculer les dates pour le rapport de taxes
@@ -112,7 +112,7 @@ const Reports = () => {
   const { taxData, loading: taxLoading } = useTaxReports(
     taxEffectiveStart,
     taxEffectiveEnd,
-    taxSelectedCompany || undefined
+    taxSelectedCompany && taxSelectedCompany !== 'all' ? taxSelectedCompany : undefined
   );
   
   // Fonction pour récupérer la dernière facture d'un client
@@ -1664,7 +1664,7 @@ const Reports = () => {
                         <SelectValue placeholder="Toutes les compagnies" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Toutes les compagnies</SelectItem>
+                        <SelectItem value="all">Toutes les compagnies</SelectItem>
                         {companies.map(company => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name}
@@ -1795,7 +1795,7 @@ const Reports = () => {
                   <CardHeader>
                     <CardTitle>Résumé des taxes</CardTitle>
                     <CardDescription>
-                      {taxSelectedCompany 
+                      {taxSelectedCompany && taxSelectedCompany !== 'all'
                         ? `Compagnie: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
                         : 'Toutes les compagnies'
                       }
