@@ -1935,13 +1935,18 @@ const Reports = () => {
 
             {/* Résumé des taxes */}
             {taxData && (
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground">
-                  Debug: taxData trouvé, taxSummary: {taxData.taxSummary?.length || 0} éléments
-                </p>
+              <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+                <h3 className="font-semibold mb-2">Debug Info:</h3>
+                <p>Total Tax Amount: {taxData.totalTaxAmount}</p>
+                <p>Tax Summary Length: {taxData.taxSummary?.length || 0}</p>
+                <p>Monthly Data Length: {taxData.monthlyData?.length || 0}</p>
+                <p>Yearly Data Length: {taxData.yearlyData?.length || 0}</p>
+                {taxData.taxSummary && taxData.taxSummary.length > 0 && (
+                  <p>Tax Summary: {taxData.taxSummary.map(t => `${t.name}: ${t.amount}`).join(', ')}</p>
+                )}
               </div>
             )}
-            {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
+            {taxData && taxData.totalTaxAmount > 0 && (
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -1995,7 +2000,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {taxData.taxSummary && taxData.taxSummary.length > 0 && (
+                {taxData.totalTaxAmount > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle>Répartition des taxes</CardTitle>
@@ -2035,7 +2040,7 @@ const Reports = () => {
             )}
 
             {/* Graphique des taxes par période */}
-            {taxData && (taxViewMode === 'monthly' ? taxData.monthlyData.length > 0 : taxData.yearlyData.length > 0) && (
+            {taxData && taxData.totalTaxAmount > 0 && (taxViewMode === 'monthly' ? taxData.monthlyData.length > 0 : taxData.yearlyData.length > 0) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Évolution des taxes par {taxViewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
