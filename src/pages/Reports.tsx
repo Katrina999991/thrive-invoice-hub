@@ -2000,16 +2000,16 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {taxData.totalTaxAmount > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Répartition des taxes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                {/* Graphique circulaire */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Répartition des taxes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
-                          data={taxData.taxSummary}
+                          data={taxData.taxSummary || []}
                           dataKey="amount"
                           nameKey="name"
                           cx="50%"
@@ -2018,7 +2018,7 @@ const Reports = () => {
                           fill="#8884d8"
                           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         >
-                          {taxData.taxSummary.map((entry, index) => (
+                          {(taxData.taxSummary || []).map((entry, index) => (
                             <Cell 
                               key={`cell-${index}`} 
                               fill={`hsl(${index * 45}, 70%, 60%)`} 
@@ -2035,7 +2035,6 @@ const Reports = () => {
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
-                )}
               </div>
             )}
 
