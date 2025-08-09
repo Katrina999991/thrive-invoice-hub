@@ -58,6 +58,7 @@ const Invoices = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
     client_id: "",
+    issue_date: new Date().toISOString().split('T')[0], // Date d'aujourd'hui par défaut
     due_date: "",
     terms: "",
     notes: "",
@@ -206,6 +207,7 @@ const Invoices = () => {
       await createInvoice({
         invoice_number: invoiceNumber,
         client_id: newInvoice.client_id,
+        issue_date: newInvoice.issue_date,
         due_date: newInvoice.due_date,
         terms: newInvoice.terms,
         notes: newInvoice.notes,
@@ -219,6 +221,7 @@ const Invoices = () => {
     setSelectedCompanyId("");
     setNewInvoice({
       client_id: "",
+      issue_date: new Date().toISOString().split('T')[0],
       due_date: "",
       terms: "",
       notes: "",
@@ -244,6 +247,7 @@ const Invoices = () => {
     
     setNewInvoice({
       client_id: invoice.client_id || "",
+      issue_date: invoice.issue_date || new Date().toISOString().split('T')[0],
       due_date: invoice.due_date || "",
       terms: invoice.terms || "",
       notes: invoice.notes || "",
@@ -885,6 +889,16 @@ Best regards,
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="issue_date">Date de facture</Label>
+                  <Input
+                    id="issue_date"
+                    type="date"
+                    value={newInvoice.issue_date}
+                    onChange={(e) => setNewInvoice({...newInvoice, issue_date: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="due_date">Due Date</Label>
                   <Input
                     id="due_date"
@@ -1130,6 +1144,7 @@ Best regards,
                   setSelectedCompanyId("");
                   setNewInvoice({
                     client_id: "",
+                    issue_date: new Date().toISOString().split('T')[0],
                     due_date: "",
                     terms: "",
                     notes: "",
