@@ -2,7 +2,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useReports } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -890,7 +889,7 @@ const Reports = () => {
             </Card>
           )}
 
-          {!loading && !error && realRevenueData && (startDate || endDate) && (
+          {!loading && !error && realRevenueData && (
             <>
               {/* Export buttons */}
               <div className="flex justify-end gap-2 mb-4">
@@ -1317,7 +1316,7 @@ const Reports = () => {
               </Card>
             )}
 
-            {!taxLoading && taxData && (taxEffectiveStart || taxEffectiveEnd) && (
+            {!taxLoading && taxData && (
               <>
                 <div className="grid gap-4 md:grid-cols-3">
                   <Card>
