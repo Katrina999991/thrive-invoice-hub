@@ -1934,25 +1934,52 @@ const Reports = () => {
               </CardContent>
             </Card>
 
-            {/* Test graphique simple */}
-            <Card className="mb-4" style={{border: '2px solid red'}}>
-              <CardHeader>
-                <CardTitle>Test Graphique - Recharts Basic</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(() => { console.log('Rendering test chart'); return null; })()}
-                <div style={{ width: '100%', height: '200px', border: '1px solid blue' }}>
-                  <BarChart width={400} height={200} data={[{name: 'Test', value: 100}, {name: 'Test2', value: 200}]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
-                  </BarChart>
-                </div>
-                <p>Si vous voyez ce texte mais pas le graphique, c'est un problème avec Recharts</p>
-              </CardContent>
-            </Card>
+            {/* Graphiques des taxes */}
+            {taxData && taxData.monthlyData && taxData.monthlyData.length > 0 && (
+              <div className="grid gap-4 md:grid-cols-2 mb-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Taxes par mois</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChart width={400} height={300} data={taxData.monthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="period" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} $`, 'Montant']} />
+                      <Bar dataKey="totalTaxAmount" fill="#8884d8" />
+                    </BarChart>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Répartition des taxes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {taxData.taxSummary && (
+                      <PieChart width={400} height={300}>
+                        <Pie
+                          data={taxData.taxSummary}
+                          dataKey="amount"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#8884d8"
+                          label={({name, value}) => `${name}: ${Number(value).toFixed(2)}$`}
+                        >
+                          {taxData.taxSummary.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index === 0 ? "#8884d8" : "#82ca9d"} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `${Number(value).toFixed(2)} $`} />
+                      </PieChart>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Résumé des taxes */}
             {taxData && taxData.totalTaxAmount > 0 && (
