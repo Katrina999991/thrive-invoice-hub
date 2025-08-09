@@ -894,7 +894,19 @@ Best regards,
                     id="issue_date"
                     type="date"
                     value={newInvoice.issue_date}
-                    onChange={(e) => setNewInvoice({...newInvoice, issue_date: e.target.value})}
+                    onChange={(e) => {
+                      const issueDate = new Date(e.target.value);
+                      const selectedCompany = companies.find(c => c.id === selectedCompanyId);
+                      const dueDays = selectedCompany?.default_due_days || 7;
+                      const dueDate = new Date(issueDate);
+                      dueDate.setDate(dueDate.getDate() + dueDays);
+                      
+                      setNewInvoice({
+                        ...newInvoice, 
+                        issue_date: e.target.value,
+                        due_date: dueDate.toISOString().split('T')[0]
+                      });
+                    }}
                     required
                   />
                 </div>
