@@ -1395,7 +1395,7 @@ const Reports = () => {
                       <CardTitle>Évolution des revenus par {viewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <BarChart width={400} height={300} data={chartData}>
+                      <BarChart width={350} height={300} data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="period" />
                         <YAxis />
@@ -1410,7 +1410,7 @@ const Reports = () => {
                       <CardTitle>Tendance des revenus</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <LineChart width={400} height={300} data={chartData}>
+                      <LineChart width={350} height={300} data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="period" />
                         <YAxis />
