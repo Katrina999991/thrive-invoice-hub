@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useReports } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -1939,13 +1940,15 @@ const Reports = () => {
                 <CardTitle>Test Graphique</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
+                <ChartContainer config={{value: {label: "Test", color: "hsl(var(--chart-1))"}}} className="h-[200px]">
                   <BarChart data={[{name: 'Test', value: 100}]}>
-                    <Bar dataKey="value" fill="#8884d8" />
+                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" fill="var(--color-value)" />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
 
