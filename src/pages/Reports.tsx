@@ -9,7 +9,7 @@ import { useTaxReports } from "@/hooks/useTaxReports";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
@@ -24,10 +24,15 @@ import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import html2canvas from "html2canvas";
 
 const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
+  
+  // Refs pour capturer les graphiques
+  const barChartRef = useRef<HTMLDivElement>(null);
+  const lineChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -180,7 +185,7 @@ const Reports = () => {
   const chartData = formatRevenueDataForChart();
 
   // Function to download charts as PDF
-  const downloadChartsAsPDF = () => {
+  const downloadChartsAsPDF = async () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     
@@ -203,19 +208,68 @@ const Reports = () => {
       doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
     }
     
-    // Capture chart elements and add placeholder text
-    doc.setFontSize(14);
-    doc.text('Graphique en barres - Revenus par période', 20, 50);
-    doc.rect(20, 60, pageWidth - 40, 80);
-    doc.setFontSize(10);
-    doc.text('Graphique des revenus affiché dans l\'application', pageWidth / 2, 105, { align: 'center' });
+    let yPosition = 50;
     
-    doc.text('Graphique en ligne - Évolution des revenus', 20, 160);
-    doc.rect(20, 170, pageWidth - 40, 80);
-    doc.text('Graphique de l\'évolution affiché dans l\'application', pageWidth / 2, 215, { align: 'center' });
+    try {
+      // Capture Bar Chart
+      if (barChartRef.current) {
+        const barCanvas = await html2canvas(barChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const barImgData = barCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Graphique en barres - Revenus par période', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (barCanvas.height * imgWidth) / barCanvas.width;
+        
+        doc.addImage(barImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+      
+      // Check if we need a new page
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      // Capture Line Chart
+      if (lineChartRef.current) {
+        const lineCanvas = await html2canvas(lineChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const lineImgData = lineCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Graphique en ligne - Évolution des revenus', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (lineCanvas.height * imgWidth) / lineCanvas.width;
+        
+        doc.addImage(lineImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+    } catch (error) {
+      console.error('Erreur lors de la capture des graphiques:', error);
+      doc.setFontSize(12);
+      doc.text('Erreur lors de la capture des graphiques', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 20;
+    }
     
-    // Add data table
-    if (chartData.length > 0) {
+    // Add data table if there's space
+    if (chartData.length > 0 && yPosition < 250) {
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
       const tableData = chartData.map(item => [
         item.period,
         new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(item.revenue),
@@ -225,7 +279,7 @@ const Reports = () => {
       autoTable(doc, {
         head: [['Période', 'Revenus', 'Nb Factures']],
         body: tableData,
-        startY: 270,
+        startY: yPosition,
         theme: 'striped',
         headStyles: { fillColor: [59, 130, 246] },
       });
@@ -1461,13 +1515,15 @@ const Reports = () => {
                       <CardTitle>Évolution des revenus par {viewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <BarChart width={600} height={300} data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
-                        <Bar dataKey="revenue" fill="#22c55e" />
-                      </BarChart>
+                      <div ref={barChartRef}>
+                        <BarChart width={600} height={300} data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
+                          <Bar dataKey="revenue" fill="#22c55e" />
+                        </BarChart>
+                      </div>
                     </CardContent>
                   </Card>
 
@@ -1476,13 +1532,15 @@ const Reports = () => {
                       <CardTitle>Tendance des revenus</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <LineChart width={600} height={300} data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
-                        <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                      </LineChart>
+                      <div ref={lineChartRef}>
+                        <LineChart width={600} height={300} data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
+                          <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                        </LineChart>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
