@@ -92,6 +92,37 @@ export const useInvoices = () => {
           .insert(items.map(item => ({ ...item, invoice_id: invoice.id })));
 
         if (itemsError) throw itemsError;
+
+        // Update product quantities for items with product_id
+        for (const item of items) {
+          if (item.product_id && item.quantity) {
+            // Get current product quantity
+            const { data: product, error: productError } = await supabase
+              .from("products")
+              .select("quantity")
+              .eq("id", item.product_id)
+              .single();
+
+            if (productError) {
+              console.error("Error fetching product:", productError);
+              continue;
+            }
+
+            // Only update if product has quantity tracking (not null)
+            if (product?.quantity !== null) {
+              const newQuantity = Math.max(0, (product.quantity || 0) - Number(item.quantity));
+              
+              const { error: updateError } = await supabase
+                .from("products")
+                .update({ quantity: newQuantity })
+                .eq("id", item.product_id);
+
+              if (updateError) {
+                console.error("Error updating product quantity:", updateError);
+              }
+            }
+          }
+        }
       }
 
       await fetchInvoices();
