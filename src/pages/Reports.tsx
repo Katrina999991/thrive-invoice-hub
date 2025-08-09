@@ -9,6 +9,7 @@ import { useTaxReports } from "@/hooks/useTaxReports";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
+import { useDashboard } from "@/hooks/useDashboard";
 import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -85,6 +86,7 @@ const Reports = () => {
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
+  const { data: dashboardData } = useDashboard();
   
   // États pour le rapport de taxes
   const [taxDateFilter, setTaxDateFilter] = useState<'custom' | 'month' | 'year'>('custom');
@@ -153,14 +155,6 @@ const Reports = () => {
       return true;
     });
   }, [clients, createdFromDate, createdToDate]);
-  const revenueData = [
-    { month: "Jan", revenue: 45000, expenses: 35000 },
-    { month: "Feb", revenue: 52000, expenses: 38000 },
-    { month: "Mar", revenue: 48000, expenses: 42000 },
-    { month: "Apr", revenue: 61000, expenses: 45000 },
-    { month: "May", revenue: 55000, expenses: 40000 },
-    { month: "Jun", revenue: 67000, expenses: 48000 },
-  ];
 
   // Format data for charts
   const formatRevenueDataForChart = () => {
@@ -1014,13 +1008,6 @@ const Reports = () => {
     });
   }, [invoices, startDate, endDate, filterType, selectedCompanyId, selectedClientId]);
 
-  const clientData = [
-    { name: "ABC Corporation", value: 35, color: "#8884d8" },
-    { name: "XYZ Industries", value: 25, color: "#82ca9d" },
-    { name: "Tech Startup Inc", value: 20, color: "#ffc658" },
-    { name: "Design Studio LLC", value: 15, color: "#ff7300" },
-    { name: "Others", value: 5, color: "#00ff88" },
-  ];
 
   const invoiceStatusData = [
     { status: "Paid", count: 45, color: "#00ff88" },
@@ -1051,86 +1038,86 @@ const Reports = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">Revenus totaux</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$328,000</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last period</p>
+                <div className="text-2xl font-bold">
+                  {dashboardData ? `${dashboardData.totalRevenue.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}` : 'Chargement...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Revenus des factures payées
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+                <CardTitle className="text-sm font-medium">Factures en attente</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$80,000</div>
-                <p className="text-xs text-muted-foreground">+15.3% from last period</p>
+                <div className="text-2xl font-bold">
+                  {dashboardData ? dashboardData.openInvoicesCount : 'Chargement...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {dashboardData ? `${dashboardData.openInvoicesTotal.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} en attente` : ''}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
+                <CardTitle className="text-sm font-medium">Clients actifs</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">245</div>
-                <p className="text-xs text-muted-foreground">+12 new this month</p>
+                <div className="text-2xl font-bold">
+                  {dashboardData ? dashboardData.activeClients : 'Chargement...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {dashboardData ? `${dashboardData.newClientsThisMonth} nouveaux ce mois` : ''}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Invoice Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">Produits actifs</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">94%</div>
-                <p className="text-xs text-muted-foreground">Payment success rate</p>
+                <div className="text-2xl font-bold">
+                  {dashboardData ? dashboardData.activeProducts : 'Chargement...'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Produits disponibles
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-1">
             <Card>
               <CardHeader>
-                <CardTitle>Revenue vs Expenses</CardTitle>
-                <CardDescription>Monthly comparison</CardDescription>
+                <CardTitle>Activité récente</CardTitle>
+                <CardDescription>Les dernières activités de votre entreprise</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
-                    <Bar dataKey="expenses" fill="#82ca9d" name="Expenses" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Client Distribution</CardTitle>
-                <CardDescription>Revenue by client</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={clientData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}%`}
-                    >
-                      {clientData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {dashboardData && dashboardData.recentActivity.length > 0 ? (
+                  <div className="space-y-4">
+                    {dashboardData.recentActivity.map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{activity.message}</p>
+                          <p className="text-xs text-muted-foreground">{activity.timeAgo}</p>
+                        </div>
+                        {activity.amount && (
+                          <div className={`text-sm font-semibold ${activity.color === 'green' ? 'text-green-600' : activity.color === 'orange' ? 'text-orange-600' : 'text-blue-600'}`}>
+                            {activity.amount}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    {dashboardData ? 'Aucune activité récente' : 'Chargement...'}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
