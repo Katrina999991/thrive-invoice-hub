@@ -1937,18 +1937,20 @@ const Reports = () => {
             {/* Test graphique simple */}
             <Card className="mb-4">
               <CardHeader>
-                <CardTitle>Test Graphique</CardTitle>
+                <CardTitle>Test Graphique - Recharts Basic</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={{value: {label: "Test", color: "hsl(var(--chart-1))"}}} className="h-[200px]">
-                  <BarChart data={[{name: 'Test', value: 100}]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="var(--color-value)" />
-                  </BarChart>
-                </ChartContainer>
+                <div style={{ width: '100%', height: '200px' }}>
+                  <ResponsiveContainer>
+                    <BarChart data={[{name: 'Test', value: 100}, {name: 'Test2', value: 200}]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
 
