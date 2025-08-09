@@ -26,9 +26,12 @@ export function DateRangePicker({
   onEndDateChange,
   className
 }: DateRangePickerProps) {
+  const [startDateOpen, setStartDateOpen] = React.useState(false);
+  const [endDateOpen, setEndDateOpen] = React.useState(false);
+
   return (
     <div className={cn("flex gap-2", className)}>
-      <Popover>
+      <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -46,14 +49,17 @@ export function DateRangePicker({
           <Calendar
             mode="single"
             selected={startDate}
-            onSelect={onStartDateChange}
+            onSelect={(date) => {
+              onStartDateChange(date);
+              setStartDateOpen(false);
+            }}
             initialFocus
             className="p-3 pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
 
-      <Popover>
+      <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -71,7 +77,10 @@ export function DateRangePicker({
           <Calendar
             mode="single"
             selected={endDate}
-            onSelect={onEndDateChange}
+            onSelect={(date) => {
+              onEndDateChange(date);
+              setEndDateOpen(false);
+            }}
             initialFocus
             className="p-3 pointer-events-auto"
             disabled={(date) => startDate ? date < startDate : false}
