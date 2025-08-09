@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -52,6 +51,7 @@ const Reports = () => {
   // États pour les filtres de clients par date de création
   const [createdFromDate, setCreatedFromDate] = useState<Date | undefined>();
   const [createdToDate, setCreatedToDate] = useState<Date | undefined>();
+  
   // Mémoriser les dates actives pour éviter les re-renders
   const { startDate, endDate } = useMemo(() => {
     switch (activeTab) {
@@ -85,6 +85,314 @@ const Reports = () => {
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
+  
+  // Calculer les métriques de l'overview
+  const overviewMetrics = useMemo(() => {
+    const currentDate = new Date();
+    const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const thisMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    
+    // Total des revenus (toutes les factures payées)
+    const totalRevenue = invoices
+      .filter(invoice => invoice.status === 'paid')
+      .reduce((sum, invoice) => sum + Number(invoice.total), 0);
+    
+    // Revenus du mois dernier
+    const lastMonthRevenue = invoices
+      .filter(invoice => {
+        const invoiceDate = new Date(invoice.issue_date);
+        return invoice.status === 'paid' && 
+               invoiceDate >= lastMonth && 
+               invoiceDate < thisMonth;
+      })
+      .reduce((sum, invoice) => sum + Number(invoice.total), 0);
+    
+    // Revenus de ce mois
+    const thisMonthRevenue = invoices
+      .filter(invoice => {
+        const invoiceDate = new Date(invoice.issue_date);
+        return invoice.status === 'paid' && invoiceDate >= thisMonth;
+      })
+      .reduce((sum, invoice) => sum + Number(invoice.total), 0);
+    
+    // Calculer le pourcentage de croissance
+    const growthPercentage = lastMonthRevenue > 0 
+      ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100)
+      : thisMonthRevenue > 0 ? 100 : 0;
+    
+    // Nombre de clients actifs (avec au moins une facture)
+    const activeClients = new Set(invoices.map(invoice => invoice.client_id)).size;
+    
+    // Taux de paiement des factures
+    const totalInvoices = invoices.length;
+    const paidInvoices = invoices.filter(invoice => invoice.status === 'paid').length;
+    const paymentRate = totalInvoices > 0 ? (paidInvoices / totalInvoices * 100) : 0;
+    
+    return {
+      totalRevenue,
+      growthPercentage,
+      activeClients,
+      paymentRate
+    };
+  }, [invoices]);
+  
+  // Données pour le graphique de distribution par client
+  const clientDistributionData = useMemo(() => {
+    const clientRevenue = new Map<string, number>();
+    
+    invoices
+      .filter(invoice => invoice.status === 'paid')
+      .forEach(invoice => {
+        const clientName = (invoice as any).clients?.name || 'Client inconnu';
+        const current = clientRevenue.get(clientName) || 0;
+        clientRevenue.set(clientName, current + Number(invoice.total));
+      });
+    
+    const total = Array.from(clientRevenue.values()).reduce((sum, value) => sum + value, 0);
+    
+    if (total === 0) return [];
+    
+    const sortedClients = Array.from(clientRevenue.entries())
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5);
+    
+    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff88'];
+    
+    return sortedClients.map(([name, revenue], index) => ({
+      name,
+      value: Math.round((revenue / total) * 100),
+      revenue,
+      color: colors[index] || '#cccccc'
+    }));
+  }, [invoices]);
+  
+  // Données pour le graphique revenus vs dépenses (on simule les dépenses à 70% des revenus)
+  const monthlyRevenueData = useMemo(() => {
+    const monthlyMap = new Map<string, number>();
+    
+    invoices
+      .filter(invoice => invoice.status === 'paid')
+      .forEach(invoice => {
+        const date = new Date(invoice.issue_date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const current = monthlyMap.get(monthKey) || 0;
+        monthlyMap.set(monthKey, current + Number(invoice.total));
+      });
+    
+    return Array.from(monthlyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6) // Les 6 derniers mois
+      .map(([period, revenue]) => {
+        const [year, month] = period.split('-');
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        return {
+          month: monthNames[parseInt(month) - 1],
+          revenue,
+          expenses: revenue * 0.7 // Estimation des dépenses à 70% du revenu
+        };
+      });
+  }, [invoices]);
+        return {
+          month: monthNames[parseInt(month) - 1],
+          revenue,
+          expenses: revenue * 0.7 // Estimation des dépenses à 70% du revenu
+        };
+      });
+  }, [invoices]);
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useReports } from "@/hooks/useReports";
+import { useTaxReports } from "@/hooks/useTaxReports";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useClients } from "@/hooks/useClients";
+import { useState, useMemo, useRef } from "react";
+import { format } from "date-fns";
+import { DateRangePicker } from "@/components/DateRangePicker";
+import { MonthYearPicker } from "@/components/MonthYearPicker";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Download, FileSpreadsheet, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import html2canvas from "html2canvas";
+
+const Reports = () => {
+  const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
+  const [activeTab, setActiveTab] = useState('custom');
+  
+  // Refs pour capturer les graphiques
+  const barChartRef = useRef<HTMLDivElement>(null);
+  const lineChartRef = useRef<HTMLDivElement>(null);
+  
+  // États séparés pour chaque onglet
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+  const [selectedMonth, setSelectedMonth] = useState<Date | undefined>();
+  const [selectedYear, setSelectedYear] = useState<Date | undefined>();
+  
+  // États pour la plage d'années dans la vue annuelle
+  const [yearRangeStart, setYearRangeStart] = useState<Date | undefined>();
+  const [yearRangeEnd, setYearRangeEnd] = useState<Date | undefined>();
+  
+  // États pour les filtres
+  const [filterType, setFilterType] = useState<'all' | 'company' | 'client'>('all');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  
+  // États pour les filtres de clients par date de création
+  const [createdFromDate, setCreatedFromDate] = useState<Date | undefined>();
+  const [createdToDate, setCreatedToDate] = useState<Date | undefined>();
+  
+  // Mémoriser les dates actives pour éviter les re-renders
+  const { startDate, endDate } = useMemo(() => {
+    switch (activeTab) {
+      case 'custom':
+        return { startDate: customStartDate, endDate: customEndDate };
+      case 'month':
+        if (selectedMonth) {
+          const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+          const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
+          return { startDate: startOfMonth, endDate: endOfMonth };
+        }
+        return { startDate: undefined, endDate: undefined };
+      case 'year':
+        if (selectedYear) {
+          const startOfYear = new Date(selectedYear.getFullYear(), 0, 1);
+          const endOfYear = new Date(selectedYear.getFullYear(), 11, 31);
+          return { startDate: startOfYear, endDate: endOfYear };
+        }
+        return { startDate: undefined, endDate: undefined };
+      default:
+        return { startDate: undefined, endDate: undefined };
+    }
+  }, [activeTab, customStartDate, customEndDate, selectedMonth, selectedYear]);
+  
+  const { revenueData: realRevenueData, loading, error } = useReports(
+    startDate, 
+    endDate, 
+    filterType, 
+    filterType === 'company' ? selectedCompanyId : selectedClientId
+  );
+  const { invoices } = useInvoices();
+  const { companies } = useCompanies();
+  const { clients } = useClients();
+  
+  // Calculer les métriques de l'overview
+  const overviewMetrics = useMemo(() => {
+    const currentDate = new Date();
+    const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const thisMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    
+    // Total des revenus (toutes les factures payées)
+    const totalRevenue = invoices
+      .filter(invoice => invoice.status === 'paid')
+      .reduce((sum, invoice) => sum + Number(invoice.total), 0);
+    
+    // Revenus du mois dernier
+    const lastMonthRevenue = invoices
+      .filter(invoice => {
+        const invoiceDate = new Date(invoice.issue_date);
+        return invoice.status === 'paid' && 
+               invoiceDate >= lastMonth && 
+               invoiceDate < thisMonth;
+      })
+      .reduce((sum, invoice) => sum + Number(invoice.total), 0);
+    
+    // Revenus de ce mois
+    const thisMonthRevenue = invoices
+      .filter(invoice => {
+        const invoiceDate = new Date(invoice.issue_date);
+        return invoice.status === 'paid' && invoiceDate >= thisMonth;
+      })
+      .reduce((sum, invoice) => sum + Number(invoice.total), 0);
+    
+    // Calculer le pourcentage de croissance
+    const growthPercentage = lastMonthRevenue > 0 
+      ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100)
+      : thisMonthRevenue > 0 ? 100 : 0;
+    
+    // Nombre de clients actifs (avec au moins une facture)
+    const activeClients = new Set(invoices.map(invoice => invoice.client_id)).size;
+    
+    // Taux de paiement des factures
+    const totalInvoices = invoices.length;
+    const paidInvoices = invoices.filter(invoice => invoice.status === 'paid').length;
+    const paymentRate = totalInvoices > 0 ? (paidInvoices / totalInvoices * 100) : 0;
+    
+    return {
+      totalRevenue,
+      growthPercentage,
+      activeClients,
+      paymentRate
+    };
+  }, [invoices]);
+  
+  // Données pour le graphique de distribution par client
+  const clientDistributionData = useMemo(() => {
+    const clientRevenue = new Map<string, number>();
+    
+    invoices
+      .filter(invoice => invoice.status === 'paid')
+      .forEach(invoice => {
+        const clientName = (invoice as any).clients?.name || 'Client inconnu';
+        const current = clientRevenue.get(clientName) || 0;
+        clientRevenue.set(clientName, current + Number(invoice.total));
+      });
+    
+    const total = Array.from(clientRevenue.values()).reduce((sum, value) => sum + value, 0);
+    
+    if (total === 0) return [];
+    
+    const sortedClients = Array.from(clientRevenue.entries())
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5);
+    
+    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff88'];
+    
+    return sortedClients.map(([name, revenue], index) => ({
+      name,
+      value: Math.round((revenue / total) * 100),
+      revenue,
+      color: colors[index] || '#cccccc'
+    }));
+  }, [invoices]);
+  
+  // Données pour le graphique revenus vs dépenses (on simule les dépenses à 70% des revenus)
+  const monthlyRevenueData = useMemo(() => {
+    const monthlyMap = new Map<string, number>();
+    
+    invoices
+      .filter(invoice => invoice.status === 'paid')
+      .forEach(invoice => {
+        const date = new Date(invoice.issue_date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const current = monthlyMap.get(monthKey) || 0;
+        monthlyMap.set(monthKey, current + Number(invoice.total));
+      });
+    
+    return Array.from(monthlyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6) // Les 6 derniers mois
+      .map(([period, revenue]) => {
+        const [year, month] = period.split('-');
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        return {
+          month: monthNames[parseInt(month) - 1],
+          revenue,
+          expenses: revenue * 0.7 // Estimation des dépenses à 70% du revenu
+        };
+      });
+  }, [invoices]);
   
   // États pour le rapport de taxes
   const [taxDateFilter, setTaxDateFilter] = useState<'custom' | 'month' | 'year'>('custom');
@@ -1054,8 +1362,12 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$328,000</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last period</p>
+                <div className="text-2xl font-bold">
+                  {new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(overviewMetrics.totalRevenue)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {overviewMetrics.growthPercentage >= 0 ? '+' : ''}{overviewMetrics.growthPercentage.toFixed(1)}% from last month
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -1063,8 +1375,10 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$80,000</div>
-                <p className="text-xs text-muted-foreground">+15.3% from last period</p>
+                <div className="text-2xl font-bold">
+                  {new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(overviewMetrics.totalRevenue * 0.3)}
+                </div>
+                <p className="text-xs text-muted-foreground">Estimation (30% marge)</p>
               </CardContent>
             </Card>
             <Card>
@@ -1072,17 +1386,17 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">245</div>
-                <p className="text-xs text-muted-foreground">+12 new this month</p>
+                <div className="text-2xl font-bold">{overviewMetrics.activeClients}</div>
+                <p className="text-xs text-muted-foreground">Total clients: {clients.length}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Invoice Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">Payment Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">94%</div>
-                <p className="text-xs text-muted-foreground">Payment success rate</p>
+                <div className="text-2xl font-bold">{overviewMetrics.paymentRate.toFixed(0)}%</div>
+                <p className="text-xs text-muted-foreground">Invoices paid successfully</p>
               </CardContent>
             </Card>
           </div>
@@ -1095,13 +1409,18 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={revenueData}>
+                  <BarChart data={monthlyRevenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
-                    <Bar dataKey="expenses" fill="#82ca9d" name="Expenses" />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [
+                        new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(value),
+                        name === 'revenue' ? 'Revenus' : 'Dépenses'
+                      ]}
+                    />
+                    <Bar dataKey="revenue" fill="#8884d8" name="revenue" />
+                    <Bar dataKey="expenses" fill="#82ca9d" name="expenses" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -1116,7 +1435,7 @@ const Reports = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={clientData}
+                      data={clientDistributionData}
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
@@ -1124,11 +1443,16 @@ const Reports = () => {
                       dataKey="value"
                       label={({ name, value }) => `${name}: ${value}%`}
                     >
-                      {clientData.map((entry, index) => (
+                      {clientDistributionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                      formatter={(value: number, name: string, props: any) => [
+                        `${value}% (${new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(props.payload.revenue)})`,
+                        'Part du revenu'
+                      ]}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
