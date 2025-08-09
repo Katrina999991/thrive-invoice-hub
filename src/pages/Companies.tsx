@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Building2, Plus, Edit, Trash2, MapPin, Phone, Mail, X, Percent, User, Send, Upload, Image } from "lucide-react";
@@ -14,13 +15,136 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Company = Tables<"companies">;
 
+// Listes de pays et provinces/états
+const COUNTRIES = [
+  { value: "Canada", label: "Canada" },
+  { value: "United States", label: "États-Unis" },
+  { value: "France", label: "France" },
+  { value: "United Kingdom", label: "Royaume-Uni" },
+  { value: "Germany", label: "Allemagne" },
+  { value: "Spain", label: "Espagne" },
+  { value: "Italy", label: "Italie" },
+  { value: "Mexico", label: "Mexique" },
+  { value: "Brazil", label: "Brésil" },
+  { value: "Other", label: "Autre" }
+];
+
+const CANADA_PROVINCES = [
+  { value: "AB", label: "Alberta" },
+  { value: "BC", label: "Colombie-Britannique" },
+  { value: "MB", label: "Manitoba" },
+  { value: "NB", label: "Nouveau-Brunswick" },
+  { value: "NL", label: "Terre-Neuve-et-Labrador" },
+  { value: "NS", label: "Nouvelle-Écosse" },
+  { value: "ON", label: "Ontario" },
+  { value: "PE", label: "Île-du-Prince-Édouard" },
+  { value: "QC", label: "Québec" },
+  { value: "SK", label: "Saskatchewan" },
+  { value: "NT", label: "Territoires du Nord-Ouest" },
+  { value: "NU", label: "Nunavut" },
+  { value: "YT", label: "Yukon" }
+];
+
+const US_STATES = [
+  { value: "AL", label: "Alabama" },
+  { value: "AK", label: "Alaska" },
+  { value: "AZ", label: "Arizona" },
+  { value: "AR", label: "Arkansas" },
+  { value: "CA", label: "Californie" },
+  { value: "CO", label: "Colorado" },
+  { value: "CT", label: "Connecticut" },
+  { value: "DE", label: "Delaware" },
+  { value: "FL", label: "Floride" },
+  { value: "GA", label: "Géorgie" },
+  { value: "HI", label: "Hawaï" },
+  { value: "ID", label: "Idaho" },
+  { value: "IL", label: "Illinois" },
+  { value: "IN", label: "Indiana" },
+  { value: "IA", label: "Iowa" },
+  { value: "KS", label: "Kansas" },
+  { value: "KY", label: "Kentucky" },
+  { value: "LA", label: "Louisiane" },
+  { value: "ME", label: "Maine" },
+  { value: "MD", label: "Maryland" },
+  { value: "MA", label: "Massachusetts" },
+  { value: "MI", label: "Michigan" },
+  { value: "MN", label: "Minnesota" },
+  { value: "MS", label: "Mississippi" },
+  { value: "MO", label: "Missouri" },
+  { value: "MT", label: "Montana" },
+  { value: "NE", label: "Nebraska" },
+  { value: "NV", label: "Nevada" },
+  { value: "NH", label: "New Hampshire" },
+  { value: "NJ", label: "New Jersey" },
+  { value: "NM", label: "Nouveau-Mexique" },
+  { value: "NY", label: "New York" },
+  { value: "NC", label: "Caroline du Nord" },
+  { value: "ND", label: "Dakota du Nord" },
+  { value: "OH", label: "Ohio" },
+  { value: "OK", label: "Oklahoma" },
+  { value: "OR", label: "Oregon" },
+  { value: "PA", label: "Pennsylvanie" },
+  { value: "RI", label: "Rhode Island" },
+  { value: "SC", label: "Caroline du Sud" },
+  { value: "SD", label: "Dakota du Sud" },
+  { value: "TN", label: "Tennessee" },
+  { value: "TX", label: "Texas" },
+  { value: "UT", label: "Utah" },
+  { value: "VT", label: "Vermont" },
+  { value: "VA", label: "Virginie" },
+  { value: "WA", label: "Washington" },
+  { value: "WV", label: "Virginie-Occidentale" },
+  { value: "WI", label: "Wisconsin" },
+  { value: "WY", label: "Wyoming" }
+];
+
 const Companies = () => {
   const { toast } = useToast();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompanies();
 
+  // Helper function to format complete address
+  const formatAddress = (company: Company) => {
+    const parts = [];
+    
+    if ((company as any).street_address) {
+      parts.push((company as any).street_address);
+    }
+    
+    const cityProvince = [];
+    if ((company as any).city) {
+      cityProvince.push((company as any).city);
+    }
+    if ((company as any).province_state) {
+      cityProvince.push((company as any).province_state);
+    }
+    if (cityProvince.length > 0) {
+      parts.push(cityProvince.join(', '));
+    }
+    
+    if ((company as any).postal_code) {
+      parts.push((company as any).postal_code);
+    }
+    
+    if ((company as any).country && (company as any).country !== 'Canada') {
+      parts.push((company as any).country);
+    }
+    
+    // Fallback to legacy address field if new fields are empty
+    if (parts.length === 0 && company.address) {
+      return company.address;
+    }
+    
+    return parts.join(', ');
+  };
+
   const [newCompany, setNewCompany] = useState({
     name: "",
     address: "",
+    street_address: "",
+    city: "",
+    province_state: "",
+    postal_code: "",
+    country: "Canada",
     phone: "",
     email: "",
     website: "",
@@ -139,6 +263,11 @@ Best regards,
     const companyData = {
       name: newCompany.name,
       address: newCompany.address || null,
+      street_address: newCompany.street_address || null,
+      city: newCompany.city || null,
+      province_state: newCompany.province_state || null,
+      postal_code: newCompany.postal_code || null,
+      country: newCompany.country || null,
       phone: newCompany.phone || null,
       email: newCompany.email || null,
       website: newCompany.website || null,
@@ -173,6 +302,11 @@ Best regards,
     setNewCompany({
       name: "",
       address: "",
+      street_address: "",
+      city: "",
+      province_state: "",
+      postal_code: "",
+      country: "Canada",
       phone: "",
       email: "",
       website: "",
@@ -238,6 +372,11 @@ Best regards,
     setNewCompany({
       name: company.name,
       address: company.address || "",
+      street_address: (company as any).street_address || "",
+      city: (company as any).city || "",
+      province_state: (company as any).province_state || "",
+      postal_code: (company as any).postal_code || "",
+      country: (company as any).country || "Canada",
       phone: company.phone || "",
       email: company.email || "",
       website: company.website || "",
@@ -340,14 +479,87 @@ Best regards,
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  placeholder="Enter company address"
-                  value={newCompany.address}
-                  onChange={(e) => setNewCompany({...newCompany, address: e.target.value})}
-                />
+              {/* Adresse séparée */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Adresse</Label>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="street_address">Adresse civique</Label>
+                  <Input
+                    id="street_address"
+                    placeholder="123 Rue Principale"
+                    value={newCompany.street_address}
+                    onChange={(e) => setNewCompany({...newCompany, street_address: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Ville</Label>
+                    <Input
+                      id="city"
+                      placeholder="Montréal"
+                      value={newCompany.city}
+                      onChange={(e) => setNewCompany({...newCompany, city: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="postal_code">Code postal</Label>
+                    <Input
+                      id="postal_code"
+                      placeholder="H1V 1A1"
+                      value={newCompany.postal_code}
+                      onChange={(e) => setNewCompany({...newCompany, postal_code: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Pays</Label>
+                  <Select value={newCompany.country} onValueChange={(value) => {
+                    setNewCompany({...newCompany, country: value, province_state: ""});
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un pays" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="province_state">
+                    {newCompany.country === "Canada" ? "Province" : newCompany.country === "United States" ? "État" : "Province/État"}
+                  </Label>
+                  {newCompany.country === "Canada" || newCompany.country === "United States" ? (
+                    <Select value={newCompany.province_state} onValueChange={(value) => {
+                      setNewCompany({...newCompany, province_state: value});
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={`Sélectionner ${newCompany.country === "Canada" ? "une province" : "un état"}`} />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 bg-popover">
+                        {(newCompany.country === "Canada" ? CANADA_PROVINCES : US_STATES).map((region) => (
+                          <SelectItem key={region.value} value={region.value}>
+                            {region.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="province_state"
+                      placeholder="Province ou État"
+                      value={newCompany.province_state}
+                      onChange={(e) => setNewCompany({...newCompany, province_state: e.target.value})}
+                    />
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
@@ -678,10 +890,10 @@ Best regards,
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                {company.address && (
+                {formatAddress(company) && (
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-2" />
-                    {company.address}
+                    {formatAddress(company)}
                   </div>
                 )}
                 {company.phone && (

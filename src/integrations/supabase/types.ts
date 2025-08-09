@@ -73,7 +73,9 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          city: string | null
           contact_person: string | null
+          country: string | null
           created_at: string
           current_invoice_number: number | null
           default_due_days: number | null
@@ -91,6 +93,9 @@ export type Database = {
           payment_confirmation_email_message: string | null
           payment_confirmation_email_subject: string | null
           phone: string | null
+          postal_code: string | null
+          province_state: string | null
+          street_address: string | null
           tax_id: string | null
           taxes: Json | null
           updated_at: string
@@ -99,7 +104,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          city?: string | null
           contact_person?: string | null
+          country?: string | null
           created_at?: string
           current_invoice_number?: number | null
           default_due_days?: number | null
@@ -117,6 +124,9 @@ export type Database = {
           payment_confirmation_email_message?: string | null
           payment_confirmation_email_subject?: string | null
           phone?: string | null
+          postal_code?: string | null
+          province_state?: string | null
+          street_address?: string | null
           tax_id?: string | null
           taxes?: Json | null
           updated_at?: string
@@ -125,7 +135,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          city?: string | null
           contact_person?: string | null
+          country?: string | null
           created_at?: string
           current_invoice_number?: number | null
           default_due_days?: number | null
@@ -143,6 +155,9 @@ export type Database = {
           payment_confirmation_email_message?: string | null
           payment_confirmation_email_subject?: string | null
           phone?: string | null
+          postal_code?: string | null
+          province_state?: string | null
+          street_address?: string | null
           tax_id?: string | null
           taxes?: Json | null
           updated_at?: string
