@@ -1389,13 +1389,13 @@ const Reports = () => {
 
               {/* Graphiques des revenus */}
               {chartData.length > 0 && (
-                <div className="grid gap-4 md:grid-cols-2 mb-4">
+                <div className="space-y-4 mb-4">
                   <Card>
                     <CardHeader>
                       <CardTitle>Évolution des revenus par {viewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <BarChart width={350} height={300} data={chartData}>
+                      <BarChart width={600} height={300} data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="period" />
                         <YAxis />
@@ -1410,7 +1410,7 @@ const Reports = () => {
                       <CardTitle>Tendance des revenus</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <LineChart width={350} height={300} data={chartData}>
+                      <LineChart width={600} height={300} data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="period" />
                         <YAxis />
