@@ -159,13 +159,22 @@ const Reports = () => {
     
     const data = viewMode === 'monthly' ? realRevenueData.monthlyData : realRevenueData.yearlyData;
     
-    return data.map(item => ({
-      period: viewMode === 'monthly' 
-        ? format(new Date(item.period + '-01'), 'MMM yyyy')
-        : item.period,
-      revenue: item.revenue,
-      invoiceCount: item.invoiceCount
-    }));
+    return data.map(item => {
+      if (viewMode === 'monthly') {
+        const [year, month] = item.period.split('-');
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        return {
+          period: `${monthNames[parseInt(month) - 1]} ${year}`,
+          revenue: item.revenue,
+          invoiceCount: item.invoiceCount
+        };
+      }
+      return {
+        period: item.period,
+        revenue: item.revenue,
+        invoiceCount: item.invoiceCount
+      };
+    });
   };
 
   const chartData = formatRevenueDataForChart();
