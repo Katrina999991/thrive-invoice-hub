@@ -40,6 +40,10 @@ const Reports = () => {
   const [selectedMonth, setSelectedMonth] = useState<Date | undefined>();
   const [selectedYear, setSelectedYear] = useState<Date | undefined>();
   
+  // États pour la plage d'années dans la vue annuelle
+  const [yearRangeStart, setYearRangeStart] = useState<Date | undefined>();
+  const [yearRangeEnd, setYearRangeEnd] = useState<Date | undefined>();
+  
   // États pour les filtres
   const [filterType, setFilterType] = useState<'all' | 'company' | 'client'>('all');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
@@ -162,7 +166,17 @@ const Reports = () => {
   const formatRevenueDataForChart = () => {
     if (!realRevenueData) return [];
     
-    const data = viewMode === 'monthly' ? realRevenueData.monthlyData : realRevenueData.yearlyData;
+    let data = viewMode === 'monthly' ? realRevenueData.monthlyData : realRevenueData.yearlyData;
+    
+    // Filtrer par plage d'années si spécifiée en mode annuel
+    if (viewMode === 'yearly' && (yearRangeStart || yearRangeEnd)) {
+      data = data.filter(item => {
+        const year = parseInt(item.period);
+        const startYear = yearRangeStart ? yearRangeStart.getFullYear() : 0;
+        const endYear = yearRangeEnd ? yearRangeEnd.getFullYear() : 9999;
+        return year >= startYear && year <= endYear;
+      });
+    }
     
     return data.map(item => {
       if (viewMode === 'monthly') {
@@ -1290,17 +1304,57 @@ const Reports = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Yearly Revenue</CardTitle>
-                    <CardDescription>Select a specific year to view revenue data</CardDescription>
+                    <CardDescription>Select a specific year to view revenue data or a year range</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <MonthYearPicker
-                      selectedDate={selectedYear}
-                      onDateChange={(date) => {
-                        setSelectedYear(date);
-                        setViewMode('yearly');
-                      }}
-                      mode="year"
-                    />
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Option 1: Sélectionner une année spécifique</Label>
+                        <MonthYearPicker
+                          selectedDate={selectedYear}
+                          onDateChange={(date) => {
+                            setSelectedYear(date);
+                            setViewMode('yearly');
+                            // Clear year range when selecting specific year
+                            setYearRangeStart(undefined);
+                            setYearRangeEnd(undefined);
+                          }}
+                          mode="year"
+                        />
+                      </div>
+                      
+                      <div className="border-t pt-4">
+                        <Label>Option 2: Sélectionner une plage d'années</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div className="space-y-2">
+                            <Label>Année de début</Label>
+                            <MonthYearPicker
+                              selectedDate={yearRangeStart}
+                              onDateChange={(date) => {
+                                setYearRangeStart(date);
+                                setViewMode('yearly');
+                                // Clear specific year when selecting range
+                                setSelectedYear(undefined);
+                              }}
+                              mode="year"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Année de fin</Label>
+                            <MonthYearPicker
+                              selectedDate={yearRangeEnd}
+                              onDateChange={(date) => {
+                                setYearRangeEnd(date);
+                                setViewMode('yearly');
+                                // Clear specific year when selecting range
+                                setSelectedYear(undefined);
+                              }}
+                              mode="year"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
@@ -1392,16 +1446,18 @@ const Reports = () => {
               </div>
             )}
 
-            {activeTab === 'year' && selectedYear && (
+            {activeTab === 'year' && (selectedYear || yearRangeStart || yearRangeEnd) && (
               <div className="flex justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     setSelectedYear(undefined);
+                    setYearRangeStart(undefined);
+                    setYearRangeEnd(undefined);
                   }}
                 >
-                  Clear Year
+                  Clear Year Selection
                 </Button>
               </div>
             )}
