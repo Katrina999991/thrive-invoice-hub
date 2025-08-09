@@ -1935,12 +1935,13 @@ const Reports = () => {
             </Card>
 
             {/* Test graphique simple */}
-            <Card className="mb-4">
+            <Card className="mb-4" style={{border: '2px solid red'}}>
               <CardHeader>
                 <CardTitle>Test Graphique - Recharts Basic</CardTitle>
               </CardHeader>
               <CardContent>
-                <div style={{ width: '100%', height: '200px' }}>
+                {(() => { console.log('Rendering test chart'); return null; })()}
+                <div style={{ width: '100%', height: '200px', border: '1px solid blue' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={[{name: 'Test', value: 100}, {name: 'Test2', value: 200}]}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1951,6 +1952,7 @@ const Reports = () => {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
+                <p>Si vous voyez ce texte mais pas le graphique, c'est un problème avec Recharts</p>
               </CardContent>
             </Card>
 
