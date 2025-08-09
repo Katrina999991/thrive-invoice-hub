@@ -1042,7 +1042,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {dashboardData ? `${dashboardData.totalRevenue.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}` : 'Chargement...'}
+                  {dashboardData ? `$${dashboardData.totalRevenue.toLocaleString('fr-FR')}` : 'Chargement...'}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Revenus des factures payées
@@ -1058,7 +1058,7 @@ const Reports = () => {
                   {dashboardData ? dashboardData.openInvoicesCount : 'Chargement...'}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {dashboardData ? `${dashboardData.openInvoicesTotal.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} en attente` : ''}
+                  {dashboardData ? `$${dashboardData.openInvoicesTotal.toLocaleString('fr-FR')} en attente` : ''}
                 </p>
               </CardContent>
             </Card>
