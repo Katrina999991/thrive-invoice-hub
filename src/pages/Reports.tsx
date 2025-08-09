@@ -1378,6 +1378,41 @@ const Reports = () => {
                 </Card>
               </div>
 
+              {/* Graphiques des revenus */}
+              {chartData.length > 0 && (
+                <div className="grid gap-4 md:grid-cols-2 mb-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Évolution des revenus par {viewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <BarChart width={400} height={300} data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
+                        <Bar dataKey="revenue" fill="#22c55e" />
+                      </BarChart>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Tendance des revenus</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <LineChart width={400} height={300} data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
+                        <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                      </LineChart>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
 
               {/* Detailed Table */}
               {chartData.length > 0 && (
