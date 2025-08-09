@@ -18,29 +18,29 @@ type Company = Tables<"companies">;
 // Listes de pays et provinces/états
 const COUNTRIES = [
   { value: "Canada", label: "Canada" },
-  { value: "United States", label: "États-Unis" },
+  { value: "United States", label: "United States" },
   { value: "France", label: "France" },
-  { value: "United Kingdom", label: "Royaume-Uni" },
-  { value: "Germany", label: "Allemagne" },
-  { value: "Spain", label: "Espagne" },
-  { value: "Italy", label: "Italie" },
-  { value: "Mexico", label: "Mexique" },
-  { value: "Brazil", label: "Brésil" },
-  { value: "Other", label: "Autre" }
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "Germany", label: "Germany" },
+  { value: "Spain", label: "Spain" },
+  { value: "Italy", label: "Italy" },
+  { value: "Mexico", label: "Mexico" },
+  { value: "Brazil", label: "Brazil" },
+  { value: "Other", label: "Other" }
 ];
 
 const CANADA_PROVINCES = [
   { value: "AB", label: "Alberta" },
-  { value: "BC", label: "Colombie-Britannique" },
+  { value: "BC", label: "British Columbia" },
   { value: "MB", label: "Manitoba" },
-  { value: "NB", label: "Nouveau-Brunswick" },
-  { value: "NL", label: "Terre-Neuve-et-Labrador" },
-  { value: "NS", label: "Nouvelle-Écosse" },
+  { value: "NB", label: "New Brunswick" },
+  { value: "NL", label: "Newfoundland and Labrador" },
+  { value: "NS", label: "Nova Scotia" },
   { value: "ON", label: "Ontario" },
-  { value: "PE", label: "Île-du-Prince-Édouard" },
-  { value: "QC", label: "Québec" },
+  { value: "PE", label: "Prince Edward Island" },
+  { value: "QC", label: "Quebec" },
   { value: "SK", label: "Saskatchewan" },
-  { value: "NT", label: "Territoires du Nord-Ouest" },
+  { value: "NT", label: "Northwest Territories" },
   { value: "NU", label: "Nunavut" },
   { value: "YT", label: "Yukon" }
 ];
@@ -50,20 +50,20 @@ const US_STATES = [
   { value: "AK", label: "Alaska" },
   { value: "AZ", label: "Arizona" },
   { value: "AR", label: "Arkansas" },
-  { value: "CA", label: "Californie" },
+  { value: "CA", label: "California" },
   { value: "CO", label: "Colorado" },
   { value: "CT", label: "Connecticut" },
   { value: "DE", label: "Delaware" },
-  { value: "FL", label: "Floride" },
-  { value: "GA", label: "Géorgie" },
-  { value: "HI", label: "Hawaï" },
+  { value: "FL", label: "Florida" },
+  { value: "GA", label: "Georgia" },
+  { value: "HI", label: "Hawaii" },
   { value: "ID", label: "Idaho" },
   { value: "IL", label: "Illinois" },
   { value: "IN", label: "Indiana" },
   { value: "IA", label: "Iowa" },
   { value: "KS", label: "Kansas" },
   { value: "KY", label: "Kentucky" },
-  { value: "LA", label: "Louisiane" },
+  { value: "LA", label: "Louisiana" },
   { value: "ME", label: "Maine" },
   { value: "MD", label: "Maryland" },
   { value: "MA", label: "Massachusetts" },
@@ -76,24 +76,24 @@ const US_STATES = [
   { value: "NV", label: "Nevada" },
   { value: "NH", label: "New Hampshire" },
   { value: "NJ", label: "New Jersey" },
-  { value: "NM", label: "Nouveau-Mexique" },
+  { value: "NM", label: "New Mexico" },
   { value: "NY", label: "New York" },
-  { value: "NC", label: "Caroline du Nord" },
-  { value: "ND", label: "Dakota du Nord" },
+  { value: "NC", label: "North Carolina" },
+  { value: "ND", label: "North Dakota" },
   { value: "OH", label: "Ohio" },
   { value: "OK", label: "Oklahoma" },
   { value: "OR", label: "Oregon" },
-  { value: "PA", label: "Pennsylvanie" },
+  { value: "PA", label: "Pennsylvania" },
   { value: "RI", label: "Rhode Island" },
-  { value: "SC", label: "Caroline du Sud" },
-  { value: "SD", label: "Dakota du Sud" },
+  { value: "SC", label: "South Carolina" },
+  { value: "SD", label: "South Dakota" },
   { value: "TN", label: "Tennessee" },
   { value: "TX", label: "Texas" },
   { value: "UT", label: "Utah" },
   { value: "VT", label: "Vermont" },
-  { value: "VA", label: "Virginie" },
+  { value: "VA", label: "Virginia" },
   { value: "WA", label: "Washington" },
-  { value: "WV", label: "Virginie-Occidentale" },
+  { value: "WV", label: "West Virginia" },
   { value: "WI", label: "Wisconsin" },
   { value: "WY", label: "Wyoming" }
 ];
@@ -479,15 +479,15 @@ Best regards,
                   required
                 />
               </div>
-              {/* Adresse séparée */}
+              {/* Address fields */}
               <div className="space-y-4">
-                <Label className="text-base font-medium">Adresse</Label>
+                <Label className="text-base font-medium">Address</Label>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="street_address">Adresse civique</Label>
+                  <Label htmlFor="street_address">Street Address</Label>
                   <Input
                     id="street_address"
-                    placeholder="123 Rue Principale"
+                    placeholder="123 Main Street"
                     value={newCompany.street_address}
                     onChange={(e) => setNewCompany({...newCompany, street_address: e.target.value})}
                   />
@@ -495,16 +495,16 @@ Best regards,
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
-                    <Label htmlFor="city">Ville</Label>
+                    <Label htmlFor="city">City</Label>
                     <Input
                       id="city"
-                      placeholder="Montréal"
+                      placeholder="Montreal"
                       value={newCompany.city}
                       onChange={(e) => setNewCompany({...newCompany, city: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Code postal</Label>
+                    <Label htmlFor="postal_code">Postal Code</Label>
                     <Input
                       id="postal_code"
                       placeholder="H1V 1A1"
@@ -515,12 +515,12 @@ Best regards,
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="country">Pays</Label>
+                  <Label htmlFor="country">Country</Label>
                   <Select value={newCompany.country} onValueChange={(value) => {
                     setNewCompany({...newCompany, country: value, province_state: ""});
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un pays" />
+                      <SelectValue placeholder="Select a country" />
                     </SelectTrigger>
                     <SelectContent>
                       {COUNTRIES.map((country) => (
@@ -534,14 +534,14 @@ Best regards,
 
                 <div className="space-y-2">
                   <Label htmlFor="province_state">
-                    {newCompany.country === "Canada" ? "Province" : newCompany.country === "United States" ? "État" : "Province/État"}
+                    {newCompany.country === "Canada" ? "Province" : newCompany.country === "United States" ? "State" : "Province/State"}
                   </Label>
                   {newCompany.country === "Canada" || newCompany.country === "United States" ? (
                     <Select value={newCompany.province_state} onValueChange={(value) => {
                       setNewCompany({...newCompany, province_state: value});
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder={`Sélectionner ${newCompany.country === "Canada" ? "une province" : "un état"}`} />
+                        <SelectValue placeholder={`Select ${newCompany.country === "Canada" ? "a province" : "a state"}`} />
                       </SelectTrigger>
                       <SelectContent className="z-50 bg-popover">
                         {(newCompany.country === "Canada" ? CANADA_PROVINCES : US_STATES).map((region) => (
@@ -554,7 +554,7 @@ Best regards,
                   ) : (
                     <Input
                       id="province_state"
-                      placeholder="Province ou État"
+                      placeholder="Province or State"
                       value={newCompany.province_state}
                       onChange={(e) => setNewCompany({...newCompany, province_state: e.target.value})}
                     />
