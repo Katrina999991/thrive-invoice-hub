@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useReports } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
+import { useProductProfit } from "@/hooks/useProductProfit";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
@@ -83,6 +84,7 @@ const Reports = () => {
     filterType, 
     filterType === 'company' ? selectedCompanyId : selectedClientId
   );
+  const { profitData, loading: profitLoading } = useProductProfit(startDate, endDate);
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
@@ -1029,6 +1031,7 @@ const Reports = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
+          <TabsTrigger value="profits">Profits</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
@@ -1702,6 +1705,171 @@ const Reports = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="profits" className="space-y-4">
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <h2 className="text-2xl font-bold">Rapport de Profit des Produits</h2>
+              <p className="text-muted-foreground">Analyse de la rentabilité par produit vendu</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtres de Date</CardTitle>
+                <CardDescription>Sélectionnez une période pour analyser les profits</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={setCustomStartDate}
+                  onEndDateChange={setCustomEndDate}
+                />
+              </CardContent>
+            </Card>
+
+            {profitLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">Chargement des données de profit...</div>
+                </CardContent>
+              </Card>
+            ) : profitData ? (
+              <div className="space-y-4">
+                {/* Résumé des profits */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Profit Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(profitData.totalProfit)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Revenus Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(profitData.totalRevenue)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Coûts Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(profitData.totalCost)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Marge Globale</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {profitData.overallMargin.toFixed(1)}%
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Graphique des profits par produit */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profit par Produit</CardTitle>
+                    <CardDescription>Analyse comparative des profits générés par chaque produit</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={profitData.products.slice(0, 10)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="product_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value: any, name: string) => [
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                            name === 'total_profit' ? 'Profit' : 
+                            name === 'total_revenue' ? 'Revenus' : 'Coûts'
+                          ]}
+                        />
+                        <Bar dataKey="total_profit" fill="#22c55e" name="Profit" />
+                        <Bar dataKey="total_cost" fill="#f97316" name="Coûts" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Tableau détaillé */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Détail par Produit</CardTitle>
+                    <CardDescription>Analyse détaillée de la rentabilité de chaque produit</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Produit</TableHead>
+                          <TableHead className="text-right">Qté Vendue</TableHead>
+                          <TableHead className="text-right">Revenus</TableHead>
+                          <TableHead className="text-right">Coûts</TableHead>
+                          <TableHead className="text-right">Profit</TableHead>
+                          <TableHead className="text-right">Marge %</TableHead>
+                          <TableHead className="text-right">Prix Moy.</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {profitData.products.map((product) => (
+                          <TableRow key={product.product_id}>
+                            <TableCell className="font-medium">{product.product_name}</TableCell>
+                            <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.total_revenue)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.total_cost)}
+                            </TableCell>
+                            <TableCell className={`text-right font-medium ${product.total_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.total_profit)}
+                            </TableCell>
+                            <TableCell className={`text-right ${product.profit_margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {product.profit_margin.toFixed(1)}%
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.average_sale_price)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    Aucune donnée de profit disponible pour la période sélectionnée.
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="clients" className="space-y-4">
