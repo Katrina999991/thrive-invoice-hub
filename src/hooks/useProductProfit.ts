@@ -34,6 +34,12 @@ export const useProductProfit = (startDate?: Date, endDate?: Date) => {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('ProductProfit - fetchProductProfitData called', {
+        startDate,
+        endDate,
+        user: user?.id
+      });
 
       // Query pour récupérer les données des produits vendus
       let query = supabase
@@ -66,10 +72,17 @@ export const useProductProfit = (startDate?: Date, endDate?: Date) => {
       }
 
       const { data: invoiceItems, error: itemsError } = await query;
+      
+      console.log('ProductProfit - Query result:', {
+        invoiceItems: invoiceItems?.length || 0,
+        error: itemsError,
+        sampleItem: invoiceItems?.[0]
+      });
 
       if (itemsError) throw itemsError;
 
       if (!invoiceItems || invoiceItems.length === 0) {
+        console.log('ProductProfit - No invoice items found');
         setProfitData({
           totalProfit: 0,
           totalRevenue: 0,
