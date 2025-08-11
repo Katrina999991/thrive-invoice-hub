@@ -84,7 +84,7 @@ const Reports = () => {
     filterType, 
     filterType === 'company' ? selectedCompanyId : selectedClientId
   );
-  const { profitData, loading: profitLoading } = useProductProfit(startDate, endDate);
+  const { profitData, loading: profitLoading } = useProductProfit(customStartDate, customEndDate);
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
