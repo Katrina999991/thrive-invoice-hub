@@ -139,6 +139,15 @@ export const useProductProfit = (startDate?: Date, endDate?: Date) => {
           const profitMargin = data.totalRevenue > 0 ? (profit / data.totalRevenue) * 100 : 0;
           const avgSalePrice = data.totalQuantity > 0 ? data.totalRevenue / data.totalQuantity : 0;
 
+          console.log('ProductProfit - Product calculation:', {
+            productId,
+            name: data.name,
+            totalRevenue: data.totalRevenue,
+            totalCost: data.totalCost,
+            profit,
+            costPrice: data.costPrice
+          });
+
           return {
             product_id: productId,
             product_name: data.name,
@@ -152,6 +161,8 @@ export const useProductProfit = (startDate?: Date, endDate?: Date) => {
           };
         })
         .sort((a, b) => b.total_profit - a.total_profit);
+
+      console.log('ProductProfit - Final products array:', products);
 
       // Calculer les totaux
       const totalRevenue = products.reduce((sum, p) => sum + p.total_revenue, 0);
