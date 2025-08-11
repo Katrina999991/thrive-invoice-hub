@@ -25,6 +25,7 @@ const Products = () => {
     name: "",
     description: "",
     price: "",
+    cost: "",
     category: "",
     quantity: "",
     unit: "piece"
@@ -40,6 +41,7 @@ const Products = () => {
       name: newItem.name,
       description: newItem.description,
       price: parseFloat(newItem.price) || 0,
+      cost: parseFloat(newItem.cost) || 0,
       category: newItem.category,
       quantity: newItem.type === "service" ? null : (parseInt(newItem.quantity) || 0),
       unit: newItem.unit
@@ -60,6 +62,7 @@ const Products = () => {
       name: "",
       description: "",
       price: "",
+      cost: "",
       category: "",
       quantity: "",
       unit: "piece"
@@ -75,6 +78,7 @@ const Products = () => {
       name: product.name,
       description: product.description || "",
       price: product.price.toString(),
+      cost: product.cost?.toString() || "",
       category: product.category || "",
       quantity: product.quantity?.toString() || "",
       unit: product.unit || "piece"
@@ -127,9 +131,17 @@ const Products = () => {
             <p className="text-sm font-medium text-muted-foreground">Category</p>
             <p className="font-medium">{item.category || "—"}</p>
           </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Price</p>
-            <p className="text-xl font-bold text-green-600">${item.price}</p>
+          <div className="space-y-1">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Sale Price</p>
+              <p className="text-xl font-bold text-green-600">${item.price}</p>
+            </div>
+            {item.cost > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground">Cost</p>
+                <p className="text-sm text-orange-600">${item.cost}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -235,17 +247,30 @@ const Products = () => {
                   onChange={(e) => setNewItem({...newItem, description: e.target.value})}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={newItem.price}
-                  onChange={(e) => setNewItem({...newItem, price: e.target.value})}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost Price</Label>
+                  <Input
+                    id="cost"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={newItem.cost}
+                    onChange={(e) => setNewItem({...newItem, cost: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Sale Price</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={newItem.price}
+                    onChange={(e) => setNewItem({...newItem, price: e.target.value})}
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
