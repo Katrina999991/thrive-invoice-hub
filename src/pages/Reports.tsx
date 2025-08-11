@@ -1802,8 +1802,8 @@ const Reports = () => {
                       <Tooltip 
                         formatter={(value: any, name: string) => [
                           new Intl.NumberFormat("fr-FR", { style: "currency", currency: "CAD" }).format(value),
-                          name === "total_profit" ? "Profit" : 
-                          name === "total_revenue" ? "Revenue" : "Cost"
+                          name === "Profit" ? "Profit" : 
+                          name === "Revenue" ? "Revenue" : "Cost"
                         ]}
                       />
                       <Bar dataKey="total_profit" fill="#22c55e" name="Profit" />
