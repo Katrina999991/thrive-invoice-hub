@@ -50,8 +50,16 @@ export default function Auth() {
       const { data: { session } } = await supabase.auth.getSession();
       console.log("Current session:", session);
       
-      // Check if this is a password recovery session
-      if (session && isPasswordRecovery) {
+      // Check if this is a password recovery session - look for specific session properties
+      const isRecoverySession = session && (
+        session.user?.recovery_sent_at || 
+        session.user?.email_confirmed_at && !session.user?.last_sign_in_at ||
+        isPasswordRecovery
+      );
+      
+      console.log("isRecoverySession:", isRecoverySession);
+      
+      if (isRecoverySession) {
         console.log("Password recovery detected, showing update form");
         setShowUpdatePassword(true);
       }
@@ -64,8 +72,15 @@ export default function Auth() {
       console.log("Auth event:", event, "Session:", session);
       console.log("isPasswordRecovery in listener:", isPasswordRecovery);
       
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && isPasswordRecovery)) {
-        console.log("Setting showUpdatePassword to true");
+      // Detect recovery in multiple ways
+      const isRecoveryEvent = (
+        event === 'PASSWORD_RECOVERY' || 
+        event === 'SIGNED_IN' && session?.user?.recovery_sent_at ||
+        event === 'TOKEN_REFRESHED' && isPasswordRecovery
+      );
+      
+      if (isRecoveryEvent) {
+        console.log("Setting showUpdatePassword to true via event:", event);
         setShowUpdatePassword(true);
       }
     });
