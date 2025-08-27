@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +20,35 @@ export default function Auth() {
   const [error, setError] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
-  const { signIn, signUp, resetPassword, user } = useAuth();
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [searchParams] = useSearchParams();
+  const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
+
+  // Check for password recovery from email link
+  useEffect(() => {
+    const handleAuthStateChange = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Check if this is a password recovery session
+      if (session && searchParams.get('type') === 'recovery') {
+        setShowUpdatePassword(true);
+      }
+    };
+
+    handleAuthStateChange();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowUpdatePassword(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [searchParams]);
 
   // Redirect if already authenticated
   if (user) {
@@ -108,6 +136,46 @@ export default function Auth() {
       });
       setShowResetPassword(false);
       setResetEmail("");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    const { error } = await updatePassword(newPassword);
+    
+    if (error) {
+      setError(error.message);
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Password updated!",
+        description: "Your password has been successfully updated.",
+      });
+      setShowUpdatePassword(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      navigate("/");
     }
     
     setIsLoading(false);
@@ -290,6 +358,60 @@ export default function Auth() {
                 )}
               </Button>
             </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showUpdatePassword} onOpenChange={setShowUpdatePassword}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Password</DialogTitle>
+            <DialogDescription>
+              Enter your new password below.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                minLength={6}
+                placeholder="Enter your new password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                minLength={6}
+                placeholder="Confirm your new password"
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Password"
+              )}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
