@@ -27,19 +27,28 @@ export default function Auth() {
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
 
+  console.log("Auth component render - searchParams:", Object.fromEntries(searchParams));
+  console.log("Auth component render - user:", user);
+  console.log("Auth component render - showUpdatePassword:", showUpdatePassword);
+
   // Check if this is a password recovery flow
   const isPasswordRecovery = searchParams.get('type') === 'recovery';
+  console.log("isPasswordRecovery:", isPasswordRecovery);
 
   // Only redirect if user is authenticated AND it's not a password recovery
   if (user && !isPasswordRecovery) {
+    console.log("Redirecting to / because user exists and not password recovery");
     navigate("/");
     return null;
   }
 
   // Check for password recovery from email link
   useEffect(() => {
+    console.log("useEffect running - isPasswordRecovery:", isPasswordRecovery);
+    
     const handleAuthStateChange = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("Current session:", session);
       
       // Check if this is a password recovery session
       if (session && isPasswordRecovery) {
@@ -51,9 +60,12 @@ export default function Auth() {
     handleAuthStateChange();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log("Auth event:", event);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth event:", event, "Session:", session);
+      console.log("isPasswordRecovery in listener:", isPasswordRecovery);
+      
       if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && isPasswordRecovery)) {
+        console.log("Setting showUpdatePassword to true");
         setShowUpdatePassword(true);
       }
     });
