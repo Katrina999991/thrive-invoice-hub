@@ -65,10 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    // Use the preview URL instead of localhost to avoid connection issues
-    const redirectUrl = window.location.hostname === 'localhost' 
-      ? 'https://id-preview--fe52a70f-4125-42dd-bd8d-6befbc59cc36.lovable.app/'
-      : `${window.location.origin}/`;
+    // Use the current window location origin for redirect
+    const redirectUrl = `${window.location.origin}/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -88,10 +86,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const resetPassword = async (email: string) => {
-    // Use the preview URL instead of localhost to avoid connection issues
-    const redirectUrl = window.location.hostname === 'localhost' 
-      ? 'https://id-preview--fe52a70f-4125-42dd-bd8d-6befbc59cc36.lovable.app/'
-      : `${window.location.origin}/`;
+    // Use the current window location origin for redirect
+    const redirectUrl = `${window.location.origin}/auth`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
