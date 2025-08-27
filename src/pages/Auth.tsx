@@ -44,49 +44,45 @@ export default function Auth() {
 
   // Check for password recovery from email link
   useEffect(() => {
-    console.log("useEffect running - isPasswordRecovery:", isPasswordRecovery);
+    console.log("useEffect running - checking for recovery");
     
-    const handleAuthStateChange = async () => {
+    const checkForRecovery = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("Current session:", session);
+      console.log("Session check:", session);
       
-      // Check if this is a password recovery session - look for specific session properties
-      const isRecoverySession = session && (
-        session.user?.recovery_sent_at || 
-        session.user?.email_confirmed_at && !session.user?.last_sign_in_at ||
-        isPasswordRecovery
-      );
-      
-      console.log("isRecoverySession:", isRecoverySession);
-      
-      if (isRecoverySession) {
-        console.log("Password recovery detected, showing update form");
+      // If we have a session but no previous login, it's likely a recovery
+      if (session?.user && !localStorage.getItem('has_logged_in_before')) {
+        console.log("Recovery detected - new session without previous login");
         setShowUpdatePassword(true);
       }
     };
 
-    handleAuthStateChange();
+    checkForRecovery();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth event:", event, "Session:", session);
-      console.log("isPasswordRecovery in listener:", isPasswordRecovery);
+      console.log("Auth event:", event, "Session exists:", !!session);
       
-      // Detect recovery in multiple ways
-      const isRecoveryEvent = (
-        event === 'PASSWORD_RECOVERY' || 
-        event === 'SIGNED_IN' && session?.user?.recovery_sent_at ||
-        event === 'TOKEN_REFRESHED' && isPasswordRecovery
-      );
-      
-      if (isRecoveryEvent) {
-        console.log("Setting showUpdatePassword to true via event:", event);
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log("PASSWORD_RECOVERY event detected");
         setShowUpdatePassword(true);
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        // Check if this is a recovery sign-in
+        const isRecovery = !localStorage.getItem('has_logged_in_before') || 
+                          searchParams.get('type') === 'recovery';
+        
+        if (isRecovery) {
+          console.log("Recovery sign-in detected");
+          setShowUpdatePassword(true);
+        } else {
+          // Normal sign-in
+          localStorage.setItem('has_logged_in_before', 'true');
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [isPasswordRecovery]);
+  }, [searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +203,8 @@ export default function Auth() {
       setShowUpdatePassword(false);
       setNewPassword("");
       setConfirmPassword("");
+      // Mark that user has logged in normally
+      localStorage.setItem('has_logged_in_before', 'true');
       navigate("/");
     }
     
