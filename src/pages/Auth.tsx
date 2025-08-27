@@ -27,13 +27,23 @@ export default function Auth() {
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
 
+  // Check if this is a password recovery flow
+  const isPasswordRecovery = searchParams.get('type') === 'recovery';
+
+  // Only redirect if user is authenticated AND it's not a password recovery
+  if (user && !isPasswordRecovery) {
+    navigate("/");
+    return null;
+  }
+
   // Check for password recovery from email link
   useEffect(() => {
     const handleAuthStateChange = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       // Check if this is a password recovery session
-      if (session && searchParams.get('type') === 'recovery') {
+      if (session && isPasswordRecovery) {
+        console.log("Password recovery detected, showing update form");
         setShowUpdatePassword(true);
       }
     };
@@ -42,19 +52,14 @@ export default function Auth() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      console.log("Auth event:", event);
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && isPasswordRecovery)) {
         setShowUpdatePassword(true);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [searchParams]);
-
-  // Redirect if already authenticated
-  if (user) {
-    navigate("/");
-    return null;
-  }
+  }, [isPasswordRecovery]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
