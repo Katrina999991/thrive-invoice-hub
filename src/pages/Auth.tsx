@@ -23,6 +23,7 @@ export default function Auth() {
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordRecoveryMode, setIsPasswordRecoveryMode] = useState(false);
   const [searchParams] = useSearchParams();
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
@@ -30,17 +31,15 @@ export default function Auth() {
   console.log("Auth component render - searchParams:", Object.fromEntries(searchParams));
   console.log("Auth component render - user:", user);
   console.log("Auth component render - showUpdatePassword:", showUpdatePassword);
+  console.log("Auth component render - isPasswordRecoveryMode:", isPasswordRecoveryMode);
 
-  // Check if this is a password recovery flow
-  const isPasswordRecovery = searchParams.get('type') === 'recovery';
-  console.log("isPasswordRecovery:", isPasswordRecovery);
-
-  // Only redirect if user is authenticated AND it's not a password recovery
-  if (user && !isPasswordRecovery) {
-    console.log("Redirecting to / because user exists and not password recovery");
-    navigate("/");
-    return null;
-  }
+  // Handle redirects in useEffect, not during render
+  useEffect(() => {
+    if (user && !isPasswordRecoveryMode && !showUpdatePassword) {
+      console.log("Redirecting to / because user exists and not in recovery mode");
+      navigate("/");
+    }
+  }, [user, isPasswordRecoveryMode, showUpdatePassword, navigate]);
 
   // Check for password recovery from email link
   useEffect(() => {
@@ -53,6 +52,7 @@ export default function Auth() {
       // If we have a session but no previous login, it's likely a recovery
       if (session?.user && !localStorage.getItem('has_logged_in_before')) {
         console.log("Recovery detected - new session without previous login");
+        setIsPasswordRecoveryMode(true);
         setShowUpdatePassword(true);
       }
     };
@@ -65,6 +65,7 @@ export default function Auth() {
       
       if (event === 'PASSWORD_RECOVERY') {
         console.log("PASSWORD_RECOVERY event detected");
+        setIsPasswordRecoveryMode(true);
         setShowUpdatePassword(true);
       } else if (event === 'SIGNED_IN' && session?.user) {
         // Check if this is a recovery sign-in
@@ -73,6 +74,7 @@ export default function Auth() {
         
         if (isRecovery) {
           console.log("Recovery sign-in detected");
+          setIsPasswordRecoveryMode(true);
           setShowUpdatePassword(true);
         } else {
           // Normal sign-in
@@ -201,6 +203,7 @@ export default function Auth() {
         description: "Your password has been successfully updated.",
       });
       setShowUpdatePassword(false);
+      setIsPasswordRecoveryMode(false);
       setNewPassword("");
       setConfirmPassword("");
       // Mark that user has logged in normally
