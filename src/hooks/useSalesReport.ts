@@ -30,6 +30,12 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
   const fetchSalesData = async () => {
     if (!user) return;
 
+    console.log('SalesReport - fetchSalesData called', { 
+      startDate: startDate ? startDate.toISOString() : 'undefined', 
+      endDate: endDate ? endDate.toISOString() : 'undefined',
+      user: user.id 
+    });
+
     try {
       setLoading(true);
       setError(null);
@@ -63,6 +69,12 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
       }
 
       const { data: invoiceItems, error: invoiceItemsError } = await query;
+
+      console.log('SalesReport - Query result:', { 
+        invoiceItems: invoiceItems?.length || 0, 
+        error: invoiceItemsError,
+        sampleItem: invoiceItems?.[0] 
+      });
 
       if (invoiceItemsError) throw invoiceItemsError;
 
@@ -133,6 +145,14 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
       const totalQuantitySold = products.reduce((sum, product) => sum + product.total_quantity_sold, 0);
       const totalNumberOfSales = products.reduce((sum, product) => sum + product.number_of_sales, 0);
 
+      console.log('SalesReport - Final sales data:', {
+        totalRevenue,
+        totalQuantitySold,
+        totalNumberOfSales,
+        uniqueProductsSold: products.length,
+        productsCount: products.length
+      });
+
       setSalesData({
         totalRevenue,
         totalQuantitySold,
@@ -142,7 +162,7 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
       });
 
     } catch (err) {
-      console.error('Error fetching sales data:', err);
+      console.error('SalesReport - Error fetching sales data:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
