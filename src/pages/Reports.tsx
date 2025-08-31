@@ -1968,6 +1968,40 @@ const Reports = () => {
         <p className="text-muted-foreground">
           Business analytics and performance metrics
         </p>
+        
+        {/* Active Filters Display */}
+        {(startDate || endDate || filterType !== 'all' || selectedCompanyId || selectedClientId) && (
+          <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
+            <div className="flex flex-wrap gap-2">
+              {startDate && endDate && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                  Période: {format(startDate, 'dd/MM/yyyy')} - {format(endDate, 'dd/MM/yyyy')}
+                </span>
+              )}
+              {startDate && !endDate && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                  À partir du: {format(startDate, 'dd/MM/yyyy')}
+                </span>
+              )}
+              {!startDate && endDate && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                  Jusqu'au: {format(endDate, 'dd/MM/yyyy')}
+                </span>
+              )}
+              {filterType === 'company' && selectedCompanyId && companies && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                  Compagnie: {companies.find(c => c.id === selectedCompanyId)?.name || 'Inconnue'}
+                </span>
+              )}
+              {filterType === 'client' && selectedClientId && clients && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                  Client: {clients.find(c => c.id === selectedClientId)?.name || 'Inconnu'}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
