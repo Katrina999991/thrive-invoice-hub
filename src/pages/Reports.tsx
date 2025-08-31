@@ -2030,7 +2030,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(profitData.totalProfit)}
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(filteredProfitData.totalProfit)}
                       </div>
                     </CardContent>
                   </Card>
@@ -2040,7 +2040,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(profitData.totalRevenue)}
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(filteredProfitData.totalRevenue)}
                       </div>
                     </CardContent>
                   </Card>
@@ -2050,7 +2050,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-orange-600">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(profitData.totalCost)}
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(filteredProfitData.totalCost)}
                       </div>
                     </CardContent>
                   </Card>
@@ -2060,7 +2060,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {profitData.overallMargin.toFixed(1)}%
+                        {filteredProfitData.overallMargin.toFixed(1)}%
                       </div>
                     </CardContent>
                   </Card>
