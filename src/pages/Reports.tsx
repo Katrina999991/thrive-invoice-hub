@@ -11,6 +11,7 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useProducts } from "@/hooks/useProducts";
 import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -89,6 +90,7 @@ const Reports = () => {
   const { companies } = useCompanies();
   const { clients } = useClients();
   const { data: dashboardData } = useDashboard();
+  const { products } = useProducts();
   
   // États pour le rapport de taxes
   const [taxDateFilter, setTaxDateFilter] = useState<'custom' | 'month' | 'year'>('custom');
@@ -528,6 +530,114 @@ const Reports = () => {
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
       : '';
     const filename = `rapport-taxes${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
+  // Export functions for products
+  const exportProductsToPDF = () => {
+    if (!products || products.length === 0) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Rapport de Stock et Ventes', pageWidth / 2, 20, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(12);
+    const totalProducts = products.length;
+    const activeProducts = products.filter(p => p.is_active).length;
+    const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
+    const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
+    
+    doc.text(`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 40);
+    doc.text(`Total des produits: ${totalProducts}`, 20, 50);
+    doc.text(`Produits actifs: ${activeProducts}`, 20, 60);
+    doc.text(`Alertes stock bas: ${lowStockProducts}`, 20, 70);
+    doc.text(`Valeur totale inventaire: $${totalInventoryValue.toFixed(2)}`, 20, 80);
+    
+    // Products table
+    const tableData = products.map(product => {
+      const margin = product.price && product.cost ? 
+        ((product.price - product.cost) / product.price * 100).toFixed(1) + '%' : '0.0%';
+      const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
+      
+      return [
+        product.name,
+        product.sku || '-',
+        product.category || '-',
+        (product.quantity || 0).toString(),
+        '$' + (product.cost || 0).toFixed(2),
+        '$' + (product.price || 0).toFixed(2),
+        margin,
+        '$' + stockValue,
+        product.is_active ? 'Actif' : 'Inactif'
+      ];
+    });
+    
+    autoTable(doc, {
+      head: [['Nom', 'SKU', 'Catégorie', 'Quantité', 'Coût', 'Prix', 'Marge', 'Valeur Stock', 'Statut']],
+      body: tableData,
+      startY: 100,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [66, 139, 202] },
+    });
+    
+    const filename = `rapport-produits-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportProductsToExcel = () => {
+    if (!products || products.length === 0) return;
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const totalProducts = products.length;
+    const activeProducts = products.filter(p => p.is_active).length;
+    const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
+    const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
+    
+    const summaryData = [
+      ['Rapport de Stock et Ventes'],
+      [''],
+      ['Date du rapport:', format(new Date(), 'dd/MM/yyyy')],
+      ['Total des produits:', totalProducts],
+      ['Produits actifs:', activeProducts],
+      ['Alertes stock bas:', lowStockProducts],
+      ['Valeur totale inventaire:', '$' + totalInventoryValue.toFixed(2)],
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Résumé');
+    
+    // Products detail sheet
+    const productsData = [
+      ['Nom', 'SKU', 'Catégorie', 'Quantité', 'Coût', 'Prix', 'Marge (%)', 'Valeur Stock', 'Statut'],
+      ...products.map(product => {
+        const margin = product.price && product.cost ? 
+          ((product.price - product.cost) / product.price * 100).toFixed(1) : '0.0';
+        const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
+        
+        return [
+          product.name,
+          product.sku || '-',
+          product.category || '-',
+          product.quantity || 0,
+          product.cost || 0,
+          product.price || 0,
+          parseFloat(margin),
+          parseFloat(stockValue),
+          product.is_active ? 'Actif' : 'Inactif'
+        ];
+      })
+    ];
+    
+    const productsWS = XLSX.utils.aoa_to_sheet(productsData);
+    XLSX.utils.book_append_sheet(wb, productsWS, 'Détails Produits');
+    
+    const filename = `rapport-produits-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
   
@@ -1032,6 +1142,7 @@ const Reports = () => {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="profits">Profits</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
@@ -1868,6 +1979,189 @@ const Reports = () => {
               </Card>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="products" className="space-y-4">
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <h2 className="text-2xl font-bold">Rapport de Stock et Ventes</h2>
+              <p className="text-muted-foreground">Analyse des stocks et ventes par produit</p>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={() => exportProductsToPDF()} 
+                variant="outline" 
+                size="sm"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                PDF
+              </Button>
+              <Button 
+                onClick={() => exportProductsToExcel()} 
+                variant="outline" 
+                size="sm"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Excel
+              </Button>
+            </div>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{products?.length || 0}</div>
+                <p className="text-xs text-muted-foreground">produits dans l'inventaire</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {products?.filter(p => p.is_active).length || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">produits actifs</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Low Stock Alert</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">
+                  {products?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">produits en rupture</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Inventory Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${products?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0).toFixed(2) || "0.00"}
+                </div>
+                <p className="text-xs text-muted-foreground">valeur totale du stock</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Stock Level Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Niveaux de Stock par Produit</CardTitle>
+              <CardDescription>Quantités disponibles pour chaque produit</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {products && products.length > 0 ? (
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={products.map(p => ({
+                      name: p.name,
+                      quantity: p.quantity || 0,
+                      cost: p.cost || 0,
+                      price: p.price || 0,
+                      isLowStock: (p.quantity || 0) <= 5
+                    }))}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                      />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar 
+                        dataKey="quantity" 
+                        fill="#3b82f6"
+                        name="Quantité"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  Aucun produit trouvé
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Products Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Détails des Produits</CardTitle>
+              <CardDescription>Informations complètes sur tous les produits</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {products && products.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Catégorie</TableHead>
+                      <TableHead>Quantité</TableHead>
+                      <TableHead>Coût</TableHead>
+                      <TableHead>Prix</TableHead>
+                      <TableHead>Marge</TableHead>
+                      <TableHead>Valeur Stock</TableHead>
+                      <TableHead>Statut</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => {
+                      const margin = product.price && product.cost ? 
+                        ((product.price - product.cost) / product.price * 100).toFixed(1) : "0.0";
+                      const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
+                      const isLowStock = (product.quantity || 0) <= 5;
+                      
+                      return (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>{product.sku || "-"}</TableCell>
+                          <TableCell>{product.category || "-"}</TableCell>
+                          <TableCell className={isLowStock ? "text-destructive font-semibold" : ""}>
+                            {product.quantity || 0}
+                            {isLowStock && " ⚠️"}
+                          </TableCell>
+                          <TableCell>${(product.cost || 0).toFixed(2)}</TableCell>
+                          <TableCell>${(product.price || 0).toFixed(2)}</TableCell>
+                          <TableCell>{margin}%</TableCell>
+                          <TableCell>${stockValue}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              product.is_active 
+                                ? "bg-green-100 text-green-800" 
+                                : "bg-red-100 text-red-800"
+                            }`}>
+                              {product.is_active ? "Actif" : "Inactif"}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  Aucun produit trouvé
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="clients" className="space-y-4">
