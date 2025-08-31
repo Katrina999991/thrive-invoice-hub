@@ -95,15 +95,15 @@ const Reports = () => {
   // Filter to show only physical products (exclude services)
   const products = useMemo(() => {
     return allProducts?.filter(product => {
-      // Exclude services based on common patterns
+      // More precise filtering - exclude services based on category and unit
       const isService = 
+        product.category?.toLowerCase().includes('design') ||
         product.category?.toLowerCase().includes('service') ||
         product.category?.toLowerCase().includes('consultation') ||
         product.category?.toLowerCase().includes('formation') ||
         product.unit?.toLowerCase().includes('heure') ||
         product.unit?.toLowerCase().includes('hour') ||
-        product.unit?.toLowerCase().includes('session') ||
-        (product.quantity === null && product.unit?.toLowerCase() === 'piece');
+        product.unit?.toLowerCase().includes('session');
       
       return !isService;
     }) || [];
@@ -2083,13 +2083,16 @@ const Reports = () => {
               {products && products.length > 0 ? (
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={products.map(p => ({
-                      name: p.name,
-                      quantity: p.quantity || 0,
-                      cost: p.cost || 0,
-                      price: p.price || 0,
-                      isLowStock: (p.quantity || 0) <= 5
-                    }))}>
+                    <BarChart 
+                      data={products.map(p => ({
+                        name: p.name,
+                        quantity: p.quantity || 0,
+                        cost: p.cost || 0,
+                        price: p.price || 0,
+                        isLowStock: (p.quantity || 0) <= 5
+                      }))}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
                         dataKey="name" 
@@ -2097,9 +2100,13 @@ const Reports = () => {
                         textAnchor="end"
                         height={100}
                         interval={0}
+                        fontSize={12}
                       />
                       <YAxis />
-                      <Tooltip />
+                      <Tooltip 
+                        formatter={(value: any, name: string) => [value, name === 'quantity' ? 'Quantité' : name]}
+                        labelFormatter={(label) => `Produit: ${label}`}
+                      />
                       <Bar 
                         dataKey="quantity" 
                         fill="#3b82f6"
