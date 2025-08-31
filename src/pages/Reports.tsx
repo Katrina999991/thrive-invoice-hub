@@ -122,18 +122,25 @@ const Reports = () => {
     
     // Filter by company if specified
     if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
-      // Get invoices for this company to filter products sold to this company
+      // Get invoices for this company
       const companyInvoices = invoices.filter((invoice: any) => 
         invoice.clients?.company_id === productSelectedCompanyId && invoice.status === 'paid'
       );
-      const companyInvoiceIds = new Set(companyInvoices.map(inv => inv.id));
       
-      // We need to recalculate profit data for this specific company
-      // For now, let's just filter the existing data (this is simplified)
+      if (companyInvoices.length === 0) {
+        // No invoices for this company, return empty data
+        return {
+          ...profitData,
+          products: []
+        };
+      }
+      
+      // Filter products to only show those sold to the selected company
       filteredProducts = filteredProducts.filter(product => {
-        // This is a simplified filter - in a real scenario we'd need to recalculate the profit data
-        // based on sales to the specific company only
-        return true; // Keep all products for now
+        // Check if this product was sold in any invoice to this company
+        return companyInvoices.some((invoice: any) => 
+          invoice.invoice_items?.some((item: any) => item.product_id === product.product_id)
+        );
       });
     }
     
