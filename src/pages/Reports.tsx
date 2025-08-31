@@ -118,7 +118,6 @@ const Reports = () => {
     if (!profitData) return null;
     
     const productIds = new Set(products.map(p => p.id));
-    let filteredProducts = profitData.products.filter(p => productIds.has(p.product_id));
     
     // Filter by company if specified
     if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
@@ -138,16 +137,74 @@ const Reports = () => {
         };
       }
       
-      // Filter products to only show those sold to the selected company
-      filteredProducts = filteredProducts.filter(product => {
-        // Check if this product was sold in any invoice to this company
-        return companyInvoices.some((invoice: any) => 
-          invoice.invoice_items?.some((item: any) => item.product_id === product.product_id)
-        );
+      // Recalculate profit data for this specific company only
+      const companyProductData = new Map<string, {
+        product_name: string;
+        total_quantity_sold: number;
+        total_revenue: number;
+        total_cost: number;
+      }>();
+      
+      // Process invoices for this company
+      companyInvoices.forEach((invoice: any) => {
+        invoice.invoice_items?.forEach((item: any) => {
+          if (!productIds.has(item.product_id)) return;
+          
+          const product = products.find(p => p.id === item.product_id);
+          if (!product) return;
+          
+          const revenue = Number(item.total) || 0;
+          const quantity = Number(item.quantity) || 0;
+          const cost = (Number(product.cost) || 0) * quantity;
+          
+          if (companyProductData.has(item.product_id)) {
+            const existing = companyProductData.get(item.product_id)!;
+            companyProductData.set(item.product_id, {
+              product_name: existing.product_name,
+              total_quantity_sold: existing.total_quantity_sold + quantity,
+              total_revenue: existing.total_revenue + revenue,
+              total_cost: existing.total_cost + cost
+            });
+          } else {
+            companyProductData.set(item.product_id, {
+              product_name: product.name,
+              total_quantity_sold: quantity,
+              total_revenue: revenue,
+              total_cost: cost
+            });
+          }
+        });
       });
+      
+      // Convert to ProductProfitData format
+      const filteredProducts = Array.from(companyProductData.entries()).map(([productId, data]) => ({
+        product_id: productId,
+        product_name: data.product_name,
+        total_quantity_sold: data.total_quantity_sold,
+        total_revenue: data.total_revenue,
+        total_cost: data.total_cost,
+        total_profit: data.total_revenue - data.total_cost,
+        profit_margin: data.total_revenue > 0 ? ((data.total_revenue - data.total_cost) / data.total_revenue) * 100 : 0,
+        average_sale_price: data.total_quantity_sold > 0 ? data.total_revenue / data.total_quantity_sold : 0,
+        average_cost_price: data.total_quantity_sold > 0 ? data.total_cost / data.total_quantity_sold : 0
+      }));
+      
+      const totalProfit = filteredProducts.reduce((sum, product) => sum + product.total_profit, 0);
+      const totalRevenue = filteredProducts.reduce((sum, product) => sum + product.total_revenue, 0);
+      const totalCost = filteredProducts.reduce((sum, product) => sum + product.total_cost, 0);
+      const overallMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+      
+      return {
+        totalProfit,
+        totalRevenue,
+        totalCost,
+        overallMargin,
+        products: filteredProducts
+      };
     }
     
-    // Recalculate totals based on filtered products
+    // No company filter, just filter by physical products
+    const filteredProducts = profitData.products.filter(p => productIds.has(p.product_id));
     const totalProfit = filteredProducts.reduce((sum, product) => sum + product.total_profit, 0);
     const totalRevenue = filteredProducts.reduce((sum, product) => sum + product.total_revenue, 0);
     const totalCost = filteredProducts.reduce((sum, product) => sum + product.total_cost, 0);
