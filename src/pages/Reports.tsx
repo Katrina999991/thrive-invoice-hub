@@ -1989,14 +1989,14 @@ const Reports = () => {
                   Jusqu'au: {format(endDate, 'dd/MM/yyyy')}
                 </span>
               )}
-              {filterType === 'company' && selectedCompanyId && companies && (
+              {filterType === 'company' && selectedCompanyId && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
-                  Compagnie: {companies.find(c => c.id === selectedCompanyId)?.name || 'Inconnue'}
+                  Compagnie: {companies?.find(c => c.id === selectedCompanyId)?.name || selectedCompanyId}
                 </span>
               )}
-              {filterType === 'client' && selectedClientId && clients && (
+              {filterType === 'client' && selectedClientId && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
-                  Client: {clients.find(c => c.id === selectedClientId)?.name || 'Inconnu'}
+                  Client: {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
                 </span>
               )}
             </div>
