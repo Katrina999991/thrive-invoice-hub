@@ -3078,8 +3078,8 @@ const Reports = () => {
                 {/* Sales Chart */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Revenue by Product</CardTitle>
-                    <CardDescription>Sales performance analysis by product</CardDescription>
+                    <CardTitle>Revenue by Product and Services</CardTitle>
+                    <CardDescription>Sales performance analysis by product and services</CardDescription>
                   </CardHeader>
                   <CardContent ref={salesChartRef}>
                     <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
