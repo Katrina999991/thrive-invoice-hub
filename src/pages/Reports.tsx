@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useReports } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
+import { useSalesReport } from "@/hooks/useSalesReport";
 import { useProductProfit } from "@/hooks/useProductProfit";
 import { useExpenseReports } from "@/hooks/useExpenseReports";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -41,6 +42,7 @@ const Reports = () => {
   const expenseCompanyChartRef = useRef<HTMLDivElement>(null);
   const productProfitChartRef = useRef<HTMLDivElement>(null);
   const stockChartRef = useRef<HTMLDivElement>(null);
+  const salesChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -91,6 +93,7 @@ const Reports = () => {
     filterType === 'company' ? selectedCompanyId : selectedClientId
   );
   const { profitData, loading: profitLoading } = useProductProfit(customStartDate, customEndDate);
+  const { salesData, loading: salesLoading } = useSalesReport(customStartDate, customEndDate);
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
@@ -1689,6 +1692,172 @@ const Reports = () => {
     XLSX.writeFile(wb, filename);
   };
 
+  // Export functions for sales report
+  const exportSalesReportToPDF = async () => {
+    if (!salesData) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Sales Report', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    doc.setFontSize(12);
+    let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
+    if (customStartDate && customEndDate) {
+      dateRangeText = `Period: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+    }
+    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Summary', 20, 55);
+    doc.setFontSize(12);
+    doc.text(`Total Revenue: $${salesData.totalRevenue.toFixed(2)}`, 20, 70);
+    doc.text(`Total Quantity Sold: ${salesData.totalQuantitySold}`, 20, 80);
+    doc.text(`Number of Sales: ${salesData.totalNumberOfSales}`, 20, 90);
+    doc.text(`Unique Products Sold: ${salesData.uniqueProductsSold}`, 20, 100);
+    
+    let yPosition = 120;
+    
+    try {
+      // Capture Sales Chart
+      if (salesChartRef.current && salesData.products.length > 0) {
+        const chartCanvas = await html2canvas(salesChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const chartImgData = chartCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Sales by Product Chart', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
+        
+        // Check if we need a new page
+        if (yPosition + imgHeight > 280) {
+          doc.addPage();
+          yPosition = 20;
+          doc.setFontSize(14);
+          doc.text('Sales by Product Chart', 20, yPosition);
+          yPosition += 10;
+        }
+        
+        doc.addImage(chartImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+      
+      // Add data table on a new page
+      doc.addPage();
+      yPosition = 20;
+      
+      // Sales details table
+      if (salesData.products.length > 0) {
+        doc.setFontSize(14);
+        doc.text('Sales Details', 20, yPosition);
+        yPosition += 10;
+        
+        const salesTableData = salesData.products.map(product => [
+          product.product_name,
+          product.total_quantity_sold.toString(),
+          '$' + product.total_revenue.toFixed(2),
+          product.number_of_sales.toString(),
+          '$' + product.average_sale_price.toFixed(2),
+          format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
+          format(new Date(product.last_sale_date), 'dd/MM/yyyy')
+        ]);
+        
+        autoTable(doc, {
+          head: [['Product', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
+          body: salesTableData,
+          startY: yPosition,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [34, 197, 94] },
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error capturing sales chart:', error);
+      // Fallback to table only if chart capture fails
+      doc.addPage();
+      yPosition = 20;
+      
+      doc.setFontSize(14);
+      doc.text('Note: Chart could not be captured, showing data table only', 20, yPosition);
+      yPosition += 20;
+      
+      // Add table as fallback
+      if (salesData.products.length > 0) {
+        const salesTableData = salesData.products.map(product => [
+          product.product_name,
+          product.total_quantity_sold.toString(),
+          '$' + product.total_revenue.toFixed(2),
+          product.number_of_sales.toString(),
+          '$' + product.average_sale_price.toFixed(2),
+          format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
+          format(new Date(product.last_sale_date), 'dd/MM/yyyy')
+        ]);
+        
+        autoTable(doc, {
+          head: [['Product', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
+          body: salesTableData,
+          startY: yPosition,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [34, 197, 94] },
+        });
+      }
+    }
+    
+    const filename = `sales-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportSalesReportToExcel = () => {
+    if (!salesData) return;
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const summaryData = [
+      ['Sales Report'],
+      [''],
+      ['Date Range:', customStartDate && customEndDate ? `${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}` : 'All Time'],
+      [''],
+      ['Total Revenue:', salesData.totalRevenue],
+      ['Total Quantity Sold:', salesData.totalQuantitySold],
+      ['Number of Sales:', salesData.totalNumberOfSales],
+      ['Unique Products Sold:', salesData.uniqueProductsSold]
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    
+    // Sales details sheet
+    const salesData_export = [
+      ['Product', 'Quantity Sold', 'Revenue', 'Sales Count', 'Average Price', 'First Sale Date', 'Last Sale Date'],
+      ...salesData.products.map(product => [
+        product.product_name,
+        product.total_quantity_sold,
+        product.total_revenue,
+        product.number_of_sales,
+        product.average_sale_price,
+        product.first_sale_date,
+        product.last_sale_date
+      ])
+    ];
+    
+    const salesWS = XLSX.utils.aoa_to_sheet(salesData_export);
+    XLSX.utils.book_append_sheet(wb, salesWS, 'Sales Details');
+    
+    const filename = `sales-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredInvoices = useMemo(() => {
     if (!invoices || (!startDate && !endDate)) return [];
     
@@ -2818,6 +2987,176 @@ const Reports = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Sales Report Section */}
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <h2 className="text-2xl font-bold">Sales Report</h2>
+              <p className="text-muted-foreground">Sales analysis and performance by product</p>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button onClick={exportSalesReportToPDF} variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button onClick={exportSalesReportToExcel} variant="outline" size="sm">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Date Filters</CardTitle>
+                <CardDescription>Select a period to analyze sales</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <DateRangePicker
+                  startDate={customStartDate}
+                  endDate={customEndDate}
+                  onStartDateChange={setCustomStartDate}
+                  onEndDateChange={setCustomEndDate}
+                />
+              </CardContent>
+            </Card>
+
+            {salesLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">Loading sales data...</div>
+                </CardContent>
+              </Card>
+            ) : salesData ? (
+              <div className="space-y-4">
+                {/* Sales Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(salesData.totalRevenue)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Quantity Sold</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {salesData.totalQuantitySold.toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Number of Sales</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {salesData.totalNumberOfSales.toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Products Sold</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {salesData.uniqueProductsSold}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Sales Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Revenue by Product</CardTitle>
+                    <CardDescription>Sales performance analysis by product</CardDescription>
+                  </CardHeader>
+                  <CardContent ref={salesChartRef}>
+                    <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="product_name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value: any, name: string) => [
+                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                          name === "total_revenue" ? "Revenue" : 
+                          name === "total_quantity_sold" ? "Quantity Sold" : name
+                        ]}
+                      />
+                      <Bar dataKey="total_revenue" fill="#22c55e" name="Revenue" />
+                    </BarChart>
+                  </CardContent>
+                </Card>
+
+                {/* Sales Details Table */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sales Details</CardTitle>
+                    <CardDescription>Detailed sales information for each product</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead className="text-right">Qty Sold</TableHead>
+                          <TableHead className="text-right">Revenue</TableHead>
+                          <TableHead className="text-right">Sales Count</TableHead>
+                          <TableHead className="text-right">Avg Price</TableHead>
+                          <TableHead className="text-right">First Sale</TableHead>
+                          <TableHead className="text-right">Last Sale</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {salesData.products.map((product) => (
+                          <TableRow key={product.product_id}>
+                            <TableCell className="font-medium">{product.product_name}</TableCell>
+                            <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.total_revenue)}
+                            </TableCell>
+                            <TableCell className="text-right">{product.number_of_sales}</TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.average_sale_price)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {format(new Date(product.first_sale_date), 'MMM dd, yyyy')}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {format(new Date(product.last_sale_date), 'MMM dd, yyyy')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    No sales data available for the selected period.
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-4">
