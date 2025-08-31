@@ -39,6 +39,7 @@ const Reports = () => {
   const lineChartRef = useRef<HTMLDivElement>(null);
   const expenseCategoryChartRef = useRef<HTMLDivElement>(null);
   const expenseCompanyChartRef = useRef<HTMLDivElement>(null);
+  const productProfitChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -1483,6 +1484,178 @@ const Reports = () => {
     XLSX.writeFile(wb, filename);
   };
 
+  // Export functions for product profits
+  const exportProductProfitToPDF = async () => {
+    if (!filteredProfitData) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Product Profit Report', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    doc.setFontSize(12);
+    let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
+    if (customStartDate && customEndDate) {
+      dateRangeText = `Period: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+    }
+    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Summary', 20, 55);
+    doc.setFontSize(12);
+    doc.text(`Total Profit: $${filteredProfitData.totalProfit.toFixed(2)}`, 20, 70);
+    doc.text(`Total Revenue: $${filteredProfitData.totalRevenue.toFixed(2)}`, 20, 80);
+    doc.text(`Total Cost: $${filteredProfitData.totalCost.toFixed(2)}`, 20, 90);
+    doc.text(`Overall Margin: ${filteredProfitData.overallMargin.toFixed(1)}%`, 20, 100);
+    
+    let yPosition = 120;
+    
+    try {
+      // Capture Product Profit Chart
+      if (productProfitChartRef.current && filteredProfitData.products.length > 0) {
+        const chartCanvas = await html2canvas(productProfitChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const chartImgData = chartCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Profit by Product Chart', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
+        
+        // Check if we need a new page
+        if (yPosition + imgHeight > 280) {
+          doc.addPage();
+          yPosition = 20;
+          doc.setFontSize(14);
+          doc.text('Profit by Product Chart', 20, yPosition);
+          yPosition += 10;
+        }
+        
+        doc.addImage(chartImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+      
+      // Add data table on a new page
+      doc.addPage();
+      yPosition = 20;
+      
+      // Product details table
+      if (filteredProfitData.products.length > 0) {
+        doc.setFontSize(14);
+        doc.text('Product Details', 20, yPosition);
+        yPosition += 10;
+        
+        const productTableData = filteredProfitData.products.map(product => [
+          product.product_name,
+          product.total_quantity_sold.toString(),
+          '$' + product.total_revenue.toFixed(2),
+          '$' + product.total_cost.toFixed(2),
+          '$' + product.total_profit.toFixed(2),
+          product.profit_margin.toFixed(1) + '%',
+          '$' + product.average_sale_price.toFixed(2)
+        ]);
+        
+        autoTable(doc, {
+          head: [['Product', 'Qty Sold', 'Revenue', 'Cost', 'Profit', 'Margin %', 'Avg Price']],
+          body: productTableData,
+          startY: yPosition,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [34, 197, 94] },
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error capturing product chart:', error);
+      // Fallback to table only if chart capture fails
+      doc.addPage();
+      yPosition = 20;
+      
+      doc.setFontSize(14);
+      doc.text('Note: Chart could not be captured, showing data table only', 20, yPosition);
+      yPosition += 20;
+      
+      // Add table as fallback
+      if (filteredProfitData.products.length > 0) {
+        const productTableData = filteredProfitData.products.map(product => [
+          product.product_name,
+          product.total_quantity_sold.toString(),
+          '$' + product.total_revenue.toFixed(2),
+          '$' + product.total_cost.toFixed(2),
+          '$' + product.total_profit.toFixed(2),
+          product.profit_margin.toFixed(1) + '%',
+          '$' + product.average_sale_price.toFixed(2)
+        ]);
+        
+        autoTable(doc, {
+          head: [['Product', 'Qty Sold', 'Revenue', 'Cost', 'Profit', 'Margin %', 'Avg Price']],
+          body: productTableData,
+          startY: yPosition,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [34, 197, 94] },
+        });
+      }
+    }
+    
+    const filename = `product-profit-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportProductProfitToExcel = () => {
+    if (!filteredProfitData) return;
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const summaryData = [
+      ['Product Profit Report'],
+      [''],
+      ['Date generated:', format(new Date(), 'dd/MM/yyyy')],
+      ...(customStartDate && customEndDate ? [['Period:', `${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`]] : []),
+      [''],
+      ['Total Profit:', filteredProfitData.totalProfit],
+      ['Total Revenue:', filteredProfitData.totalRevenue],
+      ['Total Cost:', filteredProfitData.totalCost],
+      ['Overall Margin (%):', filteredProfitData.overallMargin],
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    
+    // Product details sheet
+    if (filteredProfitData.products.length > 0) {
+      const productData = [
+        ['Product Profit Details'],
+        [''],
+        ['Product', 'Qty Sold', 'Revenue', 'Cost', 'Profit', 'Margin %', 'Avg Sale Price', 'Avg Cost Price'],
+        ...filteredProfitData.products.map(product => [
+          product.product_name,
+          product.total_quantity_sold,
+          product.total_revenue,
+          product.total_cost,
+          product.total_profit,
+          product.profit_margin,
+          product.average_sale_price,
+          product.average_cost_price
+        ])
+      ];
+      
+      const productWS = XLSX.utils.aoa_to_sheet(productData);
+      XLSX.utils.book_append_sheet(wb, productWS, 'Product Details');
+    }
+    
+    const filename = `product-profit-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredInvoices = useMemo(() => {
     if (!invoices || (!startDate && !endDate)) return [];
     
@@ -2213,6 +2386,17 @@ const Reports = () => {
               <h2 className="text-2xl font-bold">Product Profit Report</h2>
               <p className="text-muted-foreground">Profitability analysis by sold product</p>
             </div>
+            
+            <div className="flex space-x-2">
+              <Button onClick={exportProductProfitToPDF} variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button onClick={exportProductProfitToExcel} variant="outline" size="sm">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -2333,7 +2517,7 @@ const Reports = () => {
                     <CardTitle>Profit by Product</CardTitle>
                     <CardDescription>Comparative analysis of profits generated by each product</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent ref={productProfitChartRef}>
                     <BarChart width={600} height={400} data={filteredProfitData.products.slice(0, 10)}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
