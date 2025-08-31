@@ -1238,6 +1238,151 @@ const Reports = () => {
     XLSX.writeFile(wb, filename);
   };
 
+  // Export functions for expenses
+  const exportExpensesToPDF = async () => {
+    if (!expenseReportData) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text('Expense Report', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    doc.setFontSize(12);
+    let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
+    if (expenseStartDate && expenseEndDate) {
+      dateRangeText = `Period: ${format(expenseStartDate, 'dd/MM/yyyy')} - ${format(expenseEndDate, 'dd/MM/yyyy')}`;
+    }
+    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.text('Summary', 20, 55);
+    doc.setFontSize(12);
+    doc.text(`Total Expenses: $${expenseReportData.totalExpenses.toFixed(2)}`, 20, 70);
+    doc.text(`Paid Expenses: $${expenseReportData.totalPaidExpenses.toFixed(2)}`, 20, 80);
+    doc.text(`Unpaid Expenses: $${expenseReportData.totalUnpaidExpenses.toFixed(2)}`, 20, 90);
+    
+    let yPosition = 110;
+    
+    // Expenses by Category table
+    if (expenseReportData.expensesByCategory.length > 0) {
+      doc.setFontSize(14);
+      doc.text('Expenses by Category', 20, yPosition);
+      yPosition += 10;
+      
+      const categoryTableData = expenseReportData.expensesByCategory.map(category => [
+        category.category,
+        category.count.toString(),
+        '$' + category.total_amount.toFixed(2),
+        '$' + (category.total_amount / category.count).toFixed(2)
+      ]);
+      
+      autoTable(doc, {
+        head: [['Category', 'Count', 'Total Amount', 'Average Amount']],
+        body: categoryTableData,
+        startY: yPosition,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [239, 68, 68] },
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY + 20;
+    }
+    
+    // Expenses by Company table
+    if (expenseReportData.expensesByCompany.length > 0) {
+      // Check if we need a new page
+      if (yPosition > 220) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.text('Expenses by Company', 20, yPosition);
+      yPosition += 10;
+      
+      const companyTableData = expenseReportData.expensesByCompany.map(company => [
+        company.company_name,
+        company.count.toString(),
+        '$' + company.total_amount.toFixed(2),
+        '$' + (company.total_amount / company.count).toFixed(2)
+      ]);
+      
+      autoTable(doc, {
+        head: [['Company', 'Count', 'Total Amount', 'Average Amount']],
+        body: companyTableData,
+        startY: yPosition,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [59, 130, 246] },
+      });
+    }
+    
+    const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportExpensesToExcel = () => {
+    if (!expenseReportData) return;
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Summary sheet
+    const summaryData = [
+      ['Expense Report'],
+      [''],
+      ['Date generated:', format(new Date(), 'dd/MM/yyyy')],
+      ...(expenseStartDate && expenseEndDate ? [['Period:', `${format(expenseStartDate, 'dd/MM/yyyy')} - ${format(expenseEndDate, 'dd/MM/yyyy')}`]] : []),
+      [''],
+      ['Total Expenses:', expenseReportData.totalExpenses],
+      ['Paid Expenses:', expenseReportData.totalPaidExpenses],
+      ['Unpaid Expenses:', expenseReportData.totalUnpaidExpenses],
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    
+    // Expenses by Category sheet
+    if (expenseReportData.expensesByCategory.length > 0) {
+      const categoryData = [
+        ['Expenses by Category'],
+        [''],
+        ['Category', 'Count', 'Total Amount', 'Average Amount'],
+        ...expenseReportData.expensesByCategory.map(category => [
+          category.category,
+          category.count,
+          category.total_amount,
+          category.total_amount / category.count
+        ])
+      ];
+      
+      const categoryWS = XLSX.utils.aoa_to_sheet(categoryData);
+      XLSX.utils.book_append_sheet(wb, categoryWS, 'By Category');
+    }
+    
+    // Expenses by Company sheet
+    if (expenseReportData.expensesByCompany.length > 0) {
+      const companyData = [
+        ['Expenses by Company'],
+        [''],
+        ['Company', 'Count', 'Total Amount', 'Average Amount'],
+        ...expenseReportData.expensesByCompany.map(company => [
+          company.company_name,
+          company.count,
+          company.total_amount,
+          company.total_amount / company.count
+        ])
+      ];
+      
+      const companyWS = XLSX.utils.aoa_to_sheet(companyData);
+      XLSX.utils.book_append_sheet(wb, companyWS, 'By Company');
+    }
+    
+    const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredInvoices = useMemo(() => {
     if (!invoices || (!startDate && !endDate)) return [];
     
@@ -2364,6 +2509,17 @@ const Reports = () => {
               <div>
                 <h2 className="text-2xl font-bold">Rapport des dépenses</h2>
                 <p className="text-muted-foreground">Analyse des dépenses par compagnie et catégorie</p>
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button onClick={exportExpensesToPDF} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button onClick={exportExpensesToExcel} variant="outline" size="sm">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
               </div>
             </div>
 
