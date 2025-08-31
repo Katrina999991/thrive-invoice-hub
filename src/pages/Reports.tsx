@@ -90,7 +90,24 @@ const Reports = () => {
   const { companies } = useCompanies();
   const { clients } = useClients();
   const { data: dashboardData } = useDashboard();
-  const { products } = useProducts();
+  const { products: allProducts } = useProducts();
+  
+  // Filter to show only physical products (exclude services)
+  const products = useMemo(() => {
+    return allProducts?.filter(product => {
+      // Exclude services based on common patterns
+      const isService = 
+        product.category?.toLowerCase().includes('service') ||
+        product.category?.toLowerCase().includes('consultation') ||
+        product.category?.toLowerCase().includes('formation') ||
+        product.unit?.toLowerCase().includes('heure') ||
+        product.unit?.toLowerCase().includes('hour') ||
+        product.unit?.toLowerCase().includes('session') ||
+        (product.quantity === null && product.unit?.toLowerCase() === 'piece');
+      
+      return !isService;
+    }) || [];
+  }, [allProducts]);
   
   // États pour le rapport de taxes
   const [taxDateFilter, setTaxDateFilter] = useState<'custom' | 'month' | 'year'>('custom');
