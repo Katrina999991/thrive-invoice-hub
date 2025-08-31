@@ -2081,16 +2081,10 @@ const Reports = () => {
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
-                <ChartContainer
-                  config={{
-                    quantity: {
-                      label: "Quantité",
-                      color: "hsl(var(--chart-1))",
-                    },
-                  }}
-                  className="h-80"
-                >
+                <div className="w-full overflow-x-auto">
                   <BarChart 
+                    width={800} 
+                    height={400}
                     data={products.map(p => ({
                       name: p.name,
                       quantity: p.quantity || 0,
@@ -2110,16 +2104,17 @@ const Reports = () => {
                       fontSize={12}
                     />
                     <YAxis />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
+                    <Tooltip 
+                      formatter={(value) => [`${value}`, 'Quantité']}
+                      labelFormatter={(label) => `Produit: ${label}`}
                     />
                     <Bar 
                       dataKey="quantity" 
-                      fill="var(--color-quantity)"
+                      fill="#22c55e"
                       name="Quantité"
                     />
                   </BarChart>
-                </ChartContainer>
+                </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
                   Aucun produit trouvé
