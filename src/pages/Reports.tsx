@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Download, FileSpreadsheet, CalendarIcon } from "lucide-react";
+import { Download, FileSpreadsheet, CalendarIcon, Package, CheckCircle, AlertTriangle, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -1701,7 +1701,8 @@ const Reports = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="profits">Profits</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
@@ -2379,8 +2380,7 @@ const Reports = () => {
         </TabsContent>
 
 
-        <TabsContent value="products" className="space-y-4">
-          {/* Product Profit Report Section */}
+        <TabsContent value="profits" className="space-y-4">
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
               <h2 className="text-2xl font-bold">Product Profit Report</h2>
@@ -2785,6 +2785,153 @@ const Reports = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="inventory" className="space-y-4">
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <h2 className="text-2xl font-bold">Inventory & Stock Report</h2>
+              <p className="text-muted-foreground">Stock levels, valuations and product management</p>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button onClick={exportProductsToPDF} variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button onClick={exportProductsToExcel} variant="outline" size="sm">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Inventory Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{products?.length || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{products?.filter(p => p.is_active).length || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Low Stock Alerts</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {products?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Inventory Value</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(
+                      products?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0) || 0
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Products Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Inventory Details</CardTitle>
+                <CardDescription>Complete overview of your product stock and values</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {products && products.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2 font-medium">Product Name</th>
+                          <th className="text-left p-2 font-medium">SKU</th>
+                          <th className="text-left p-2 font-medium">Category</th>
+                          <th className="text-right p-2 font-medium">Quantity</th>
+                          <th className="text-right p-2 font-medium">Cost</th>
+                          <th className="text-right p-2 font-medium">Price</th>
+                          <th className="text-right p-2 font-medium">Margin</th>
+                          <th className="text-right p-2 font-medium">Stock Value</th>
+                          <th className="text-center p-2 font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.map((product) => {
+                          const margin = product.price && product.cost ? 
+                            ((product.price - product.cost) / product.price * 100) : 0;
+                          const stockValue = (product.quantity || 0) * (product.cost || 0);
+                          const isLowStock = (product.quantity || 0) <= 5 && product.is_active;
+                          
+                          return (
+                            <tr key={product.id} className="border-b hover:bg-muted/50">
+                              <td className="p-2">{product.name}</td>
+                              <td className="p-2 text-muted-foreground">{product.sku || '-'}</td>
+                              <td className="p-2 text-muted-foreground">{product.category || '-'}</td>
+                              <td className={`p-2 text-right ${isLowStock ? 'text-orange-600 font-semibold' : ''}`}>
+                                {product.quantity || 0}
+                                {isLowStock && <span className="ml-1">⚠️</span>}
+                              </td>
+                              <td className="p-2 text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.cost || 0)}
+                              </td>
+                              <td className="p-2 text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.price || 0)}
+                              </td>
+                              <td className="p-2 text-right">
+                                <span className={margin > 50 ? 'text-green-600' : margin > 20 ? 'text-blue-600' : 'text-orange-600'}>
+                                  {margin.toFixed(1)}%
+                                </span>
+                              </td>
+                              <td className="p-2 text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(stockValue)}
+                              </td>
+                              <td className="p-2 text-center">
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  product.is_active 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {product.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No products found. Create some products to see inventory data.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-4">
