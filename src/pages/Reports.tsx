@@ -2076,8 +2076,8 @@ const Reports = () => {
           {/* Stock Level Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Niveaux de Stock par Produit</CardTitle>
-              <CardDescription>Quantités disponibles pour chaque produit</CardDescription>
+              <CardTitle>Stock Levels by Product</CardTitle>
+              <CardDescription>Available quantities for each product</CardDescription>
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
