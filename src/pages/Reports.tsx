@@ -2486,27 +2486,28 @@ const Reports = () => {
                 {/* Graphique des dépenses par catégorie */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Dépenses par catégorie</CardTitle>
-                    <CardDescription>Répartition des montants par catégorie de dépense</CardDescription>
+                    <CardTitle>Expenses by Category</CardTitle>
+                    <CardDescription>Distribution of expense amounts by category</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <div className="h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={expenseReportData.expensesByCategory}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="category" />
-                            <YAxis />
-                            <Tooltip 
-                              formatter={(value: number) => [
-                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                                'Montant'
-                              ]}
-                            />
-                            <Bar dataKey="total_amount" fill="#ef4444" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="category" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value: number) => [
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                            'Amount'
+                          ]}
+                        />
+                        <Bar dataKey="total_amount" fill="#ef4444" />
+                      </BarChart>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         Aucune donnée de dépense disponible
@@ -2519,26 +2520,27 @@ const Reports = () => {
                 {expenseReportData.expensesByCompany.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Dépenses par compagnie</CardTitle>
-                      <CardDescription>Répartition des montants par compagnie cliente</CardDescription>
+                      <CardTitle>Expenses by Company</CardTitle>
+                      <CardDescription>Distribution of expense amounts by client company</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={expenseReportData.expensesByCompany}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="company_name" />
-                            <YAxis />
-                            <Tooltip 
-                              formatter={(value: number) => [
-                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                                'Montant'
-                              ]}
-                            />
-                            <Bar dataKey="total_amount" fill="#3b82f6" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="company_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value: number) => [
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                            'Amount'
+                          ]}
+                        />
+                        <Bar dataKey="total_amount" fill="#3b82f6" />
+                      </BarChart>
                     </CardContent>
                   </Card>
                 )}
@@ -2546,18 +2548,18 @@ const Reports = () => {
                 {/* Tableau détaillé des dépenses par catégorie */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Détail par catégorie</CardTitle>
-                    <CardDescription>Liste détaillée des dépenses par catégorie</CardDescription>
+                    <CardTitle>Detail by Category</CardTitle>
+                    <CardDescription>Detailed breakdown of expenses by category</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {expenseReportData.expensesByCategory.length > 0 ? (
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Catégorie</TableHead>
-                            <TableHead className="text-right">Nombre</TableHead>
-                            <TableHead className="text-right">Montant total</TableHead>
-                            <TableHead className="text-right">Montant moyen</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead className="text-right">Count</TableHead>
+                            <TableHead className="text-right">Total Amount</TableHead>
+                            <TableHead className="text-right">Average Amount</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -2577,7 +2579,7 @@ const Reports = () => {
                       </Table>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
-                        Aucune donnée de catégorie disponible
+                        No category data available
                       </div>
                     )}
                   </CardContent>
@@ -2587,17 +2589,17 @@ const Reports = () => {
                 {expenseReportData.expensesByCompany.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Détail par compagnie</CardTitle>
-                      <CardDescription>Liste détaillée des dépenses par compagnie cliente</CardDescription>
+                      <CardTitle>Detail by Company</CardTitle>
+                      <CardDescription>Detailed breakdown of expenses by client company</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Compagnie</TableHead>
-                            <TableHead className="text-right">Nombre</TableHead>
-                            <TableHead className="text-right">Montant total</TableHead>
-                            <TableHead className="text-right">Montant moyen</TableHead>
+                            <TableHead>Company</TableHead>
+                            <TableHead className="text-right">Count</TableHead>
+                            <TableHead className="text-right">Total Amount</TableHead>
+                            <TableHead className="text-right">Average Amount</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
