@@ -42,7 +42,8 @@ const Reports = () => {
   const expenseCompanyChartRef = useRef<HTMLDivElement>(null);
   const productProfitChartRef = useRef<HTMLDivElement>(null);
   const stockChartRef = useRef<HTMLDivElement>(null);
-  const salesChartRef = useRef<HTMLDivElement>(null);
+  const salesProductChartRef = useRef<HTMLDivElement>(null);
+  const salesServiceChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -1723,9 +1724,9 @@ const Reports = () => {
     let yPosition = 120;
     
     try {
-      // Capture Sales Chart
-      if (salesChartRef.current && salesData.products.length > 0) {
-        const chartCanvas = await html2canvas(salesChartRef.current, {
+      // Capture Sales Charts
+      if (salesProductChartRef.current && salesData.products.length > 0) {
+        const chartCanvas = await html2canvas(salesProductChartRef.current, {
           backgroundColor: '#ffffff',
           scale: 1,
           useCORS: true
@@ -1733,7 +1734,7 @@ const Reports = () => {
         const chartImgData = chartCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Sales by Product Chart', 20, yPosition);
+        doc.text('Revenue by Product Chart', 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -1744,7 +1745,7 @@ const Reports = () => {
           doc.addPage();
           yPosition = 20;
           doc.setFontSize(14);
-          doc.text('Sales by Product Chart', 20, yPosition);
+          doc.text('Revenue by Product Chart', 20, yPosition);
           yPosition += 10;
         }
         
@@ -1752,29 +1753,76 @@ const Reports = () => {
         yPosition += imgHeight + 20;
       }
       
+      // Capture Services Chart if it exists
+      if (salesServiceChartRef.current && salesData.services.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 200) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        const serviceChartCanvas = await html2canvas(salesServiceChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const serviceChartImgData = serviceChartCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Revenue by Service Chart', 20, yPosition);
+        yPosition += 10;
+        
+        const serviceImgWidth = pageWidth - 40;
+        const serviceImgHeight = (serviceChartCanvas.height * serviceImgWidth) / serviceChartCanvas.width;
+        
+        // Check if we need a new page for the service chart
+        if (yPosition + serviceImgHeight > 280) {
+          doc.addPage();
+          yPosition = 20;
+          doc.setFontSize(14);
+          doc.text('Revenue by Service Chart', 20, yPosition);
+          yPosition += 10;
+        }
+        
+        doc.addImage(serviceChartImgData, 'PNG', 20, yPosition, serviceImgWidth, serviceImgHeight);
+        yPosition += serviceImgHeight + 20;
+      }
+      
       // Add data table on a new page
       doc.addPage();
       yPosition = 20;
       
       // Sales details table
-      if (salesData.products.length > 0) {
+      if (salesData.products.length > 0 || salesData.services.length > 0) {
         doc.setFontSize(14);
         doc.text('Sales Details', 20, yPosition);
         yPosition += 10;
         
-        const salesTableData = salesData.products.map(product => [
-          product.product_name,
-          product.total_quantity_sold.toString(),
-          '$' + product.total_revenue.toFixed(2),
-          product.number_of_sales.toString(),
-          '$' + product.average_sale_price.toFixed(2),
-          format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
-          format(new Date(product.last_sale_date), 'dd/MM/yyyy')
-        ]);
+        // Combine products and services for the table
+        const combinedSalesData = [
+          ...salesData.products.map(product => [
+            product.product_name + ' (Product)',
+            product.total_quantity_sold.toString(),
+            '$' + product.total_revenue.toFixed(2),
+            product.number_of_sales.toString(),
+            '$' + product.average_sale_price.toFixed(2),
+            format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
+            format(new Date(product.last_sale_date), 'dd/MM/yyyy')
+          ]),
+          ...salesData.services.map(service => [
+            service.product_name + ' (Service)',
+            service.total_quantity_sold.toString(),
+            '$' + service.total_revenue.toFixed(2),
+            service.number_of_sales.toString(),
+            '$' + service.average_sale_price.toFixed(2),
+            format(new Date(service.first_sale_date), 'dd/MM/yyyy'),
+            format(new Date(service.last_sale_date), 'dd/MM/yyyy')
+          ])
+        ];
         
         autoTable(doc, {
-          head: [['Product', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
-          body: salesTableData,
+          head: [['Product/Service', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
+          body: combinedSalesData,
           startY: yPosition,
           styles: { fontSize: 8 },
           headStyles: { fillColor: [34, 197, 94] },
@@ -1792,20 +1840,32 @@ const Reports = () => {
       yPosition += 20;
       
       // Add table as fallback
-      if (salesData.products.length > 0) {
-        const salesTableData = salesData.products.map(product => [
-          product.product_name,
-          product.total_quantity_sold.toString(),
-          '$' + product.total_revenue.toFixed(2),
-          product.number_of_sales.toString(),
-          '$' + product.average_sale_price.toFixed(2),
-          format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
-          format(new Date(product.last_sale_date), 'dd/MM/yyyy')
-        ]);
+      if (salesData.products.length > 0 || salesData.services.length > 0) {
+        // Combine products and services for the fallback table
+        const combinedSalesData = [
+          ...salesData.products.map(product => [
+            product.product_name + ' (Product)',
+            product.total_quantity_sold.toString(),
+            '$' + product.total_revenue.toFixed(2),
+            product.number_of_sales.toString(),
+            '$' + product.average_sale_price.toFixed(2),
+            format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
+            format(new Date(product.last_sale_date), 'dd/MM/yyyy')
+          ]),
+          ...salesData.services.map(service => [
+            service.product_name + ' (Service)',
+            service.total_quantity_sold.toString(),
+            '$' + service.total_revenue.toFixed(2),
+            service.number_of_sales.toString(),
+            '$' + service.average_sale_price.toFixed(2),
+            format(new Date(service.first_sale_date), 'dd/MM/yyyy'),
+            format(new Date(service.last_sale_date), 'dd/MM/yyyy')
+          ])
+        ];
         
         autoTable(doc, {
-          head: [['Product', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
-          body: salesTableData,
+          head: [['Product/Service', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
+          body: combinedSalesData,
           startY: yPosition,
           styles: { fontSize: 8 },
           headStyles: { fillColor: [34, 197, 94] },
@@ -1839,15 +1899,26 @@ const Reports = () => {
     
     // Sales details sheet
     const salesData_export = [
-      ['Product', 'Quantity Sold', 'Revenue', 'Sales Count', 'Average Price', 'First Sale Date', 'Last Sale Date'],
+      ['Product/Service', 'Type', 'Quantity Sold', 'Revenue', 'Sales Count', 'Average Price', 'First Sale Date', 'Last Sale Date'],
       ...salesData.products.map(product => [
         product.product_name,
+        'Product',
         product.total_quantity_sold,
         product.total_revenue,
         product.number_of_sales,
         product.average_sale_price,
         product.first_sale_date,
         product.last_sale_date
+      ]),
+      ...salesData.services.map(service => [
+        service.product_name,
+        'Service',
+        service.total_quantity_sold,
+        service.total_revenue,
+        service.number_of_sales,
+        service.average_sale_price,
+        service.first_sale_date,
+        service.last_sale_date
       ])
     ];
     
@@ -3073,47 +3144,89 @@ const Reports = () => {
                       </div>
                     </CardContent>
                   </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Services Sold</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {salesData.uniqueServicesSold}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Sales Chart */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Revenue by Product and Services</CardTitle>
-                    <CardDescription>Sales performance analysis by product and services</CardDescription>
-                  </CardHeader>
-                  <CardContent ref={salesChartRef}>
-                    <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="product_name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                      />
-                      <YAxis />
-                      <Tooltip 
-                        formatter={(value: any, name: string) => [
-                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                          name === "total_revenue" ? "Revenue" : 
-                          name === "total_quantity_sold" ? "Quantity Sold" : name
-                        ]}
-                      />
-                      <Bar dataKey="total_revenue" fill="#22c55e" name="Revenue" />
-                    </BarChart>
-                  </CardContent>
-                </Card>
+                {/* Products Chart */}
+                {salesData.products.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Revenue by Product</CardTitle>
+                      <CardDescription>Sales performance analysis by physical products</CardDescription>
+                    </CardHeader>
+                    <CardContent ref={salesProductChartRef}>
+                      <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="product_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value: any, name: string) => [
+                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                            name === "total_revenue" ? "Revenue" : 
+                            name === "total_quantity_sold" ? "Quantity Sold" : name
+                          ]}
+                        />
+                        <Bar dataKey="total_revenue" fill="#22c55e" name="Revenue" />
+                      </BarChart>
+                    </CardContent>
+                  </Card>
+                )}
 
-                {/* Sales Details Table */}
+                {/* Services Chart */}
+                {salesData.services.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Revenue by Service</CardTitle>
+                      <CardDescription>Sales performance analysis by services</CardDescription>
+                    </CardHeader>
+                    <CardContent ref={salesServiceChartRef}>
+                      <BarChart width={600} height={400} data={salesData.services.slice(0, 10)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="product_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value: any, name: string) => [
+                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                            name === "total_revenue" ? "Revenue" : 
+                            name === "total_quantity_sold" ? "Quantity Sold" : name
+                          ]}
+                        />
+                        <Bar dataKey="total_revenue" fill="#3b82f6" name="Revenue" />
+                      </BarChart>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Combined Sales Details Table */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Sales Details</CardTitle>
-                    <CardDescription>Detailed sales information for each product</CardDescription>
+                    <CardDescription>Detailed sales information for products and services</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Product</TableHead>
+                          <TableHead>Product/Service</TableHead>
                           <TableHead className="text-right">Qty Sold</TableHead>
                           <TableHead className="text-right">Revenue</TableHead>
                           <TableHead className="text-right">Sales Count</TableHead>
@@ -3123,9 +3236,10 @@ const Reports = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
+                        {/* Products */}
                         {salesData.products.map((product) => (
                           <TableRow key={product.product_id}>
-                            <TableCell className="font-medium">{product.product_name}</TableCell>
+                            <TableCell className="font-medium">{product.product_name} <span className="text-xs text-muted-foreground">(Product)</span></TableCell>
                             <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
                             <TableCell className="text-right">
                               {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.total_revenue)}
@@ -3139,6 +3253,26 @@ const Reports = () => {
                             </TableCell>
                             <TableCell className="text-right">
                               {format(new Date(product.last_sale_date), 'MMM dd, yyyy')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {/* Services */}
+                        {salesData.services.map((service) => (
+                          <TableRow key={service.product_id}>
+                            <TableCell className="font-medium">{service.product_name} <span className="text-xs text-muted-foreground">(Service)</span></TableCell>
+                            <TableCell className="text-right">{service.total_quantity_sold}</TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(service.total_revenue)}
+                            </TableCell>
+                            <TableCell className="text-right">{service.number_of_sales}</TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(service.average_sale_price)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {format(new Date(service.first_sale_date), 'MMM dd, yyyy')}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {format(new Date(service.last_sale_date), 'MMM dd, yyyy')}
                             </TableCell>
                           </TableRow>
                         ))}

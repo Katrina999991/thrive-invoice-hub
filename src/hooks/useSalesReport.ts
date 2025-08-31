@@ -18,7 +18,9 @@ export interface SalesReportSummary {
   totalQuantitySold: number;
   totalNumberOfSales: number;
   uniqueProductsSold: number;
+  uniqueServicesSold: number;
   products: SalesReportData[];
+  services: SalesReportData[];
 }
 
 export const useSalesReport = (startDate?: Date, endDate?: Date) => {
@@ -84,7 +86,9 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
           totalQuantitySold: 0,
           totalNumberOfSales: 0,
           uniqueProductsSold: 0,
-          products: []
+          uniqueServicesSold: 0,
+          products: [],
+          services: []
         });
         return;
       }
@@ -96,7 +100,30 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
         total_revenue: number;
         number_of_sales: number;
         sale_dates: string[];
+        is_service: boolean;
       }>();
+
+      // Get all products to determine if they are services
+      const { data: allProducts } = await supabase
+        .from('products')
+        .select('id, name, category, unit')
+        .eq('user_id', user.id);
+
+      // Create a map for quick lookup of product type
+      const productTypeMap = new Map<string, boolean>();
+      allProducts?.forEach(product => {
+        // Determine if it's a service based on category and unit
+        const isService = 
+          product.category?.toLowerCase().includes('design') ||
+          product.category?.toLowerCase().includes('service') ||
+          product.category?.toLowerCase().includes('consultation') ||
+          product.category?.toLowerCase().includes('formation') ||
+          product.unit?.toLowerCase().includes('heure') ||
+          product.unit?.toLowerCase().includes('hour') ||
+          product.unit?.toLowerCase().includes('session');
+        
+        productTypeMap.set(product.id, isService);
+      });
 
       invoiceItems.forEach(item => {
         const productId = item.product_id;
@@ -104,6 +131,7 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
         const quantity = Number(item.quantity) || 0;
         const revenue = Number(item.total) || 0;
         const saleDate = (item.invoices as any)?.issue_date;
+        const isService = productTypeMap.get(productId) || false;
 
         if (productSalesMap.has(productId)) {
           const existing = productSalesMap.get(productId)!;
@@ -112,7 +140,8 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
             total_quantity_sold: existing.total_quantity_sold + quantity,
             total_revenue: existing.total_revenue + revenue,
             number_of_sales: existing.number_of_sales + 1,
-            sale_dates: [...existing.sale_dates, saleDate]
+            sale_dates: [...existing.sale_dates, saleDate],
+            is_service: isService
           });
         } else {
           productSalesMap.set(productId, {
@@ -120,13 +149,14 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
             total_quantity_sold: quantity,
             total_revenue: revenue,
             number_of_sales: 1,
-            sale_dates: [saleDate]
+            sale_dates: [saleDate],
+            is_service: isService
           });
         }
       });
 
-      // Convert to final format
-      const products: SalesReportData[] = Array.from(productSalesMap.entries()).map(([productId, data]) => {
+      // Convert to final format and separate products from services
+      const allItems: (SalesReportData & { is_service: boolean })[] = Array.from(productSalesMap.entries()).map(([productId, data]) => {
         const sortedDates = data.sale_dates.sort();
         return {
           product_id: productId,
@@ -136,21 +166,28 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
           number_of_sales: data.number_of_sales,
           average_sale_price: data.total_revenue / data.total_quantity_sold,
           first_sale_date: sortedDates[0],
-          last_sale_date: sortedDates[sortedDates.length - 1]
+          last_sale_date: sortedDates[sortedDates.length - 1],
+          is_service: data.is_service
         };
       });
 
+      // Separate products and services
+      const products = allItems.filter(item => !item.is_service).sort((a, b) => b.total_revenue - a.total_revenue);
+      const services = allItems.filter(item => item.is_service).sort((a, b) => b.total_revenue - a.total_revenue);
+
       // Calculate summary
-      const totalRevenue = products.reduce((sum, product) => sum + product.total_revenue, 0);
-      const totalQuantitySold = products.reduce((sum, product) => sum + product.total_quantity_sold, 0);
-      const totalNumberOfSales = products.reduce((sum, product) => sum + product.number_of_sales, 0);
+      const totalRevenue = allItems.reduce((sum, item) => sum + item.total_revenue, 0);
+      const totalQuantitySold = allItems.reduce((sum, item) => sum + item.total_quantity_sold, 0);
+      const totalNumberOfSales = allItems.reduce((sum, item) => sum + item.number_of_sales, 0);
 
       console.log('SalesReport - Final sales data:', {
         totalRevenue,
         totalQuantitySold,
         totalNumberOfSales,
         uniqueProductsSold: products.length,
-        productsCount: products.length
+        uniqueServicesSold: services.length,
+        productsCount: products.length,
+        servicesCount: services.length
       });
 
       setSalesData({
@@ -158,7 +195,9 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
         totalQuantitySold,
         totalNumberOfSales,
         uniqueProductsSold: products.length,
-        products: products.sort((a, b) => b.total_revenue - a.total_revenue)
+        uniqueServicesSold: services.length,
+        products: products,
+        services: services
       });
 
     } catch (err) {
