@@ -130,7 +130,10 @@ const Reports = () => {
       if (companyInvoices.length === 0) {
         // No invoices for this company, return empty data
         return {
-          ...profitData,
+          totalProfit: 0,
+          totalRevenue: 0,
+          totalCost: 0,
+          overallMargin: 0,
           products: []
         };
       }
@@ -144,8 +147,17 @@ const Reports = () => {
       });
     }
     
+    // Recalculate totals based on filtered products
+    const totalProfit = filteredProducts.reduce((sum, product) => sum + product.total_profit, 0);
+    const totalRevenue = filteredProducts.reduce((sum, product) => sum + product.total_revenue, 0);
+    const totalCost = filteredProducts.reduce((sum, product) => sum + product.total_cost, 0);
+    const overallMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+    
     return {
-      ...profitData,
+      totalProfit,
+      totalRevenue,
+      totalCost,
+      overallMargin,
       products: filteredProducts
     };
   }, [profitData, products, productFilterType, productSelectedCompanyId, invoices]);
