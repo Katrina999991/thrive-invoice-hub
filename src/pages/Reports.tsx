@@ -1970,53 +1970,62 @@ const Reports = () => {
         </p>
         
         {/* Active Filters Display */}
-        {(startDate || endDate || customStartDate || customEndDate || 
-          filterType !== 'all' || selectedCompanyId || selectedClientId || 
-          productFilterType !== 'all' || productSelectedCompanyId || 
-          expenseFilterType !== 'all' || expenseSelectedCompanyId || expenseSelectedCategory) && (
+        {(() => {
+          const hasDateFilters = startDate || endDate || customStartDate || customEndDate;
+          const hasCompanyFilters = (filterType === 'company' && selectedCompanyId) || 
+                                   (productFilterType === 'company' && productSelectedCompanyId) || 
+                                   (expenseFilterType === 'company' && expenseSelectedCompanyId);
+          const hasOtherFilters = (filterType === 'client' && selectedClientId) || 
+                                 expenseSelectedCategory;
+          
+          return hasDateFilters || hasCompanyFilters || hasOtherFilters;
+        })() && (
           <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
             <div className="flex flex-wrap gap-2">
-              {/* Dates pour section Revenue (utilise startDate/endDate calculés) */}
-              {(startDate && endDate) && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  Période: {format(startDate, 'dd/MM/yyyy')} - {format(endDate, 'dd/MM/yyyy')}
-                </span>
-              )}
-              {(startDate && !endDate) && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  À partir du: {format(startDate, 'dd/MM/yyyy')}
-                </span>
-              )}
-              {(!startDate && endDate) && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  Jusqu'au: {format(endDate, 'dd/MM/yyyy')}
-                </span>
-              )}
+              {/* Dates - Affichage unifié pour tous les rapports */}
+              {(() => {
+                const effectiveStartDate = startDate || customStartDate;
+                const effectiveEndDate = endDate || customEndDate;
+                
+                if (effectiveStartDate && effectiveEndDate) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      Période: {format(effectiveStartDate, 'dd/MM/yyyy')} - {format(effectiveEndDate, 'dd/MM/yyyy')}
+                    </span>
+                  );
+                } else if (effectiveStartDate) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      À partir du: {format(effectiveStartDate, 'dd/MM/yyyy')}
+                    </span>
+                  );
+                } else if (effectiveEndDate) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      Jusqu'au: {format(effectiveEndDate, 'dd/MM/yyyy')}
+                    </span>
+                  );
+                }
+                return null;
+              })()}
               
-              {/* Dates pour section Products (utilise customStartDate/customEndDate directement) */}
-              {(customStartDate && customEndDate && !startDate && !endDate) && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  Période: {format(customStartDate, 'dd/MM/yyyy')} - {format(customEndDate, 'dd/MM/yyyy')}
-                </span>
-              )}
-              {(customStartDate && !customEndDate && !startDate && !endDate) && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  À partir du: {format(customStartDate, 'dd/MM/yyyy')}
-                </span>
-              )}
-              {(!customStartDate && customEndDate && !startDate && !endDate) && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  Jusqu'au: {format(customEndDate, 'dd/MM/yyyy')}
-                </span>
-              )}
+              {/* Compagnies - Affichage unifié pour tous les rapports */}
+              {(() => {
+                const effectiveCompanyId = selectedCompanyId || productSelectedCompanyId || expenseSelectedCompanyId;
+                const companyName = companies?.find(c => c.id === effectiveCompanyId)?.name;
+                
+                if (effectiveCompanyId && companyName) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                      Compagnie: {companyName}
+                    </span>
+                  );
+                }
+                return null;
+              })()}
               
-              {/* Filtres généraux (Revenue, Overview) */}
-              {filterType === 'company' && selectedCompanyId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
-                  Compagnie: {companies?.find(c => c.id === selectedCompanyId)?.name || selectedCompanyId}
-                </span>
-              )}
+              {/* Autres filtres */}
               {filterType === 'client' && selectedClientId && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                   Client: {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
