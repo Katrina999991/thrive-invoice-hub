@@ -37,6 +37,8 @@ const Reports = () => {
   // Refs pour capturer les graphiques
   const barChartRef = useRef<HTMLDivElement>(null);
   const lineChartRef = useRef<HTMLDivElement>(null);
+  const expenseCategoryChartRef = useRef<HTMLDivElement>(null);
+  const expenseCompanyChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -1267,56 +1269,154 @@ const Reports = () => {
     
     let yPosition = 110;
     
-    // Expenses by Category table
-    if (expenseReportData.expensesByCategory.length > 0) {
-      doc.setFontSize(14);
-      doc.text('Expenses by Category', 20, yPosition);
-      yPosition += 10;
-      
-      const categoryTableData = expenseReportData.expensesByCategory.map(category => [
-        category.category,
-        category.count.toString(),
-        '$' + category.total_amount.toFixed(2),
-        '$' + (category.total_amount / category.count).toFixed(2)
-      ]);
-      
-      autoTable(doc, {
-        head: [['Category', 'Count', 'Total Amount', 'Average Amount']],
-        body: categoryTableData,
-        startY: yPosition,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [239, 68, 68] },
-      });
-      
-      yPosition = (doc as any).lastAutoTable.finalY + 20;
-    }
-    
-    // Expenses by Company table
-    if (expenseReportData.expensesByCompany.length > 0) {
-      // Check if we need a new page
-      if (yPosition > 220) {
-        doc.addPage();
-        yPosition = 20;
+    try {
+      // Capture Category Chart
+      if (expenseCategoryChartRef.current && expenseReportData.expensesByCategory.length > 0) {
+        const categoryCanvas = await html2canvas(expenseCategoryChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const categoryImgData = categoryCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Expenses by Category', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (categoryCanvas.height * imgWidth) / categoryCanvas.width;
+        
+        // Check if we need a new page
+        if (yPosition + imgHeight > 280) {
+          doc.addPage();
+          yPosition = 20;
+          doc.setFontSize(14);
+          doc.text('Expenses by Category', 20, yPosition);
+          yPosition += 10;
+        }
+        
+        doc.addImage(categoryImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
       }
       
+      // Capture Company Chart
+      if (expenseCompanyChartRef.current && expenseReportData.expensesByCompany.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 200) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        const companyCanvas = await html2canvas(expenseCompanyChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const companyImgData = companyCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Expenses by Company', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (companyCanvas.height * imgWidth) / companyCanvas.width;
+        
+        // Check if we need a new page
+        if (yPosition + imgHeight > 280) {
+          doc.addPage();
+          yPosition = 20;
+          doc.setFontSize(14);
+          doc.text('Expenses by Company', 20, yPosition);
+          yPosition += 10;
+        }
+        
+        doc.addImage(companyImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+      
+      // Add data tables on a new page
+      doc.addPage();
+      yPosition = 20;
+      
+      // Expenses by Category table
+      if (expenseReportData.expensesByCategory.length > 0) {
+        doc.setFontSize(14);
+        doc.text('Category Details', 20, yPosition);
+        yPosition += 10;
+        
+        const categoryTableData = expenseReportData.expensesByCategory.map(category => [
+          category.category,
+          category.count.toString(),
+          '$' + category.total_amount.toFixed(2),
+          '$' + (category.total_amount / category.count).toFixed(2)
+        ]);
+        
+        autoTable(doc, {
+          head: [['Category', 'Count', 'Total Amount', 'Average Amount']],
+          body: categoryTableData,
+          startY: yPosition,
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [239, 68, 68] },
+        });
+        
+        yPosition = (doc as any).lastAutoTable.finalY + 20;
+      }
+      
+      // Expenses by Company table
+      if (expenseReportData.expensesByCompany.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 220) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.text('Company Details', 20, yPosition);
+        yPosition += 10;
+        
+        const companyTableData = expenseReportData.expensesByCompany.map(company => [
+          company.company_name,
+          company.count.toString(),
+          '$' + company.total_amount.toFixed(2),
+          '$' + (company.total_amount / company.count).toFixed(2)
+        ]);
+        
+        autoTable(doc, {
+          head: [['Company', 'Count', 'Total Amount', 'Average Amount']],
+          body: companyTableData,
+          startY: yPosition,
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [59, 130, 246] },
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error capturing charts:', error);
+      // Fallback to tables only if chart capture fails
+      doc.addPage();
+      yPosition = 20;
+      
       doc.setFontSize(14);
-      doc.text('Expenses by Company', 20, yPosition);
-      yPosition += 10;
+      doc.text('Note: Charts could not be captured, showing data tables only', 20, yPosition);
+      yPosition += 20;
       
-      const companyTableData = expenseReportData.expensesByCompany.map(company => [
-        company.company_name,
-        company.count.toString(),
-        '$' + company.total_amount.toFixed(2),
-        '$' + (company.total_amount / company.count).toFixed(2)
-      ]);
-      
-      autoTable(doc, {
-        head: [['Company', 'Count', 'Total Amount', 'Average Amount']],
-        body: companyTableData,
-        startY: yPosition,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [59, 130, 246] },
-      });
+      // Add tables as fallback
+      if (expenseReportData.expensesByCategory.length > 0) {
+        const categoryTableData = expenseReportData.expensesByCategory.map(category => [
+          category.category,
+          category.count.toString(),
+          '$' + category.total_amount.toFixed(2),
+          '$' + (category.total_amount / category.count).toFixed(2)
+        ]);
+        
+        autoTable(doc, {
+          head: [['Category', 'Count', 'Total Amount', 'Average Amount']],
+          body: categoryTableData,
+          startY: yPosition,
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [239, 68, 68] },
+        });
+      }
     }
     
     const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
@@ -2645,7 +2745,7 @@ const Reports = () => {
                     <CardTitle>Expenses by Category</CardTitle>
                     <CardDescription>Distribution of expense amounts by category</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
                       <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -2679,7 +2779,7 @@ const Reports = () => {
                       <CardTitle>Expenses by Company</CardTitle>
                       <CardDescription>Distribution of expense amounts by client company</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent ref={expenseCompanyChartRef}>
                       <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
