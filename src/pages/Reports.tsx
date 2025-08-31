@@ -7,6 +7,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { useReports } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
 import { useProductProfit } from "@/hooks/useProductProfit";
+import { useExpenseReports } from "@/hooks/useExpenseReports";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
@@ -95,6 +96,20 @@ const Reports = () => {
   // États pour les filtres de la section Products
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
   const [productSelectedCompanyId, setProductSelectedCompanyId] = useState<string>('');
+  
+  // États pour les filtres de la section Expenses
+  const [expenseFilterType, setExpenseFilterType] = useState<'all' | 'company' | 'category'>('all');
+  const [expenseSelectedCompanyId, setExpenseSelectedCompanyId] = useState<string>('');
+  const [expenseSelectedCategory, setExpenseSelectedCategory] = useState<string>('');
+  const [expenseStartDate, setExpenseStartDate] = useState<Date | undefined>();
+  const [expenseEndDate, setExpenseEndDate] = useState<Date | undefined>();
+  
+  const { reportData: expenseReportData, loading: expenseLoading } = useExpenseReports(
+    expenseStartDate, 
+    expenseEndDate, 
+    expenseFilterType, 
+    expenseFilterType === 'company' ? expenseSelectedCompanyId : expenseSelectedCategory
+  );
   
   // Filter to show only physical products (exclude services)
   const products = useMemo(() => {
@@ -1269,6 +1284,7 @@ const Reports = () => {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
@@ -2340,6 +2356,279 @@ const Reports = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="expenses" className="space-y-4">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Rapport des dépenses</h2>
+                <p className="text-muted-foreground">Analyse des dépenses par compagnie et catégorie</p>
+              </div>
+            </div>
+
+            {/* Filtres pour les dépenses */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtres</CardTitle>
+                <CardDescription>Sélectionnez les critères pour filtrer les dépenses</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label>Plage de dates</Label>
+                    <DateRangePicker
+                      startDate={expenseStartDate}
+                      endDate={expenseEndDate}
+                      onStartDateChange={setExpenseStartDate}
+                      onEndDateChange={setExpenseEndDate}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Type de filtre</Label>
+                    <Select value={expenseFilterType} onValueChange={(value: 'all' | 'company' | 'category') => setExpenseFilterType(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le type de filtre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Toutes les dépenses</SelectItem>
+                        <SelectItem value="company">Par compagnie</SelectItem>
+                        <SelectItem value="category">Par catégorie</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {expenseFilterType === 'company' && (
+                    <div className="space-y-2">
+                      <Label>Compagnie</Label>
+                      <Select value={expenseSelectedCompanyId} onValueChange={setExpenseSelectedCompanyId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une compagnie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {companies?.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {expenseFilterType === 'category' && (
+                    <div className="space-y-2">
+                      <Label>Catégorie</Label>
+                      <Select value={expenseSelectedCategory} onValueChange={setExpenseSelectedCategory}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Office">Bureau</SelectItem>
+                          <SelectItem value="Travel">Voyage</SelectItem>
+                          <SelectItem value="Meals">Repas</SelectItem>
+                          <SelectItem value="Marketing">Marketing</SelectItem>
+                          <SelectItem value="Equipment">Équipement</SelectItem>
+                          <SelectItem value="Professional Services">Services professionnels</SelectItem>
+                          <SelectItem value="Utilities">Services publics</SelectItem>
+                          <SelectItem value="Other">Autre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {expenseLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">Loading expense data...</div>
+                </CardContent>
+              </Card>
+            ) : expenseReportData ? (
+              <div className="space-y-4">
+                {/* Résumé des dépenses */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Dépenses</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-600">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(expenseReportData.totalExpenses)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Dépenses Payées</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(expenseReportData.totalPaidExpenses)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Dépenses Impayées</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(expenseReportData.totalUnpaidExpenses)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Graphique des dépenses par catégorie */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Dépenses par catégorie</CardTitle>
+                    <CardDescription>Répartition des montants par catégorie de dépense</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {expenseReportData.expensesByCategory.length > 0 ? (
+                      <div className="h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={expenseReportData.expensesByCategory}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="category" />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value: number) => [
+                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                'Montant'
+                              ]}
+                            />
+                            <Bar dataKey="total_amount" fill="#ef4444" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="text-center text-muted-foreground py-8">
+                        Aucune donnée de dépense disponible
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Graphique des dépenses par compagnie */}
+                {expenseReportData.expensesByCompany.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Dépenses par compagnie</CardTitle>
+                      <CardDescription>Répartition des montants par compagnie cliente</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={expenseReportData.expensesByCompany}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="company_name" />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value: number) => [
+                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                'Montant'
+                              ]}
+                            />
+                            <Bar dataKey="total_amount" fill="#3b82f6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Tableau détaillé des dépenses par catégorie */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Détail par catégorie</CardTitle>
+                    <CardDescription>Liste détaillée des dépenses par catégorie</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {expenseReportData.expensesByCategory.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Catégorie</TableHead>
+                            <TableHead className="text-right">Nombre</TableHead>
+                            <TableHead className="text-right">Montant total</TableHead>
+                            <TableHead className="text-right">Montant moyen</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {expenseReportData.expensesByCategory.map((category) => (
+                            <TableRow key={category.category}>
+                              <TableCell className="font-medium">{category.category}</TableCell>
+                              <TableCell className="text-right">{category.count}</TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(category.total_amount)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(category.total_amount / category.count)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center text-muted-foreground py-8">
+                        Aucune donnée de catégorie disponible
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Tableau détaillé des dépenses par compagnie */}
+                {expenseReportData.expensesByCompany.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Détail par compagnie</CardTitle>
+                      <CardDescription>Liste détaillée des dépenses par compagnie cliente</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Compagnie</TableHead>
+                            <TableHead className="text-right">Nombre</TableHead>
+                            <TableHead className="text-right">Montant total</TableHead>
+                            <TableHead className="text-right">Montant moyen</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {expenseReportData.expensesByCompany.map((company) => (
+                            <TableRow key={company.company_id}>
+                              <TableCell className="font-medium">{company.company_name}</TableCell>
+                              <TableCell className="text-right">{company.count}</TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(company.total_amount)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(company.total_amount / company.count)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    Sélectionnez une plage de dates pour voir les données de dépenses
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="clients" className="space-y-4">
