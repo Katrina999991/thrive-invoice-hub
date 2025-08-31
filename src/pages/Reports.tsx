@@ -2081,40 +2081,45 @@ const Reports = () => {
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={products.map(p => ({
-                        name: p.name,
-                        quantity: p.quantity || 0,
-                        cost: p.cost || 0,
-                        price: p.price || 0,
-                        isLowStock: (p.quantity || 0) <= 5
-                      }))}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                        fontSize={12}
-                      />
-                      <YAxis />
-                      <Tooltip 
-                        formatter={(value: any, name: string) => [value, name === 'quantity' ? 'Quantité' : name]}
-                        labelFormatter={(label) => `Produit: ${label}`}
-                      />
-                      <Bar 
-                        dataKey="quantity" 
-                        fill="#3b82f6"
-                        name="Quantité"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ChartContainer
+                  config={{
+                    quantity: {
+                      label: "Quantité",
+                      color: "hsl(var(--chart-1))",
+                    },
+                  }}
+                  className="h-80"
+                >
+                  <BarChart 
+                    data={products.map(p => ({
+                      name: p.name,
+                      quantity: p.quantity || 0,
+                      cost: p.cost || 0,
+                      price: p.price || 0,
+                      isLowStock: (p.quantity || 0) <= 5
+                    }))}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      interval={0}
+                      fontSize={12}
+                    />
+                    <YAxis />
+                    <ChartTooltip 
+                      content={<ChartTooltipContent />}
+                    />
+                    <Bar 
+                      dataKey="quantity" 
+                      fill="var(--color-quantity)"
+                      name="Quantité"
+                    />
+                  </BarChart>
+                </ChartContainer>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
                   Aucun produit trouvé
