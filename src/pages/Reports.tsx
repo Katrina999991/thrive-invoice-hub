@@ -121,7 +121,7 @@ const Reports = () => {
     let filteredProducts = profitData.products.filter(p => productIds.has(p.product_id));
     
     // Filter by company if specified
-    if (productFilterType === 'company' && productSelectedCompanyId) {
+    if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
       // Get invoices for this company to filter products sold to this company
       const companyInvoices = invoices.filter((invoice: any) => 
         invoice.clients?.company_id === productSelectedCompanyId && invoice.status === 'paid'
