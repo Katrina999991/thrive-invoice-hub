@@ -40,6 +40,7 @@ const Reports = () => {
   const expenseCategoryChartRef = useRef<HTMLDivElement>(null);
   const expenseCompanyChartRef = useRef<HTMLDivElement>(null);
   const productProfitChartRef = useRef<HTMLDivElement>(null);
+  const stockChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -679,7 +680,7 @@ const Reports = () => {
   };
 
   // Export functions for products
-  const exportProductsToPDF = () => {
+  const exportProductsToPDF = async () => {
     if (!products || products.length === 0) return;
     
     const doc = new jsPDF();
@@ -687,7 +688,7 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text('Rapport de Stock et Ventes', pageWidth / 2, 20, { align: 'center' });
+    doc.text('Stock & Sales Report', pageWidth / 2, 20, { align: 'center' });
     
     // Summary
     doc.setFontSize(12);
@@ -696,11 +697,43 @@ const Reports = () => {
     const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
     const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
-    doc.text(`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 40);
-    doc.text(`Total des produits: ${totalProducts}`, 20, 50);
-    doc.text(`Produits actifs: ${activeProducts}`, 20, 60);
-    doc.text(`Alertes stock bas: ${lowStockProducts}`, 20, 70);
-    doc.text(`Valeur totale inventaire: $${totalInventoryValue.toFixed(2)}`, 20, 80);
+    doc.text(`Report date: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 40);
+    doc.text(`Total products: ${totalProducts}`, 20, 50);
+    doc.text(`Active products: ${activeProducts}`, 20, 60);
+    doc.text(`Low stock alerts: ${lowStockProducts}`, 20, 70);
+    doc.text(`Total inventory value: $${totalInventoryValue.toFixed(2)}`, 20, 80);
+    
+    let yPosition = 100;
+    
+    try {
+      // Capture Stock Chart
+      if (stockChartRef.current && products.length > 0) {
+        const chartCanvas = await html2canvas(stockChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true
+        });
+        const chartImgData = chartCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text('Stock Levels Chart', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
+        
+        doc.addImage(chartImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+        
+        // Check if we need a new page for the table
+        if (yPosition > 200) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      }
+    } catch (error) {
+      console.error('Error capturing stock chart:', error);
+    }
     
     // Products table
     const tableData = products.map(product => {
@@ -717,19 +750,19 @@ const Reports = () => {
         '$' + (product.price || 0).toFixed(2),
         margin,
         '$' + stockValue,
-        product.is_active ? 'Actif' : 'Inactif'
+        product.is_active ? 'Active' : 'Inactive'
       ];
     });
     
     autoTable(doc, {
-      head: [['Nom', 'SKU', 'Catégorie', 'Quantité', 'Coût', 'Prix', 'Marge', 'Valeur Stock', 'Statut']],
+      head: [['Name', 'SKU', 'Category', 'Quantity', 'Cost', 'Price', 'Margin', 'Stock Value', 'Status']],
       body: tableData,
-      startY: 100,
+      startY: yPosition,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [66, 139, 202] },
     });
     
-    const filename = `rapport-produits-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `stock-sales-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -745,21 +778,21 @@ const Reports = () => {
     const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
     const summaryData = [
-      ['Rapport de Stock et Ventes'],
+      ['Stock & Sales Report'],
       [''],
-      ['Date du rapport:', format(new Date(), 'dd/MM/yyyy')],
-      ['Total des produits:', totalProducts],
-      ['Produits actifs:', activeProducts],
-      ['Alertes stock bas:', lowStockProducts],
-      ['Valeur totale inventaire:', '$' + totalInventoryValue.toFixed(2)],
+      ['Report date:', format(new Date(), 'dd/MM/yyyy')],
+      ['Total products:', totalProducts],
+      ['Active products:', activeProducts],
+      ['Low stock alerts:', lowStockProducts],
+      ['Total inventory value:', '$' + totalInventoryValue.toFixed(2)],
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summaryWS, 'Résumé');
+    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
     
     // Products detail sheet
     const productsData = [
-      ['Nom', 'SKU', 'Catégorie', 'Quantité', 'Coût', 'Prix', 'Marge (%)', 'Valeur Stock', 'Statut'],
+      ['Name', 'SKU', 'Category', 'Quantity', 'Cost', 'Price', 'Margin (%)', 'Stock Value', 'Status'],
       ...products.map(product => {
         const margin = product.price && product.cost ? 
           ((product.price - product.cost) / product.price * 100).toFixed(1) : '0.0';
@@ -774,15 +807,15 @@ const Reports = () => {
           product.price || 0,
           parseFloat(margin),
           parseFloat(stockValue),
-          product.is_active ? 'Actif' : 'Inactif'
+          product.is_active ? 'Active' : 'Inactive'
         ];
       })
     ];
     
     const productsWS = XLSX.utils.aoa_to_sheet(productsData);
-    XLSX.utils.book_append_sheet(wb, productsWS, 'Détails Produits');
+    XLSX.utils.book_append_sheet(wb, productsWS, 'Product Details');
     
-    const filename = `rapport-produits-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `stock-sales-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
   
@@ -2600,8 +2633,8 @@ const Reports = () => {
           {/* Stock and Sales Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold">Stock & Sales Report</h2>
-              <p className="text-muted-foreground">Stock analysis and sales per product</p>
+              <h2 className="text-2xl font-bold">Inventory & Sales Report</h2>
+              <p className="text-muted-foreground">Inventory analysis and sales per product</p>
             </div>
             <div className="flex space-x-2">
               <Button 
@@ -2631,7 +2664,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{products?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">produits dans l'inventaire</p>
+                <p className="text-xs text-muted-foreground">products in inventory</p>
               </CardContent>
             </Card>
             
@@ -2643,7 +2676,7 @@ const Reports = () => {
                 <div className="text-2xl font-bold">
                   {products?.filter(p => p.is_active).length || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">produits actifs</p>
+                <p className="text-xs text-muted-foreground">active products</p>
               </CardContent>
             </Card>
 
@@ -2655,7 +2688,7 @@ const Reports = () => {
                 <div className="text-2xl font-bold text-destructive">
                   {products?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">produits en rupture</p>
+                <p className="text-xs text-muted-foreground">products out of stock</p>
               </CardContent>
             </Card>
 
@@ -2667,7 +2700,7 @@ const Reports = () => {
                 <div className="text-2xl font-bold">
                   ${products?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0).toFixed(2) || "0.00"}
                 </div>
-                <p className="text-xs text-muted-foreground">valeur totale du stock</p>
+                <p className="text-xs text-muted-foreground">total inventory value</p>
               </CardContent>
             </Card>
           </div>
@@ -2680,7 +2713,7 @@ const Reports = () => {
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
-                <div className="w-full overflow-x-auto">
+                <div className="w-full overflow-x-auto" ref={stockChartRef}>
                   <BarChart 
                     width={800} 
                     height={400}
@@ -2704,19 +2737,19 @@ const Reports = () => {
                     />
                     <YAxis />
                     <Tooltip 
-                      formatter={(value) => [`${value}`, 'Quantité']}
-                      labelFormatter={(label) => `Produit: ${label}`}
+                      formatter={(value) => [`${value}`, 'Quantity']}
+                      labelFormatter={(label) => `Product: ${label}`}
                     />
                     <Bar 
                       dataKey="quantity" 
                       fill="#22c55e"
-                      name="Quantité"
+                      name="Quantity"
                     />
                   </BarChart>
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  Aucun produit trouvé
+                  No products found
                 </div>
               )}
             </CardContent>
@@ -2725,23 +2758,23 @@ const Reports = () => {
           {/* Products Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Détails des Produits</CardTitle>
-              <CardDescription>Informations complètes sur tous les produits</CardDescription>
+              <CardTitle>Product Details</CardTitle>
+              <CardDescription>Complete information on all products</CardDescription>
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nom</TableHead>
+                      <TableHead>Name</TableHead>
                       <TableHead>SKU</TableHead>
-                      <TableHead>Catégorie</TableHead>
-                      <TableHead>Quantité</TableHead>
-                      <TableHead>Coût</TableHead>
-                      <TableHead>Prix</TableHead>
-                      <TableHead>Marge</TableHead>
-                      <TableHead>Valeur Stock</TableHead>
-                      <TableHead>Statut</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Cost</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Margin</TableHead>
+                      <TableHead>Stock Value</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -2770,7 +2803,7 @@ const Reports = () => {
                                 ? "bg-green-100 text-green-800" 
                                 : "bg-red-100 text-red-800"
                             }`}>
-                              {product.is_active ? "Actif" : "Inactif"}
+                              {product.is_active ? "Active" : "Inactive"}
                             </span>
                           </TableCell>
                         </TableRow>
@@ -2780,7 +2813,7 @@ const Reports = () => {
                 </Table>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  Aucun produit trouvé
+                  No products found
                 </div>
               )}
             </CardContent>
