@@ -1158,7 +1158,6 @@ const Reports = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="profits">Profits</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
@@ -1835,7 +1834,9 @@ const Reports = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="profits" className="space-y-4">
+
+        <TabsContent value="products" className="space-y-4">
+          {/* Product Profit Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
               <h2 className="text-2xl font-bold">Product Profit Report</h2>
@@ -1996,13 +1997,12 @@ const Reports = () => {
               </Card>
             )}
           </div>
-        </TabsContent>
 
-        <TabsContent value="products" className="space-y-4">
+          {/* Stock and Sales Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold">Rapport de Stock et Ventes</h2>
-              <p className="text-muted-foreground">Analyse des stocks et ventes par produit</p>
+              <h2 className="text-2xl font-bold">Stock & Sales Report</h2>
+              <p className="text-muted-foreground">Stock analysis and sales per product</p>
             </div>
             <div className="flex space-x-2">
               <Button 
