@@ -2012,16 +2012,31 @@ const Reports = () => {
               
               {/* Compagnies - Affichage unifié pour tous les rapports */}
               {(() => {
-                const effectiveCompanyId = selectedCompanyId || productSelectedCompanyId || expenseSelectedCompanyId;
-                const companyName = companies?.find(c => c.id === effectiveCompanyId)?.name;
-                
-                if (effectiveCompanyId && companyName) {
+                // Affichage prioritaire selon la section active
+                if (selectedCompanyId && companies?.find(c => c.id === selectedCompanyId)?.name) {
                   return (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
-                      Compagnie: {companyName}
+                      Compagnie: {companies.find(c => c.id === selectedCompanyId)?.name}
                     </span>
                   );
                 }
+                
+                if (productSelectedCompanyId && companies?.find(c => c.id === productSelectedCompanyId)?.name) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                      Compagnie: {companies.find(c => c.id === productSelectedCompanyId)?.name}
+                    </span>
+                  );
+                }
+                
+                if (expenseSelectedCompanyId && companies?.find(c => c.id === expenseSelectedCompanyId)?.name) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                      Compagnie: {companies.find(c => c.id === expenseSelectedCompanyId)?.name}
+                    </span>
+                  );
+                }
+                
                 return null;
               })()}
               
