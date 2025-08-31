@@ -688,7 +688,7 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text('Stock & Sales Report', pageWidth / 2, 20, { align: 'center' });
+    doc.text('Inventory Report', pageWidth / 2, 20, { align: 'center' });
     
     // Summary
     doc.setFontSize(12);
@@ -762,7 +762,7 @@ const Reports = () => {
       headStyles: { fillColor: [66, 139, 202] },
     });
     
-    const filename = `stock-sales-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `inventory-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -778,7 +778,7 @@ const Reports = () => {
     const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
     const summaryData = [
-      ['Stock & Sales Report'],
+      ['Inventory Report'],
       [''],
       ['Report date:', format(new Date(), 'dd/MM/yyyy')],
       ['Total products:', totalProducts],
@@ -815,7 +815,7 @@ const Reports = () => {
     const productsWS = XLSX.utils.aoa_to_sheet(productsData);
     XLSX.utils.book_append_sheet(wb, productsWS, 'Product Details');
     
-    const filename = `stock-sales-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `inventory-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
   
@@ -2630,11 +2630,11 @@ const Reports = () => {
             )}
           </div>
 
-          {/* Stock and Sales Report Section */}
+          {/* Inventory Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold">Inventory & Sales Report</h2>
-              <p className="text-muted-foreground">Inventory analysis and sales per product</p>
+              <h2 className="text-2xl font-bold">Inventory Report</h2>
+              <p className="text-muted-foreground">Stock analysis and inventory management</p>
             </div>
             <div className="flex space-x-2">
               <Button 
