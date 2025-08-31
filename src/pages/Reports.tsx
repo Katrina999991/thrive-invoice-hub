@@ -1970,9 +1970,16 @@ const Reports = () => {
         </p>
         
         {/* Active Filters Display */}
-        {(startDate || endDate || filterType !== 'all' || selectedCompanyId || selectedClientId || 
-          productFilterType !== 'all' || productSelectedCompanyId || 
-          expenseFilterType !== 'all' || expenseSelectedCompanyId || expenseSelectedCategory) && (
+        {(() => {
+          console.log('Filters debug:', { 
+            startDate, endDate, filterType, selectedCompanyId, selectedClientId,
+            productFilterType, productSelectedCompanyId,
+            expenseFilterType, expenseSelectedCompanyId, expenseSelectedCategory
+          });
+          return (startDate || endDate || filterType !== 'all' || selectedCompanyId || selectedClientId || 
+            productFilterType !== 'all' || productSelectedCompanyId || 
+            expenseFilterType !== 'all' || expenseSelectedCompanyId || expenseSelectedCategory);
+        })() && (
           <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
             <div className="flex flex-wrap gap-2">
