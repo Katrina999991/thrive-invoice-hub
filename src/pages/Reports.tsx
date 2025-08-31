@@ -1970,7 +1970,9 @@ const Reports = () => {
         </p>
         
         {/* Active Filters Display */}
-        {(startDate || endDate || filterType !== 'all' || selectedCompanyId || selectedClientId) && (
+        {(startDate || endDate || filterType !== 'all' || selectedCompanyId || selectedClientId || 
+          productFilterType !== 'all' || productSelectedCompanyId || 
+          expenseFilterType !== 'all' || expenseSelectedCompanyId || expenseSelectedCategory) && (
           <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
             <div className="flex flex-wrap gap-2">
@@ -1989,14 +1991,32 @@ const Reports = () => {
                   Jusqu'au: {format(endDate, 'dd/MM/yyyy')}
                 </span>
               )}
+              {/* Filtres généraux (Revenue, Overview) */}
               {filterType === 'company' && selectedCompanyId && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
-                  Compagnie: {companies?.find(c => c.id === selectedCompanyId)?.name || selectedCompanyId}
+                  Compagnie (Général): {companies?.find(c => c.id === selectedCompanyId)?.name || selectedCompanyId}
                 </span>
               )}
               {filterType === 'client' && selectedClientId && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
-                  Client: {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
+                  Client (Général): {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
+                </span>
+              )}
+              {/* Filtres produits */}
+              {productFilterType === 'company' && productSelectedCompanyId && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
+                  Compagnie (Produits): {companies?.find(c => c.id === productSelectedCompanyId)?.name || productSelectedCompanyId}
+                </span>
+              )}
+              {/* Filtres dépenses */}
+              {expenseFilterType === 'company' && expenseSelectedCompanyId && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                  Compagnie (Dépenses): {companies?.find(c => c.id === expenseSelectedCompanyId)?.name || expenseSelectedCompanyId}
+                </span>
+              )}
+              {expenseFilterType === 'category' && expenseSelectedCategory && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                  Catégorie (Dépenses): {expenseSelectedCategory}
                 </span>
               )}
             </div>
