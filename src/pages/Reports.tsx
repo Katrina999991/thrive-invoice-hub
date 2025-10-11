@@ -2175,8 +2175,8 @@ const Reports = () => {
         <TabsContent value="revenue" className="space-y-4">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Revenue by Period</h2>
-              <p className="text-muted-foreground">Analyze revenue by custom date range, month, or year</p>
+              <h2 className="text-2xl font-bold">{t("reports.revenue.title")}</h2>
+              <p className="text-muted-foreground">{t("reports.revenue.description")}</p>
             </div>
 
             <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
@@ -2743,9 +2743,9 @@ const Reports = () => {
             <Card>
               <CardContent className="flex justify-center items-center h-96">
                 <div className="text-center">
-                  <p className="text-lg font-medium">No period selected</p>
+                  <p className="text-lg font-medium">{t("reports.revenue.noPeriodSelected")}</p>
                   <p className="text-muted-foreground">
-                    Please select a date range, month, or year to view revenue data.
+                    {t("reports.revenue.selectPeriod")}
                   </p>
                 </div>
               </CardContent>
