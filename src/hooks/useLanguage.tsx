@@ -349,6 +349,14 @@ const translations = {
     "expenses.delete": "Delete Expense",
     "expenses.deleteConfirm": "Are you sure you want to delete this expense? This action cannot be undone.",
     "expenses.loading": "Loading...",
+    "expenses.categories.Office": "Office",
+    "expenses.categories.Meals": "Meals",
+    "expenses.categories.Travel": "Travel",
+    "expenses.categories.Software": "Software",
+    "expenses.categories.Marketing": "Marketing",
+    "expenses.categories.Utilities": "Utilities",
+    "expenses.categories.Products": "Products",
+    "expenses.categories.Other": "Other",
     
     // Settings
     "settings.title": "Settings",
@@ -760,6 +768,14 @@ const translations = {
     "expenses.delete": "Supprimer la dépense",
     "expenses.deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette dépense ? Cette action ne peut pas être annulée.",
     "expenses.loading": "Chargement...",
+    "expenses.categories.Office": "Bureau",
+    "expenses.categories.Meals": "Repas",
+    "expenses.categories.Travel": "Voyage",
+    "expenses.categories.Software": "Logiciel",
+    "expenses.categories.Marketing": "Marketing",
+    "expenses.categories.Utilities": "Services publics",
+    "expenses.categories.Products": "Produits",
+    "expenses.categories.Other": "Autre",
     
     // Settings
     "settings.title": "Paramètres",

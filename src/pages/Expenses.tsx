@@ -169,14 +169,14 @@ const Expenses = () => {
                     <SelectValue placeholder={t("expenses.categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Office">Office</SelectItem>
-                    <SelectItem value="Meals">Meals</SelectItem>
-                    <SelectItem value="Travel">Travel</SelectItem>
-                    <SelectItem value="Software">Software</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Utilities">Utilities</SelectItem>
-                    <SelectItem value="Products">Products</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Office">{t("expenses.categories.Office")}</SelectItem>
+                    <SelectItem value="Meals">{t("expenses.categories.Meals")}</SelectItem>
+                    <SelectItem value="Travel">{t("expenses.categories.Travel")}</SelectItem>
+                    <SelectItem value="Software">{t("expenses.categories.Software")}</SelectItem>
+                    <SelectItem value="Marketing">{t("expenses.categories.Marketing")}</SelectItem>
+                    <SelectItem value="Utilities">{t("expenses.categories.Utilities")}</SelectItem>
+                    <SelectItem value="Products">{t("expenses.categories.Products")}</SelectItem>
+                    <SelectItem value="Other">{t("expenses.categories.Other")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -297,7 +297,7 @@ const Expenses = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {expense.vendor ? `${expense.vendor} • ` : ""}{expense.category} • {expense.expense_date}
+                    {expense.vendor ? `${expense.vendor} • ` : ""}{t(`expenses.categories.${expense.category}`) || expense.category} • {expense.expense_date}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
