@@ -3406,8 +3406,8 @@ const Reports = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Rapport des dépenses</h2>
-                <p className="text-muted-foreground">Analyse des dépenses par compagnie et catégorie</p>
+                <h2 className="text-2xl font-bold">{t("reports.expenses.title")}</h2>
+                <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
               </div>
               
               <div className="flex space-x-2">
@@ -3542,8 +3542,8 @@ const Reports = () => {
                 {/* Graphique des dépenses par catégorie */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Expenses by Category</CardTitle>
-                    <CardDescription>Distribution of expense amounts by category</CardDescription>
+                    <CardTitle>{t("reports.expenses.byCategory")}</CardTitle>
+                    <CardDescription>{t("reports.expenses.byCategoryDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
@@ -3576,8 +3576,8 @@ const Reports = () => {
                 {expenseReportData.expensesByCompany.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Expenses by Company</CardTitle>
-                      <CardDescription>Distribution of expense amounts by client company</CardDescription>
+                      <CardTitle>{t("reports.expenses.byCompany")}</CardTitle>
+                      <CardDescription>{t("reports.expenses.byCompanyDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent ref={expenseCompanyChartRef}>
                       <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
@@ -3604,18 +3604,18 @@ const Reports = () => {
                 {/* Tableau détaillé des dépenses par catégorie */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Detail by Category</CardTitle>
-                    <CardDescription>Detailed breakdown of expenses by category</CardDescription>
+                    <CardTitle>{t("reports.expenses.detailByCategory")}</CardTitle>
+                    <CardDescription>{t("reports.expenses.detailByCategoryDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {expenseReportData.expensesByCategory.length > 0 ? (
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Count</TableHead>
-                            <TableHead className="text-right">Total Amount</TableHead>
-                            <TableHead className="text-right">Average Amount</TableHead>
+                            <TableHead>{t("reports.expenses.category")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.count")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.totalAmount")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.averageAmount")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -3645,17 +3645,17 @@ const Reports = () => {
                 {expenseReportData.expensesByCompany.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Detail by Company</CardTitle>
-                      <CardDescription>Detailed breakdown of expenses by client company</CardDescription>
+                      <CardTitle>{t("reports.expenses.detailByCompany")}</CardTitle>
+                      <CardDescription>{t("reports.expenses.detailByCompanyDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Company</TableHead>
-                            <TableHead className="text-right">Count</TableHead>
-                            <TableHead className="text-right">Total Amount</TableHead>
-                            <TableHead className="text-right">Average Amount</TableHead>
+                            <TableHead>{t("reports.expenses.company")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.count")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.totalAmount")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.averageAmount")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
