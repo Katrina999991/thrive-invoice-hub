@@ -1,6 +1,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
+import { useLanguage } from "@/hooks/useLanguage"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,7 @@ export function MonthYearPicker({
   mode,
   className
 }: MonthYearPickerProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = React.useState(false)
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i)
@@ -80,7 +82,7 @@ export function MonthYearPicker({
 
   const getDisplayText = () => {
     if (!selectedDate) {
-      return mode === 'month' ? 'Choose a month' : 'Choose a year'
+      return mode === 'month' ? t("reports.revenue.chooseMonth") : t("reports.revenue.chooseYear")
     }
     
     if (mode === 'month') {
@@ -121,7 +123,7 @@ export function MonthYearPicker({
                 onValueChange={handleYearChange}
               >
                 <SelectTrigger className="w-24">
-                  <SelectValue placeholder="Year" />
+                  <SelectValue placeholder={t("reports.revenue.yearLabel")} />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((year) => (
@@ -138,7 +140,7 @@ export function MonthYearPicker({
                   onValueChange={handleMonthChange}
                 >
                   <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Month" />
+                    <SelectValue placeholder={t("reports.revenue.monthLabel")} />
                   </SelectTrigger>
                   <SelectContent>
                     {months.map((month) => (
@@ -167,7 +169,7 @@ export function MonthYearPicker({
           size="sm"
           onClick={() => onDateChange(undefined)}
         >
-          Clear
+          {t("reports.revenue.clear")}
         </Button>
       )}
     </div>
