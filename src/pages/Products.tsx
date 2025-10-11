@@ -298,13 +298,13 @@ const Products = () => {
                     <SelectValue placeholder={t("products.categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Web Development">Web Development</SelectItem>
-                    <SelectItem value="Mobile Development">Mobile Development</SelectItem>
-                    <SelectItem value="Software">Software</SelectItem>
-                    <SelectItem value="Consulting">Consulting</SelectItem>
-                    <SelectItem value="Hardware">Hardware</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Web Development">{t("products.catWebDev")}</SelectItem>
+                    <SelectItem value="Mobile Development">{t("products.catMobileDev")}</SelectItem>
+                    <SelectItem value="Software">{t("products.catSoftware")}</SelectItem>
+                    <SelectItem value="Consulting">{t("products.catConsulting")}</SelectItem>
+                    <SelectItem value="Hardware">{t("products.catHardware")}</SelectItem>
+                    <SelectItem value="Design">{t("products.catDesign")}</SelectItem>
+                    <SelectItem value="Other">{t("products.catOther")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -327,11 +327,11 @@ const Products = () => {
                         <SelectValue placeholder={t("products.unitPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="piece">Piece</SelectItem>
-                        <SelectItem value="hour">Hour</SelectItem>
-                        <SelectItem value="day">Day</SelectItem>
-                        <SelectItem value="month">Month</SelectItem>
-                        <SelectItem value="year">Year</SelectItem>
+                        <SelectItem value="piece">{t("products.unitPiece")}</SelectItem>
+                        <SelectItem value="hour">{t("products.unitHour")}</SelectItem>
+                        <SelectItem value="day">{t("products.unitDay")}</SelectItem>
+                        <SelectItem value="month">{t("products.unitMonth")}</SelectItem>
+                        <SelectItem value="year">{t("products.unitYear")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
