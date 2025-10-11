@@ -173,6 +173,7 @@ const Expenses = () => {
                     <SelectItem value="Software">Software</SelectItem>
                     <SelectItem value="Marketing">Marketing</SelectItem>
                     <SelectItem value="Utilities">Utilities</SelectItem>
+                    <SelectItem value="Products">Products</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
