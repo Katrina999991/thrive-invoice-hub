@@ -18,6 +18,7 @@ interface SendInvoiceEmailRequest {
   customMessage?: string;
   emailType?: "new" | "overdue" | "payment_confirmation";
   selectedEmails?: string[];
+  ccEmails?: string[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -27,7 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { invoiceId, customSubject, customMessage, emailType = "new", selectedEmails }: SendInvoiceEmailRequest = await req.json();
+    const { invoiceId, customSubject, customMessage, emailType = "new", selectedEmails, ccEmails = [] }: SendInvoiceEmailRequest = await req.json();
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -469,7 +470,7 @@ Best regards,
     `;
 
     // Send email with PDF attachment
-    const emailResponse = await resend.emails.send({
+    const emailPayload: any = {
       from: `${company.name} <info@gestionflow.net>`,
       to: emailsToSend,
       subject: emailSubject,
@@ -481,7 +482,17 @@ Best regards,
           type: 'application/pdf',
         },
       ],
-    });
+    };
+    
+    // Add CC emails if provided
+    if (ccEmails && ccEmails.length > 0) {
+      const validCcEmails = ccEmails.filter(email => email.trim() !== "");
+      if (validCcEmails.length > 0) {
+        emailPayload.cc = validCcEmails;
+      }
+    }
+    
+    const emailResponse = await resend.emails.send(emailPayload);
 
     console.log(`Email sent successfully to ${emailsToSend.length} recipient(s):`, emailResponse);
 

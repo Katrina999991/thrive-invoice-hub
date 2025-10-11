@@ -86,6 +86,7 @@ const Invoices = () => {
     message: ""
   });
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [ccEmails, setCcEmails] = useState<string[]>([]);
 
   // Filter clients based on selected company
   const filteredClients = selectedCompanyId 
@@ -762,7 +763,8 @@ Best regards,
           customSubject: emailForm.subject,
           customMessage: emailForm.message,
           emailType,
-          selectedEmails
+          selectedEmails,
+          ccEmails: ccEmails.filter(email => email.trim() !== "")
         }
       });
 
@@ -776,6 +778,7 @@ Best regards,
       setIsEmailDialogOpen(false);
       setEmailingInvoice(null);
       setSelectedEmails([]);
+      setCcEmails([]);
       
       // Refresh invoices to update status
       await fetchInvoices();
@@ -1580,6 +1583,49 @@ Best regards,
                         <p className="text-sm text-muted-foreground">No email addresses found for this client</p>
                       );
                     })()}
+                  </div>
+                </div>
+                
+                {/* CC Emails */}
+                <div className="space-y-2">
+                  <Label>CC (Optional)</Label>
+                  <div className="space-y-2">
+                    {ccEmails.map((email, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          type="email"
+                          placeholder="Enter CC email address"
+                          value={email}
+                          onChange={(e) => {
+                            const newCcEmails = [...ccEmails];
+                            newCcEmails[index] = e.target.value;
+                            setCcEmails(newCcEmails);
+                          }}
+                        />
+                        {ccEmails.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setCcEmails(ccEmails.filter((_, i) => i !== index));
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCcEmails([...ccEmails, ""])}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add CC Email
+                    </Button>
                   </div>
                 </div>
               </div>
