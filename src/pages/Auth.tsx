@@ -11,8 +11,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function Auth() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");

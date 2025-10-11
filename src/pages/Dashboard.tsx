@@ -2,36 +2,38 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, Package, FileText, DollarSign, TrendingUp } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Dashboard = () => {
   const { data: dashboardData, isLoading } = useDashboard();
+  const { t } = useLanguage();
 
   const stats = [
     {
-      title: "Total Revenue",
-      value: isLoading ? "Loading..." : `$${dashboardData?.totalRevenue.toLocaleString() || "0"}`,
-      description: "From paid invoices",
+      titleKey: "dashboard.totalRevenue",
+      value: isLoading ? t("dashboard.loading") : `$${dashboardData?.totalRevenue.toLocaleString() || "0"}`,
+      descriptionKey: "dashboard.totalRevenue.desc",
       icon: DollarSign,
       color: "text-green-600"
     },
     {
-      title: "Active Clients",
-      value: isLoading ? "Loading..." : (dashboardData?.activeClients || 0).toString(),
-      description: `+${dashboardData?.newClientsThisMonth || 0} new this month`,
+      titleKey: "dashboard.activeClients",
+      value: isLoading ? t("dashboard.loading") : (dashboardData?.activeClients || 0).toString(),
+      description: `+${dashboardData?.newClientsThisMonth || 0} ${t("dashboard.newThisMonth")}`,
       icon: Users,
       color: "text-blue-600"
     },
     {
-      title: "Open Invoices",
-      value: isLoading ? "Loading..." : (dashboardData?.openInvoicesCount || 0).toString(),
-      description: `Total: $${dashboardData?.openInvoicesTotal.toLocaleString() || "0"}`,
+      titleKey: "dashboard.openInvoices",
+      value: isLoading ? t("dashboard.loading") : (dashboardData?.openInvoicesCount || 0).toString(),
+      description: `${t("dashboard.total")}: $${dashboardData?.openInvoicesTotal.toLocaleString() || "0"}`,
       icon: FileText,
       color: "text-orange-600"
     },
     {
-      title: "Products/Services",
-      value: isLoading ? "Loading..." : (dashboardData?.activeProducts || 0).toString(),
-      description: "Active products",
+      titleKey: "dashboard.productsServices",
+      value: isLoading ? t("dashboard.loading") : (dashboardData?.activeProducts || 0).toString(),
+      descriptionKey: "dashboard.activeProducts",
       icon: Package,
       color: "text-purple-600"
     }
@@ -40,25 +42,25 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title")}</h1>
         <p className="text-muted-foreground">
-          Overview of your business performance
+          {t("dashboard.subtitle")}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.titleKey}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {stat.title}
+                {t(stat.titleKey)}
               </CardTitle>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground">
-                {stat.description}
+                {stat.description || (stat.descriptionKey ? t(stat.descriptionKey) : "")}
               </p>
             </CardContent>
           </Card>
@@ -68,9 +70,9 @@ const Dashboard = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>{t("dashboard.recentActivity")}</CardTitle>
             <CardDescription>
-              Latest transactions and updates
+              {t("dashboard.recentActivity.desc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -106,7 +108,7 @@ const Dashboard = () => {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">No recent activity</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.noActivity")}</p>
               )}
             </div>
           </CardContent>
@@ -114,28 +116,28 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>{t("dashboard.quickActions")}</CardTitle>
             <CardDescription>
-              Common tasks and shortcuts
+              {t("dashboard.quickActions.desc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-2">
               <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
                 <FileText className="h-4 w-4" />
-                <span className="text-sm">Create New Invoice</span>
+                <span className="text-sm">{t("dashboard.createInvoice")}</span>
               </button>
               <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
                 <Users className="h-4 w-4" />
-                <span className="text-sm">Add New Client</span>
+                <span className="text-sm">{t("dashboard.addClient")}</span>
               </button>
               <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
                 <Package className="h-4 w-4" />
-                <span className="text-sm">Add Product/Service</span>
+                <span className="text-sm">{t("dashboard.addProduct")}</span>
               </button>
               <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm">View Reports</span>
+                <span className="text-sm">{t("dashboard.viewReports")}</span>
               </button>
             </div>
           </CardContent>
