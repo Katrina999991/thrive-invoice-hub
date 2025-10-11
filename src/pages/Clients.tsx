@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -35,16 +35,20 @@ const Clients = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
+  const [emailList, setEmailList] = useState<string[]>([""]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Combiner les emails en une seule chaîne séparée par des virgules
+    const emailsString = emailList.filter(email => email.trim() !== "").join(", ");
     
     if (editingClient) {
       await updateClient(editingClient.id, {
         name: newClient.name,
         contact_person: newClient.contact_person,
         company_id: newClient.company_id || null,
-        email: newClient.email,
+        email: emailsString,
         phone: newClient.phone,
         address: newClient.address,
         language: newClient.language,
@@ -55,7 +59,7 @@ const Clients = () => {
         name: newClient.name,
         contact_person: newClient.contact_person,
         company_id: newClient.company_id || null,
-        email: newClient.email,
+        email: emailsString,
         phone: newClient.phone,
         address: newClient.address,
         language: newClient.language,
@@ -79,12 +83,17 @@ const Clients = () => {
       hourly_rate: 0,
       created_at: new Date().toISOString().split('T')[0]
     });
+    setEmailList([""]);
     setEditingClient(null);
     setIsDialogOpen(false);
   };
 
   const handleEdit = (client: any) => {
     setEditingClient(client);
+    // Séparer les emails s'il y en a plusieurs
+    const emails = client.email ? client.email.split(",").map((e: string) => e.trim()) : [""];
+    setEmailList(emails.length > 0 ? emails : [""]);
+    
     setNewClient({
       name: client.name,
       contact_person: client.contact_person || "",
@@ -97,6 +106,23 @@ const Clients = () => {
       created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     });
     setIsDialogOpen(true);
+  };
+
+  const addEmailField = () => {
+    setEmailList([...emailList, ""]);
+  };
+
+  const removeEmailField = (index: number) => {
+    if (emailList.length > 1) {
+      const newList = emailList.filter((_, i) => i !== index);
+      setEmailList(newList);
+    }
+  };
+
+  const updateEmailField = (index: number, value: string) => {
+    const newList = [...emailList];
+    newList[index] = value;
+    setEmailList(newList);
   };
 
   const filteredClients = clients.filter(client =>
@@ -172,14 +198,37 @@ const Clients = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email address"
-                  value={newClient.email}
-                  onChange={(e) => setNewClient({...newClient, email: e.target.value})}
-                />
+                <Label>Email(s)</Label>
+                {emailList.map((email, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={email}
+                      onChange={(e) => updateEmailField(index, e.target.value)}
+                    />
+                    {emailList.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeEmailField(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addEmailField}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Email
+                </Button>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
@@ -308,9 +357,13 @@ const Clients = () => {
                   <TableCell>
                     <div className="space-y-1">
                       {client.email && (
-                        <div className="text-sm flex items-center">
-                          <Mail className="h-3 w-3 mr-1" />
-                          {client.email}
+                        <div className="text-sm">
+                          {client.email.split(",").map((email: string, i: number) => (
+                            <div key={i} className="flex items-center">
+                              <Mail className="h-3 w-3 mr-1" />
+                              {email.trim()}
+                            </div>
+                          ))}
                         </div>
                       )}
                       {client.phone && (
