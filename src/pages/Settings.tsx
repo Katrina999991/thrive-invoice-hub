@@ -44,9 +44,9 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Paramètres</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
-          Gérez les paramètres de votre compte
+          Manage your account settings
         </p>
       </div>
 
@@ -55,10 +55,10 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Informations du compte
+              Account Information
             </CardTitle>
             <CardDescription>
-              Vos informations personnelles
+              Your personal information
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -75,46 +75,46 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Apparence
+              Appearance
             </CardTitle>
             <CardDescription>
-              Personnalisez l'apparence de l'application selon vos préférences
+              Customize the application appearance according to your preferences
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               <div>
-                <Label className="text-sm font-medium mb-3 block">Mode d'affichage</Label>
+                <Label className="text-sm font-medium mb-3 block">Display Mode</Label>
                 <RadioGroup value={darkMode} onValueChange={handleDarkModeChange}>
                   <div className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value="light" id="light" />
-                    <Label htmlFor="light" className="cursor-pointer">Clair</Label>
+                    <Label htmlFor="light" className="cursor-pointer">Light</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="dark" id="dark" />
-                    <Label htmlFor="dark" className="cursor-pointer">Sombre</Label>
+                    <Label htmlFor="dark" className="cursor-pointer">Dark</Label>
                   </div>
                 </RadioGroup>
               </div>
               
               <div>
-                <Label className="text-sm font-medium mb-3 block">Thème de couleur</Label>
+                <Label className="text-sm font-medium mb-3 block">Color Theme</Label>
                 <RadioGroup value={theme} onValueChange={handleThemeChange}>
                   <div className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value="default" id="default" />
-                    <Label htmlFor="default" className="cursor-pointer">Classique (Bleu)</Label>
+                    <Label htmlFor="default" className="cursor-pointer">Classic (Blue)</Label>
                   </div>
                   <div className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value="modern" id="modern" />
-                    <Label htmlFor="modern" className="cursor-pointer">Moderne (Violet)</Label>
+                    <Label htmlFor="modern" className="cursor-pointer">Modern (Purple)</Label>
                   </div>
                   <div className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value="warm" id="warm" />
-                    <Label htmlFor="warm" className="cursor-pointer">Chaleureux (Orange)</Label>
+                    <Label htmlFor="warm" className="cursor-pointer">Warm (Orange)</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="nature" id="nature" />
-                    <Label htmlFor="nature" className="cursor-pointer">Nature (Vert)</Label>
+                    <Label htmlFor="nature" className="cursor-pointer">Nature (Green)</Label>
                   </div>
                 </RadioGroup>
               </div>
