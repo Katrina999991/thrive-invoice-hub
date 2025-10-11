@@ -1,7 +1,6 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
-import { useLanguage } from "@/hooks/useLanguage"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -23,15 +22,16 @@ interface MonthYearPickerProps {
   onDateChange: (date: Date | undefined) => void
   mode: 'month' | 'year'
   className?: string
+  t?: (key: string) => string
 }
 
 export function MonthYearPicker({
   selectedDate,
   onDateChange,
   mode,
-  className
+  className,
+  t = (key: string) => key
 }: MonthYearPickerProps) {
-  const { t } = useLanguage();
   const [open, setOpen] = React.useState(false)
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i)

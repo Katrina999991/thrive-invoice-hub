@@ -2200,6 +2200,7 @@ const Reports = () => {
                       endDate={customEndDate}
                       onStartDateChange={setCustomStartDate}
                       onEndDateChange={setCustomEndDate}
+                      t={t}
                     />
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -2275,6 +2276,7 @@ const Reports = () => {
                         setViewMode('monthly');
                       }}
                       mode="month"
+                      t={t}
                     />
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -2356,6 +2358,7 @@ const Reports = () => {
                             setYearRangeEnd(undefined);
                           }}
                           mode="year"
+                          t={t}
                         />
                       </div>
                       
@@ -2373,6 +2376,7 @@ const Reports = () => {
                                 setSelectedYear(undefined);
                               }}
                               mode="year"
+                              t={t}
                             />
                           </div>
                           <div className="space-y-2">
@@ -2386,6 +2390,7 @@ const Reports = () => {
                                 setSelectedYear(undefined);
                               }}
                               mode="year"
+                              t={t}
                             />
                           </div>
                         </div>
@@ -2786,6 +2791,7 @@ const Reports = () => {
                   endDate={endDate}
                   onStartDateChange={setCustomStartDate}
                   onEndDateChange={setCustomEndDate}
+                  t={t}
                 />
               </CardContent>
             </Card>
@@ -3192,6 +3198,7 @@ const Reports = () => {
                   endDate={customEndDate}
                   onStartDateChange={setCustomStartDate}
                   onEndDateChange={setCustomEndDate}
+                  t={t}
                 />
               </CardContent>
             </Card>
@@ -3430,6 +3437,7 @@ const Reports = () => {
                       endDate={expenseEndDate}
                       onStartDateChange={setExpenseStartDate}
                       onEndDateChange={setExpenseEndDate}
+                      t={t}
                     />
                   </div>
                   
@@ -4104,6 +4112,7 @@ const Reports = () => {
                         selectedDate={taxSelectedMonth}
                         onDateChange={setTaxSelectedMonth}
                         mode="month"
+                        t={t}
                       />
                     </div>
                   )}
@@ -4115,6 +4124,7 @@ const Reports = () => {
                         selectedDate={taxSelectedYear}
                         onDateChange={setTaxSelectedYear}
                         mode="year"
+                        t={t}
                       />
                     </div>
                   )}

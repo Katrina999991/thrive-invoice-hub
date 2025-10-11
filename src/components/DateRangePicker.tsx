@@ -1,7 +1,6 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { useLanguage } from "@/hooks/useLanguage"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -18,6 +17,7 @@ interface DateRangePickerProps {
   onStartDateChange: (date: Date | undefined) => void
   onEndDateChange: (date: Date | undefined) => void
   className?: string
+  t?: (key: string) => string
 }
 
 export function DateRangePicker({
@@ -25,9 +25,9 @@ export function DateRangePicker({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  className
+  className,
+  t = (key: string) => key
 }: DateRangePickerProps) {
-  const { t } = useLanguage();
   const [startDateOpen, setStartDateOpen] = React.useState(false);
   const [endDateOpen, setEndDateOpen] = React.useState(false);
 
