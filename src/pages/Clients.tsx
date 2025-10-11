@@ -13,10 +13,12 @@ import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, 
 import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
+import { useLanguage } from "@/hooks/useLanguage";
 
 
 const Clients = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const { clients, loading, createClient, updateClient, deleteClient } = useClients();
   const { companies } = useCompanies();
@@ -143,50 +145,50 @@ const Clients = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
           <p className="text-muted-foreground">
-            Manage your clients and customer relationships
+            {t("clients.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Client
+              {t("clients.addButton")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingClient ? "Edit Client" : "Add New Client"}</DialogTitle>
+              <DialogTitle>{editingClient ? t("clients.dialog.edit") : t("clients.dialog.add")}</DialogTitle>
               <DialogDescription>
-                {editingClient ? "Update client information." : "Add a new client to your customer database."}
+                {editingClient ? t("clients.dialog.editDesc") : t("clients.dialog.addDesc")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Client Name</Label>
+                <Label htmlFor="name">{t("clients.name")}</Label>
                 <Input
                   id="name"
-                  placeholder="Enter client name"
+                  placeholder={t("clients.namePlaceholder")}
                   value={newClient.name}
                   onChange={(e) => setNewClient({...newClient, name: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">Contact Person</Label>
+                <Label htmlFor="contact_person">{t("clients.contactPerson")}</Label>
                 <Input
                   id="contact_person"
-                  placeholder="Enter contact person name"
+                  placeholder={t("clients.contactPlaceholder")}
                   value={newClient.contact_person}
                   onChange={(e) => setNewClient({...newClient, contact_person: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company_id">Service Provider</Label>
+                <Label htmlFor="company_id">{t("clients.serviceProvider")}</Label>
                 <Select value={newClient.company_id} onValueChange={(value) => setNewClient({...newClient, company_id: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select service provider" />
+                    <SelectValue placeholder={t("clients.serviceProviderPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {companies.map((company) => (
@@ -198,12 +200,12 @@ const Clients = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Email(s)</Label>
+                <Label>{t("clients.emails")}</Label>
                 {emailList.map((email, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
                       type="email"
-                      placeholder="Enter email address"
+                      placeholder={t("clients.emailPlaceholder")}
                       value={email}
                       onChange={(e) => updateEmailField(index, e.target.value)}
                     />
@@ -227,32 +229,32 @@ const Clients = () => {
                   className="w-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Another Email
+                  {t("clients.addEmail")}
                 </Button>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t("clients.phone")}</Label>
                 <Input
                   id="phone"
-                  placeholder="Enter phone number"
+                  placeholder={t("clients.phonePlaceholder")}
                   value={newClient.phone}
                   onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">{t("clients.address")}</Label>
                 <Input
                   id="address"
-                  placeholder="Enter address"
+                  placeholder={t("clients.addressPlaceholder")}
                   value={newClient.address}
                   onChange={(e) => setNewClient({...newClient, address: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
+                <Label htmlFor="language">{t("clients.language")}</Label>
                 <Select value={newClient.language} onValueChange={(value) => setNewClient({...newClient, language: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
+                    <SelectValue placeholder={t("clients.languagePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="english">
@@ -271,18 +273,18 @@ const Clients = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
+                <Label htmlFor="hourly_rate">{t("clients.hourlyRate")}</Label>
                 <Input
                   id="hourly_rate"
                   type="number"
                   step="0.01"
-                  placeholder="Enter hourly rate"
+                  placeholder={t("clients.hourlyPlaceholder")}
                   value={newClient.hourly_rate}
                   onChange={(e) => setNewClient({...newClient, hourly_rate: parseFloat(e.target.value) || 0})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="created_at">Creation Date</Label>
+                <Label htmlFor="created_at">{t("clients.creationDate")}</Label>
                 <Input
                   id="created_at"
                   type="date"
@@ -292,10 +294,10 @@ const Clients = () => {
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
-                  Cancel
+                  {t("clients.cancel")}
                 </Button>
                 <Button type="submit" className="flex-1">
-                  {editingClient ? "Update Client" : "Add Client"}
+                  {editingClient ? t("clients.updateButton") : t("clients.addClient")}
                 </Button>
               </div>
             </form>
@@ -307,7 +309,7 @@ const Clients = () => {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search clients..."
+            placeholder={t("clients.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -317,24 +319,24 @@ const Clients = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Client List</CardTitle>
+          <CardTitle>{t("clients.listTitle")}</CardTitle>
           <CardDescription>
-            A comprehensive list of all your clients
+            {t("clients.listDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Client Name</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Service Provider</TableHead>
-                <TableHead>Contact Info</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Language</TableHead>
-                <TableHead>Hourly Rate</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("clients.tableClientName")}</TableHead>
+                <TableHead>{t("clients.tableContactPerson")}</TableHead>
+                <TableHead>{t("clients.tableServiceProvider")}</TableHead>
+                <TableHead>{t("clients.tableContactInfo")}</TableHead>
+                <TableHead>{t("clients.tableAddress")}</TableHead>
+                <TableHead>{t("clients.tableLanguage")}</TableHead>
+                <TableHead>{t("clients.tableHourlyRate")}</TableHead>
+                <TableHead>{t("clients.tableCreated")}</TableHead>
+                <TableHead className="text-right">{t("clients.tableActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -402,18 +404,18 @@ const Clients = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+                            <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete {client.name}? This action cannot be undone.
+                              {t("clients.deleteConfirm").replace("{name}", client.name)}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={() => deleteClient(client.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              Delete
+                              {t("clients.deleteButton")}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>

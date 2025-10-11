@@ -159,6 +159,8 @@ const translations = {
     "clients.tableActions": "Actions",
     "clients.delete": "Delete Client",
     "clients.deleteConfirm": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "clients.deleteButton": "Delete",
+    "clients.hourlyPlaceholder": "Enter hourly rate",
     
     // Products
     "products.title": "Products & Services",
@@ -461,6 +463,8 @@ const translations = {
     "clients.tableActions": "Actions",
     "clients.delete": "Supprimer le client",
     "clients.deleteConfirm": "Êtes-vous sûr de vouloir supprimer {name} ? Cette action ne peut pas être annulée.",
+    "clients.deleteButton": "Supprimer",
+    "clients.hourlyPlaceholder": "Entrez le taux horaire",
     
     // Products
     "products.title": "Produits & Services",
