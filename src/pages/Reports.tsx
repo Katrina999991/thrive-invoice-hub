@@ -2763,8 +2763,8 @@ const Reports = () => {
           {/* Product Profit Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold">Product Profit Report</h2>
-              <p className="text-muted-foreground">Profitability analysis by sold product</p>
+              <h2 className="text-2xl font-bold">{t("reports.products.profitTitle")}</h2>
+              <p className="text-muted-foreground">{t("reports.products.profitDesc")}</p>
             </div>
             
             <div className="flex space-x-2">
@@ -2782,8 +2782,8 @@ const Reports = () => {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Date Filters</CardTitle>
-                <CardDescription>Select a period to analyze profits</CardDescription>
+                <CardTitle>{t("reports.products.dateFilters")}</CardTitle>
+                <CardDescription>{t("reports.products.selectPeriodProfit")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <DateRangePicker
@@ -2798,33 +2798,33 @@ const Reports = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Company Filter</CardTitle>
-                <CardDescription>Filter by company (optional)</CardDescription>
+                <CardTitle>{t("reports.products.companyFilter")}</CardTitle>
+                <CardDescription>{t("reports.products.companyFilterDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Filter Type</Label>
+                    <Label>{t("reports.products.filterType")}</Label>
                     <Select value={productFilterType} onValueChange={(value: 'all' | 'company') => {
                       setProductFilterType(value);
                       setProductSelectedCompanyId('');
                     }}>
                       <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Select filter type" />
+                        <SelectValue placeholder={t("reports.products.selectFilterType")} />
                       </SelectTrigger>
                       <SelectContent className="bg-background border border-border shadow-lg z-50">
-                        <SelectItem value="all">All Companies</SelectItem>
-                        <SelectItem value="company">By Company</SelectItem>
+                        <SelectItem value="all">{t("reports.products.allCompanies")}</SelectItem>
+                        <SelectItem value="company">{t("reports.products.byCompany")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   {productFilterType === 'company' && (
                     <div className="space-y-2">
-                      <Label htmlFor="product-company-select">Company</Label>
+                      <Label htmlFor="product-company-select">{t("reports.products.company")}</Label>
                       <Select value={productSelectedCompanyId} onValueChange={setProductSelectedCompanyId}>
                         <SelectTrigger className="bg-background">
-                          <SelectValue placeholder="Select company" />
+                          <SelectValue placeholder={t("reports.products.selectCompany")} />
                         </SelectTrigger>
                         <SelectContent className="bg-background border border-border shadow-lg z-50">
                           {companies.map((company) => (
@@ -2843,7 +2843,7 @@ const Reports = () => {
             {profitLoading ? (
               <Card>
                 <CardContent className="p-6">
-                  <div className="text-center">Loading profit data...</div>
+                  <div className="text-center">{t("reports.products.loadingProfit")}</div>
                 </CardContent>
               </Card>
             ) : filteredProfitData ? (
@@ -2852,7 +2852,7 @@ const Reports = () => {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Profit</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.totalProfit")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
@@ -2862,7 +2862,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.totalRevenue")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
@@ -2872,7 +2872,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.totalCost")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-orange-600">
@@ -2882,7 +2882,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Overall Margin</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.overallMargin")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
@@ -2895,8 +2895,8 @@ const Reports = () => {
                 {/* Graphique des profits par produit */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Profit by Product</CardTitle>
-                    <CardDescription>Comparative analysis of profits generated by each product</CardDescription>
+                    <CardTitle>{t("reports.products.profitByProduct")}</CardTitle>
+                    <CardDescription>{t("reports.products.profitByProductDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent ref={productProfitChartRef}>
                     <BarChart width={600} height={400} data={filteredProfitData.products.slice(0, 10)}>
@@ -2908,15 +2908,15 @@ const Reports = () => {
                         height={80}
                       />
                       <YAxis />
-                      <Tooltip 
-                        formatter={(value: any, name: string) => [
-                          new Intl.NumberFormat("fr-FR", { style: "currency", currency: "CAD" }).format(value),
-                          name === "Profit" ? "Profit" : 
-                          name === "Revenue" ? "Revenue" : "Cost"
-                        ]}
-                      />
-                      <Bar dataKey="total_profit" fill="#22c55e" name="Profit" />
-                      <Bar dataKey="total_cost" fill="#f97316" name="Cost" />
+                        <Tooltip 
+                          formatter={(value: any, name: string) => [
+                            new Intl.NumberFormat("fr-FR", { style: "currency", currency: "CAD" }).format(value),
+                            name === "Profit" ? t("reports.products.profit") : 
+                            name === "Revenue" ? t("reports.products.revenue") : t("reports.products.cost")
+                          ]}
+                        />
+                        <Bar dataKey="total_profit" fill="#22c55e" name={t("reports.products.profit")} />
+                        <Bar dataKey="total_cost" fill="#f97316" name={t("reports.products.cost")} />
                     </BarChart>
                   </CardContent>
                 </Card>
@@ -2924,20 +2924,20 @@ const Reports = () => {
                 {/* Tableau détaillé */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Product Details</CardTitle>
-                    <CardDescription>Detailed analysis of each product's profitability</CardDescription>
+                    <CardTitle>{t("reports.products.productDetails")}</CardTitle>
+                    <CardDescription>{t("reports.products.productDetailsDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Product</TableHead>
-                          <TableHead className="text-right">Qty Sold</TableHead>
-                          <TableHead className="text-right">Revenue</TableHead>
-                          <TableHead className="text-right">Cost</TableHead>
-                          <TableHead className="text-right">Profit</TableHead>
-                          <TableHead className="text-right">Margin %</TableHead>
-                          <TableHead className="text-right">Avg Price</TableHead>
+                          <TableHead>{t("reports.products.product")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.qtySold")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.revenue")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.cost")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.profit")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.marginPercent")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.avgPrice")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -2971,7 +2971,7 @@ const Reports = () => {
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center text-muted-foreground">
-                    No profit data available for the selected period.
+                    {t("reports.products.noProfitData")}
                   </div>
                 </CardContent>
               </Card>
@@ -2981,8 +2981,8 @@ const Reports = () => {
           {/* Inventory Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold">Inventory Report</h2>
-              <p className="text-muted-foreground">Stock analysis and inventory management</p>
+              <h2 className="text-2xl font-bold">{t("reports.products.inventoryTitle")}</h2>
+              <p className="text-muted-foreground">{t("reports.products.inventoryDesc")}</p>
             </div>
             <div className="flex space-x-2">
               <Button 
@@ -3008,47 +3008,47 @@ const Reports = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.products.totalProducts")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{products?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">products in inventory</p>
+                <p className="text-xs text-muted-foreground">{t("reports.products.productsInInventory")}</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.products.activeProducts")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {products?.filter(p => p.is_active).length || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">active products</p>
+                <p className="text-xs text-muted-foreground">{t("reports.products.activeProductsCount")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Low Stock Alert</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.products.lowStockAlert")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">
                   {products?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">products out of stock</p>
+                <p className="text-xs text-muted-foreground">{t("reports.products.productsOutOfStock")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Inventory Value</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.products.totalInventoryValue")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   ${products?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0).toFixed(2) || "0.00"}
                 </div>
-                <p className="text-xs text-muted-foreground">total inventory value</p>
+                <p className="text-xs text-muted-foreground">{t("reports.products.totalInventoryValueDesc")}</p>
               </CardContent>
             </Card>
           </div>
@@ -3056,8 +3056,8 @@ const Reports = () => {
           {/* Stock Level Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Stock Levels by Product</CardTitle>
-              <CardDescription>Available quantities for each product</CardDescription>
+              <CardTitle>{t("reports.products.stockLevelsByProduct")}</CardTitle>
+              <CardDescription>{t("reports.products.stockLevelsDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
@@ -3085,19 +3085,19 @@ const Reports = () => {
                     />
                     <YAxis />
                     <Tooltip 
-                      formatter={(value) => [`${value}`, 'Quantity']}
-                      labelFormatter={(label) => `Product: ${label}`}
+                      formatter={(value) => [`${value}`, t("reports.products.quantityLabel")]}
+                      labelFormatter={(label) => `${t("reports.products.product")}: ${label}`}
                     />
                     <Bar 
                       dataKey="quantity" 
                       fill="#22c55e"
-                      name="Quantity"
+                      name={t("reports.products.quantity")}
                     />
                   </BarChart>
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  No products found
+                  {t("reports.products.noProductsFound")}
                 </div>
               )}
             </CardContent>
@@ -3106,23 +3106,23 @@ const Reports = () => {
           {/* Products Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Product Details</CardTitle>
-              <CardDescription>Complete information on all products</CardDescription>
+              <CardTitle>{t("reports.products.inventoryDetails")}</CardTitle>
+              <CardDescription>{t("reports.products.inventoryDetailsDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {products && products.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Cost</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Margin</TableHead>
-                      <TableHead>Stock Value</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("reports.products.name")}</TableHead>
+                      <TableHead>{t("reports.products.sku")}</TableHead>
+                      <TableHead>{t("reports.products.category")}</TableHead>
+                      <TableHead>{t("reports.products.quantity")}</TableHead>
+                      <TableHead>{t("reports.products.cost")}</TableHead>
+                      <TableHead>{t("reports.products.price")}</TableHead>
+                      <TableHead>{t("reports.products.margin")}</TableHead>
+                      <TableHead>{t("reports.products.stockValue")}</TableHead>
+                      <TableHead>{t("reports.products.status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -3151,7 +3151,7 @@ const Reports = () => {
                                 ? "bg-green-100 text-green-800" 
                                 : "bg-red-100 text-red-800"
                             }`}>
-                              {product.is_active ? "Active" : "Inactive"}
+                              {product.is_active ? t("reports.products.active") : t("reports.products.inactive")}
                             </span>
                           </TableCell>
                         </TableRow>
@@ -3161,7 +3161,7 @@ const Reports = () => {
                 </Table>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  No products found
+                  {t("reports.products.noProductsFound")}
                 </div>
               )}
             </CardContent>
@@ -3170,8 +3170,8 @@ const Reports = () => {
           {/* Sales Report Section */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold">Sales Report</h2>
-              <p className="text-muted-foreground">Sales analysis and performance by product</p>
+              <h2 className="text-2xl font-bold">{t("reports.products.salesTitle")}</h2>
+              <p className="text-muted-foreground">{t("reports.products.salesDesc")}</p>
             </div>
             
             <div className="flex space-x-2">
@@ -3189,8 +3189,8 @@ const Reports = () => {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Date Filters</CardTitle>
-                <CardDescription>Select a period to analyze sales</CardDescription>
+                <CardTitle>{t("reports.products.dateFilters")}</CardTitle>
+                <CardDescription>{t("reports.products.selectPeriodSales")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <DateRangePicker
@@ -3206,7 +3206,7 @@ const Reports = () => {
             {salesLoading ? (
               <Card>
                 <CardContent className="p-6">
-                  <div className="text-center">Loading sales data...</div>
+                  <div className="text-center">{t("reports.products.loadingSales")}</div>
                 </CardContent>
               </Card>
             ) : salesData ? (
@@ -3215,7 +3215,7 @@ const Reports = () => {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.totalRevenue")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
@@ -3225,7 +3225,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Quantity Sold</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.totalQuantitySold")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
@@ -3235,7 +3235,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Number of Sales</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.numberOfSales")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
@@ -3245,7 +3245,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Products Sold</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.productsSold")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
@@ -3255,7 +3255,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Services Sold</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.products.servicesSold")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
@@ -3269,8 +3269,8 @@ const Reports = () => {
                 {salesData.products.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Revenue by Product</CardTitle>
-                      <CardDescription>Sales performance analysis by physical products</CardDescription>
+                      <CardTitle>{t("reports.products.revenueByProduct")}</CardTitle>
+                      <CardDescription>{t("reports.products.revenueByProductDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent ref={salesProductChartRef}>
                       <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
@@ -3285,11 +3285,11 @@ const Reports = () => {
                         <Tooltip 
                           formatter={(value: any, name: string) => [
                             new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                            name === "total_revenue" ? "Revenue" : 
-                            name === "total_quantity_sold" ? "Quantity Sold" : name
+                            name === "total_revenue" ? t("reports.products.revenue") : 
+                            name === "total_quantity_sold" ? t("reports.products.qtySold") : name
                           ]}
                         />
-                        <Bar dataKey="total_revenue" fill="#22c55e" name="Revenue" />
+                        <Bar dataKey="total_revenue" fill="#22c55e" name={t("reports.products.revenue")} />
                       </BarChart>
                     </CardContent>
                   </Card>
@@ -3299,8 +3299,8 @@ const Reports = () => {
                 {salesData.services.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Revenue by Service</CardTitle>
-                      <CardDescription>Sales performance analysis by services</CardDescription>
+                      <CardTitle>{t("reports.products.revenueByService")}</CardTitle>
+                      <CardDescription>{t("reports.products.revenueByServiceDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent ref={salesServiceChartRef}>
                       <BarChart width={600} height={400} data={salesData.services.slice(0, 10)}>
@@ -3315,11 +3315,11 @@ const Reports = () => {
                         <Tooltip 
                           formatter={(value: any, name: string) => [
                             new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                            name === "total_revenue" ? "Revenue" : 
-                            name === "total_quantity_sold" ? "Quantity Sold" : name
+                            name === "total_revenue" ? t("reports.products.revenue") : 
+                            name === "total_quantity_sold" ? t("reports.products.qtySold") : name
                           ]}
                         />
-                        <Bar dataKey="total_revenue" fill="#3b82f6" name="Revenue" />
+                        <Bar dataKey="total_revenue" fill="#3b82f6" name={t("reports.products.revenue")} />
                       </BarChart>
                     </CardContent>
                   </Card>
@@ -3328,27 +3328,27 @@ const Reports = () => {
                 {/* Combined Sales Details Table */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Sales Details</CardTitle>
-                    <CardDescription>Detailed sales information for products and services</CardDescription>
+                    <CardTitle>{t("reports.products.salesDetails")}</CardTitle>
+                    <CardDescription>{t("reports.products.salesDetailsDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Product/Service</TableHead>
-                          <TableHead className="text-right">Qty Sold</TableHead>
-                          <TableHead className="text-right">Revenue</TableHead>
-                          <TableHead className="text-right">Sales Count</TableHead>
-                          <TableHead className="text-right">Avg Price</TableHead>
-                          <TableHead className="text-right">First Sale</TableHead>
-                          <TableHead className="text-right">Last Sale</TableHead>
+                          <TableHead>{t("reports.products.productServiceLabel")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.qtySold")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.revenue")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.salesCount")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.avgPrice")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.firstSale")}</TableHead>
+                          <TableHead className="text-right">{t("reports.products.lastSale")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {/* Products */}
                         {salesData.products.map((product) => (
                           <TableRow key={product.product_id}>
-                            <TableCell className="font-medium">{product.product_name} <span className="text-xs text-muted-foreground">(Product)</span></TableCell>
+                            <TableCell className="font-medium">{product.product_name} <span className="text-xs text-muted-foreground">({t("reports.products.productLabel")})</span></TableCell>
                             <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
                             <TableCell className="text-right">
                               {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.total_revenue)}
@@ -3368,7 +3368,7 @@ const Reports = () => {
                         {/* Services */}
                         {salesData.services.map((service) => (
                           <TableRow key={service.product_id}>
-                            <TableCell className="font-medium">{service.product_name} <span className="text-xs text-muted-foreground">(Service)</span></TableCell>
+                            <TableCell className="font-medium">{service.product_name} <span className="text-xs text-muted-foreground">({t("reports.products.serviceLabel")})</span></TableCell>
                             <TableCell className="text-right">{service.total_quantity_sold}</TableCell>
                             <TableCell className="text-right">
                               {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(service.total_revenue)}
@@ -3394,7 +3394,7 @@ const Reports = () => {
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center text-muted-foreground">
-                    No sales data available for the selected period.
+                    {t("reports.products.noSalesData")}
                   </div>
                 </CardContent>
               </Card>
