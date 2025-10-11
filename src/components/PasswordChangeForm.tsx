@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, KeyRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function PasswordChangeForm() {
+  const { t } = useLanguage();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,13 +26,13 @@ export default function PasswordChangeForm() {
 
     // Validation
     if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters");
+      setError(t("password.error.length"));
       setIsLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("password.error.match"));
       setIsLoading(false);
       return;
     }
@@ -40,14 +42,14 @@ export default function PasswordChangeForm() {
     if (error) {
       setError(error.message);
       toast({
-        title: "Error",
+        title: t("password.error.title"),
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Success",
-        description: "Your password has been successfully updated.",
+        title: t("password.success.title"),
+        description: t("password.success.description"),
       });
       // Reset form
       setCurrentPassword("");
@@ -63,16 +65,16 @@ export default function PasswordChangeForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyRound className="h-5 w-5" />
-          Change Password
+          {t("password.title")}
         </CardTitle>
         <CardDescription>
-          Update your password to secure your account
+          {t("password.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="new-password">New Password</Label>
+            <Label htmlFor="new-password">{t("password.new")}</Label>
             <Input
               id="new-password"
               type="password"
@@ -84,7 +86,7 @@ export default function PasswordChangeForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <Label htmlFor="confirm-password">{t("password.confirm")}</Label>
             <Input
               id="confirm-password"
               type="password"
@@ -104,10 +106,10 @@ export default function PasswordChangeForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating...
+                {t("password.updating")}
               </>
             ) : (
-              "Change Password"
+              t("password.button")
             )}
           </Button>
         </form>
