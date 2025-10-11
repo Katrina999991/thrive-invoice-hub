@@ -12,12 +12,14 @@ import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useClients } from "@/hooks/useClients";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
 
 const Expenses = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
   const { clients, loading: clientsLoading } = useClients();
 
@@ -111,60 +113,60 @@ const Expenses = () => {
   const unpaidExpenses = expenses.filter(e => e.status === "unpaid").reduce((sum, expense) => sum + Number(expense.amount), 0);
 
   if (expensesLoading || clientsLoading) {
-    return <div>Loading...</div>;
+    return <div>{t("expenses.loading")}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("expenses.title")}</h1>
           <p className="text-muted-foreground">
-            Track and manage business expenses
+            {t("expenses.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Expense
+              {t("expenses.addButton")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingExpense ? "Edit Expense" : "Add New Expense"}</DialogTitle>
+              <DialogTitle>{editingExpense ? t("expenses.dialog.edit") : t("expenses.dialog.add")}</DialogTitle>
               <DialogDescription>
-                {editingExpense ? "Update expense information." : "Record a new business expense here."}
+                {editingExpense ? t("expenses.dialog.editDesc") : t("expenses.dialog.addDesc")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("expenses.description")}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Enter expense description"
+                  placeholder={t("expenses.descPlaceholder")}
                   value={newExpense.description}
                   onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount">{t("expenses.amount")}</Label>
                 <Input
                   id="amount"
                   type="number"
                   step="0.01"
-                  placeholder="0.00"
+                  placeholder={t("expenses.amountPlaceholder")}
                   value={newExpense.amount}
                   onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">{t("expenses.category")}</Label>
                 <Select value={newExpense.category} onValueChange={(value) => setNewExpense({...newExpense, category: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t("expenses.categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Office">Office</SelectItem>
@@ -179,7 +181,7 @@ const Expenses = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expense_date">Date</Label>
+                <Label htmlFor="expense_date">{t("expenses.date")}</Label>
                 <Input
                   id="expense_date"
                   type="date"
@@ -189,10 +191,10 @@ const Expenses = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client_id">Client</Label>
+                <Label htmlFor="client_id">{t("expenses.client")}</Label>
                 <Select value={newExpense.client_id} onValueChange={(value) => setNewExpense({...newExpense, client_id: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select client (optional)" />
+                    <SelectValue placeholder={t("expenses.clientPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
@@ -204,41 +206,41 @@ const Expenses = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vendor">Vendor</Label>
+                <Label htmlFor="vendor">{t("expenses.vendor")}</Label>
                 <Input
                   id="vendor"
-                  placeholder="Enter vendor name"
+                  placeholder={t("expenses.vendorPlaceholder")}
                   value={newExpense.vendor}
                   onChange={(e) => setNewExpense({...newExpense, vendor: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t("expenses.status")}</Label>
                 <Select value={newExpense.status || "unpaid"} onValueChange={(value) => setNewExpense({...newExpense, status: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder={t("expenses.statusPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="unpaid">Unpaid</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
+                    <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">{t("expenses.notes")}</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Additional notes (optional)"
+                  placeholder={t("expenses.notesPlaceholder")}
                   value={newExpense.notes}
                   onChange={(e) => setNewExpense({...newExpense, notes: e.target.value})}
                 />
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
-                  Cancel
+                  {t("expenses.cancel")}
                 </Button>
                 <Button type="submit" className="flex-1">
-                  {editingExpense ? "Update Expense" : "Add Expense"}
+                  {editingExpense ? t("expenses.updateButton") : t("expenses.addExpense")}
                 </Button>
               </div>
             </form>
@@ -249,41 +251,38 @@ const Expenses = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("expenses.total")}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">All recorded expenses</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("expenses.paid")}</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${paidExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Paid expenses</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unpaid</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("expenses.unpaid")}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${unpaidExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Unpaid expenses</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Expenses</CardTitle>
+          <CardTitle>{t("expenses.listTitle")}</CardTitle>
           <CardDescription>
-            Latest expense entries
+            {t("expenses.listDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -294,7 +293,7 @@ const Expenses = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-medium">{expense.description}</h3>
                     <Badge className={getStatusColor(expense.status)}>
-                      {expense.status}
+                      {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -309,8 +308,8 @@ const Expenses = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="unpaid">Unpaid</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
+                        <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
@@ -324,18 +323,18 @@ const Expenses = () => {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+                          <AlertDialogTitle>{t("expenses.delete")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete this expense "{expense.description}"? This action cannot be undone.
+                            {t("expenses.deleteConfirm")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{t("expenses.cancel")}</AlertDialogCancel>
                           <AlertDialogAction 
                             onClick={() => deleteExpense(expense.id)}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            Delete
+                            {t("expenses.delete")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

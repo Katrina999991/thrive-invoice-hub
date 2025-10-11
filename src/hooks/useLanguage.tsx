@@ -348,6 +348,7 @@ const translations = {
     "expenses.tableActions": "Actions",
     "expenses.delete": "Delete Expense",
     "expenses.deleteConfirm": "Are you sure you want to delete this expense? This action cannot be undone.",
+    "expenses.loading": "Loading...",
     
     // Settings
     "settings.title": "Settings",
@@ -758,6 +759,7 @@ const translations = {
     "expenses.tableActions": "Actions",
     "expenses.delete": "Supprimer la dépense",
     "expenses.deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette dépense ? Cette action ne peut pas être annulée.",
+    "expenses.loading": "Chargement...",
     
     // Settings
     "settings.title": "Paramètres",
