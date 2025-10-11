@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useDashboard = () => {
+type TranslationFunction = (key: string, replacements?: Record<string, string | number>) => string;
+
+export const useDashboard = (t?: TranslationFunction) => {
   return useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: ["dashboard-stats", t ? "translated" : "default"],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
@@ -59,28 +61,40 @@ export const useDashboard = () => {
       // Recent invoice updates
       invoices.slice(0, 5).forEach(invoice => {
         const updatedAt = new Date(invoice.updated_at);
-        const timeAgo = formatTimeAgo(updatedAt);
+        const timeAgo = formatTimeAgo(updatedAt, t);
         
         if (invoice.status === 'sent') {
+          const message = t 
+            ? t("reports.activity.invoiceSentTo", { number: invoice.invoice_number, client: invoice.clients?.name || 'client' })
+            : `Invoice ${invoice.invoice_number} sent to ${invoice.clients?.name || 'client'}`;
+          
           recentActivity.push({
             type: 'invoice_sent',
-            message: `Invoice ${invoice.invoice_number} sent to ${invoice.clients?.name || 'client'}`,
+            message,
             timeAgo,
             amount: `$${Number(invoice.total).toLocaleString()}`,
             color: 'blue'
           });
         } else if (invoice.status === 'paid') {
+          const message = t
+            ? t("reports.activity.paymentReceived", { number: invoice.invoice_number })
+            : `Payment received for ${invoice.invoice_number}`;
+          
           recentActivity.push({
             type: 'payment_received',
-            message: `Payment received for ${invoice.invoice_number}`,
+            message,
             timeAgo,
             amount: `+$${Number(invoice.total).toLocaleString()}`,
             color: 'green'
           });
         } else if (invoice.status === 'overdue') {
+          const message = t
+            ? t("reports.activity.invoiceOverdue", { number: invoice.invoice_number })
+            : `Invoice ${invoice.invoice_number} is overdue`;
+          
           recentActivity.push({
             type: 'invoice_overdue',
-            message: `Invoice ${invoice.invoice_number} is overdue`,
+            message,
             timeAgo,
             amount: `$${Number(invoice.total).toLocaleString()}`,
             color: 'orange'
@@ -91,10 +105,14 @@ export const useDashboard = () => {
       // Recent clients
       clients.slice(0, 3).forEach(client => {
         const createdAt = new Date(client.created_at);
-        const timeAgo = formatTimeAgo(createdAt);
+        const timeAgo = formatTimeAgo(createdAt, t);
+        const message = t
+          ? t("reports.activity.newClientAdded", { name: client.name })
+          : `New client added: ${client.name}`;
+        
         recentActivity.push({
           type: 'client_added',
-          message: `New client added: ${client.name}`,
+          message,
           timeAgo,
           amount: null,
           color: 'blue'
@@ -118,13 +136,25 @@ export const useDashboard = () => {
 };
 
 // Helper function to format time ago
-function formatTimeAgo(date: Date): string {
+function formatTimeAgo(date: Date, t?: TranslationFunction): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffInSeconds < 60) return 'Just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+  if (diffInSeconds < 60) {
+    return t ? t("reports.activity.justNow") : 'Just now';
+  }
+  if (diffInSeconds < 3600) {
+    const count = Math.floor(diffInSeconds / 60);
+    return t ? t("reports.activity.minutesAgo", { count }) : `${count} minutes ago`;
+  }
+  if (diffInSeconds < 86400) {
+    const count = Math.floor(diffInSeconds / 3600);
+    return t ? t("reports.activity.hoursAgo", { count }) : `${count} hours ago`;
+  }
+  if (diffInSeconds < 604800) {
+    const count = Math.floor(diffInSeconds / 86400);
+    return t ? t("reports.activity.daysAgo", { count }) : `${count} days ago`;
+  }
+  const count = Math.floor(diffInSeconds / 604800);
+  return t ? t("reports.activity.weeksAgo", { count }) : `${count} weeks ago`;
 }

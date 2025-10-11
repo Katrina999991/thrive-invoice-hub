@@ -100,7 +100,7 @@ const Reports = () => {
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
-  const { data: dashboardData } = useDashboard();
+  const { data: dashboardData } = useDashboard(t);
   const { products: allProducts } = useProducts();
   
   // États pour les filtres de la section Products
