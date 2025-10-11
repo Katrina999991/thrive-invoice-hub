@@ -200,6 +200,7 @@ const translations = {
     "products.stock": "Stock",
     "products.delete": "Delete",
     "products.deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "products.deleteButton": "Delete",
     
     // Expenses
     "expenses.title": "Expenses",
@@ -504,6 +505,7 @@ const translations = {
     "products.stock": "Stock",
     "products.delete": "Supprimer",
     "products.deleteConfirm": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action ne peut pas être annulée.",
+    "products.deleteButton": "Supprimer",
     
     // Expenses
     "expenses.title": "Dépenses",

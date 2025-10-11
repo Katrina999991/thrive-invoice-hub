@@ -14,10 +14,12 @@ import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2 } from "lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/useProducts";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useLanguage } from "@/hooks/useLanguage";
 
 
 const Products = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const { createExpense } = useExpenses();
@@ -138,24 +140,24 @@ const Products = () => {
             </div>
           </div>
           <Badge variant={item.is_active ? "default" : "secondary"}>
-            {item.is_active ? "Active" : "Inactive"}
+            {item.is_active ? t("products.active") : t("products.inactive")}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Category</p>
+            <p className="text-sm font-medium text-muted-foreground">{t("products.category")}</p>
             <p className="font-medium">{item.category || "—"}</p>
           </div>
           <div className="space-y-1">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Sale Price</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("products.salePrice2")}</p>
               <p className="text-xl font-bold text-green-600">${item.price}</p>
             </div>
             {item.cost > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground">Cost</p>
+                <p className="text-xs text-muted-foreground">{t("products.cost")}</p>
                 <p className="text-sm text-orange-600">${item.cost}</p>
               </div>
             )}
@@ -164,7 +166,7 @@ const Products = () => {
 
         {item.quantity !== null && (
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Stock</p>
+            <p className="text-sm font-medium text-muted-foreground">{t("products.stock")}</p>
             <p className="font-medium">{item.quantity} {item.unit}</p>
           </div>
         )}
@@ -181,18 +183,18 @@ const Products = () => {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete {item.name}</AlertDialogTitle>
+                <AlertDialogTitle>{t("products.delete")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete "{item.name}"? This action cannot be undone.
+                  {t("products.deleteConfirm").replace('"{name}"', `"${item.name}"`)}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("products.cancel")}</AlertDialogCancel>
                 <AlertDialogAction 
                   onClick={() => deleteProduct(item.id)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  Delete
+                  {t("products.deleteButton")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -206,28 +208,28 @@ const Products = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products & Services</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("products.title")}</h1>
           <p className="text-muted-foreground">
-            Manage your products and services catalog
+            {t("products.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Item
+              {t("products.addButton")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingProduct ? "Edit Item" : "Add New Item"}</DialogTitle>
+              <DialogTitle>{editingProduct ? t("products.dialog.edit") : t("products.dialog.add")}</DialogTitle>
               <DialogDescription>
-                {editingProduct ? "Update product or service information." : "Add a new product or service to your catalog."}
+                {editingProduct ? t("products.dialog.editDesc") : t("products.dialog.addDesc")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">{t("products.type")}</Label>
                 <Select 
                   value={newItem.type} 
                   onValueChange={(value) => setNewItem({
@@ -237,36 +239,36 @@ const Products = () => {
                   })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t("products.typePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="service">Service</SelectItem>
+                    <SelectItem value="product">{t("products.product")}</SelectItem>
+                    <SelectItem value="service">{t("products.service")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t("products.name")}</Label>
                 <Input
                   id="name"
-                  placeholder="Enter item name"
+                  placeholder={t("products.namePlaceholder")}
                   value={newItem.name}
                   onChange={(e) => setNewItem({...newItem, name: e.target.value})}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("products.description")}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Enter item description"
+                  placeholder={t("products.descPlaceholder")}
                   value={newItem.description}
                   onChange={(e) => setNewItem({...newItem, description: e.target.value})}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cost">Cost Price</Label>
+                  <Label htmlFor="cost">{t("products.costPrice")}</Label>
                   <Input
                     id="cost"
                     type="number"
@@ -277,7 +279,7 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Sale Price</Label>
+                  <Label htmlFor="price">{t("products.salePrice")}</Label>
                   <Input
                     id="price"
                     type="number"
@@ -290,10 +292,10 @@ const Products = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">{t("products.category")}</Label>
                 <Select value={newItem.category} onValueChange={(value) => setNewItem({...newItem, category: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t("products.categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Web Development">Web Development</SelectItem>
@@ -309,20 +311,20 @@ const Products = () => {
               {newItem.type === "product" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity</Label>
+                    <Label htmlFor="quantity">{t("products.quantity")}</Label>
                     <Input
                       id="quantity"
                       type="number"
-                      placeholder="Enter quantity"
+                      placeholder={t("products.quantityPlaceholder")}
                       value={newItem.quantity}
                       onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="unit">Unit</Label>
+                    <Label htmlFor="unit">{t("products.unit")}</Label>
                     <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
+                        <SelectValue placeholder={t("products.unitPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="piece">Piece</SelectItem>
@@ -337,10 +339,10 @@ const Products = () => {
               )}
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
-                  Cancel
+                  {t("products.cancel")}
                 </Button>
                 <Button type="submit" className="flex-1">
-                  {editingProduct ? "Update Item" : "Add Item"}
+                  {editingProduct ? t("products.updateButton") : t("products.addItem")}
                 </Button>
               </div>
             </form>
@@ -352,7 +354,7 @@ const Products = () => {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search products and services..."
+            placeholder={t("products.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -362,9 +364,9 @@ const Products = () => {
 
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">All Items ({filteredItems.length})</TabsTrigger>
-          <TabsTrigger value="products">Products ({productsWithStock.length})</TabsTrigger>
-          <TabsTrigger value="services">Services ({services.length})</TabsTrigger>
+          <TabsTrigger value="all">{t("products.allItems")} ({filteredItems.length})</TabsTrigger>
+          <TabsTrigger value="products">{t("products.products")} ({productsWithStock.length})</TabsTrigger>
+          <TabsTrigger value="services">{t("products.services")} ({services.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
