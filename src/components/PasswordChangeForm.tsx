@@ -24,13 +24,13 @@ export default function PasswordChangeForm() {
 
     // Validation
     if (newPassword.length < 6) {
-      setError("Le nouveau mot de passe doit contenir au moins 6 caractères");
+      setError("New password must be at least 6 characters");
       setIsLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
+      setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
@@ -40,14 +40,14 @@ export default function PasswordChangeForm() {
     if (error) {
       setError(error.message);
       toast({
-        title: "Erreur",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Succès",
-        description: "Votre mot de passe a été modifié avec succès.",
+        title: "Success",
+        description: "Your password has been successfully updated.",
       });
       // Reset form
       setCurrentPassword("");
@@ -63,16 +63,16 @@ export default function PasswordChangeForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyRound className="h-5 w-5" />
-          Changer le mot de passe
+          Change Password
         </CardTitle>
         <CardDescription>
-          Modifiez votre mot de passe pour sécuriser votre compte
+          Update your password to secure your account
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="new-password">Nouveau mot de passe</Label>
+            <Label htmlFor="new-password">New Password</Label>
             <Input
               id="new-password"
               type="password"
@@ -84,7 +84,7 @@ export default function PasswordChangeForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmer le nouveau mot de passe</Label>
+            <Label htmlFor="confirm-password">Confirm New Password</Label>
             <Input
               id="confirm-password"
               type="password"
@@ -104,10 +104,10 @@ export default function PasswordChangeForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Modification en cours...
+                Updating...
               </>
             ) : (
-              "Changer le mot de passe"
+              "Change Password"
             )}
           </Button>
         </form>
