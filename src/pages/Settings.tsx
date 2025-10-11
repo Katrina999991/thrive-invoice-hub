@@ -10,17 +10,35 @@ import { useState, useEffect } from "react";
 export default function Settings() {
   const { user } = useAuth();
   const [theme, setTheme] = useState<string>("default");
+  const [darkMode, setDarkMode] = useState<string>("light");
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
+    const savedDarkMode = localStorage.getItem("app-dark-mode") || "light";
     setTheme(savedTheme);
+    setDarkMode(savedDarkMode);
     document.documentElement.setAttribute("data-theme", savedTheme);
+    if (savedDarkMode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, []);
 
   const handleThemeChange = (value: string) => {
     setTheme(value);
     localStorage.setItem("app-theme", value);
     document.documentElement.setAttribute("data-theme", value);
+  };
+
+  const handleDarkModeChange = (value: string) => {
+    setDarkMode(value);
+    localStorage.setItem("app-dark-mode", value);
+    if (value === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   return (
@@ -64,7 +82,21 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
+              <div>
+                <Label className="text-sm font-medium mb-3 block">Mode d'affichage</Label>
+                <RadioGroup value={darkMode} onValueChange={handleDarkModeChange}>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="light" id="light" />
+                    <Label htmlFor="light" className="cursor-pointer">Clair</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dark" id="dark" />
+                    <Label htmlFor="dark" className="cursor-pointer">Sombre</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
               <div>
                 <Label className="text-sm font-medium mb-3 block">Thème de couleur</Label>
                 <RadioGroup value={theme} onValueChange={handleThemeChange}>
