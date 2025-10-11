@@ -14,6 +14,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useProducts } from "@/hooks/useProducts";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -32,6 +33,7 @@ import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 
 const Reports = () => {
+  const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   
@@ -2072,20 +2074,20 @@ const Reports = () => {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="taxes">Taxes</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
+          <TabsTrigger value="products">{t("reports.tabs.products")}</TabsTrigger>
+          <TabsTrigger value="expenses">{t("reports.tabs.expenses")}</TabsTrigger>
+          <TabsTrigger value="clients">{t("reports.tabs.clients")}</TabsTrigger>
+          <TabsTrigger value="taxes">{t("reports.tabs.taxes")}</TabsTrigger>
+          <TabsTrigger value="invoices">{t("reports.tabs.invoices")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Revenus totaux</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.overview.totalRevenue")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -2098,7 +2100,7 @@ const Reports = () => {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Factures en attente</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.overview.pendingInvoices")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -2111,7 +2113,7 @@ const Reports = () => {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Clients actifs</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.overview.activeClients")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -2124,7 +2126,7 @@ const Reports = () => {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Produits actifs</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("reports.overview.activeProducts")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -2140,7 +2142,7 @@ const Reports = () => {
           <div className="grid gap-4 md:grid-cols-1">
             <Card>
               <CardHeader>
-                <CardTitle>Activité récente</CardTitle>
+                <CardTitle>{t("reports.overview.recentActivity")}</CardTitle>
                 <CardDescription>Les dernières activités de votre entreprise</CardDescription>
               </CardHeader>
               <CardContent>
@@ -2181,15 +2183,15 @@ const Reports = () => {
               setActiveTab(value);
             }}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="custom">Custom Date Range</TabsTrigger>
-                <TabsTrigger value="month">By Month</TabsTrigger>
-                <TabsTrigger value="year">By Year</TabsTrigger>
+                <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
+                <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
+                <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="custom" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Custom Date Range</CardTitle>
+                    <CardTitle>{t("reports.revenue.customDateRange")}</CardTitle>
                     <CardDescription>Select a specific date range for revenue analysis</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -2202,7 +2204,7 @@ const Reports = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="filter-type">Filter by</Label>
+                        <Label htmlFor="filter-type">{t("reports.revenue.filterBy")}</Label>
                         <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'client') => {
                           setFilterType(value);
                           setSelectedCompanyId('');
@@ -2212,19 +2214,19 @@ const Reports = () => {
                             <SelectValue placeholder="Select filter" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Data</SelectItem>
-                            <SelectItem value="company">By Company</SelectItem>
-                            <SelectItem value="client">By Client</SelectItem>
+                            <SelectItem value="all">{t("reports.revenue.all")}</SelectItem>
+                            <SelectItem value="company">{t("reports.revenue.company")}</SelectItem>
+                            <SelectItem value="client">{t("reports.revenue.client")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       {filterType === 'company' && (
                         <div className="space-y-2">
-                          <Label htmlFor="company-select">Company</Label>
+                          <Label htmlFor="company-select">{t("reports.revenue.company")}</Label>
                           <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select company" />
+                              <SelectValue placeholder={t("reports.revenue.selectCompany")} />
                             </SelectTrigger>
                             <SelectContent>
                               {companies.map(company => (
@@ -2239,10 +2241,10 @@ const Reports = () => {
                       
                       {filterType === 'client' && (
                         <div className="space-y-2">
-                          <Label htmlFor="client-select">Client</Label>
+                          <Label htmlFor="client-select">{t("reports.revenue.client")}</Label>
                           <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select client" />
+                              <SelectValue placeholder={t("reports.revenue.selectClient")} />
                             </SelectTrigger>
                             <SelectContent>
                               {clients.map(client => (
@@ -2262,7 +2264,7 @@ const Reports = () => {
               <TabsContent value="month" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Monthly Revenue</CardTitle>
+                    <CardTitle>{t("reports.revenue.monthlyRevenue")}</CardTitle>
                     <CardDescription>Select a specific month to view revenue data</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -2277,7 +2279,7 @@ const Reports = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="filter-type">Filter by</Label>
+                        <Label htmlFor="filter-type">{t("reports.revenue.filterBy")}</Label>
                         <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'client') => {
                           setFilterType(value);
                           setSelectedCompanyId('');
@@ -2287,19 +2289,19 @@ const Reports = () => {
                             <SelectValue placeholder="Select filter" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Data</SelectItem>
-                            <SelectItem value="company">By Company</SelectItem>
-                            <SelectItem value="client">By Client</SelectItem>
+                            <SelectItem value="all">{t("reports.revenue.all")}</SelectItem>
+                            <SelectItem value="company">{t("reports.revenue.company")}</SelectItem>
+                            <SelectItem value="client">{t("reports.revenue.client")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       {filterType === 'company' && (
                         <div className="space-y-2">
-                          <Label htmlFor="company-select">Company</Label>
+                          <Label htmlFor="company-select">{t("reports.revenue.company")}</Label>
                           <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select company" />
+                              <SelectValue placeholder={t("reports.revenue.selectCompany")} />
                             </SelectTrigger>
                             <SelectContent>
                               {companies.map(company => (
@@ -2314,10 +2316,10 @@ const Reports = () => {
                       
                       {filterType === 'client' && (
                         <div className="space-y-2">
-                          <Label htmlFor="client-select">Client</Label>
+                          <Label htmlFor="client-select">{t("reports.revenue.client")}</Label>
                           <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select client" />
+                              <SelectValue placeholder={t("reports.revenue.selectClient")} />
                             </SelectTrigger>
                             <SelectContent>
                               {clients.map(client => (
@@ -2337,13 +2339,13 @@ const Reports = () => {
               <TabsContent value="year" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Yearly Revenue</CardTitle>
+                    <CardTitle>{t("reports.revenue.yearlyRevenue")}</CardTitle>
                     <CardDescription>Select a specific year to view revenue data or a year range</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-4">
                       <div>
-                        <Label>Option 1: Sélectionner une année spécifique</Label>
+                        <Label>{t("reports.revenue.option1")}</Label>
                         <MonthYearPicker
                           selectedDate={selectedYear}
                           onDateChange={(date) => {
@@ -2358,10 +2360,10 @@ const Reports = () => {
                       </div>
                       
                       <div className="border-t pt-4">
-                        <Label>Option 2: Sélectionner une plage d'années</Label>
+                        <Label>{t("reports.revenue.option2")}</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                           <div className="space-y-2">
-                            <Label>Année de début</Label>
+                            <Label>{t("reports.revenue.startYear")}</Label>
                             <MonthYearPicker
                               selectedDate={yearRangeStart}
                               onDateChange={(date) => {
@@ -2374,7 +2376,7 @@ const Reports = () => {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Année de fin</Label>
+                            <Label>{t("reports.revenue.endYear")}</Label>
                             <MonthYearPicker
                               selectedDate={yearRangeEnd}
                               onDateChange={(date) => {
@@ -2392,7 +2394,7 @@ const Reports = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="filter-type">Filter by</Label>
+                        <Label htmlFor="filter-type">{t("reports.revenue.filterBy")}</Label>
                         <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'client') => {
                           setFilterType(value);
                           setSelectedCompanyId('');
@@ -2402,19 +2404,19 @@ const Reports = () => {
                             <SelectValue placeholder="Select filter" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Data</SelectItem>
-                            <SelectItem value="company">By Company</SelectItem>
-                            <SelectItem value="client">By Client</SelectItem>
+                            <SelectItem value="all">{t("reports.revenue.all")}</SelectItem>
+                            <SelectItem value="company">{t("reports.revenue.company")}</SelectItem>
+                            <SelectItem value="client">{t("reports.revenue.client")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       {filterType === 'company' && (
                         <div className="space-y-2">
-                          <Label htmlFor="company-select">Company</Label>
+                          <Label htmlFor="company-select">{t("reports.revenue.company")}</Label>
                           <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select company" />
+                              <SelectValue placeholder={t("reports.revenue.selectCompany")} />
                             </SelectTrigger>
                             <SelectContent>
                               {companies.map(company => (
@@ -2429,10 +2431,10 @@ const Reports = () => {
                       
                       {filterType === 'client' && (
                         <div className="space-y-2">
-                          <Label htmlFor="client-select">Client</Label>
+                          <Label htmlFor="client-select">{t("reports.revenue.client")}</Label>
                           <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select client" />
+                              <SelectValue placeholder={t("reports.revenue.selectClient")} />
                             </SelectTrigger>
                             <SelectContent>
                               {clients.map(client => (
