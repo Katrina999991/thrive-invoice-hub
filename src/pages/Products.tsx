@@ -13,12 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/useProducts";
+import { useExpenses } from "@/hooks/useExpenses";
 
 
 const Products = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
+  const { createExpense } = useExpenses();
 
   const [newItem, setNewItem] = useState({
     type: "product", // product or service
@@ -51,6 +53,18 @@ const Products = () => {
       await updateProduct(editingProduct.id, itemData);
     } else {
       await createProduct(itemData);
+      
+      // Créer automatiquement une dépense si le produit a un coût
+      if (itemData.cost > 0) {
+        const today = new Date().toISOString().split('T')[0];
+        await createExpense({
+          description: `Achat de produit: ${itemData.name}`,
+          amount: itemData.cost,
+          category: "Products",
+          expense_date: today,
+          status: "unpaid"
+        });
+      }
     }
 
     resetForm();
