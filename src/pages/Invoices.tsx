@@ -604,6 +604,13 @@ const Invoices = () => {
       setSelectedEmails([]);
     }
     
+    // Pre-fill CC with company email
+    if (company?.email) {
+      setCcEmails([company.email]);
+    } else {
+      setCcEmails([""]);
+    }
+    
     if (company) {
       // Calculate template variables
       const dueDate = new Date(invoice.due_date || '');
