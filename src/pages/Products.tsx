@@ -57,9 +57,12 @@ const Products = () => {
       // Créer automatiquement une dépense si le produit a un coût
       if (itemData.cost > 0) {
         const today = new Date().toISOString().split('T')[0];
+        const quantity = itemData.quantity || 1;
+        const totalCost = itemData.cost * quantity;
+        
         await createExpense({
-          description: `Achat de produit: ${itemData.name}`,
-          amount: itemData.cost,
+          description: `Achat de produit: ${itemData.name} (${quantity} ${itemData.unit})`,
+          amount: totalCost,
           category: "Products",
           expense_date: today,
           status: "unpaid"
