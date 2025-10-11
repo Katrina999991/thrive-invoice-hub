@@ -2143,7 +2143,7 @@ const Reports = () => {
             <Card>
               <CardHeader>
                 <CardTitle>{t("reports.overview.recentActivity")}</CardTitle>
-                <CardDescription>Les dernières activités de votre entreprise</CardDescription>
+                <CardDescription>{t("reports.overview.recentActivityDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
                 {dashboardData && dashboardData.recentActivity.length > 0 ? (
@@ -2164,7 +2164,7 @@ const Reports = () => {
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">
-                    {dashboardData ? 'Aucune activité récente' : 'Chargement...'}
+                    {dashboardData ? t("reports.overview.noRecentActivity") : t("reports.overview.loading")}
                   </p>
                 )}
               </CardContent>
