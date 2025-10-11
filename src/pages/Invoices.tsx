@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
@@ -84,6 +85,7 @@ const Invoices = () => {
     subject: "",
     message: ""
   });
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
 
   // Filter clients based on selected company
   const filteredClients = selectedCompanyId 
@@ -593,6 +595,14 @@ const Invoices = () => {
     const client = clients.find(c => c.id === invoice.client_id);
     const company = companies.find(c => c.id === client?.company_id);
     
+    // Parse and pre-select all client emails
+    if (client?.email) {
+      const emailsArray = client.email.split(",").map((e: string) => e.trim()).filter((e: string) => e !== "");
+      setSelectedEmails(emailsArray);
+    } else {
+      setSelectedEmails([]);
+    }
+    
     if (company) {
       // Calculate template variables
       const dueDate = new Date(invoice.due_date || '');
@@ -736,7 +746,14 @@ Best regards,
   };
 
   const sendInvoiceEmail = async () => {
-    if (!emailingInvoice) return;
+    if (!emailingInvoice || selectedEmails.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one email address",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       const { error } = await supabase.functions.invoke('send-invoice-email', {
@@ -744,7 +761,8 @@ Best regards,
           invoiceId: emailingInvoice.id,
           customSubject: emailForm.subject,
           customMessage: emailForm.message,
-          emailType
+          emailType,
+          selectedEmails
         }
       });
 
@@ -752,11 +770,12 @@ Best regards,
 
       toast({
         title: "Success",
-        description: "Invoice email sent successfully!",
+        description: `Invoice email sent to ${selectedEmails.length} recipient(s)`,
       });
       
       setIsEmailDialogOpen(false);
       setEmailingInvoice(null);
+      setSelectedEmails([]);
       
       // Refresh invoices to update status
       await fetchInvoices();
@@ -1517,15 +1536,52 @@ Best regards,
 
             {/* Client Email Info */}
             {emailingInvoice && (
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">Sending to:</p>
-                <p className="font-medium">
-                  {clients.find(c => c.id === emailingInvoice.client_id)?.name} 
-                  ({clients.find(c => c.id === emailingInvoice.client_id)?.email})
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Invoice: {emailingInvoice.invoice_number} - ${emailingInvoice.total.toFixed(2)}
-                </p>
+              <div className="space-y-3">
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-2">Client:</p>
+                  <p className="font-medium mb-1">
+                    {clients.find(c => c.id === emailingInvoice.client_id)?.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Invoice: {emailingInvoice.invoice_number} - ${emailingInvoice.total.toFixed(2)}
+                  </p>
+                </div>
+                
+                {/* Email Selection */}
+                <div className="space-y-2">
+                  <Label>Select Email Recipients</Label>
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                    {(() => {
+                      const client = clients.find(c => c.id === emailingInvoice.client_id);
+                      const emailsArray = client?.email 
+                        ? client.email.split(",").map((e: string) => e.trim()).filter((e: string) => e !== "")
+                        : [];
+                      
+                      return emailsArray.length > 0 ? (
+                        emailsArray.map((email, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`email-${index}`}
+                              checked={selectedEmails.includes(email)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedEmails([...selectedEmails, email]);
+                                } else {
+                                  setSelectedEmails(selectedEmails.filter(e => e !== email));
+                                }
+                              }}
+                            />
+                            <label htmlFor={`email-${index}`} className="text-sm cursor-pointer">
+                              {email}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No email addresses found for this client</p>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1568,10 +1624,10 @@ Best regards,
               <Button 
                 onClick={sendInvoiceEmail}
                 className="flex-1"
-                disabled={!emailForm.subject || !emailForm.message}
+                disabled={!emailForm.subject || !emailForm.message || selectedEmails.length === 0}
               >
                 <Send className="h-4 w-4 mr-2" />
-                Send Email
+                Send Email {selectedEmails.length > 0 && `(${selectedEmails.length})`}
               </Button>
             </div>
           </div>

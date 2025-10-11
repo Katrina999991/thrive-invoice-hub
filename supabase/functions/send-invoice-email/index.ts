@@ -17,6 +17,7 @@ interface SendInvoiceEmailRequest {
   customSubject?: string;
   customMessage?: string;
   emailType?: "new" | "overdue" | "payment_confirmation";
+  selectedEmails?: string[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { invoiceId, customSubject, customMessage, emailType = "new" }: SendInvoiceEmailRequest = await req.json();
+    const { invoiceId, customSubject, customMessage, emailType = "new", selectedEmails }: SendInvoiceEmailRequest = await req.json();
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -81,9 +82,20 @@ const handler = async (req: Request): Promise<Response> => {
     const client = invoice.clients;
     const company = client?.companies;
 
-    if (!client?.email) {
+    // Déterminer les emails à utiliser
+    let emailsToSend: string[] = [];
+    
+    if (selectedEmails && selectedEmails.length > 0) {
+      // Utiliser les emails sélectionnés
+      emailsToSend = selectedEmails;
+    } else if (client?.email) {
+      // Sinon, utiliser tous les emails du client
+      emailsToSend = client.email.split(",").map((e: string) => e.trim()).filter((e: string) => e !== "");
+    }
+
+    if (emailsToSend.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Client email not found" }),
+        JSON.stringify({ error: "No client email addresses found or selected" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -459,7 +471,7 @@ Best regards,
     // Send email with PDF attachment
     const emailResponse = await resend.emails.send({
       from: `${company.name} <info@gestionflow.net>`,
-      to: [client.email],
+      to: emailsToSend,
       subject: emailSubject,
       html: htmlContent,
       attachments: [
@@ -471,7 +483,7 @@ Best regards,
       ],
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log(`Email sent successfully to ${emailsToSend.length} recipient(s):`, emailResponse);
 
     // Update invoice status only for new invoices (not for confirmations or reminders)
     if (emailType === "new") {
