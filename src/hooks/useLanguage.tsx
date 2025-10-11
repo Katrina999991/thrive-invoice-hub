@@ -5,7 +5,7 @@ type Language = "en" | "fr";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, replacements?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -1134,8 +1134,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("app-language", lang);
   };
 
-  const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations.en] || key;
+  const t = (key: string, replacements?: Record<string, string | number>): string => {
+    let translation = translations[language][key as keyof typeof translations.en] || key;
+    
+    // Replace placeholders with actual values
+    if (replacements) {
+      Object.entries(replacements).forEach(([placeholder, value]) => {
+        translation = translation.replace(`{${placeholder}}`, String(value));
+      });
+    }
+    
+    return translation;
   };
 
   return (
