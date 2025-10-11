@@ -885,7 +885,7 @@ Best regards,
                   </div>
                   <div>
                     <CardTitle className="text-lg">{company.name}</CardTitle>
-                    <CardDescription>Company</CardDescription>
+                    <CardDescription>{t("companies.companyLabel")}</CardDescription>
                   </div>
                 </div>
               </div>
@@ -922,19 +922,19 @@ Best regards,
                 <div className="pt-4 border-t space-y-2">
                   {company.website && (
                     <div>
-                      <p className="text-sm font-medium">Website</p>
+                      <p className="text-sm font-medium">{t("companies.websiteLabel")}</p>
                       <p className="text-sm text-muted-foreground">{company.website}</p>
                     </div>
                   )}
                   {company.tax_id && (
                     <div>
-                      <p className="text-sm font-medium">Tax ID</p>
+                      <p className="text-sm font-medium">{t("companies.taxIdLabel")}</p>
                       <p className="text-sm text-muted-foreground">{company.tax_id}</p>
                     </div>
                   )}
                   {company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0 && (
                     <div>
-                      <p className="text-sm font-medium">Taxes</p>
+                      <p className="text-sm font-medium">{t("companies.taxesLabel")}</p>
                       <div className="space-y-1">
                         {(company.taxes as Array<{name: string, percentage: number}>).map((tax, index) => (
                           <div key={index} className="flex items-center text-sm text-muted-foreground">

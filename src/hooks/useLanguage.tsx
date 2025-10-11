@@ -109,6 +109,10 @@ const translations = {
     "companies.delete": "Delete Company",
     "companies.deleteConfirm": "Are you sure you want to delete this company? This action cannot be undone.",
     "companies.deleteButton": "Delete",
+    "companies.companyLabel": "Company",
+    "companies.websiteLabel": "Website",
+    "companies.taxIdLabel": "Tax ID",
+    "companies.taxesLabel": "Taxes",
     
     // Clients
     "clients.title": "Clients",
@@ -407,6 +411,10 @@ const translations = {
     "companies.delete": "Supprimer l'entreprise",
     "companies.deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette entreprise ? Cette action ne peut pas être annulée.",
     "companies.deleteButton": "Supprimer",
+    "companies.companyLabel": "Entreprise",
+    "companies.websiteLabel": "Site web",
+    "companies.taxIdLabel": "Numéro fiscal",
+    "companies.taxesLabel": "Taxes",
     
     // Clients
     "clients.title": "Clients",
