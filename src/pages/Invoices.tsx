@@ -16,6 +16,7 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useProducts } from "@/hooks/useProducts";
+import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import jsPDF from 'jspdf';
@@ -46,6 +47,7 @@ interface InvoiceItem {
 
 const Invoices = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterValue, setFilterValue] = useState("");
@@ -806,37 +808,37 @@ Best regards,
     .reduce((sum, invoice) => sum + invoice.total, 0);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>{t("invoices.loading")}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("invoices.title")}</h1>
           <p className="text-muted-foreground">
-            Create and manage your invoices
+            {t("invoices.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Create Invoice
+              {t("invoices.createButton")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingInvoice ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
+              <DialogTitle>{editingInvoice ? t("invoices.dialog.edit") : t("invoices.dialog.create")}</DialogTitle>
               <DialogDescription>
-                {editingInvoice ? "Update invoice information." : "Create a new invoice with multiple products or services."}
+                {editingInvoice ? t("invoices.dialog.editDesc") : t("invoices.dialog.createDesc")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company">Select Company</Label>
-                  <Select 
+                  <Label htmlFor="company">{t("invoices.selectCompany")}</Label>
+                  <Select
                     value={selectedCompanyId} 
                     onValueChange={(value) => {
                       setSelectedCompanyId(value);
@@ -862,7 +864,7 @@ Best regards,
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
+                      <SelectValue placeholder={t("invoices.companyPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {companies.map((company) => (
@@ -879,8 +881,8 @@ Best regards,
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client">Select Client</Label>
-                  <Select 
+                  <Label htmlFor="client">{t("invoices.selectClient")}</Label>
+                  <Select
                     value={newInvoice.client_id} 
                     onValueChange={(value) => {
                       setNewInvoice({
@@ -900,7 +902,7 @@ Best regards,
                     disabled={!selectedCompanyId}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedCompanyId ? "Select client" : "Select company first"} />
+                      <SelectValue placeholder={selectedCompanyId ? t("invoices.clientPlaceholder") : t("invoices.clientPlaceholderNoCompany")} />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredClients.map((client) => (
@@ -918,7 +920,7 @@ Best regards,
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="issue_date">Date de facture</Label>
+                  <Label htmlFor="issue_date">{t("invoices.issueDate")}</Label>
                   <Input
                     id="issue_date"
                     type="date"
@@ -940,7 +942,7 @@ Best regards,
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="due_date">Due Date</Label>
+                  <Label htmlFor="due_date">{t("invoices.dueDate")}</Label>
                   <Input
                     id="due_date"
                     type="date"
@@ -953,19 +955,19 @@ Best regards,
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="terms">Terms</Label>
+                  <Label htmlFor="terms">{t("invoices.terms")}</Label>
                   <Input
                     id="terms"
-                    placeholder="Payment terms"
+                    placeholder={t("invoices.termsPlaceholder")}
                     value={newInvoice.terms}
                     onChange={(e) => setNewInvoice({...newInvoice, terms: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
+                  <Label htmlFor="notes">{t("invoices.notes")}</Label>
                   <Input
                     id="notes"
-                    placeholder="Additional notes"
+                    placeholder={t("invoices.notesPlaceholder")}
                     value={newInvoice.notes}
                     onChange={(e) => setNewInvoice({...newInvoice, notes: e.target.value})}
                   />
@@ -973,11 +975,11 @@ Best regards,
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Add Items</h3>
+                <h3 className="text-lg font-medium">{t("invoices.addItems")}</h3>
                 
                 {/* Product Selector */}
                 <div className="space-y-2">
-                  <Label htmlFor="product">Select Product/Service (optional)</Label>
+                  <Label htmlFor="product">{t("invoices.selectProduct")}</Label>
                   <Select 
                     value={currentItem.product_id} 
                     onValueChange={(value) => {
@@ -1014,19 +1016,19 @@ Best regards,
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select existing product/service or enter custom" />
+                      <SelectValue placeholder={t("invoices.productPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="custom">
                         <div className="flex items-center">
                           <Plus className="h-4 w-4 mr-2" />
-                          Custom Item
+                          {t("invoices.customItem")}
                         </div>
                       </SelectItem>
                       <SelectItem value="new">
                         <div className="flex items-center">
                           <Plus className="h-4 w-4 mr-2" />
-                          Add New Product/Service
+                          {t("invoices.addNewProduct")}
                         </div>
                       </SelectItem>
                       {products.filter(p => p.is_active).map((product) => (
@@ -1045,16 +1047,16 @@ Best regards,
 
                 <div className="grid grid-cols-12 gap-2 items-end">
                   <div className="col-span-3">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">{t("invoices.description")}</Label>
                     <Input
                       id="description"
-                      placeholder="Item description"
+                      placeholder={t("invoices.descPlaceholder")}
                       value={currentItem.description}
                       onChange={(e) => setCurrentItem({...currentItem, description: e.target.value})}
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="quantity">Quantity</Label>
+                    <Label htmlFor="quantity">{t("invoices.quantity")}</Label>
                     <Input
                       id="quantity"
                       type="number"
@@ -1064,7 +1066,7 @@ Best regards,
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="unit_price">Unit Price</Label>
+                    <Label htmlFor="unit_price">{t("invoices.unitPrice")}</Label>
                     <Input
                       id="unit_price"
                       type="number"
@@ -1076,10 +1078,10 @@ Best regards,
                     />
                   </div>
                   <div className="col-span-3">
-                    <Label htmlFor="item_notes">Notes (optional)</Label>
+                    <Label htmlFor="item_notes">{t("invoices.itemNotes")}</Label>
                     <Input
                       id="item_notes"
-                      placeholder="Item notes"
+                      placeholder={t("invoices.itemNotesPlaceholder")}
                       value={currentItem.notes}
                       onChange={(e) => setCurrentItem({...currentItem, notes: e.target.value})}
                     />
@@ -1087,14 +1089,14 @@ Best regards,
                   <div className="col-span-2">
                     <Button type="button" onClick={addItem} className="w-full">
                       <Plus className="h-4 w-4 mr-1" />
-                      Add Item
+                      {t("invoices.addItemButton")}
                     </Button>
                   </div>
                 </div>
 
                 {newInvoice.items.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="font-medium">Invoice Items</h4>
+                    <h4 className="font-medium">{t("invoices.invoiceItems")}</h4>
                     <div className="border rounded-lg">
                       <Table>
                          <TableHeader>
@@ -1201,10 +1203,10 @@ Best regards,
                   setEditingInvoice(null);
                   setIsDialogOpen(false);
                 }} className="flex-1">
-                  Cancel
+                  {t("invoices.cancel")}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={newInvoice.items.length === 0}>
-                  {editingInvoice ? "Update Invoice" : "Create Invoice"}
+                  {editingInvoice ? t("invoices.updateInvoice") : t("invoices.createButton")}
                 </Button>
               </div>
             </form>
@@ -1322,7 +1324,7 @@ Best regards,
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("invoices.totalInvoices")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{invoices.length}</div>
@@ -1330,7 +1332,7 @@ Best regards,
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("invoices.totalAmountLabel")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalAmount.toLocaleString()}</div>
@@ -1338,7 +1340,7 @@ Best regards,
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid Amount</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("invoices.paidAmount")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">${paidAmount.toLocaleString()}</div>
@@ -1346,7 +1348,7 @@ Best regards,
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("invoices.outstanding")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">${(totalAmount - paidAmount).toLocaleString()}</div>
@@ -1358,7 +1360,7 @@ Best regards,
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search invoices..."
+            placeholder={t("invoices.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -1369,21 +1371,21 @@ Best regards,
           setFilterValue("");
         }}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by" />
+            <SelectValue placeholder={t("invoices.filterBy")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Invoices</SelectItem>
-            <SelectItem value="client">By Client</SelectItem>
-            <SelectItem value="company">By Company</SelectItem>
+            <SelectItem value="all">{t("invoices.allInvoices")}</SelectItem>
+            <SelectItem value="client">{t("invoices.byClient")}</SelectItem>
+            <SelectItem value="company">{t("invoices.byCompany")}</SelectItem>
           </SelectContent>
         </Select>
         {filterType === "client" && (
           <Select value={filterValue} onValueChange={setFilterValue}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select client" />
+              <SelectValue placeholder={t("invoices.clientPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Clients</SelectItem>
+              <SelectItem value="all">{t("invoices.clientAll")}</SelectItem>
               {clients && clients.length > 0 ? clients.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name || 'Unnamed Client'}
@@ -1397,10 +1399,10 @@ Best regards,
         {filterType === "company" && (
           <Select value={filterValue} onValueChange={setFilterValue}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select company" />
+              <SelectValue placeholder={t("invoices.companyPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Companies</SelectItem>
+              <SelectItem value="all">{t("invoices.companyAll")}</SelectItem>
               {companies && companies.length > 0 ? companies.map((company) => (
                 <SelectItem key={company.id} value={company.id}>
                   {company.name || 'Unnamed Company'}
@@ -1415,23 +1417,23 @@ Best regards,
 
       <Card>
         <CardHeader>
-          <CardTitle>Invoice List</CardTitle>
+          <CardTitle>{t("invoices.listTitle")}</CardTitle>
           <CardDescription>
-            Manage all your invoices in one place
+            {t("invoices.listDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Issue Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("invoices.tableInvoiceNumber")}</TableHead>
+                <TableHead>{t("invoices.tableClient")}</TableHead>
+                <TableHead>{t("invoices.tableAmount")}</TableHead>
+                <TableHead>{t("invoices.tableStatus")}</TableHead>
+                <TableHead>{t("invoices.tableIssueDate")}</TableHead>
+                <TableHead>{t("invoices.tableDueDate")}</TableHead>
+                <TableHead>{t("invoices.tableItems")}</TableHead>
+                <TableHead className="text-right">{t("invoices.tableActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1448,10 +1450,10 @@ Best regards,
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
+                        <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                        <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                        <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                        <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -1493,18 +1495,18 @@ Best regards,
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+                            <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete invoice {invoice.invoice_number}? This action cannot be undone.
+                              {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={() => deleteInvoice(invoice.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              Delete
+                              {t("invoices.deleteButton")}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -1522,24 +1524,24 @@ Best regards,
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Send Invoice Email</DialogTitle>
+            <DialogTitle>{t("invoices.emailDialog.title")}</DialogTitle>
             <DialogDescription>
-              Choose email type and customize the message before sending
+              {t("invoices.emailDialog.desc")}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
             {/* Email Type Selection */}
             <div className="space-y-2">
-              <Label>Email Type</Label>
+              <Label>{t("invoices.emailType")}</Label>
               <Select value={emailType} onValueChange={handleEmailTypeChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">New Invoice</SelectItem>
-                  <SelectItem value="overdue">Overdue Payment Reminder</SelectItem>
-                  <SelectItem value="payment_confirmation">Payment Confirmation</SelectItem>
+                  <SelectItem value="new">{t("invoices.emailTypeNew")}</SelectItem>
+                  <SelectItem value="overdue">{t("invoices.emailTypeOverdue")}</SelectItem>
+                  <SelectItem value="payment_confirmation">{t("invoices.emailTypeConfirmation")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1548,18 +1550,18 @@ Best regards,
             {emailingInvoice && (
               <div className="space-y-3">
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">Client:</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t("invoices.emailClient")}</p>
                   <p className="font-medium mb-1">
                     {clients.find(c => c.id === emailingInvoice.client_id)?.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Invoice: {emailingInvoice.invoice_number} - ${emailingInvoice.total.toFixed(2)}
+                    {t("invoices.emailInvoice")} {emailingInvoice.invoice_number} - ${emailingInvoice.total.toFixed(2)}
                   </p>
                 </div>
                 
                 {/* Email Selection */}
                 <div className="space-y-2">
-                  <Label>Select Email Recipients</Label>
+                  <Label>{t("invoices.emailRecipients")}</Label>
                   <div className="p-4 bg-muted/50 rounded-lg space-y-2">
                     {(() => {
                       const client = clients.find(c => c.id === emailingInvoice.client_id);
@@ -1587,7 +1589,7 @@ Best regards,
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-muted-foreground">No email addresses found for this client</p>
+                        <p className="text-sm text-muted-foreground">{t("invoices.emailNoEmails")}</p>
                       );
                     })()}
                   </div>
@@ -1595,13 +1597,13 @@ Best regards,
                 
                 {/* CC Emails */}
                 <div className="space-y-2">
-                  <Label>CC (Optional)</Label>
+                  <Label>{t("invoices.emailCC")}</Label>
                   <div className="space-y-2">
                     {ccEmails.map((email, index) => (
                       <div key={index} className="flex gap-2">
                         <Input
                           type="email"
-                          placeholder="Enter CC email address"
+                          placeholder={t("invoices.emailCCPlaceholder")}
                           value={email}
                           onChange={(e) => {
                             const newCcEmails = [...ccEmails];
@@ -1631,7 +1633,7 @@ Best regards,
                       className="w-full"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add CC Email
+                      {t("invoices.emailAddCC")}
                     </Button>
                   </div>
                 </div>
@@ -1640,28 +1642,28 @@ Best regards,
 
             {/* Email Subject */}
             <div className="space-y-2">
-              <Label htmlFor="email-subject">Email Subject</Label>
+              <Label htmlFor="email-subject">{t("invoices.emailSubject")}</Label>
               <Input
                 id="email-subject"
                 value={emailForm.subject}
                 onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
-                placeholder="Email subject"
+                placeholder={t("invoices.emailSubjectPlaceholder")}
               />
             </div>
 
             {/* Email Message */}
             <div className="space-y-2">
-              <Label htmlFor="email-message">Email Message</Label>
+              <Label htmlFor="email-message">{t("invoices.emailMessage")}</Label>
               <Textarea
                 id="email-message"
                 value={emailForm.message}
                 onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
-                placeholder="Email message"
+                placeholder={t("invoices.emailMessagePlaceholder")}
                 rows={8}
                 className="min-h-[200px]"
               />
               <p className="text-xs text-muted-foreground">
-                Available placeholders: {'{client_name}'}, {'{invoice_number}'}, {'{issue_date}'}, {'{due_date}'}, {'{total}'}, {'{company_name}'}, {'{days_overdue}'}
+                {t("invoices.emailPlaceholders")}
               </p>
             </div>
 
@@ -1672,7 +1674,7 @@ Best regards,
                 onClick={() => setIsEmailDialogOpen(false)}
                 className="flex-1"
               >
-                Cancel
+                {t("invoices.cancel")}
               </Button>
               <Button 
                 onClick={sendInvoiceEmail}
@@ -1680,7 +1682,7 @@ Best regards,
                 disabled={!emailForm.subject || !emailForm.message || selectedEmails.length === 0}
               >
                 <Send className="h-4 w-4 mr-2" />
-                Send Email {selectedEmails.length > 0 && `(${selectedEmails.length})`}
+                {t("invoices.sendEmail")} {selectedEmails.length > 0 && `(${selectedEmails.length})`}
               </Button>
             </div>
           </div>
