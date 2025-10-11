@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCompanies } from "@/hooks/useCompanies";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type Company = Tables<"companies">;
 
@@ -100,6 +101,7 @@ const US_STATES = [
 
 const Companies = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompanies();
 
   // Helper function to format complete address
@@ -252,8 +254,8 @@ Best regards,
       } catch (error) {
         console.error('Error uploading logo:', error);
         toast({
-          title: "Error",
-          description: "Failed to upload logo. Please try again.",
+          title: t("companies.logoError"),
+          description: t("companies.logoError"),
           variant: "destructive"
         });
         setUploadingLogo(false);
@@ -442,38 +444,38 @@ Best regards,
 
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>{t("companies.loading")}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Companies</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("companies.title")}</h1>
           <p className="text-muted-foreground">
-            Manage your business companies and organizations
+            {t("companies.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Company
+              {t("companies.addButton")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingCompany ? "Edit Company" : "Add New Company"}</DialogTitle>
+              <DialogTitle>{editingCompany ? t("companies.dialog.edit") : t("companies.dialog.add")}</DialogTitle>
               <DialogDescription>
-                {editingCompany ? "Update company information." : "Add a new company to your business management system."}
+                {editingCompany ? t("companies.dialog.editDesc") : t("companies.dialog.addDesc")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Company Name</Label>
+                <Label htmlFor="name">{t("companies.name")}</Label>
                 <Input
                   id="name"
-                  placeholder="Enter company name"
+                  placeholder={t("companies.namePlaceholder")}
                   value={newCompany.name}
                   onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
                   required
@@ -481,13 +483,13 @@ Best regards,
               </div>
               {/* Address fields */}
               <div className="space-y-4">
-                <Label className="text-base font-medium">Address</Label>
+                <Label className="text-base font-medium">{t("companies.address")}</Label>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="street_address">Street Address</Label>
+                  <Label htmlFor="street_address">{t("companies.streetAddress")}</Label>
                   <Input
                     id="street_address"
-                    placeholder="123 Main Street"
+                    placeholder={t("companies.streetPlaceholder")}
                     value={newCompany.street_address}
                     onChange={(e) => setNewCompany({...newCompany, street_address: e.target.value})}
                   />
@@ -495,19 +497,19 @@ Best regards,
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">{t("companies.city")}</Label>
                     <Input
                       id="city"
-                      placeholder="Montreal"
+                      placeholder={t("companies.cityPlaceholder")}
                       value={newCompany.city}
                       onChange={(e) => setNewCompany({...newCompany, city: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Postal Code</Label>
+                    <Label htmlFor="postal_code">{t("companies.postalCode")}</Label>
                     <Input
                       id="postal_code"
-                      placeholder="H1V 1A1"
+                      placeholder={t("companies.postalPlaceholder")}
                       value={newCompany.postal_code}
                       onChange={(e) => setNewCompany({...newCompany, postal_code: e.target.value})}
                     />
@@ -515,12 +517,12 @@ Best regards,
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
+                  <Label htmlFor="country">{t("companies.country")}</Label>
                   <Select value={newCompany.country} onValueChange={(value) => {
                     setNewCompany({...newCompany, country: value, province_state: ""});
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a country" />
+                      <SelectValue placeholder={t("companies.countryPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {COUNTRIES.map((country) => (
@@ -534,14 +536,14 @@ Best regards,
 
                 <div className="space-y-2">
                   <Label htmlFor="province_state">
-                    {newCompany.country === "Canada" ? "Province" : newCompany.country === "United States" ? "State" : "Province/State"}
+                    {newCompany.country === "Canada" ? t("companies.provinceState") : newCompany.country === "United States" ? t("companies.provinceState") : t("companies.provinceState")}
                   </Label>
                   {newCompany.country === "Canada" || newCompany.country === "United States" ? (
                     <Select value={newCompany.province_state} onValueChange={(value) => {
                       setNewCompany({...newCompany, province_state: value});
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder={`Select ${newCompany.country === "Canada" ? "a province" : "a state"}`} />
+                        <SelectValue placeholder={t("companies.provinceStatePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent className="z-50 bg-popover">
                         {(newCompany.country === "Canada" ? CANADA_PROVINCES : US_STATES).map((region) => (
@@ -554,7 +556,7 @@ Best regards,
                   ) : (
                     <Input
                       id="province_state"
-                      placeholder="Province or State"
+                      placeholder={t("companies.provinceStatePlaceholder")}
                       value={newCompany.province_state}
                       onChange={(e) => setNewCompany({...newCompany, province_state: e.target.value})}
                     />
@@ -562,29 +564,29 @@ Best regards,
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t("companies.phone")}</Label>
                 <Input
                   id="phone"
-                  placeholder="Enter phone number"
+                  placeholder={t("companies.phonePlaceholder")}
                   value={newCompany.phone}
                   onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("companies.email")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter email address"
+                  placeholder={t("companies.emailPlaceholder")}
                   value={newCompany.email}
                   onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">Contact Person</Label>
+                <Label htmlFor="contact_person">{t("companies.contactPerson")}</Label>
                 <Input
                   id="contact_person"
-                  placeholder="Enter contact person name"
+                  placeholder={t("companies.contactPlaceholder")}
                   value={newCompany.contact_person}
                   onChange={(e) => setNewCompany({...newCompany, contact_person: e.target.value})}
                 />
@@ -592,13 +594,13 @@ Best regards,
               
               {/* Logo Upload */}
               <div className="space-y-2">
-                <Label htmlFor="logo">Company Logo</Label>
+                <Label htmlFor="logo">{t("companies.logo")}</Label>
                 <div className="flex items-center space-x-4">
                   {newCompany.logo_url && (
                     <div className="w-16 h-16 border rounded-lg overflow-hidden">
                       <img 
                         src={newCompany.logo_url} 
-                        alt="Company logo" 
+                        alt={t("companies.currentLogo")} 
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -629,25 +631,25 @@ Best regards,
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website">{t("companies.website")}</Label>
                 <Input
                   id="website"
-                  placeholder="Enter website URL"
+                  placeholder={t("companies.websitePlaceholder")}
                   value={newCompany.website}
                   onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tax_id">Tax ID</Label>
+                <Label htmlFor="tax_id">{t("companies.taxId")}</Label>
                 <Input
                   id="tax_id"
-                  placeholder="Enter tax identification number"
+                  placeholder={t("companies.taxIdPlaceholder")}
                   value={newCompany.tax_id}
                   onChange={(e) => setNewCompany({...newCompany, tax_id: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="default_due_days">Default Due Days</Label>
+                <Label htmlFor="default_due_days">{t("companies.dueDefault")}</Label>
                 <Input
                   id="default_due_days"
                   type="number"
@@ -660,19 +662,19 @@ Best regards,
               </div>
 
               <div className="space-y-2">
-                <Label>Invoice Numbering</Label>
+                <Label>{t("companies.invoiceSettings")}</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label htmlFor="invoicePrefix" className="text-sm">Prefix</Label>
+                    <Label htmlFor="invoicePrefix" className="text-sm">{t("companies.invoicePrefix")}</Label>
                     <Input
                       id="invoicePrefix"
-                      placeholder="INV"
+                      placeholder={t("companies.invoicePrefixPlaceholder")}
                       value={newCompany.invoice_prefix}
                       onChange={(e) => setNewCompany({...newCompany, invoice_prefix: e.target.value})}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="invoiceDigits" className="text-sm">Digits</Label>
+                    <Label htmlFor="invoiceDigits" className="text-sm">{t("companies.invoiceDigits")}</Label>
                     <Input
                       id="invoiceDigits"
                       type="number"
@@ -683,7 +685,7 @@ Best regards,
                     />
                   </div>
                   <div>
-                    <Label htmlFor="invoiceStartNumber" className="text-sm">Start #</Label>
+                    <Label htmlFor="invoiceStartNumber" className="text-sm">{t("companies.invoiceStart")}</Label>
                     <Input
                       id="invoiceStartNumber"
                       type="number"
@@ -700,7 +702,7 @@ Best regards,
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Taxes (Max 2)</Label>
+                  <Label>{t("companies.taxes")} (Max 2)</Label>
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -709,29 +711,29 @@ Best regards,
                     disabled={taxes.length >= 2}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    Add Tax
+                    {t("companies.addTax")}
                   </Button>
                 </div>
                 {taxes.map((tax, index) => (
                   <div key={index} className="flex gap-2 items-end">
                     <div className="flex-1">
-                      <Label htmlFor={`tax-name-${index}`}>Tax Name</Label>
+                      <Label htmlFor={`tax-name-${index}`}>{t("companies.taxName")}</Label>
                       <Input
                         id={`tax-name-${index}`}
-                        placeholder="e.g. GST, VAT"
+                        placeholder={t("companies.taxNamePlaceholder")}
                         value={tax.name}
                         onChange={(e) => updateTax(index, 'name', e.target.value)}
                       />
                     </div>
                     <div className="w-24">
-                      <Label htmlFor={`tax-percentage-${index}`}>%</Label>
+                      <Label htmlFor={`tax-percentage-${index}`}>{t("companies.taxRate")}</Label>
                       <Input
                         id={`tax-percentage-${index}`}
                         type="number"
                         min="0"
                         max="100"
                         step="0.0001"
-                        placeholder="0"
+                        placeholder={t("companies.taxRatePlaceholder")}
                         value={tax.percentage}
                         onChange={(e) => {
                           const value = e.target.value.replace(',', '.');
@@ -756,10 +758,10 @@ Best regards,
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Send className="h-4 w-4" />
-                  <Label className="text-base font-medium">Invoice Email Settings</Label>
+                  <Label className="text-base font-medium">{t("companies.emailTemplates")}</Label>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="invoice_email_subject">Email Subject</Label>
+                  <Label htmlFor="invoice_email_subject">{t("companies.invoiceEmailSubject")}</Label>
                   <Input
                     id="invoice_email_subject"
                     placeholder="Invoice {invoice_number} from {company_name}"
@@ -771,7 +773,7 @@ Best regards,
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="invoice_email_message">Email Message</Label>
+                  <Label htmlFor="invoice_email_message">{t("companies.invoiceEmailMessage")}</Label>
                   <Textarea
                     id="invoice_email_message"
                     rows={6}
@@ -789,10 +791,10 @@ Best regards,
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Send className="h-4 w-4" />
-                  <Label className="text-base font-medium">Overdue Payment Email Settings</Label>
+                  <Label className="text-base font-medium">{t("companies.overdueSubject")}</Label>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="overdue_email_subject">Overdue Email Subject</Label>
+                  <Label htmlFor="overdue_email_subject">{t("companies.overdueSubject")}</Label>
                   <Input
                     id="overdue_email_subject"
                     placeholder="Payment Overdue - Invoice {invoice_number}"
@@ -804,7 +806,7 @@ Best regards,
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="overdue_email_message">Overdue Email Message</Label>
+                  <Label htmlFor="overdue_email_message">{t("companies.overdueMessage")}</Label>
                   <Textarea
                     id="overdue_email_message"
                     rows={6}
@@ -822,10 +824,10 @@ Best regards,
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Send className="h-4 w-4" />
-                  <Label className="text-base font-medium">Payment Confirmation Email Settings</Label>
+                  <Label className="text-base font-medium">{t("companies.paymentSubject")}</Label>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="payment_confirmation_email_subject">Payment Confirmation Email Subject</Label>
+                  <Label htmlFor="payment_confirmation_email_subject">{t("companies.paymentSubject")}</Label>
                   <Input
                     id="payment_confirmation_email_subject"
                     placeholder="Payment Confirmation - Invoice {invoice_number}"
@@ -837,7 +839,7 @@ Best regards,
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="payment_confirmation_email_message">Payment Confirmation Email Message</Label>
+                  <Label htmlFor="payment_confirmation_email_message">{t("companies.paymentMessage")}</Label>
                   <Textarea
                     id="payment_confirmation_email_message"
                     rows={6}
@@ -853,10 +855,10 @@ Best regards,
               
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
-                  Cancel
+                  {t("companies.cancel")}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={uploadingLogo}>
-                  {uploadingLogo ? "Uploading..." : editingCompany ? "Update Company" : "Add Company"}
+                  {uploadingLogo ? t("companies.uploadingLogo") : editingCompany ? t("companies.updateButton") : t("companies.addCompany")}
                 </Button>
               </div>
             </form>
@@ -954,7 +956,7 @@ Best regards,
                   className="flex-1"
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {t("companies.updateButton")}
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -968,18 +970,18 @@ Best regards,
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Company</AlertDialogTitle>
+                      <AlertDialogTitle>{t("companies.delete")}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete {company.name}? This action cannot be undone.
+                        {t("companies.deleteConfirm")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("companies.cancel")}</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={() => deleteCompany(company.id)}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Delete
+                        {t("companies.deleteButton")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
