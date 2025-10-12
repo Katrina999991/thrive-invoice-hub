@@ -301,7 +301,7 @@ const Invoices = () => {
         total: item.total,
         product_id: item.product_id || "",
         notes: item.notes || "",
-        product_taxes: item.product_taxes as Array<{name: string, percentage: number}> | undefined
+        product_taxes: item.product_taxes as Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}> | undefined
       })) || []
     });
     setIsDialogOpen(true);
@@ -1434,7 +1434,7 @@ Best regards,
                         </TableHeader>
                          <TableBody>
                            {viewingInvoice.invoice_items.map((item) => (
-                             <>
+                             <Fragment key={`item-block-${item.id}`}>
                                <TableRow key={`item-${item.id}`}>
                                  <TableCell className="font-medium">{item.description}</TableCell>
                                  <TableCell className="text-right">{item.quantity}</TableCell>
@@ -1464,7 +1464,7 @@ Best regards,
                                     </TableCell>
                                   </TableRow>
                                 )}
-                             </>
+                             </Fragment>
                            ))}
                             <TableRow className="bg-muted/30">
                               <TableCell colSpan={3} className="text-right font-medium">
