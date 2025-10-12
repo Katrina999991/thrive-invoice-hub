@@ -233,6 +233,7 @@ export type Database = {
           invoice_id: string
           notes: string | null
           product_id: string | null
+          product_taxes: Json | null
           quantity: number
           total: number
           unit_price: number
@@ -245,6 +246,7 @@ export type Database = {
           invoice_id: string
           notes?: string | null
           product_id?: string | null
+          product_taxes?: Json | null
           quantity?: number
           total?: number
           unit_price?: number
@@ -257,6 +259,7 @@ export type Database = {
           invoice_id?: string
           notes?: string | null
           product_id?: string | null
+          product_taxes?: Json | null
           quantity?: number
           total?: number
           unit_price?: number
