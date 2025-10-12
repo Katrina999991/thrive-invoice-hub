@@ -43,7 +43,7 @@ interface InvoiceItem {
   total: number;
   product_id?: string;
   notes?: string;
-  product_taxes?: Array<{name: string, percentage: number}>;
+  product_taxes?: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
 }
 
 const Invoices = () => {
@@ -172,7 +172,17 @@ const Invoices = () => {
       // Then, add product-specific taxes (additional taxes)
       if (item.product_taxes && item.product_taxes.length > 0) {
         item.product_taxes.forEach((tax: any) => {
-          const taxAmount = item.total * (tax.percentage / 100);
+          // Support both old format (percentage) and new format (type + value)
+          const taxType = tax.type || 'percentage';
+          const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+          
+          let taxAmount = 0;
+          if (taxType === 'percentage') {
+            taxAmount = item.total * (taxValue / 100);
+          } else {
+            taxAmount = taxValue * item.quantity;
+          }
+          
           totalTax += taxAmount;
           taxBreakdown[tax.name] = (taxBreakdown[tax.name] || 0) + taxAmount;
         });
@@ -529,15 +539,28 @@ const Invoices = () => {
           
           // Add product taxes if they exist for this item
           if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-            const productTaxes = item.product_taxes as Array<{name: string, percentage: number}>;
-            const taxDetails = productTaxes.map(tax => `${tax.name} ${tax.percentage}%`).join(', ');
-            const taxTotal = productTaxes.reduce((sum, tax) => sum + (item.total * tax.percentage / 100), 0);
-            tableData.push([
-              `  ${translations.tax}: ${taxDetails}`,
-              '',
-              '',
-              `$${taxTotal.toFixed(2)}`
-            ]);
+            item.product_taxes.forEach((tax: any) => {
+              // Support both old format and new format
+              const taxType = tax.type || 'percentage';
+              const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+              
+              let taxAmount = 0;
+              if (taxType === 'percentage') {
+                taxAmount = item.total * (taxValue / 100);
+              } else {
+                taxAmount = taxValue * item.quantity;
+              }
+              
+              const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
+              const taxDetails = `${tax.name} (${taxLabel})`;
+              
+              tableData.push([
+                `  ${translations.tax}: ${taxDetails}`,
+                '',
+                '',
+                `$${taxAmount.toFixed(2)}`
+              ]);
+            });
           }
         });
       } else {

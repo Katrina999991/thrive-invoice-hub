@@ -388,14 +388,27 @@ Best regards,
         ]);
 
         if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-          const taxDetails = item.product_taxes.map((t: any) => `${t.name} ${t.percentage}%`).join(', ');
-          const taxTotal = item.product_taxes.reduce((sum: number, t: any) => sum + (item.total * t.percentage / 100), 0);
-          tableData.push([
-            `  ${tableHeaders.tax}: ${taxDetails}`,
-            '',
-            '',
-            `$${taxTotal.toFixed(2)}`
-          ]);
+          item.product_taxes.forEach((t: any) => {
+            // Support both old format and new format
+            const taxType = t.type || 'percentage';
+            const taxValue = t.value !== undefined ? t.value : t.percentage;
+            
+            let taxAmount = 0;
+            if (taxType === 'percentage') {
+              taxAmount = item.total * (taxValue / 100);
+            } else {
+              taxAmount = taxValue * item.quantity;
+            }
+            
+            const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
+            
+            tableData.push([
+              `  ${tableHeaders.tax}: ${t.name} (${taxLabel})`,
+              '',
+              '',
+              `$${taxAmount.toFixed(2)}`
+            ]);
+          });
         }
       });
     }
@@ -457,15 +470,28 @@ Best regards,
                   </tr>`;
       let taxesRow = '';
       if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-        const taxDetails = item.product_taxes.map((t: any) => `${t.name} ${t.percentage}%`).join(', ');
-        const taxTotal = item.product_taxes.reduce((sum: number, t: any) => sum + (item.total * t.percentage / 100), 0);
-        taxesRow = `
+        item.product_taxes.forEach((t: any) => {
+          // Support both old format and new format
+          const taxType = t.type || 'percentage';
+          const taxValue = t.value !== undefined ? t.value : t.percentage;
+          
+          let taxAmount = 0;
+          if (taxType === 'percentage') {
+            taxAmount = item.total * (taxValue / 100);
+          } else {
+            taxAmount = taxValue * item.quantity;
+          }
+          
+          const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
+          
+          taxesRow += `
                   <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; color: #555; padding-left: 30px;">${tableHeaders.tax}: ${taxDetails}</td>
+                    <td style="padding: 10px; border: 1px solid #dee2e6; color: #555; padding-left: 30px;">${tableHeaders.tax}: ${t.name} (${taxLabel})</td>
                     <td style="padding: 10px; text-align: center; border: 1px solid #dee2e6;"></td>
                     <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;"></td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${taxTotal.toFixed(2)}</td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${taxAmount.toFixed(2)}</td>
                   </tr>`;
+        });
       }
       return baseRow + taxesRow;
     }).join('');

@@ -36,20 +36,20 @@ const Products = () => {
     unit: "piece"
   });
 
-  const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
+  const [taxes, setTaxes] = useState<Array<{name: string, type: 'percentage' | 'amount', value: number}>>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
 
   const addTax = () => {
-    setTaxes([...taxes, { name: "", percentage: 0 }]);
+    setTaxes([...taxes, { name: "", type: 'percentage', value: 0 }]);
   };
 
   const removeTax = (index: number) => {
     setTaxes(taxes.filter((_, i) => i !== index));
   };
 
-  const updateTax = (index: number, field: 'name' | 'percentage', value: string | number) => {
+  const updateTax = (index: number, field: 'name' | 'type' | 'value', value: string | number) => {
     const newTaxes = [...taxes];
     newTaxes[index] = { ...newTaxes[index], [field]: value };
     setTaxes(newTaxes);
@@ -121,9 +121,16 @@ const Products = () => {
       quantity: product.quantity?.toString() || "",
       unit: product.unit || "piece"
     });
-    // Handle taxes - parse JSON if it exists
+    // Handle taxes - parse JSON if it exists and migrate old format
     if (product.taxes && Array.isArray(product.taxes)) {
-      setTaxes(product.taxes as Array<{name: string, percentage: number}>);
+      const migratedTaxes = product.taxes.map((tax: any) => {
+        // Migrate old format {name, percentage} to new format {name, type, value}
+        if ('percentage' in tax && !('type' in tax)) {
+          return { name: tax.name, type: 'percentage' as const, value: tax.percentage };
+        }
+        return tax;
+      });
+      setTaxes(migratedTaxes);
     } else {
       setTaxes([]);
     }
@@ -200,12 +207,19 @@ const Products = () => {
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("companies.taxesLabel")}</p>
             <div className="space-y-1">
-              {(item.taxes as Array<{name: string, percentage: number}>).map((tax, index) => (
-                <div key={index} className="flex items-center text-sm text-muted-foreground">
-                  <Percent className="h-4 w-4 mr-2" />
-                  {tax.name}: {tax.percentage}%
-                </div>
-              ))}
+              {item.taxes.map((tax: any, index: number) => {
+                // Handle both old and new format
+                const taxName = tax.name;
+                const taxType = tax.type || 'percentage';
+                const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+                
+                return (
+                  <div key={index} className="flex items-center text-sm text-muted-foreground">
+                    <Percent className="h-4 w-4 mr-2" />
+                    {taxName}: {taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -401,15 +415,32 @@ const Products = () => {
                         onChange={(e) => updateTax(index, 'name', e.target.value)}
                       />
                     </div>
+                    <div className="w-28">
+                      <Label htmlFor={`tax-type-${index}`}>Type</Label>
+                      <Select 
+                        value={tax.type} 
+                        onValueChange={(value: 'percentage' | 'amount') => updateTax(index, 'type', value)}
+                      >
+                        <SelectTrigger id={`tax-type-${index}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="percentage">%</SelectItem>
+                          <SelectItem value="amount">$</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="w-32">
-                      <Label htmlFor={`tax-percentage-${index}`}>{t("companies.taxRate")}</Label>
+                      <Label htmlFor={`tax-value-${index}`}>
+                        {tax.type === 'percentage' ? t("companies.taxRate") : 'Montant'}
+                      </Label>
                       <Input
-                        id={`tax-percentage-${index}`}
+                        id={`tax-value-${index}`}
                         type="number"
                         step="0.01"
-                        placeholder={t("companies.taxRatePlaceholder")}
-                        value={tax.percentage}
-                        onChange={(e) => updateTax(index, 'percentage', parseFloat(e.target.value))}
+                        placeholder={tax.type === 'percentage' ? t("companies.taxRatePlaceholder") : "0.00"}
+                        value={tax.value}
+                        onChange={(e) => updateTax(index, 'value', parseFloat(e.target.value))}
                       />
                     </div>
                     <Button
