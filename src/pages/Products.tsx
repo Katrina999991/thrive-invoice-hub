@@ -10,11 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2, X, Percent } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/useProducts";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useLanguage } from "@/hooks/useLanguage";
+
 
 
 const Products = () => {
@@ -35,8 +36,24 @@ const Products = () => {
     unit: "piece"
   });
 
+  const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+
+  const addTax = () => {
+    setTaxes([...taxes, { name: "", percentage: 0 }]);
+  };
+
+  const removeTax = (index: number) => {
+    setTaxes(taxes.filter((_, i) => i !== index));
+  };
+
+  const updateTax = (index: number, field: 'name' | 'percentage', value: string | number) => {
+    const newTaxes = [...taxes];
+    newTaxes[index] = { ...newTaxes[index], [field]: value };
+    setTaxes(newTaxes);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +65,8 @@ const Products = () => {
       cost: parseFloat(newItem.cost) || 0,
       category: newItem.category,
       quantity: newItem.type === "service" ? null : (parseInt(newItem.quantity) || 0),
-      unit: newItem.unit
+      unit: newItem.unit,
+      taxes: taxes.length > 0 ? taxes : []
     };
     
     if (editingProduct) {
@@ -86,6 +104,7 @@ const Products = () => {
       quantity: "",
       unit: "piece"
     });
+    setTaxes([]);
     setEditingProduct(null);
     setIsDialogOpen(false);
   };
@@ -102,6 +121,12 @@ const Products = () => {
       quantity: product.quantity?.toString() || "",
       unit: product.unit || "piece"
     });
+    // Handle taxes - parse JSON if it exists
+    if (product.taxes && Array.isArray(product.taxes)) {
+      setTaxes(product.taxes as Array<{name: string, percentage: number}>);
+    } else {
+      setTaxes([]);
+    }
     setIsDialogOpen(true);
   };
 
@@ -168,6 +193,20 @@ const Products = () => {
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("products.stock")}</p>
             <p className="font-medium">{item.quantity} {item.unit}</p>
+          </div>
+        )}
+
+        {item.taxes && Array.isArray(item.taxes) && item.taxes.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">{t("companies.taxesLabel")}</p>
+            <div className="space-y-1">
+              {(item.taxes as Array<{name: string, percentage: number}>).map((tax, index) => (
+                <div key={index} className="flex items-center text-sm text-muted-foreground">
+                  <Percent className="h-4 w-4 mr-2" />
+                  {tax.name}: {tax.percentage}%
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -337,6 +376,54 @@ const Products = () => {
                   </div>
                 </>
               )}
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>{t("companies.taxes")}</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addTax}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    {t("companies.addTax")}
+                  </Button>
+                </div>
+                {taxes.map((tax, index) => (
+                  <div key={index} className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor={`tax-name-${index}`}>{t("companies.taxName")}</Label>
+                      <Input
+                        id={`tax-name-${index}`}
+                        placeholder={t("companies.taxNamePlaceholder")}
+                        value={tax.name}
+                        onChange={(e) => updateTax(index, 'name', e.target.value)}
+                      />
+                    </div>
+                    <div className="w-32">
+                      <Label htmlFor={`tax-percentage-${index}`}>{t("companies.taxRate")}</Label>
+                      <Input
+                        id={`tax-percentage-${index}`}
+                        type="number"
+                        step="0.01"
+                        placeholder={t("companies.taxRatePlaceholder")}
+                        value={tax.percentage}
+                        onChange={(e) => updateTax(index, 'percentage', parseFloat(e.target.value))}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeTax(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("products.cancel")}
