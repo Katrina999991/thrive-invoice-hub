@@ -301,7 +301,20 @@ const Invoices = () => {
         total: item.total,
         product_id: item.product_id || "",
         notes: item.notes || "",
-        product_taxes: item.product_taxes as Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}> | undefined
+        // Normalize legacy and new product tax formats so fixed (amount) taxes appear in edit mode
+        product_taxes: Array.isArray(item.product_taxes)
+          ? (item.product_taxes as any[]).map((tax: any) => {
+              const name = tax.name;
+              const type: 'percentage' | 'amount' = tax.type ?? (tax.amount !== undefined ? 'amount' : 'percentage');
+              const normalized: { name: string; type: 'percentage' | 'amount'; value?: number; percentage?: number } = { name, type };
+              if (type === 'amount') {
+                normalized.value = Number(tax.value ?? tax.amount ?? 0);
+              } else {
+                normalized.percentage = Number(tax.percentage ?? tax.value ?? 0);
+              }
+              return normalized;
+            })
+          : undefined
       })) || []
     });
     setIsDialogOpen(true);
