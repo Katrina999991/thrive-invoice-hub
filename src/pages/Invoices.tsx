@@ -1387,7 +1387,7 @@ Best regards,
                 </div>
 
                 {/* Invoice Items Table */}
-                {false && (
+                {viewingInvoice.invoice_items && (
                   <div className="space-y-3">
                     <Label className="text-sm font-medium text-muted-foreground">Invoice Items</Label>
                     <div className="border rounded-lg">
