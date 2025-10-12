@@ -210,9 +210,7 @@ Best regards,
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const addTax = () => {
-    if (taxes.length < 2) {
-      setTaxes([...taxes, { name: "", percentage: 0 }]);
-    }
+    setTaxes([...taxes, { name: "", percentage: 0 }]);
   };
 
   const removeTax = (index: number) => {
@@ -702,13 +700,12 @@ Best regards,
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>{t("companies.taxes")} (Max 2)</Label>
+                  <Label>{t("companies.taxes")}</Label>
                   <Button 
                     type="button" 
                     variant="outline" 
                     size="sm" 
                     onClick={addTax}
-                    disabled={taxes.length >= 2}
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     {t("companies.addTax")}
