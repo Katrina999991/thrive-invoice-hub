@@ -37,6 +37,7 @@ export const useInvoices = () => {
             unit_price,
             total,
             product_id,
+            product_taxes,
             products (
               name
             )

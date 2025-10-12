@@ -63,7 +63,8 @@ const handler = async (req: Request): Promise<Response> => {
           description,
           quantity,
           unit_price,
-          total
+          total,
+          product_taxes
         )
       `)
       .eq('id', invoiceId)
@@ -375,13 +376,29 @@ Best regards,
     }
     
     // Invoice items table
-    const tableData = invoice.invoice_items?.map((item: any) => [
-      item.description,
-      item.quantity.toString(),
-      `$${item.unit_price.toFixed(2)}`,
-      `$${item.total.toFixed(2)}`
-    ]) || [];
-    
+    const tableData: any[] = [];
+    if (invoice.invoice_items && invoice.invoice_items.length > 0) {
+      invoice.invoice_items.forEach((item: any) => {
+        tableData.push([
+          item.description,
+          item.quantity.toString(),
+          `$${item.unit_price.toFixed(2)}`,
+          `$${item.total.toFixed(2)}`
+        ]);
+
+        if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
+          const taxDetails = item.product_taxes.map((t: any) => `${t.name} ${t.percentage}%`).join(', ');
+          const taxTotal = item.product_taxes.reduce((sum: number, t: any) => sum + (item.total * t.percentage / 100), 0);
+          tableData.push([
+            `  ${tableHeaders.tax}: ${taxDetails}`,
+            '',
+            '',
+            `$${taxTotal.toFixed(2)}`
+          ]);
+        }
+      });
+    }
+
     (doc as any).autoTable({
       head: [[
         tableHeaders.description,
@@ -415,6 +432,30 @@ Best regards,
     const pdfBase64 = btoa(pdfBinaryString);
 
     // Create HTML email content
+    // Build items HTML including product taxes per item
+    const itemsHtml = (invoice.invoice_items || []).map((item: any) => {
+      const baseRow = `
+                  <tr>
+                    <td style="padding: 10px; border: 1px solid #dee2e6;">${item.description}</td>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">${item.quantity}</td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${item.unit_price.toFixed(2)}</td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${item.total.toFixed(2)}</td>
+                  </tr>`;
+      let taxesRow = '';
+      if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
+        const taxDetails = item.product_taxes.map((t: any) => `${t.name} ${t.percentage}%`).join(', ');
+        const taxTotal = item.product_taxes.reduce((sum: number, t: any) => sum + (item.total * t.percentage / 100), 0);
+        taxesRow = `
+                  <tr>
+                    <td style="padding: 10px; border: 1px solid #dee2e6; color: #555; padding-left: 30px;">${tableHeaders.tax}: ${taxDetails}</td>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #dee2e6;"></td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;"></td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${taxTotal.toFixed(2)}</td>
+                  </tr>`;
+      }
+      return baseRow + taxesRow;
+    }).join('');
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
@@ -442,14 +483,7 @@ Best regards,
                 </tr>
               </thead>
               <tbody>
-                ${invoice.invoice_items?.map((item: any) => `
-                  <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6;">${item.description}</td>
-                    <td style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">${item.quantity}</td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${item.unit_price.toFixed(2)}</td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${item.total.toFixed(2)}</td>
-                  </tr>
-                `).join('') || ''}
+                ${itemsHtml}
                 <tr style="background-color: #f8f9fa; font-weight: bold;">
                   <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.subtotal}:</td>
                   <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.subtotal.toFixed(2)}</td>
