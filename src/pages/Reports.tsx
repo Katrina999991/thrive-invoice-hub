@@ -2550,21 +2550,21 @@ const Reports = () => {
               <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('reports.revenue.totalRevenue')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
                       {new Intl.NumberFormat('en-US').format(realRevenueData.totalRevenue)}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Paid invoices only
+                      {t('reports.revenue.paidInvoicesOnly')}
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Number of {viewMode === 'monthly' ? 'months' : 'years'}
+                      {viewMode === 'monthly' ? t('reports.revenue.numberOfMonths') : t('reports.revenue.numberOfYears')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -2572,13 +2572,13 @@ const Reports = () => {
                       {viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      With revenue
+                      {t('reports.revenue.withRevenue')}
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Average Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('reports.revenue.averageRevenue')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
@@ -2588,7 +2588,7 @@ const Reports = () => {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Per {viewMode === 'monthly' ? 'month' : 'year'}
+                      {viewMode === 'monthly' ? t('reports.revenue.perMonth') : t('reports.revenue.perYear')}
                     </p>
                   </CardContent>
                 </Card>
