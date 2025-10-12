@@ -290,7 +290,8 @@ const Invoices = () => {
         unit_price: item.unit_price,
         total: item.total,
         product_id: item.product_id || "",
-        notes: item.notes || ""
+        notes: item.notes || "",
+        product_taxes: item.product_taxes as Array<{name: string, percentage: number}> | undefined
       })) || []
     });
     setIsDialogOpen(true);
