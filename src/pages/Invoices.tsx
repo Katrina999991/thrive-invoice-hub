@@ -105,11 +105,11 @@ const Invoices = () => {
     if (!currentItem.description || currentItem.unit_price <= 0) return;
 
     // Get product taxes if a product is selected
-    let productTaxes: Array<{name: string, percentage: number}> = [];
+    let productTaxes: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}> = [];
     if (currentItem.product_id) {
       const selectedProduct = products.find(p => p.id === currentItem.product_id);
       if (selectedProduct?.taxes && Array.isArray(selectedProduct.taxes) && selectedProduct.taxes.length > 0) {
-        productTaxes = selectedProduct.taxes as Array<{name: string, percentage: number}>;
+        productTaxes = selectedProduct.taxes as Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
       }
     }
 
@@ -1269,17 +1269,25 @@ Best regards,
                                    </Button>
                                  </TableCell>
                                </TableRow>
-                               {item.product_taxes && item.product_taxes.length > 0 && (
-                                 <TableRow key={`tax-${index}`} className="bg-muted/20">
-                                   <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
-                                     {t("companies.taxes")}: {item.product_taxes.map((tax: any) => `${tax.name} ${tax.percentage}%`).join(', ')}
-                                   </TableCell>
-                                   <TableCell className="text-sm">
-                                     ${item.product_taxes.reduce((sum: number, tax: any) => sum + (item.total * tax.percentage / 100), 0).toFixed(2)}
-                                   </TableCell>
-                                   <TableCell></TableCell>
-                                 </TableRow>
-                               )}
+                                {item.product_taxes && item.product_taxes.length > 0 && (
+                                  <TableRow key={`tax-${index}`} className="bg-muted/20">
+                                    <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
+                                      {t("companies.taxes")}: {item.product_taxes.map((tax: any) => {
+                                        const taxType = tax.type || 'percentage';
+                                        const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+                                        return `${tax.name} ${taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`}`;
+                                      }).join(', ')}
+                                    </TableCell>
+                                    <TableCell className="text-sm">
+                                      ${item.product_taxes.reduce((sum: number, tax: any) => {
+                                        const taxType = tax.type || 'percentage';
+                                        const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+                                        return sum + (taxType === 'percentage' ? (item.total * taxValue / 100) : (taxValue * item.quantity));
+                                      }, 0).toFixed(2)}
+                                    </TableCell>
+                                    <TableCell></TableCell>
+                                  </TableRow>
+                                )}
                              </>
                            ))}
                            <TableRow>
