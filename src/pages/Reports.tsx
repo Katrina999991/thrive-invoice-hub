@@ -2688,19 +2688,19 @@ const Reports = () => {
               {filteredInvoices.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Invoices List</CardTitle>
+                    <CardTitle>{t('reports.revenue.invoicesList')}</CardTitle>
                     <CardDescription>
-                      Detailed list of paid invoices in the selected period
+                      {t('reports.revenue.invoicesListDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Invoice Number</TableHead>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Issue Date</TableHead>
-                          <TableHead className="text-right">Total Amount</TableHead>
+                          <TableHead>{t('reports.revenue.invoiceNumber')}</TableHead>
+                          <TableHead>{t('reports.revenue.clientName')}</TableHead>
+                          <TableHead>{t('reports.revenue.issueDate')}</TableHead>
+                          <TableHead className="text-right">{t('reports.revenue.totalAmount')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
