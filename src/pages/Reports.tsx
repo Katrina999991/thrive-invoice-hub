@@ -2648,9 +2648,9 @@ const Reports = () => {
               {chartData.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Details by Period</CardTitle>
+                    <CardTitle>{t("reports.revenue.detailsByPeriod")}</CardTitle>
                     <CardDescription>
-                      Detailed data by {viewMode === 'monthly' ? 'month' : 'year'}
+                      {t("reports.revenue.detailedDataBy")} {viewMode === 'monthly' ? t("reports.revenue.month") : t("reports.revenue.year")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -2658,10 +2658,10 @@ const Reports = () => {
                       <table className="w-full">
                         <thead>
                           <tr className="border-b">
-                            <th className="text-left py-2">Period</th>
-                            <th className="text-right py-2">Revenue</th>
-                            <th className="text-right py-2">Number of Invoices</th>
-                            <th className="text-right py-2">Average Revenue per Invoice</th>
+                            <th className="text-left py-2">{t("reports.revenue.period")}</th>
+                            <th className="text-right py-2">{t("reports.revenue.revenue")}</th>
+                            <th className="text-right py-2">{t("reports.revenue.numberOfInvoices")}</th>
+                            <th className="text-right py-2">{t("reports.revenue.averageRevenuePerInvoice")}</th>
                           </tr>
                         </thead>
                         <tbody>
