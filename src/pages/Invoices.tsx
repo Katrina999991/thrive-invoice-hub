@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1251,7 +1251,7 @@ Best regards,
                          </TableHeader>
                          <TableBody>
                            {newInvoice.items.map((item, index) => (
-                             <>
+                             <Fragment key={`item-block-${index}`}>
                                <TableRow key={`item-${index}`}>
                                  <TableCell className="font-medium">{item.description}</TableCell>
                                  <TableCell className="text-sm text-muted-foreground">{item.notes || "-"}</TableCell>
@@ -1288,7 +1288,7 @@ Best regards,
                                     <TableCell></TableCell>
                                   </TableRow>
                                 )}
-                             </>
+                             </Fragment>
                            ))}
                            <TableRow>
                              <TableCell colSpan={4} className="text-right font-medium">
