@@ -525,6 +525,19 @@ const Invoices = () => {
             `$${item.unit_price.toFixed(2)}`,
             `$${item.total.toFixed(2)}`
           ]);
+          
+          // Add product taxes if they exist for this item
+          if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
+            const productTaxes = item.product_taxes as Array<{name: string, percentage: number}>;
+            const taxDetails = productTaxes.map(tax => `${tax.name} ${tax.percentage}%`).join(', ');
+            const taxTotal = productTaxes.reduce((sum, tax) => sum + (item.total * tax.percentage / 100), 0);
+            tableData.push([
+              `  ${translations.tax}: ${taxDetails}`,
+              '',
+              '',
+              `$${taxTotal.toFixed(2)}`
+            ]);
+          }
         });
       } else {
         // If no items available, show totals only
@@ -1212,25 +1225,38 @@ Best regards,
                              <TableHead className="w-16"></TableHead>
                            </TableRow>
                          </TableHeader>
-                        <TableBody>
+                         <TableBody>
                            {newInvoice.items.map((item, index) => (
-                             <TableRow key={index}>
-                               <TableCell className="font-medium">{item.description}</TableCell>
-                               <TableCell className="text-sm text-muted-foreground">{item.notes || "-"}</TableCell>
-                               <TableCell>{item.quantity}</TableCell>
-                               <TableCell>${item.unit_price.toFixed(2)}</TableCell>
-                               <TableCell>${item.total.toFixed(2)}</TableCell>
-                               <TableCell>
-                                 <Button
-                                   type="button"
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => removeItem(index)}
-                                 >
-                                   <Trash2 className="h-4 w-4" />
-                                 </Button>
-                               </TableCell>
-                             </TableRow>
+                             <>
+                               <TableRow key={`item-${index}`}>
+                                 <TableCell className="font-medium">{item.description}</TableCell>
+                                 <TableCell className="text-sm text-muted-foreground">{item.notes || "-"}</TableCell>
+                                 <TableCell>{item.quantity}</TableCell>
+                                 <TableCell>${item.unit_price.toFixed(2)}</TableCell>
+                                 <TableCell>${item.total.toFixed(2)}</TableCell>
+                                 <TableCell>
+                                   <Button
+                                     type="button"
+                                     variant="outline"
+                                     size="sm"
+                                     onClick={() => removeItem(index)}
+                                   >
+                                     <Trash2 className="h-4 w-4" />
+                                   </Button>
+                                 </TableCell>
+                               </TableRow>
+                               {item.product_taxes && item.product_taxes.length > 0 && (
+                                 <TableRow key={`tax-${index}`} className="bg-muted/20">
+                                   <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
+                                     {t("companies.taxes")}: {item.product_taxes.map((tax: any) => `${tax.name} ${tax.percentage}%`).join(', ')}
+                                   </TableCell>
+                                   <TableCell className="text-sm">
+                                     ${item.product_taxes.reduce((sum: number, tax: any) => sum + (item.total * tax.percentage / 100), 0).toFixed(2)}
+                                   </TableCell>
+                                   <TableCell></TableCell>
+                                 </TableRow>
+                               )}
+                             </>
                            ))}
                            <TableRow>
                              <TableCell colSpan={4} className="text-right font-medium">
@@ -1374,15 +1400,27 @@ Best regards,
                             <TableHead className="text-right">Total</TableHead>
                           </TableRow>
                         </TableHeader>
-                        <TableBody>
-                          {viewingInvoice.invoice_items.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell className="font-medium">{item.description}</TableCell>
-                              <TableCell className="text-right">{item.quantity}</TableCell>
-                              <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
-                              <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
-                            </TableRow>
-                          ))}
+                         <TableBody>
+                           {viewingInvoice.invoice_items.map((item) => (
+                             <>
+                               <TableRow key={`item-${item.id}`}>
+                                 <TableCell className="font-medium">{item.description}</TableCell>
+                                 <TableCell className="text-right">{item.quantity}</TableCell>
+                                 <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
+                                 <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
+                               </TableRow>
+                               {item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0 && (
+                                 <TableRow key={`tax-${item.id}`} className="bg-muted/20">
+                                   <TableCell colSpan={3} className="text-sm text-muted-foreground pl-8">
+                                     {t("companies.taxes")}: {(item.product_taxes as Array<{name: string, percentage: number}>).map((tax) => `${tax.name} ${tax.percentage}%`).join(', ')}
+                                   </TableCell>
+                                   <TableCell className="text-right text-sm">
+                                     ${(item.product_taxes as Array<{name: string, percentage: number}>).reduce((sum, tax) => sum + (item.total * tax.percentage / 100), 0).toFixed(2)}
+                                   </TableCell>
+                                 </TableRow>
+                               )}
+                             </>
+                           ))}
                            <TableRow className="bg-muted/30">
                              <TableCell colSpan={3} className="text-right font-medium">
                                Subtotal:
