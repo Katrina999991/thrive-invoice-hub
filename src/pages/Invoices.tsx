@@ -159,18 +159,19 @@ const Invoices = () => {
     let totalTax = 0;
     const taxBreakdown: Record<string, number> = {};
     
-    // Items with product-specific taxes
     newInvoice.items.forEach(item => {
-      if (item.product_taxes && item.product_taxes.length > 0) {
-        // Apply product-specific taxes
-        item.product_taxes.forEach((tax: any) => {
+      // First, apply company taxes (base taxes for all items)
+      if (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes) && selectedCompany.taxes.length > 0) {
+        selectedCompany.taxes.forEach((tax: any) => {
           const taxAmount = item.total * (tax.percentage / 100);
           totalTax += taxAmount;
           taxBreakdown[tax.name] = (taxBreakdown[tax.name] || 0) + taxAmount;
         });
-      } else if (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes) && selectedCompany.taxes.length > 0) {
-        // Apply company taxes for items without product-specific taxes
-        selectedCompany.taxes.forEach((tax: any) => {
+      }
+      
+      // Then, add product-specific taxes (additional taxes)
+      if (item.product_taxes && item.product_taxes.length > 0) {
+        item.product_taxes.forEach((tax: any) => {
           const taxAmount = item.total * (tax.percentage / 100);
           totalTax += taxAmount;
           taxBreakdown[tax.name] = (taxBreakdown[tax.name] || 0) + taxAmount;
