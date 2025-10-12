@@ -51,6 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
           companies (
             name,
             logo_url,
+            taxes,
             invoice_email_subject,
             invoice_email_message,
             overdue_email_subject,
@@ -415,10 +416,23 @@ Best regards,
     // Totals
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     doc.text(`${tableHeaders.subtotal}: $${invoice.subtotal.toFixed(2)}`, 120, finalY);
-    doc.text(`${tableHeaders.tax}: $${invoice.tax_amount.toFixed(2)}`, 120, finalY + 10);
+    
+    // Display company taxes separately
+    let taxYPosition = finalY + 10;
+    if (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
+      company.taxes.forEach((tax: any) => {
+        const taxAmount = invoice.subtotal * (tax.percentage / 100);
+        doc.text(`${tax.name} (${tax.percentage}%): $${taxAmount.toFixed(2)}`, 120, taxYPosition);
+        taxYPosition += 10;
+      });
+    } else if (invoice.tax_amount > 0) {
+      doc.text(`${tableHeaders.tax}: $${invoice.tax_amount.toFixed(2)}`, 120, taxYPosition);
+      taxYPosition += 10;
+    }
+    
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${tableHeaders.totalAmount}: $${invoice.total.toFixed(2)}`, 120, finalY + 20);
+    doc.text(`${tableHeaders.totalAmount}: $${invoice.total.toFixed(2)}`, 120, taxYPosition);
     
     // Generate PDF as buffer
     const pdfBuffer = doc.output('arraybuffer');
@@ -456,6 +470,25 @@ Best regards,
       return baseRow + taxesRow;
     }).join('');
 
+    // Build company taxes rows
+    let companyTaxesHtml = '';
+    if (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
+      companyTaxesHtml = company.taxes.map((tax: any) => {
+        const taxAmount = invoice.subtotal * (tax.percentage / 100);
+        return `
+                <tr style="background-color: #f8f9fa;">
+                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tax.name} (${tax.percentage}%):</td>
+                  <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${taxAmount.toFixed(2)}</td>
+                </tr>`;
+      }).join('');
+    } else if (invoice.tax_amount > 0) {
+      companyTaxesHtml = `
+                <tr style="background-color: #f8f9fa;">
+                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.tax}:</td>
+                  <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.tax_amount.toFixed(2)}</td>
+                </tr>`;
+    }
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
@@ -488,10 +521,7 @@ Best regards,
                   <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.subtotal}:</td>
                   <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.subtotal.toFixed(2)}</td>
                 </tr>
-                <tr style="background-color: #f8f9fa;">
-                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.tax}:</td>
-                  <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.tax_amount.toFixed(2)}</td>
-                </tr>
+                ${companyTaxesHtml}
                 <tr style="background-color: #e9ecef; font-weight: bold; font-size: 16px;">
                   <td colspan="3" style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.totalAmount}:</td>
                   <td style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">$${invoice.total.toFixed(2)}</td>
