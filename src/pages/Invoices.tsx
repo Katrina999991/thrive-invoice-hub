@@ -43,6 +43,7 @@ interface InvoiceItem {
   total: number;
   product_id?: string;
   notes?: string;
+  product_taxes?: Array<{name: string, percentage: number}>;
 }
 
 const Invoices = () => {
@@ -103,13 +104,23 @@ const Invoices = () => {
   const addItem = () => {
     if (!currentItem.description || currentItem.unit_price <= 0) return;
 
+    // Get product taxes if a product is selected
+    let productTaxes: Array<{name: string, percentage: number}> = [];
+    if (currentItem.product_id) {
+      const selectedProduct = products.find(p => p.id === currentItem.product_id);
+      if (selectedProduct?.taxes && Array.isArray(selectedProduct.taxes) && selectedProduct.taxes.length > 0) {
+        productTaxes = selectedProduct.taxes as Array<{name: string, percentage: number}>;
+      }
+    }
+
     const newItem: InvoiceItem = {
       description: currentItem.description,
       quantity: currentItem.quantity,
       unit_price: currentItem.unit_price,
       total: currentItem.quantity * currentItem.unit_price,
       product_id: currentItem.product_id || undefined,
-      notes: currentItem.notes || undefined
+      notes: currentItem.notes || undefined,
+      product_taxes: productTaxes.length > 0 ? productTaxes : undefined
     };
 
     setNewInvoice({
@@ -142,20 +153,36 @@ const Invoices = () => {
   };
 
   const calculateTaxes = () => {
-    const subtotal = calculateSubtotal();
     const selectedCompany = companies.find(c => c.id === selectedCompanyId);
     
-    if (!selectedCompany?.taxes || !Array.isArray(selectedCompany.taxes) || selectedCompany.taxes.length === 0) {
-      return { totalTax: 0, taxes: [] };
-    }
+    // Calculate taxes for each item
+    let totalTax = 0;
+    const taxBreakdown: Record<string, number> = {};
     
-    const taxes = selectedCompany.taxes.map((tax: any) => ({
-      name: tax.name,
-      percentage: tax.percentage,
-      amount: subtotal * (tax.percentage / 100)
+    // Items with product-specific taxes
+    newInvoice.items.forEach(item => {
+      if (item.product_taxes && item.product_taxes.length > 0) {
+        // Apply product-specific taxes
+        item.product_taxes.forEach((tax: any) => {
+          const taxAmount = item.total * (tax.percentage / 100);
+          totalTax += taxAmount;
+          taxBreakdown[tax.name] = (taxBreakdown[tax.name] || 0) + taxAmount;
+        });
+      } else if (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes) && selectedCompany.taxes.length > 0) {
+        // Apply company taxes for items without product-specific taxes
+        selectedCompany.taxes.forEach((tax: any) => {
+          const taxAmount = item.total * (tax.percentage / 100);
+          totalTax += taxAmount;
+          taxBreakdown[tax.name] = (taxBreakdown[tax.name] || 0) + taxAmount;
+        });
+      }
+    });
+    
+    // Convert tax breakdown to array format
+    const taxes = Object.entries(taxBreakdown).map(([name, amount]) => ({
+      name,
+      amount
     }));
-    
-    const totalTax = taxes.reduce((sum, tax) => sum + tax.amount, 0);
     
     return { totalTax, taxes };
   };
@@ -1229,17 +1256,17 @@ Best regards,
                                );
                              }
                              
-                             return taxes.map((tax, index) => (
-                               <TableRow key={index}>
-                                 <TableCell colSpan={4} className="text-right font-medium">
-                                   {tax.name} ({tax.percentage}%):
-                                 </TableCell>
-                                 <TableCell className="font-medium">
-                                   ${tax.amount.toFixed(2)}
-                                 </TableCell>
-                                 <TableCell></TableCell>
-                               </TableRow>
-                             ));
+                              return taxes.map((tax, index) => (
+                                <TableRow key={index}>
+                                  <TableCell colSpan={4} className="text-right font-medium">
+                                    {tax.name}:
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    ${tax.amount.toFixed(2)}
+                                  </TableCell>
+                                  <TableCell></TableCell>
+                                </TableRow>
+                              ));
                            })()}
                            <TableRow className="border-t-2">
                              <TableCell colSpan={4} className="text-right font-bold">
