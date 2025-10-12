@@ -1441,42 +1441,82 @@ Best regards,
                                  <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
                                  <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
                                </TableRow>
-                               {item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0 && (
-                                 <TableRow key={`tax-${item.id}`} className="bg-muted/20">
-                                   <TableCell colSpan={3} className="text-sm text-muted-foreground pl-8">
-                                     {t("companies.taxes")}: {(item.product_taxes as Array<{name: string, percentage: number}>).map((tax) => `${tax.name} ${tax.percentage}%`).join(', ')}
-                                   </TableCell>
-                                   <TableCell className="text-right text-sm">
-                                     ${(item.product_taxes as Array<{name: string, percentage: number}>).reduce((sum, tax) => sum + (item.total * tax.percentage / 100), 0).toFixed(2)}
-                                   </TableCell>
-                                 </TableRow>
-                               )}
+                                {item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0 && (
+                                  <TableRow key={`tax-${item.id}`} className="bg-muted/20">
+                                    <TableCell colSpan={3} className="text-sm text-muted-foreground pl-8">
+                                      {t("companies.taxes")}: {item.product_taxes.map((tax: any) => {
+                                        const taxType = tax.type || 'percentage';
+                                        const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+                                        return `${tax.name} ${taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`}`;
+                                      }).join(', ')}
+                                    </TableCell>
+                                    <TableCell className="text-right text-sm">
+                                      ${(() => {
+                                        const totalTax = item.product_taxes.reduce((sum: number, tax: any) => {
+                                          const taxType = tax.type || 'percentage';
+                                          const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
+                                          const itemTotal = typeof item.total === 'number' ? item.total : Number(item.total);
+                                          const itemQty = typeof item.quantity === 'number' ? item.quantity : Number(item.quantity);
+                                          return sum + (taxType === 'percentage' ? (itemTotal * taxValue / 100) : (taxValue * itemQty));
+                                        }, 0) as number;
+                                        return totalTax.toFixed(2);
+                                      })()}
+                                    </TableCell>
+                                  </TableRow>
+                                )}
                              </>
                            ))}
-                           <TableRow className="bg-muted/30">
-                             <TableCell colSpan={3} className="text-right font-medium">
-                               Subtotal:
-                             </TableCell>
-                             <TableCell className="text-right font-medium">
-                               ${viewingInvoice.subtotal.toFixed(2)}
-                             </TableCell>
-                           </TableRow>
-                           <TableRow className="bg-muted/30">
-                             <TableCell colSpan={3} className="text-right font-medium">
-                               Tax:
-                             </TableCell>
-                             <TableCell className="text-right font-medium">
-                               ${viewingInvoice.tax_amount.toFixed(2)}
-                             </TableCell>
-                           </TableRow>
-                           <TableRow className="bg-muted/50 border-t-2">
-                             <TableCell colSpan={3} className="text-right font-semibold">
-                               Total Amount:
-                             </TableCell>
-                             <TableCell className="text-right font-bold text-lg">
-                               ${viewingInvoice.total.toFixed(2)}
-                             </TableCell>
-                           </TableRow>
+                            <TableRow className="bg-muted/30">
+                              <TableCell colSpan={3} className="text-right font-medium">
+                                Subtotal:
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                ${viewingInvoice.subtotal.toFixed(2)}
+                              </TableCell>
+                            </TableRow>
+                            {(() => {
+                              // Get company for this invoice
+                              const client = clients.find(c => c.id === viewingInvoice.client_id);
+                              const company = companies.find(c => c.id === client?.company_id);
+                              
+                              // If company has taxes, display them separately
+                              if (company?.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
+                                return company.taxes.map((tax: any, index: number) => {
+                                  const taxAmount = viewingInvoice.subtotal * (tax.percentage / 100);
+                                  return (
+                                    <TableRow key={`company-tax-${index}`} className="bg-muted/30">
+                                      <TableCell colSpan={3} className="text-right font-medium">
+                                        {tax.name} ({tax.percentage}%):
+                                      </TableCell>
+                                      <TableCell className="text-right font-medium">
+                                        ${taxAmount.toFixed(2)}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                });
+                              } else if (viewingInvoice.tax_amount > 0) {
+                                // Fallback to generic tax display
+                                return (
+                                  <TableRow className="bg-muted/30">
+                                    <TableCell colSpan={3} className="text-right font-medium">
+                                      Tax:
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">
+                                      ${viewingInvoice.tax_amount.toFixed(2)}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              }
+                              return null;
+                            })()}
+                            <TableRow className="bg-muted/50 border-t-2">
+                              <TableCell colSpan={3} className="text-right font-semibold">
+                                Total Amount:
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-lg">
+                                ${viewingInvoice.total.toFixed(2)}
+                              </TableCell>
+                            </TableRow>
                         </TableBody>
                       </Table>
                     </div>
