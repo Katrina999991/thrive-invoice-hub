@@ -1754,22 +1754,36 @@ const Reports = () => {
     
     // Date range
     doc.setFontSize(12);
-    let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
+    let dateRangeText = 'Toutes les périodes';
     if (customStartDate && customEndDate) {
-      dateRangeText = `Period: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `Période: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+    } else if (customStartDate) {
+      dateRangeText = `Depuis le ${format(customStartDate, 'dd/MM/yyyy')}`;
+    } else if (customEndDate) {
+      dateRangeText = `Jusqu'au ${format(customEndDate, 'dd/MM/yyyy')}`;
     }
     doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
     
+    // Company filter
+    if (productFilterType === 'company' && productSelectedCompanyId) {
+      const company = companies?.find(c => c.id === productSelectedCompanyId);
+      if (company) {
+        doc.text(`Compagnie: ${company.name}`, pageWidth / 2, 43, { align: 'center' });
+      }
+    } else {
+      doc.text('Toutes les compagnies', pageWidth / 2, 43, { align: 'center' });
+    }
+    
     // Summary
     doc.setFontSize(14);
-    doc.text('Summary', 20, 55);
+    doc.text('Summary', 20, 63);
     doc.setFontSize(12);
-    doc.text(`Total Revenue: $${salesData.totalRevenue.toFixed(2)}`, 20, 70);
-    doc.text(`Total Quantity Sold: ${salesData.totalQuantitySold}`, 20, 80);
-    doc.text(`Number of Sales: ${salesData.totalNumberOfSales}`, 20, 90);
-    doc.text(`Unique Products Sold: ${salesData.uniqueProductsSold}`, 20, 100);
+    doc.text(`Total Revenue: $${salesData.totalRevenue.toFixed(2)}`, 20, 78);
+    doc.text(`Total Quantity Sold: ${salesData.totalQuantitySold}`, 20, 88);
+    doc.text(`Number of Sales: ${salesData.totalNumberOfSales}`, 20, 98);
+    doc.text(`Unique Products Sold: ${salesData.uniqueProductsSold}`, 20, 108);
     
-    let yPosition = 120;
+    let yPosition = 128;
     
     try {
       // Capture Sales Charts
