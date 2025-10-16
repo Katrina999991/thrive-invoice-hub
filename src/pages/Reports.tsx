@@ -1548,9 +1548,13 @@ const Reports = () => {
     
     // Date range
     doc.setFontSize(12);
-    let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
+    let dateRangeText = 'Toutes les périodes';
     if (customStartDate && customEndDate) {
-      dateRangeText = `Period: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `Période: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+    } else if (customStartDate) {
+      dateRangeText = `Depuis le ${format(customStartDate, 'dd/MM/yyyy')}`;
+    } else if (customEndDate) {
+      dateRangeText = `Jusqu'au ${format(customEndDate, 'dd/MM/yyyy')}`;
     }
     doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
     
