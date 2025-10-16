@@ -706,17 +706,17 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text('Inventory Report', pageWidth / 2, 20, { align: 'center' });
+    doc.text(t("reports.pdf.inventoryReport"), pageWidth / 2, 20, { align: 'center' });
     
     // Filters
     doc.setFontSize(12);
-    let filterText = 'Toutes les périodes';
+    let filterText = t("reports.pdf.allPeriods");
     if (customStartDate && customEndDate) {
-      filterText = `Période: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+      filterText = `${t("reports.pdf.period")}: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
     } else if (customStartDate) {
-      filterText = `Depuis le ${format(customStartDate, 'dd/MM/yyyy')}`;
+      filterText = `${t("reports.pdf.since")} ${format(customStartDate, 'dd/MM/yyyy')}`;
     } else if (customEndDate) {
-      filterText = `Jusqu'au ${format(customEndDate, 'dd/MM/yyyy')}`;
+      filterText = `${t("reports.pdf.until")} ${format(customEndDate, 'dd/MM/yyyy')}`;
     }
     doc.text(filterText, pageWidth / 2, 30, { align: 'center' });
     
@@ -724,10 +724,10 @@ const Reports = () => {
     if (productFilterType === 'company' && productSelectedCompanyId) {
       const company = companies?.find(c => c.id === productSelectedCompanyId);
       if (company) {
-        doc.text(`Compagnie: ${company.name}`, pageWidth / 2, 38, { align: 'center' });
+        doc.text(`${t("reports.pdf.company")}: ${company.name}`, pageWidth / 2, 38, { align: 'center' });
       }
     } else {
-      doc.text('Toutes les compagnies', pageWidth / 2, 38, { align: 'center' });
+      doc.text(t("reports.pdf.allCompanies"), pageWidth / 2, 38, { align: 'center' });
     }
     
     // Summary
@@ -736,11 +736,11 @@ const Reports = () => {
     const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
     const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
-    doc.text(`Report date: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 55);
-    doc.text(`Total products: ${totalProducts}`, 20, 65);
-    doc.text(`Active products: ${activeProducts}`, 20, 75);
-    doc.text(`Low stock alerts: ${lowStockProducts}`, 20, 85);
-    doc.text(`Total inventory value: $${totalInventoryValue.toFixed(2)}`, 20, 95);
+    doc.text(`${t("reports.pdf.reportDate")}: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 55);
+    doc.text(`${t("reports.pdf.totalProducts")}: ${totalProducts}`, 20, 65);
+    doc.text(`${t("reports.pdf.activeProducts")}: ${activeProducts}`, 20, 75);
+    doc.text(`${t("reports.pdf.lowStockAlerts")}: ${lowStockProducts}`, 20, 85);
+    doc.text(`${t("reports.pdf.totalInventoryValue")}: $${totalInventoryValue.toFixed(2)}`, 20, 95);
     
     let yPosition = 115;
     
@@ -1565,37 +1565,37 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text('Product Profit Report', pageWidth / 2, 20, { align: 'center' });
+    doc.text(t("reports.pdf.productProfitReport"), pageWidth / 2, 20, { align: 'center' });
     
     // Date range
     doc.setFontSize(12);
-    let dateRangeText = 'Toutes les périodes';
+    let dateRangeText = t("reports.pdf.allPeriods");
     if (customStartDate && customEndDate) {
-      dateRangeText = `Période: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${t("reports.pdf.period")}: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
     } else if (customStartDate) {
-      dateRangeText = `Depuis le ${format(customStartDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${t("reports.pdf.since")} ${format(customStartDate, 'dd/MM/yyyy')}`;
     } else if (customEndDate) {
-      dateRangeText = `Jusqu'au ${format(customEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${t("reports.pdf.until")} ${format(customEndDate, 'dd/MM/yyyy')}`;
     }
     doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
     
     // Company filter
-    let companyFilterText = 'Toutes les compagnies';
+    let companyFilterText = t("reports.pdf.allCompanies");
     if (productFilterType === 'company' && productSelectedCompanyId) {
       const company = companies.find(c => c.id === productSelectedCompanyId);
-      companyFilterText = `Compagnie: ${company?.name || 'Inconnue'}`;
+      companyFilterText = `${t("reports.pdf.company")}: ${company?.name || 'Inconnue'}`;
     }
     doc.setFontSize(11);
-    doc.text(`Filtre: ${companyFilterText}`, pageWidth / 2, 40, { align: 'center' });
+    doc.text(`${companyFilterText}`, pageWidth / 2, 40, { align: 'center' });
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Summary', 20, 60);
+    doc.text(t("reports.pdf.summary"), 20, 60);
     doc.setFontSize(12);
-    doc.text(`Total Profit: $${filteredProfitData.totalProfit.toFixed(2)}`, 20, 75);
-    doc.text(`Total Revenue: $${filteredProfitData.totalRevenue.toFixed(2)}`, 20, 85);
-    doc.text(`Total Cost: $${filteredProfitData.totalCost.toFixed(2)}`, 20, 95);
-    doc.text(`Overall Margin: ${filteredProfitData.overallMargin.toFixed(1)}%`, 20, 105);
+    doc.text(`${t("reports.products.totalProfit")}: $${filteredProfitData.totalProfit.toFixed(2)}`, 20, 75);
+    doc.text(`${t("reports.products.totalRevenue")}: $${filteredProfitData.totalRevenue.toFixed(2)}`, 20, 85);
+    doc.text(`${t("reports.products.totalCost")}: $${filteredProfitData.totalCost.toFixed(2)}`, 20, 95);
+    doc.text(`${t("reports.products.overallMargin")}: ${filteredProfitData.overallMargin.toFixed(1)}%`, 20, 105);
     
     let yPosition = 125;
     
@@ -1610,7 +1610,7 @@ const Reports = () => {
         const chartImgData = chartCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Profit by Product Chart', 20, yPosition);
+        doc.text(t("reports.pdf.profitByProductChart"), 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -1621,7 +1621,7 @@ const Reports = () => {
           doc.addPage();
           yPosition = 20;
           doc.setFontSize(14);
-          doc.text('Profit by Product Chart', 20, yPosition);
+          doc.text(t("reports.pdf.profitByProductChart"), 20, yPosition);
           yPosition += 10;
         }
         
@@ -1636,7 +1636,7 @@ const Reports = () => {
       // Product details table
       if (filteredProfitData.products.length > 0) {
         doc.setFontSize(14);
-        doc.text('Product Details', 20, yPosition);
+        doc.text(t("reports.pdf.productDetails"), 20, yPosition);
         yPosition += 10;
         
         const productTableData = filteredProfitData.products.map(product => [
@@ -1650,7 +1650,7 @@ const Reports = () => {
         ]);
         
         autoTable(doc, {
-          head: [['Product', 'Qty Sold', 'Revenue', 'Cost', 'Profit', 'Margin %', 'Avg Price']],
+          head: [[t("reports.products.product"), t("reports.products.qtySold"), t("reports.products.revenue"), t("reports.products.cost"), t("reports.products.profit"), t("reports.products.marginPercent"), t("reports.products.avgPrice")]],
           body: productTableData,
           startY: yPosition,
           styles: { fontSize: 8 },
@@ -1750,17 +1750,17 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text('Sales Report', pageWidth / 2, 20, { align: 'center' });
+    doc.text(t("reports.pdf.salesReport"), pageWidth / 2, 20, { align: 'center' });
     
     // Date range
     doc.setFontSize(12);
-    let dateRangeText = 'Toutes les périodes';
+    let dateRangeText = t("reports.pdf.allPeriods");
     if (customStartDate && customEndDate) {
-      dateRangeText = `Période: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${t("reports.pdf.period")}: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
     } else if (customStartDate) {
-      dateRangeText = `Depuis le ${format(customStartDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${t("reports.pdf.since")} ${format(customStartDate, 'dd/MM/yyyy')}`;
     } else if (customEndDate) {
-      dateRangeText = `Jusqu'au ${format(customEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${t("reports.pdf.until")} ${format(customEndDate, 'dd/MM/yyyy')}`;
     }
     doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
     
@@ -1768,20 +1768,20 @@ const Reports = () => {
     if (productFilterType === 'company' && productSelectedCompanyId) {
       const company = companies?.find(c => c.id === productSelectedCompanyId);
       if (company) {
-        doc.text(`Compagnie: ${company.name}`, pageWidth / 2, 43, { align: 'center' });
+        doc.text(`${t("reports.pdf.company")}: ${company.name}`, pageWidth / 2, 43, { align: 'center' });
       }
     } else {
-      doc.text('Toutes les compagnies', pageWidth / 2, 43, { align: 'center' });
+      doc.text(t("reports.pdf.allCompanies"), pageWidth / 2, 43, { align: 'center' });
     }
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Summary', 20, 63);
+    doc.text(t("reports.pdf.summary"), 20, 63);
     doc.setFontSize(12);
-    doc.text(`Total Revenue: $${salesData.totalRevenue.toFixed(2)}`, 20, 78);
-    doc.text(`Total Quantity Sold: ${salesData.totalQuantitySold}`, 20, 88);
-    doc.text(`Number of Sales: ${salesData.totalNumberOfSales}`, 20, 98);
-    doc.text(`Unique Products Sold: ${salesData.uniqueProductsSold}`, 20, 108);
+    doc.text(`${t("reports.products.totalRevenue")}: $${salesData.totalRevenue.toFixed(2)}`, 20, 78);
+    doc.text(`${t("reports.products.totalQuantitySold")}: ${salesData.totalQuantitySold}`, 20, 88);
+    doc.text(`${t("reports.products.numberOfSales")}: ${salesData.totalNumberOfSales}`, 20, 98);
+    doc.text(`${t("reports.products.productsSold")}: ${salesData.uniqueProductsSold}`, 20, 108);
     
     let yPosition = 128;
     
@@ -1796,7 +1796,7 @@ const Reports = () => {
         const chartImgData = chartCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Revenue by Product Chart', 20, yPosition);
+        doc.text(t("reports.pdf.revenueByProductChart"), 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -1807,7 +1807,7 @@ const Reports = () => {
           doc.addPage();
           yPosition = 20;
           doc.setFontSize(14);
-          doc.text('Revenue by Product Chart', 20, yPosition);
+          doc.text(t("reports.pdf.revenueByProductChart"), 20, yPosition);
           yPosition += 10;
         }
         
@@ -1831,7 +1831,7 @@ const Reports = () => {
         const serviceChartImgData = serviceChartCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Revenue by Service Chart', 20, yPosition);
+        doc.text(t("reports.pdf.revenueByServiceChart"), 20, yPosition);
         yPosition += 10;
         
         const serviceImgWidth = pageWidth - 40;
@@ -1842,7 +1842,7 @@ const Reports = () => {
           doc.addPage();
           yPosition = 20;
           doc.setFontSize(14);
-          doc.text('Revenue by Service Chart', 20, yPosition);
+          doc.text(t("reports.pdf.revenueByServiceChart"), 20, yPosition);
           yPosition += 10;
         }
         
@@ -1857,7 +1857,7 @@ const Reports = () => {
       // Sales details table
       if (salesData.products.length > 0 || salesData.services.length > 0) {
         doc.setFontSize(14);
-        doc.text('Sales Details', 20, yPosition);
+        doc.text(t("reports.pdf.salesDetails"), 20, yPosition);
         yPosition += 10;
         
         // Combine products and services for the table
@@ -1883,7 +1883,7 @@ const Reports = () => {
         ];
         
         autoTable(doc, {
-          head: [['Product/Service', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
+          head: [[t("reports.products.productServiceLabel"), t("reports.products.qtySold"), t("reports.products.revenue"), t("reports.products.salesCount"), t("reports.products.avgPrice"), t("reports.products.firstSale"), t("reports.products.lastSale")]],
           body: combinedSalesData,
           startY: yPosition,
           styles: { fontSize: 8 },

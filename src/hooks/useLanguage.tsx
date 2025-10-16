@@ -592,6 +592,30 @@ const translations = {
     "reports.invoices.paid": "Paid",
     "reports.invoices.overdue": "Overdue",
     
+    // PDF Reports
+    "reports.pdf.allPeriods": "All Periods",
+    "reports.pdf.since": "Since",
+    "reports.pdf.until": "Until",
+    "reports.pdf.period": "Period",
+    "reports.pdf.allCompanies": "All Companies",
+    "reports.pdf.company": "Company",
+    "reports.pdf.reportDate": "Report date",
+    "reports.pdf.totalProducts": "Total products",
+    "reports.pdf.activeProducts": "Active products",
+    "reports.pdf.lowStockAlerts": "Low stock alerts",
+    "reports.pdf.totalInventoryValue": "Total inventory value",
+    "reports.pdf.summary": "Summary",
+    "reports.pdf.salesReport": "Sales Report",
+    "reports.pdf.productProfitReport": "Product Profit Report",
+    "reports.pdf.inventoryReport": "Inventory Report",
+    "reports.pdf.expenseReport": "Expense Report",
+    "reports.pdf.clientReport": "Client Report",
+    "reports.pdf.revenueByProductChart": "Revenue by Product Chart",
+    "reports.pdf.revenueByServiceChart": "Revenue by Service Chart",
+    "reports.pdf.salesDetails": "Sales Details",
+    "reports.pdf.profitByProductChart": "Profit by Product Chart",
+    "reports.pdf.productDetails": "Product Details",
+    
     
     // Settings
     "settings.title": "Settings",
@@ -1245,6 +1269,30 @@ const translations = {
     "reports.invoices.sent": "Envoyée",
     "reports.invoices.paid": "Payée",
     "reports.invoices.overdue": "En retard",
+    
+    // PDF Reports
+    "reports.pdf.allPeriods": "Toutes les périodes",
+    "reports.pdf.since": "Depuis le",
+    "reports.pdf.until": "Jusqu'au",
+    "reports.pdf.period": "Période",
+    "reports.pdf.allCompanies": "Toutes les compagnies",
+    "reports.pdf.company": "Compagnie",
+    "reports.pdf.reportDate": "Date du rapport",
+    "reports.pdf.totalProducts": "Total de produits",
+    "reports.pdf.activeProducts": "Produits actifs",
+    "reports.pdf.lowStockAlerts": "Alertes stock bas",
+    "reports.pdf.totalInventoryValue": "Valeur totale de l'inventaire",
+    "reports.pdf.summary": "Résumé",
+    "reports.pdf.salesReport": "Rapport des ventes",
+    "reports.pdf.productProfitReport": "Rapport des profits par produit",
+    "reports.pdf.inventoryReport": "Rapport d'inventaire",
+    "reports.pdf.expenseReport": "Rapport des dépenses",
+    "reports.pdf.clientReport": "Rapport des clients",
+    "reports.pdf.revenueByProductChart": "Graphique - Revenu par produit",
+    "reports.pdf.revenueByServiceChart": "Graphique - Revenu par service",
+    "reports.pdf.salesDetails": "Détails des ventes",
+    "reports.pdf.profitByProductChart": "Graphique - Profit par produit",
+    "reports.pdf.productDetails": "Détails des produits",
     
     
     // Settings
