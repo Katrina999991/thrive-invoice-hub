@@ -372,7 +372,19 @@ const Reports = () => {
       doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
     }
     
-    let yPosition = 50;
+    // Filter info
+    let filterText = 'Toutes les données';
+    if (filterType === 'company' && selectedCompanyId) {
+      const company = companies.find(c => c.id === selectedCompanyId);
+      filterText = `Compagnie: ${company?.name || 'Inconnue'}`;
+    } else if (filterType === 'client' && selectedClientId) {
+      const client = clients.find(c => c.id === selectedClientId);
+      filterText = `Client: ${client?.name || 'Inconnu'}`;
+    }
+    doc.setFontSize(11);
+    doc.text(`Filtre: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
+    
+    let yPosition = 60;
     
     try {
       // Capture Bar Chart
