@@ -708,20 +708,41 @@ const Reports = () => {
     doc.setFontSize(20);
     doc.text('Inventory Report', pageWidth / 2, 20, { align: 'center' });
     
-    // Summary
+    // Filters
     doc.setFontSize(12);
+    let filterText = 'Toutes les périodes';
+    if (customStartDate && customEndDate) {
+      filterText = `Période: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
+    } else if (customStartDate) {
+      filterText = `Depuis le ${format(customStartDate, 'dd/MM/yyyy')}`;
+    } else if (customEndDate) {
+      filterText = `Jusqu'au ${format(customEndDate, 'dd/MM/yyyy')}`;
+    }
+    doc.text(filterText, pageWidth / 2, 30, { align: 'center' });
+    
+    // Company filter
+    if (productFilterType === 'company' && productSelectedCompanyId) {
+      const company = companies?.find(c => c.id === productSelectedCompanyId);
+      if (company) {
+        doc.text(`Compagnie: ${company.name}`, pageWidth / 2, 38, { align: 'center' });
+      }
+    } else {
+      doc.text('Toutes les compagnies', pageWidth / 2, 38, { align: 'center' });
+    }
+    
+    // Summary
     const totalProducts = products.length;
     const activeProducts = products.filter(p => p.is_active).length;
     const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
     const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
-    doc.text(`Report date: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 40);
-    doc.text(`Total products: ${totalProducts}`, 20, 50);
-    doc.text(`Active products: ${activeProducts}`, 20, 60);
-    doc.text(`Low stock alerts: ${lowStockProducts}`, 20, 70);
-    doc.text(`Total inventory value: $${totalInventoryValue.toFixed(2)}`, 20, 80);
+    doc.text(`Report date: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 55);
+    doc.text(`Total products: ${totalProducts}`, 20, 65);
+    doc.text(`Active products: ${activeProducts}`, 20, 75);
+    doc.text(`Low stock alerts: ${lowStockProducts}`, 20, 85);
+    doc.text(`Total inventory value: $${totalInventoryValue.toFixed(2)}`, 20, 95);
     
-    let yPosition = 100;
+    let yPosition = 115;
     
     try {
       // Capture Stock Chart
