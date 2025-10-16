@@ -1552,18 +1552,27 @@ const Reports = () => {
     if (customStartDate && customEndDate) {
       dateRangeText = `Period: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
     }
-    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
+    doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
+    
+    // Company filter
+    let companyFilterText = 'Toutes les compagnies';
+    if (productFilterType === 'company' && productSelectedCompanyId) {
+      const company = companies.find(c => c.id === productSelectedCompanyId);
+      companyFilterText = `Compagnie: ${company?.name || 'Inconnue'}`;
+    }
+    doc.setFontSize(11);
+    doc.text(`Filtre: ${companyFilterText}`, pageWidth / 2, 40, { align: 'center' });
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Summary', 20, 55);
+    doc.text('Summary', 20, 60);
     doc.setFontSize(12);
-    doc.text(`Total Profit: $${filteredProfitData.totalProfit.toFixed(2)}`, 20, 70);
-    doc.text(`Total Revenue: $${filteredProfitData.totalRevenue.toFixed(2)}`, 20, 80);
-    doc.text(`Total Cost: $${filteredProfitData.totalCost.toFixed(2)}`, 20, 90);
-    doc.text(`Overall Margin: ${filteredProfitData.overallMargin.toFixed(1)}%`, 20, 100);
+    doc.text(`Total Profit: $${filteredProfitData.totalProfit.toFixed(2)}`, 20, 75);
+    doc.text(`Total Revenue: $${filteredProfitData.totalRevenue.toFixed(2)}`, 20, 85);
+    doc.text(`Total Cost: $${filteredProfitData.totalCost.toFixed(2)}`, 20, 95);
+    doc.text(`Overall Margin: ${filteredProfitData.overallMargin.toFixed(1)}%`, 20, 105);
     
-    let yPosition = 120;
+    let yPosition = 125;
     
     try {
       // Capture Product Profit Chart
