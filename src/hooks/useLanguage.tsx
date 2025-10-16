@@ -10,8 +10,10 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations = {
-  en: {
+  const translations = {
+    en: {
+      reports: "Reports",
+      reportsDescription: "Business analytics and performance metrics",
     // Sidebar Navigation
     "nav.title": "Business Manager",
     "nav.main": "Main",
@@ -690,6 +692,9 @@ const translations = {
     "auth.cancel": "Cancel",
   },
   fr: {
+    reports: "Rapports",
+    reportsDescription: "Analyses commerciales et indicateurs de performance",
+    
     // Sidebar Navigation
     "nav.title": "Gestion d'Entreprise",
     "nav.main": "Principal",

@@ -2026,9 +2026,9 @@ const Reports = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('reports')}</h1>
         <p className="text-muted-foreground">
-          Business analytics and performance metrics
+          {t('reportsDescription')}
         </p>
         
         {/* Active Filters Display */}
