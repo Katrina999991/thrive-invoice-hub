@@ -714,9 +714,19 @@ const Invoices = () => {
             );
           }
 
-          // Single rounded rectangle spanning the full row
-          doc.setLineWidth(0);
-          doc.roundedRect(startX, y, totalWidth, height, radius, radius, 'F');
+          // Draw per cell to cover entire row without clipping
+          // We need to fill each cell; rounded only on the outer cells
+          const isFirstCol = data.column.index === 0;
+          const isLastCol = data.table && data.table.columns
+            ? data.column.index === data.table.columns.length - 1
+            : false;
+          data.cell.styles.lineWidth = 0;
+          if (isFirstCol || isLastCol) {
+            doc.roundedRect(startX, y, totalWidth, height, 6, 6, 'F');
+          } else {
+            // Middle columns will be filled by their own calls; do nothing here
+          }
+        },
         },
         didDrawCell: function(data: any) {
           // no-op for modern; backgrounds are drawn in willDrawCell
