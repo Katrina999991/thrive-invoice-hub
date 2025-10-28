@@ -436,8 +436,8 @@ const Invoices = () => {
                 // Calculate logo dimensions while maintaining aspect ratio
                 const logoWidth = logoImg.width;
                 const logoHeight = logoImg.height;
-                const maxWidth = 40;
-                const maxHeight = 30;
+                const maxWidth = 25;
+                const maxHeight = 20;
                 
                 let scaledWidth = maxWidth;
                 let scaledHeight = maxHeight;
@@ -460,45 +460,19 @@ const Invoices = () => {
                   }
                 }
                 
-                // Add logo with preserved aspect ratio
-                if (invoiceTemplate === 'modern') {
-                  // Modern: Add colored background behind logo area
-                  doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-                  doc.rect(15, 10, 50, 40, 'F');
-                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
-                  doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                  doc.roundedRect(65, 25, 30, 12, 3, 3, 'F');
-                  doc.setTextColor(255, 255, 255);
-                  doc.setFontSize(12);
-                  doc.text(translations.invoice, 70, 33);
-                } else if (invoiceTemplate === 'professional') {
-                  // Professional: Thick border at top
-                  doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                  doc.setLineWidth(3);
-                  doc.line(20, 50, 190, 50);
-                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
-                  doc.setFontSize(20);
-                  doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                  doc.text(translations.invoice, 70, 35);
-                } else if (invoiceTemplate === 'creative') {
-                  // Creative: Colored box for logo
-                  doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-                  doc.roundedRect(15, 10, 45, 40, 5, 5, 'F');
-                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
-                  doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                  doc.circle(180, 30, 15, 'F');
-                  doc.setTextColor(255, 255, 255);
-                  doc.setFontSize(10);
-                  doc.text('#' + invoice.invoice_number.substring(invoice.invoice_number.length - 3), 172, 33);
-                } else {
-                  // Classic: Simple layout
-                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
-                  doc.text(translations.invoice, 70, 35);
-                }
+                // Add logo with preserved aspect ratio (all templates same layout)
+                doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
+                
+                // Add "FACTURE" / "INVOICE" below the logo
+                doc.setFontSize(14);
+                doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                doc.text(translations.invoice, 20, 40);
                 resolve(undefined);
               } catch (error) {
                 console.error('Error adding logo to PDF:', error);
                 // Fallback: just add text without logo
+                doc.setFontSize(14);
+                doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
                 doc.text(translations.invoice, 20, 30);
                 resolve(undefined);
               }
@@ -506,6 +480,8 @@ const Invoices = () => {
             logoImg.onerror = () => {
               console.error('Error loading logo image');
               // Fallback: just add text without logo
+              doc.setFontSize(14);
+              doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
               doc.text(translations.invoice, 20, 30);
               resolve(undefined);
             };
@@ -514,74 +490,64 @@ const Invoices = () => {
         } catch (error) {
           console.error('Error handling logo:', error);
           // Fallback: just add text without logo
+          doc.setFontSize(14);
+          doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
           doc.text(translations.invoice, 20, 30);
         }
       } else {
-        // No logo, just add INVOICE text with template styling
-        if (invoiceTemplate === 'modern') {
-          doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.roundedRect(15, 20, 50, 15, 3, 3, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.text(translations.invoice, 20, 30);
-        } else if (invoiceTemplate === 'professional') {
-          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.setLineWidth(3);
-          doc.line(20, 40, 190, 40);
-          doc.text(translations.invoice, 20, 30);
-        } else if (invoiceTemplate === 'creative') {
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          doc.roundedRect(15, 15, 60, 25, 5, 5, 'F');
-          doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.text(translations.invoice, 20, 30);
-        } else {
-          // Classic
-          doc.text(translations.invoice, 20, 30);
-        }
+        // No logo, just add INVOICE text
+        doc.setFontSize(14);
+        doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.text(translations.invoice, 20, 30);
       }
       
       // Company information (top right)
       if (company) {
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         const companyLines = [
           company.name,
-          ...(company.address ? [company.address] : []),
+          ...(company.street_address ? [company.street_address] : []),
+          ...(company.city && company.province_state ? [`${company.city}, ${company.province_state} ${company.postal_code || ''}`] : []),
           ...(company.phone ? [`${translations.phone}: ${company.phone}`] : []),
-          ...(company.email ? [`${translations.email}: ${company.email}`] : []),
-          ...(company.website ? [`${translations.website}: ${company.website}`] : [])
+          ...(company.email ? [`${translations.email}: ${company.email}`] : [])
         ];
         
-        let yPos = company.logo_url ? 50 : 30; // Adjust position if logo is present
+        let yPos = 15;
         companyLines.forEach(line => {
           const textWidth = doc.getTextWidth(line);
           doc.text(line, 210 - 20 - textWidth, yPos);
-          yPos += 6;
+          yPos += 5;
         });
       }
       
-      // Invoice details (adjust position based on logo presence)
-      const invoiceDetailsY = company?.logo_url ? 70 : 60;
-      doc.setFontSize(12);
+      // Invoice details (right side, below company info)
+      const invoiceDetailsY = 50;
+      doc.setFontSize(10);
       doc.setTextColor(40, 40, 40);
-      doc.text(`${translations.invoiceNumber}: ${invoice.invoice_number}`, 20, invoiceDetailsY);
-      doc.text(`${translations.issueDate}: ${invoice.issue_date}`, 20, invoiceDetailsY + 10);
-      doc.text(`${translations.dueDate}: ${invoice.due_date || 'N/A'}`, 20, invoiceDetailsY + 20);
+      const invoiceNumText = `${translations.invoiceNumber}: ${invoice.invoice_number}`;
+      const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
+      const dueDateText = `${translations.dueDate}: ${invoice.due_date || 'N/A'}`;
+      
+      doc.text(invoiceNumText, 210 - 20 - doc.getTextWidth(invoiceNumText), invoiceDetailsY);
+      doc.text(issueDateText, 210 - 20 - doc.getTextWidth(issueDateText), invoiceDetailsY + 6);
+      doc.text(dueDateText, 210 - 20 - doc.getTextWidth(dueDateText), invoiceDetailsY + 12);
       
       // Only show status for payment confirmations
       if (emailType === "payment_confirmation") {
         doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
       }
       
-      // Client information (adjust position based on logo presence and status display)
-      const clientInfoY = company?.logo_url ? 
-        (emailType === "payment_confirmation" ? 130 : 120) : 
-        (emailType === "payment_confirmation" ? 120 : 110);
+      // Client information
+      const clientInfoY = 75;
       if (client) {
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'bold');
         doc.text(translations.billTo, 20, clientInfoY);
         
-        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
         const clientLines = [
           client.name,
           ...(client.contact_person ? [client.contact_person] : []),
@@ -590,17 +556,15 @@ const Invoices = () => {
           ...(client.email ? [`${translations.email}: ${client.email}`] : [])
         ];
         
-        let yPos = clientInfoY + 10;
+        let yPos = clientInfoY + 8;
         clientLines.forEach(line => {
           doc.text(line, 20, yPos);
-          yPos += 6;
+          yPos += 5;
         });
       }
       
-      // Items table (adjust position based on logo presence and status display)  
-      const startY = company?.logo_url ? 
-        (emailType === "payment_confirmation" ? 190 : 180) : 
-        (emailType === "payment_confirmation" ? 170 : 160);
+      // Items table
+      const startY = 120;
       const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
       const tableData: any[] = [];
       
