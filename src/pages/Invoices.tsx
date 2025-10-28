@@ -458,9 +458,9 @@ const Invoices = () => {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      const dateText = invoice.issue_date;
-      const dateWidth = doc.getTextWidth(dateText);
-      doc.text(dateText, 210 - 20 - dateWidth, headerHeight + 6);
+      const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
+      const issueDateWidth = doc.getTextWidth(issueDateText);
+      doc.text(issueDateText, 210 - 20 - issueDateWidth, headerHeight + 6);
       
       // Add due date below issue date
       if (invoice.due_date) {
