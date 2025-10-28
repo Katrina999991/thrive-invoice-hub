@@ -633,7 +633,7 @@ const Invoices = () => {
         headStyles: {
           fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
                     invoiceTemplate === 'creative' ? [255, 255, 255] : 
-                    invoiceTemplate === 'modern' ? [255, 255, 255] : selectedColor.primary,
+                    invoiceTemplate === 'modern' ? undefined : selectedColor.primary,
           textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
                     invoiceTemplate === 'creative' ? selectedColor.primary : 
                     invoiceTemplate === 'modern' ? [40, 40, 40] : [255, 255, 255],
@@ -656,11 +656,17 @@ const Invoices = () => {
           fillColor: invoiceTemplate === 'modern' ? [255, 255, 255] : undefined,
         },
         didParseCell: function(data: any) {
+          // Remove fill for header in modern template so custom rounded background shows
+          if (invoiceTemplate === 'modern' && data.section === 'head') {
+            data.cell.styles.fillColor = undefined;
+            data.cell.styles.lineWidth = 0;
+          }
           // Style the last row (Total) for modern template  
           if (invoiceTemplate === 'modern' && data.section === 'body') {
-            const isLastRow = data.row.index === data.table.body.length - 1;
+            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+            const isLastRow = data.row.index === bodyLen - 1;
             if (isLastRow) {
-              data.cell.styles.fillColor = [255, 255, 255];
+              data.cell.styles.fillColor = undefined; // no fill - let custom background be visible
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
               data.cell.styles.fontSize = 11;
@@ -681,56 +687,33 @@ const Invoices = () => {
           if (invoiceTemplate === 'modern') {
             const radius = 8;
             const doc = data.doc;
-            
-            // Draw rounded background for header
-            if (data.section === 'head') {
-              const cells = data.row.cells;
-              if (data.column.index === 0 && cells && cells.length > 0) {
-                const firstCell = cells[0];
-                const lastCell = cells[cells.length - 1];
-                
-                // Check if cell properties are defined
-                if (firstCell && lastCell && 
-                    typeof firstCell.x !== 'undefined' && 
-                    typeof firstCell.y !== 'undefined' &&
-                    typeof lastCell.x !== 'undefined' &&
-                    typeof lastCell.width !== 'undefined' &&
-                    typeof firstCell.height !== 'undefined') {
-                  const x = firstCell.x;
-                  const y = firstCell.y;
-                  const width = lastCell.x + lastCell.width - firstCell.x;
-                  const height = firstCell.height;
-                  
-                  doc.setFillColor(200, 220, 240);
-                  doc.roundedRect(x, y, width, height, radius, radius, 'F');
-                }
+
+            // Draw rounded background for header (span full table width)
+            if (data.section === 'head' && data.column.index === 0) {
+              const x = typeof data.cell.x !== 'undefined' ? data.cell.x : (data.table?.startX ?? 20);
+              const y = typeof data.cell.y !== 'undefined' ? data.cell.y : (data.table?.startY ?? 0);
+              const width = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
+              const height = typeof data.cell.height !== 'undefined' ? data.cell.height : (data.row?.height ?? 0);
+
+              if (x !== undefined && y !== undefined && width && height) {
+                doc.setFillColor(200, 220, 240);
+                doc.roundedRect(x, y, width, height, radius, radius, 'F');
               }
             }
-            
-            // Draw rounded background for total row
+
+            // Draw rounded background for total row (last row)
             if (data.section === 'body') {
-              const isLastRow = data.row.index === data.table.body.length - 1;
+              const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+              const isLastRow = data.row.index === bodyLen - 1;
               if (isLastRow && data.column.index === 0) {
-                const cells = data.row.cells;
-                if (cells && cells.length > 0) {
-                  const firstCell = cells[0];
-                  const lastCell = cells[cells.length - 1];
-                  
-                  // Check if cell properties are defined
-                  if (firstCell && lastCell && 
-                      typeof firstCell.x !== 'undefined' && 
-                      typeof firstCell.y !== 'undefined' &&
-                      typeof lastCell.x !== 'undefined' &&
-                      typeof lastCell.width !== 'undefined' &&
-                      typeof firstCell.height !== 'undefined') {
-                    const x = firstCell.x;
-                    const y = firstCell.y;
-                    const width = lastCell.x + lastCell.width - firstCell.x;
-                    const height = firstCell.height;
-                    
-                    doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                    doc.roundedRect(x, y, width, height, radius, radius, 'F');
-                  }
+                const x = typeof data.cell.x !== 'undefined' ? data.cell.x : (data.table?.startX ?? 20);
+                const y = typeof data.cell.y !== 'undefined' ? data.cell.y : (data.table?.cursor?.y ?? 0);
+                const width = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
+                const height = typeof data.cell.height !== 'undefined' ? data.cell.height : (data.row?.height ?? 0);
+
+                if (x !== undefined && y !== undefined && width && height) {
+                  doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                  doc.roundedRect(x, y, width, height, radius, radius, 'F');
                 }
               }
             }
