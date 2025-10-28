@@ -633,7 +633,7 @@ const Invoices = () => {
         headStyles: {
           fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
                     invoiceTemplate === 'creative' ? [255, 255, 255] : 
-                    invoiceTemplate === 'modern' ? undefined : selectedColor.primary,
+                    invoiceTemplate === 'modern' ? [200, 220, 240] : selectedColor.primary,
           textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
                     invoiceTemplate === 'creative' ? selectedColor.primary : 
                     invoiceTemplate === 'modern' ? [40, 40, 40] : [255, 255, 255],
