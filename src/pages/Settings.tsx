@@ -167,26 +167,172 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div>
-              <Label className="text-sm font-medium mb-3 block">{t("settings.invoice.templateLabel")}</Label>
-              <RadioGroup value={invoiceTemplate} onValueChange={handleInvoiceTemplateChange}>
-                <div className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value="classic" id="classic" />
-                  <Label htmlFor="classic" className="cursor-pointer">{t("settings.invoice.classic")}</Label>
-                </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value="modern" id="modern" />
-                  <Label htmlFor="modern" className="cursor-pointer">{t("settings.invoice.modern")}</Label>
-                </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value="professional" id="professional" />
-                  <Label htmlFor="professional" className="cursor-pointer">{t("settings.invoice.professional")}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="creative" id="creative" />
-                  <Label htmlFor="creative" className="cursor-pointer">{t("settings.invoice.creative")}</Label>
-                </div>
-              </RadioGroup>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium mb-3 block">{t("settings.invoice.templateLabel")}</Label>
+                <RadioGroup value={invoiceTemplate} onValueChange={handleInvoiceTemplateChange}>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="classic" id="classic" />
+                    <Label htmlFor="classic" className="cursor-pointer">{t("settings.invoice.classic")}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="modern" id="modern" />
+                    <Label htmlFor="modern" className="cursor-pointer">{t("settings.invoice.modern")}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="professional" id="professional" />
+                    <Label htmlFor="professional" className="cursor-pointer">{t("settings.invoice.professional")}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="creative" id="creative" />
+                    <Label htmlFor="creative" className="cursor-pointer">{t("settings.invoice.creative")}</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <p className="text-sm font-medium mb-3">{t("settings.invoice.preview")}</p>
+                {invoiceTemplate === "classic" && (
+                  <div className="bg-background border rounded p-4 space-y-3 text-xs">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-sm">ACME Company</div>
+                        <div className="text-muted-foreground">123 Main St, City</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">INVOICE #001</div>
+                        <div className="text-muted-foreground">2024-01-15</div>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2">
+                      <div className="font-semibold mb-1">Bill To:</div>
+                      <div>Client Name</div>
+                    </div>
+                    <div className="border-t pt-2 space-y-1">
+                      <div className="flex justify-between font-semibold">
+                        <span>Item</span>
+                        <span>Amount</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Service 1</span>
+                        <span>$100.00</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2">
+                      <div className="flex justify-between font-bold">
+                        <span>Total</span>
+                        <span>$100.00</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {invoiceTemplate === "modern" && (
+                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded p-4 space-y-3 text-xs">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-sm text-primary">ACME Company</div>
+                        <div className="text-muted-foreground">123 Main St, City</div>
+                      </div>
+                      <div className="text-right bg-primary text-primary-foreground px-2 py-1 rounded">
+                        <div className="font-bold">INV-001</div>
+                      </div>
+                    </div>
+                    <div className="bg-background/60 rounded p-2">
+                      <div className="font-semibold mb-1">Bill To:</div>
+                      <div>Client Name</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between font-semibold bg-primary/10 p-1 rounded">
+                        <span>Item</span>
+                        <span>Amount</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Service 1</span>
+                        <span>$100.00</span>
+                      </div>
+                    </div>
+                    <div className="bg-primary text-primary-foreground p-2 rounded">
+                      <div className="flex justify-between font-bold">
+                        <span>Total</span>
+                        <span>$100.00</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {invoiceTemplate === "professional" && (
+                  <div className="bg-background border-2 rounded p-4 space-y-3 text-xs">
+                    <div className="border-b-2 pb-2 flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-base">ACME Company</div>
+                        <div className="text-muted-foreground text-xs">123 Main St, City</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-muted-foreground uppercase text-xs">Invoice</div>
+                        <div className="font-bold">#001</div>
+                        <div className="text-muted-foreground">Jan 15, 2024</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="font-semibold text-xs uppercase text-muted-foreground mb-1">Bill To</div>
+                        <div>Client Name</div>
+                      </div>
+                    </div>
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-1 font-semibold">Description</th>
+                          <th className="text-right py-1 font-semibold">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="py-1">Service 1</td>
+                          <td className="text-right">$100.00</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div className="border-t-2 pt-2 flex justify-end">
+                      <div className="w-1/3">
+                        <div className="flex justify-between font-bold text-sm">
+                          <span>TOTAL</span>
+                          <span>$100.00</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {invoiceTemplate === "creative" && (
+                  <div className="bg-gradient-to-br from-accent/30 via-background to-primary/20 border-2 border-accent rounded-lg p-4 space-y-3 text-xs">
+                    <div className="flex justify-between items-start">
+                      <div className="bg-accent/20 rounded-lg p-2">
+                        <div className="font-bold text-sm">ACME</div>
+                        <div className="text-xs">Company</div>
+                      </div>
+                      <div className="text-right bg-primary text-primary-foreground px-3 py-1 rounded-full">
+                        <div className="font-bold">#001</div>
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground text-xs">123 Main St, City</div>
+                    <div className="bg-background/80 backdrop-blur rounded-lg p-2 border">
+                      <div className="font-semibold mb-1">Client Name</div>
+                      <div className="text-muted-foreground text-xs">Customer</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between p-1">
+                        <span className="text-muted-foreground">Service 1</span>
+                        <span className="font-semibold">$100.00</span>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-r from-primary to-accent text-primary-foreground p-2 rounded-lg">
+                      <div className="flex justify-between font-bold">
+                        <span>Total</span>
+                        <span>$100.00</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

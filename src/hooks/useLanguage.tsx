@@ -646,6 +646,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
     "settings.invoice.modern": "Modern",
     "settings.invoice.professional": "Professional",
     "settings.invoice.creative": "Creative",
+    "settings.invoice.preview": "Preview",
     
     // Password Change
     "password.title": "Change Password",
@@ -1334,6 +1335,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
     "settings.invoice.modern": "Moderne",
     "settings.invoice.professional": "Professionnel",
     "settings.invoice.creative": "Créatif",
+    "settings.invoice.preview": "Aperçu",
     
     // Password Change
     "password.title": "Changer le mot de passe",
