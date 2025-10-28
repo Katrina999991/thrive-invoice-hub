@@ -59,6 +59,59 @@ export default function Settings() {
     localStorage.setItem("invoice-color", value);
   };
 
+  const getColorClasses = () => {
+    const colorMap = {
+      blue: {
+        bg: "bg-blue-600",
+        text: "text-blue-600",
+        border: "border-blue-600",
+        bgLight: "bg-blue-100",
+        borderLight: "border-blue-200",
+        gradient: "from-blue-50 to-blue-100",
+        gradientAccent: "from-blue-600 to-blue-700"
+      },
+      green: {
+        bg: "bg-green-600",
+        text: "text-green-600",
+        border: "border-green-600",
+        bgLight: "bg-green-100",
+        borderLight: "border-green-200",
+        gradient: "from-green-50 to-green-100",
+        gradientAccent: "from-green-600 to-green-700"
+      },
+      purple: {
+        bg: "bg-purple-600",
+        text: "text-purple-600",
+        border: "border-purple-600",
+        bgLight: "bg-purple-100",
+        borderLight: "border-purple-200",
+        gradient: "from-purple-50 to-purple-100",
+        gradientAccent: "from-purple-600 to-purple-700"
+      },
+      orange: {
+        bg: "bg-orange-600",
+        text: "text-orange-600",
+        border: "border-orange-600",
+        bgLight: "bg-orange-100",
+        borderLight: "border-orange-200",
+        gradient: "from-orange-50 to-orange-100",
+        gradientAccent: "from-orange-600 to-orange-700"
+      },
+      red: {
+        bg: "bg-red-600",
+        text: "text-red-600",
+        border: "border-red-600",
+        bgLight: "bg-red-100",
+        borderLight: "border-red-200",
+        gradient: "from-red-50 to-red-100",
+        gradientAccent: "from-red-600 to-red-700"
+      }
+    };
+    return colorMap[invoiceColor as keyof typeof colorMap] || colorMap.blue;
+  };
+
+  const colors = getColorClasses();
+
   return (
     <div className="space-y-6">
       <div>
@@ -245,7 +298,7 @@ export default function Settings() {
                   <div className="bg-background border rounded p-4 space-y-3 text-xs">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-bold text-sm">ACME Company</div>
+                        <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
                         <div className="text-muted-foreground">123 Main St, City</div>
                       </div>
                       <div className="text-right">
@@ -253,12 +306,12 @@ export default function Settings() {
                         <div className="text-muted-foreground">2024-01-15</div>
                       </div>
                     </div>
-                    <div className="border-t pt-2">
+                    <div className={`border-t ${colors.borderLight} pt-2`}>
                       <div className="font-semibold mb-1">Bill To:</div>
                       <div>Client Name</div>
                     </div>
                     <div className="border-t pt-2 space-y-1">
-                      <div className="flex justify-between font-semibold">
+                      <div className={`flex justify-between font-semibold ${colors.bgLight} p-1 rounded`}>
                         <span>Item</span>
                         <span>Amount</span>
                       </div>
@@ -267,8 +320,8 @@ export default function Settings() {
                         <span>$100.00</span>
                       </div>
                     </div>
-                    <div className="border-t pt-2">
-                      <div className="flex justify-between font-bold">
+                    <div className={`border-t ${colors.borderLight} pt-2`}>
+                      <div className={`flex justify-between font-bold ${colors.text}`}>
                         <span>Total</span>
                         <span>$100.00</span>
                       </div>
@@ -276,13 +329,13 @@ export default function Settings() {
                   </div>
                 )}
                 {invoiceTemplate === "modern" && (
-                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded p-4 space-y-3 text-xs">
+                  <div className={`bg-gradient-to-br ${colors.gradient} border ${colors.borderLight} rounded p-4 space-y-3 text-xs`}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-bold text-sm text-primary">ACME Company</div>
+                        <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
                         <div className="text-muted-foreground">123 Main St, City</div>
                       </div>
-                      <div className="text-right bg-primary text-primary-foreground px-2 py-1 rounded">
+                      <div className={`text-right ${colors.bg} text-white px-2 py-1 rounded`}>
                         <div className="font-bold">INV-001</div>
                       </div>
                     </div>
@@ -291,7 +344,7 @@ export default function Settings() {
                       <div>Client Name</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="flex justify-between font-semibold bg-primary/10 p-1 rounded">
+                      <div className={`flex justify-between font-semibold ${colors.bgLight} p-1 rounded`}>
                         <span>Item</span>
                         <span>Amount</span>
                       </div>
@@ -300,7 +353,7 @@ export default function Settings() {
                         <span>$100.00</span>
                       </div>
                     </div>
-                    <div className="bg-primary text-primary-foreground p-2 rounded">
+                    <div className={`${colors.bg} text-white p-2 rounded`}>
                       <div className="flex justify-between font-bold">
                         <span>Total</span>
                         <span>$100.00</span>
@@ -309,10 +362,10 @@ export default function Settings() {
                   </div>
                 )}
                 {invoiceTemplate === "professional" && (
-                  <div className="bg-background border-2 rounded p-4 space-y-3 text-xs">
-                    <div className="border-b-2 pb-2 flex justify-between items-start">
+                  <div className={`bg-background border-2 ${colors.border} rounded p-4 space-y-3 text-xs`}>
+                    <div className={`border-b-2 ${colors.border} pb-2 flex justify-between items-start`}>
                       <div>
-                        <div className="font-bold text-base">ACME Company</div>
+                        <div className={`font-bold text-base ${colors.text}`}>ACME Company</div>
                         <div className="text-muted-foreground text-xs">123 Main St, City</div>
                       </div>
                       <div className="text-right">
@@ -323,13 +376,13 @@ export default function Settings() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="font-semibold text-xs uppercase text-muted-foreground mb-1">Bill To</div>
+                        <div className={`font-semibold text-xs uppercase ${colors.text} mb-1`}>Bill To</div>
                         <div>Client Name</div>
                       </div>
                     </div>
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="border-b">
+                        <tr className={`border-b ${colors.borderLight}`}>
                           <th className="text-left py-1 font-semibold">Description</th>
                           <th className="text-right py-1 font-semibold">Amount</th>
                         </tr>
@@ -341,9 +394,9 @@ export default function Settings() {
                         </tr>
                       </tbody>
                     </table>
-                    <div className="border-t-2 pt-2 flex justify-end">
+                    <div className={`border-t-2 ${colors.border} pt-2 flex justify-end`}>
                       <div className="w-1/3">
-                        <div className="flex justify-between font-bold text-sm">
+                        <div className={`flex justify-between font-bold text-sm ${colors.text}`}>
                           <span>TOTAL</span>
                           <span>$100.00</span>
                         </div>
@@ -352,18 +405,18 @@ export default function Settings() {
                   </div>
                 )}
                 {invoiceTemplate === "creative" && (
-                  <div className="bg-gradient-to-br from-accent/30 via-background to-primary/20 border-2 border-accent rounded-lg p-4 space-y-3 text-xs">
+                  <div className={`bg-gradient-to-br ${colors.gradient} border-2 ${colors.border} rounded-lg p-4 space-y-3 text-xs`}>
                     <div className="flex justify-between items-start">
-                      <div className="bg-accent/20 rounded-lg p-2">
-                        <div className="font-bold text-sm">ACME</div>
+                      <div className={`${colors.bgLight} rounded-lg p-2`}>
+                        <div className={`font-bold text-sm ${colors.text}`}>ACME</div>
                         <div className="text-xs">Company</div>
                       </div>
-                      <div className="text-right bg-primary text-primary-foreground px-3 py-1 rounded-full">
+                      <div className={`text-right ${colors.bg} text-white px-3 py-1 rounded-full`}>
                         <div className="font-bold">#001</div>
                       </div>
                     </div>
                     <div className="text-muted-foreground text-xs">123 Main St, City</div>
-                    <div className="bg-background/80 backdrop-blur rounded-lg p-2 border">
+                    <div className={`bg-background/80 backdrop-blur rounded-lg p-2 border ${colors.borderLight}`}>
                       <div className="font-semibold mb-1">Client Name</div>
                       <div className="text-muted-foreground text-xs">Customer</div>
                     </div>
@@ -373,7 +426,7 @@ export default function Settings() {
                         <span className="font-semibold">$100.00</span>
                       </div>
                     </div>
-                    <div className="bg-gradient-to-r from-primary to-accent text-primary-foreground p-2 rounded-lg">
+                    <div className={`bg-gradient-to-r ${colors.gradientAccent} text-white p-2 rounded-lg`}>
                       <div className="flex justify-between font-bold">
                         <span>Total</span>
                         <span>$100.00</span>
