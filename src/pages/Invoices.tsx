@@ -351,6 +351,21 @@ const Invoices = () => {
 
   const downloadInvoicePDF = async (invoice: Invoice, emailType?: "new" | "overdue" | "payment_confirmation") => {
     try {
+      // Get template and color settings from localStorage
+      const invoiceTemplate = localStorage.getItem("invoice-template") || "classic";
+      const invoiceColor = localStorage.getItem("invoice-color") || "blue";
+      
+      // Define color mappings (RGB values for jsPDF)
+      const colorMap: Record<string, { primary: [number, number, number], light: [number, number, number] }> = {
+        blue: { primary: [37, 99, 235], light: [219, 234, 254] },
+        green: { primary: [22, 163, 74], light: [220, 252, 231] },
+        purple: { primary: [147, 51, 234], light: [243, 232, 255] },
+        orange: { primary: [234, 88, 12], light: [255, 237, 213] },
+        yellow: { primary: [202, 138, 4], light: [254, 249, 195] }
+      };
+      
+      const selectedColor = colorMap[invoiceColor] || colorMap.blue;
+      
       // Find client and company information
       const client = clients.find(c => c.id === invoice.client_id);
       const company = companies.find(c => c.id === client?.company_id);
@@ -363,7 +378,7 @@ const Invoices = () => {
       
       // Header with logo
       doc.setFontSize(20);
-      doc.setTextColor(40, 40, 40);
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
       
       // Define translations based on client language
       const isClientFrench = client?.language === 'french';
@@ -608,7 +623,7 @@ const Invoices = () => {
           cellPadding: 5,
         },
         headStyles: {
-          fillColor: [40, 40, 40],
+          fillColor: selectedColor.primary,
           textColor: [255, 255, 255],
           fontStyle: 'bold',
         },
