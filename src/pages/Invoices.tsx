@@ -649,43 +649,22 @@ const Invoices = () => {
           textColor: [60, 60, 60],
         },
         didParseCell: function(data: any) {
-          // Style the last row (Total) for modern template
+          // Style the last row (Total) for modern template  
           if (invoiceTemplate === 'modern' && data.section === 'body') {
             const isLastRow = data.row.index === data.table.body.length - 1;
             if (isLastRow) {
               data.cell.styles.fillColor = selectedColor.primary;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fontSize = 11;
             }
           }
-        },
-        willDrawCell: function(data: any) {
-          // Style total rows
-          if (invoiceTemplate === 'classic') {
+          // Style the last row for classic template
+          if (invoiceTemplate === 'classic' && data.section === 'body') {
             const isLastRow = data.row.index === data.table.body.length - 1;
             if (isLastRow) {
-              // Last row (Total) - apply theme color
-              doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.setFont('helvetica', 'bold');
-            }
-          }
-        },
-        didDrawCell: function(data: any) {
-          // Add colored background to last row for modern template
-          if (invoiceTemplate === 'modern' && data.section === 'body') {
-            const isLastRow = data.row.index === data.table.body.length - 1;
-            if (isLastRow) {
-              // Draw rounded rectangle for modern style
-              const radius = 2;
-              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              
-              // Draw rectangle with rounded corners
-              const x = data.cell.x;
-              const y = data.cell.y;
-              const w = data.cell.width;
-              const h = data.cell.height;
-              
-              doc.roundedRect(x, y, w, h, radius, radius, 'F');
+              data.cell.styles.textColor = selectedColor.primary;
+              data.cell.styles.fontStyle = 'bold';
             }
           }
         },
