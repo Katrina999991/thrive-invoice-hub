@@ -678,7 +678,7 @@ const Invoices = () => {
         didDrawPage: function(data: any) {
           // Add rounded corners to modern template after table is drawn
           if (invoiceTemplate === 'modern' && data.table.body.length > 0) {
-            const radius = 4;
+            const radius = 8;
             
             // Get header coordinates
             const headerRow = data.table.head[0];
