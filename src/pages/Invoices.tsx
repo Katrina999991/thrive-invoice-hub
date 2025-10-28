@@ -615,7 +615,7 @@ const Invoices = () => {
       
       // Use autoTable for better table formatting
       const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
-                        invoiceTemplate === 'modern' ? 'striped' : 
+                        invoiceTemplate === 'modern' ? 'plain' : 
                         invoiceTemplate === 'creative' ? 'plain' : 'plain';
       
       autoTable(doc, {
@@ -625,20 +625,22 @@ const Invoices = () => {
         theme: tableTheme,
         styles: {
           fontSize: 10,
-          cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'classic' ? 4 : 5,
-          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : [220, 220, 220],
-          lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : 0.1,
+          cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 6 : invoiceTemplate === 'classic' ? 4 : 5,
+          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : invoiceTemplate === 'modern' ? [240, 240, 240] : [220, 220, 220],
+          lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : invoiceTemplate === 'modern' ? 0.5 : 0.1,
         },
         headStyles: {
           fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
-                    invoiceTemplate === 'creative' ? [255, 255, 255] : selectedColor.primary,
+                    invoiceTemplate === 'creative' ? [255, 255, 255] : 
+                    invoiceTemplate === 'modern' ? selectedColor.primary : selectedColor.primary,
           textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
                     invoiceTemplate === 'creative' ? selectedColor.primary : [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: invoiceTemplate === 'professional' ? 11 : 10,
+          fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 11 : 10,
+          cellPadding: invoiceTemplate === 'modern' ? 8 : undefined,
         },
         alternateRowStyles: invoiceTemplate === 'modern' ? {
-          fillColor: selectedColor.light
+          fillColor: [250, 250, 250]
         } : undefined,
         columnStyles: {
           1: { halign: 'center' },
@@ -656,7 +658,8 @@ const Invoices = () => {
               data.cell.styles.fillColor = selectedColor.primary;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 11;
+              data.cell.styles.fontSize = 12;
+              data.cell.styles.cellPadding = 8;
             }
           }
           // Style the last row for classic template
