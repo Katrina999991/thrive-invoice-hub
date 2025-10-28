@@ -462,6 +462,13 @@ const Invoices = () => {
       const dateWidth = doc.getTextWidth(dateText);
       doc.text(dateText, 210 - 20 - dateWidth, headerHeight + 6);
       
+      // Add due date below issue date
+      if (invoice.due_date) {
+        const dueDateText = `${translations.dueDate}: ${invoice.due_date}`;
+        const dueDateWidth = doc.getTextWidth(dueDateText);
+        doc.text(dueDateText, 210 - 20 - dueDateWidth, headerHeight + 12);
+      }
+      
       // Separator line after header
       doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
       doc.setLineWidth(0.5);
