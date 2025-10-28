@@ -422,8 +422,21 @@ const Invoices = () => {
         website: 'Website'
       };
       
-      // Header section - Left: Company name and address, Right: Invoice details
+      // Header section - Left: Company name and address, Right: Logo
       let headerHeight = 20;
+      
+      // Right side - Company Logo
+      if (company?.logo_url) {
+        try {
+          // Add logo at top right (max width 40mm, max height 20mm)
+          const logoMaxWidth = 40;
+          const logoMaxHeight = 20;
+          const logoX = 210 - 20 - logoMaxWidth; // Right aligned
+          doc.addImage(company.logo_url, 'PNG', logoX, headerHeight - 5, logoMaxWidth, logoMaxHeight, undefined, 'FAST');
+        } catch (error) {
+          console.error('Error adding logo to PDF:', error);
+        }
+      }
       
       // Left side - Company Name and Address
       if (company) {

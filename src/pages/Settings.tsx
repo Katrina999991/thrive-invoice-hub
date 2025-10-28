@@ -301,6 +301,9 @@ export default function Settings() {
                         <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
                         <div className="text-gray-600">123 Main St, City</div>
                       </div>
+                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
+                        Logo
+                      </div>
                     </div>
                     <div className={`border-t ${colors.borderLight} pt-2`}>
                       <div className="flex justify-between items-start">
@@ -340,8 +343,8 @@ export default function Settings() {
                         <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
                         <div className="text-gray-600">123 Main St, City</div>
                       </div>
-                      <div className={`text-right ${colors.bg} text-white px-2 py-1 rounded`}>
-                        <div className="font-bold">INV-001</div>
+                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
+                        Logo
                       </div>
                     </div>
                     <div className="bg-gray-50 rounded p-2">
@@ -373,10 +376,8 @@ export default function Settings() {
                         <div className={`font-bold text-base ${colors.text}`}>ACME Company</div>
                         <div className="text-gray-600 text-xs">123 Main St, City</div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-gray-600 uppercase text-xs">Invoice</div>
-                        <div className="font-bold text-gray-900">#001</div>
-                        <div className="text-gray-600">Jan 15, 2024</div>
+                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
+                        Logo
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -416,8 +417,8 @@ export default function Settings() {
                         <div className={`font-bold text-sm ${colors.text}`}>ACME</div>
                         <div className="text-xs text-gray-700">Company</div>
                       </div>
-                      <div className={`text-right ${colors.bg} text-white px-3 py-1 rounded-full`}>
-                        <div className="font-bold">#001</div>
+                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
+                        Logo
                       </div>
                     </div>
                     <div className="text-gray-600 text-xs">123 Main St, City</div>
