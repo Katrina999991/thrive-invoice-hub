@@ -499,6 +499,13 @@ const Invoices = () => {
       const clientInfoY = emailType === "payment_confirmation" ? 60 : 50;
       let nextY = clientInfoY;
       if (client) {
+        // Add background box for modern template
+        if (invoiceTemplate === 'modern') {
+          doc.setFillColor(245, 245, 245); // Light gray background
+          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
+          doc.roundedRect(20, clientInfoY - 3, 80, boxHeight, 2, 2, 'F');
+        }
+        
         doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
@@ -636,10 +643,21 @@ const Invoices = () => {
         columnStyles: {
           1: { halign: 'center' },
           2: { halign: 'right' },
-          3: { halign: 'right' },
+          3: { halign: 'right', fontStyle: 'bold' },
         },
         bodyStyles: {
           textColor: [60, 60, 60],
+        },
+        didParseCell: function(data: any) {
+          // Style the last row (Total) for modern template
+          if (invoiceTemplate === 'modern' && data.section === 'body') {
+            const isLastRow = data.row.index === data.table.body.length - 1;
+            if (isLastRow) {
+              data.cell.styles.fillColor = selectedColor.primary;
+              data.cell.styles.textColor = [255, 255, 255];
+              data.cell.styles.fontStyle = 'bold';
+            }
+          }
         },
         willDrawCell: function(data: any) {
           // Style total rows
@@ -650,14 +668,6 @@ const Invoices = () => {
               doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
               doc.setFont('helvetica', 'bold');
             }
-          } else if (invoiceTemplate === 'modern') {
-            const isLastRow = data.row.index === data.table.body.length - 1;
-            if (isLastRow) {
-              // Last row (Total) with colored background
-              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.setTextColor(255, 255, 255);
-              doc.setFont('helvetica', 'bold');
-            }
           }
         },
         didDrawCell: function(data: any) {
@@ -665,14 +675,17 @@ const Invoices = () => {
           if (invoiceTemplate === 'modern' && data.section === 'body') {
             const isLastRow = data.row.index === data.table.body.length - 1;
             if (isLastRow) {
+              // Draw rounded rectangle for modern style
+              const radius = 2;
               doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
-              doc.setTextColor(255, 255, 255);
-              doc.setFont('helvetica', 'bold');
-              doc.text(data.cell.text, data.cell.x + data.cell.padding('left'), data.cell.y + data.cell.height / 2, {
-                baseline: 'middle',
-                align: data.cell.styles.halign
-              });
+              
+              // Draw rectangle with rounded corners
+              const x = data.cell.x;
+              const y = data.cell.y;
+              const w = data.cell.width;
+              const h = data.cell.height;
+              
+              doc.roundedRect(x, y, w, h, radius, radius, 'F');
             }
           }
         },
