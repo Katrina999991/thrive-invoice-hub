@@ -295,27 +295,27 @@ export default function Settings() {
               <div className="border rounded-lg p-4 bg-muted/30">
                 <p className="text-sm font-medium mb-3">{t("settings.invoice.preview")}</p>
                 {invoiceTemplate === "classic" && (
-                  <div className="bg-background border rounded p-4 space-y-3 text-xs">
+                  <div className="bg-white border rounded p-4 space-y-3 text-xs">
                     <div className="flex justify-between items-start">
                       <div>
                         <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
-                        <div className="text-muted-foreground">123 Main St, City</div>
+                        <div className="text-gray-600">123 Main St, City</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">INVOICE #001</div>
-                        <div className="text-muted-foreground">2024-01-15</div>
+                        <div className="font-bold text-gray-900">INVOICE #001</div>
+                        <div className="text-gray-600">2024-01-15</div>
                       </div>
                     </div>
                     <div className={`border-t ${colors.borderLight} pt-2`}>
-                      <div className="font-semibold mb-1">Bill To:</div>
-                      <div>Client Name</div>
+                      <div className="font-semibold mb-1 text-gray-900">Bill To:</div>
+                      <div className="text-gray-700">Client Name</div>
                     </div>
                     <div className="border-t pt-2 space-y-1">
-                      <div className={`flex justify-between font-semibold ${colors.bgLight} p-1 rounded`}>
+                      <div className={`flex justify-between font-semibold text-gray-900 ${colors.bgLight} p-1 rounded`}>
                         <span>Item</span>
                         <span>Amount</span>
                       </div>
-                      <div className="flex justify-between text-muted-foreground">
+                      <div className="flex justify-between text-gray-700">
                         <span>Service 1</span>
                         <span>$100.00</span>
                       </div>
@@ -329,26 +329,26 @@ export default function Settings() {
                   </div>
                 )}
                 {invoiceTemplate === "modern" && (
-                  <div className={`bg-gradient-to-br ${colors.gradient} border ${colors.borderLight} rounded p-4 space-y-3 text-xs`}>
+                  <div className="bg-white border rounded p-4 space-y-3 text-xs">
                     <div className="flex justify-between items-start">
                       <div>
                         <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
-                        <div className="text-muted-foreground">123 Main St, City</div>
+                        <div className="text-gray-600">123 Main St, City</div>
                       </div>
                       <div className={`text-right ${colors.bg} text-white px-2 py-1 rounded`}>
                         <div className="font-bold">INV-001</div>
                       </div>
                     </div>
-                    <div className="bg-background/60 rounded p-2">
-                      <div className="font-semibold mb-1">Bill To:</div>
-                      <div>Client Name</div>
+                    <div className="bg-gray-50 rounded p-2">
+                      <div className="font-semibold mb-1 text-gray-900">Bill To:</div>
+                      <div className="text-gray-700">Client Name</div>
                     </div>
                     <div className="space-y-1">
-                      <div className={`flex justify-between font-semibold ${colors.bgLight} p-1 rounded`}>
+                      <div className={`flex justify-between font-semibold text-gray-900 ${colors.bgLight} p-1 rounded`}>
                         <span>Item</span>
                         <span>Amount</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-gray-700">
                         <span>Service 1</span>
                         <span>$100.00</span>
                       </div>
@@ -362,35 +362,35 @@ export default function Settings() {
                   </div>
                 )}
                 {invoiceTemplate === "professional" && (
-                  <div className={`bg-background border-2 ${colors.border} rounded p-4 space-y-3 text-xs`}>
+                  <div className={`bg-white border-2 ${colors.border} rounded p-4 space-y-3 text-xs`}>
                     <div className={`border-b-2 ${colors.border} pb-2 flex justify-between items-start`}>
                       <div>
                         <div className={`font-bold text-base ${colors.text}`}>ACME Company</div>
-                        <div className="text-muted-foreground text-xs">123 Main St, City</div>
+                        <div className="text-gray-600 text-xs">123 Main St, City</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-muted-foreground uppercase text-xs">Invoice</div>
-                        <div className="font-bold">#001</div>
-                        <div className="text-muted-foreground">Jan 15, 2024</div>
+                        <div className="text-gray-600 uppercase text-xs">Invoice</div>
+                        <div className="font-bold text-gray-900">#001</div>
+                        <div className="text-gray-600">Jan 15, 2024</div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <div className={`font-semibold text-xs uppercase ${colors.text} mb-1`}>Bill To</div>
-                        <div>Client Name</div>
+                        <div className="text-gray-700">Client Name</div>
                       </div>
                     </div>
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className={`border-b ${colors.borderLight}`}>
-                          <th className="text-left py-1 font-semibold">Description</th>
-                          <th className="text-right py-1 font-semibold">Amount</th>
+                          <th className="text-left py-1 font-semibold text-gray-900">Description</th>
+                          <th className="text-right py-1 font-semibold text-gray-900">Amount</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
-                          <td className="py-1">Service 1</td>
-                          <td className="text-right">$100.00</td>
+                          <td className="py-1 text-gray-700">Service 1</td>
+                          <td className="text-right text-gray-700">$100.00</td>
                         </tr>
                       </tbody>
                     </table>
@@ -405,28 +405,28 @@ export default function Settings() {
                   </div>
                 )}
                 {invoiceTemplate === "creative" && (
-                  <div className={`bg-gradient-to-br ${colors.gradient} border-2 ${colors.border} rounded-lg p-4 space-y-3 text-xs`}>
+                  <div className={`bg-white border-2 ${colors.border} rounded-lg p-4 space-y-3 text-xs`}>
                     <div className="flex justify-between items-start">
                       <div className={`${colors.bgLight} rounded-lg p-2`}>
                         <div className={`font-bold text-sm ${colors.text}`}>ACME</div>
-                        <div className="text-xs">Company</div>
+                        <div className="text-xs text-gray-700">Company</div>
                       </div>
                       <div className={`text-right ${colors.bg} text-white px-3 py-1 rounded-full`}>
                         <div className="font-bold">#001</div>
                       </div>
                     </div>
-                    <div className="text-muted-foreground text-xs">123 Main St, City</div>
-                    <div className={`bg-background/80 backdrop-blur rounded-lg p-2 border ${colors.borderLight}`}>
-                      <div className="font-semibold mb-1">Client Name</div>
-                      <div className="text-muted-foreground text-xs">Customer</div>
+                    <div className="text-gray-600 text-xs">123 Main St, City</div>
+                    <div className={`bg-gray-50 rounded-lg p-2 border ${colors.borderLight}`}>
+                      <div className="font-semibold mb-1 text-gray-900">Client Name</div>
+                      <div className="text-gray-600 text-xs">Customer</div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between p-1">
-                        <span className="text-muted-foreground">Service 1</span>
-                        <span className="font-semibold">$100.00</span>
+                        <span className="text-gray-600">Service 1</span>
+                        <span className="font-semibold text-gray-900">$100.00</span>
                       </div>
                     </div>
-                    <div className={`bg-gradient-to-r ${colors.gradientAccent} text-white p-2 rounded-lg`}>
+                    <div className={`${colors.bg} text-white p-2 rounded-lg`}>
                       <div className="flex justify-between font-bold">
                         <span>Total</span>
                         <span>$100.00</span>
