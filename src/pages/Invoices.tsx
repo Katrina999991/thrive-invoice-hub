@@ -633,13 +633,14 @@ const Invoices = () => {
         headStyles: {
           fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
                     invoiceTemplate === 'creative' ? [255, 255, 255] : 
-                    invoiceTemplate === 'modern' ? [200, 220, 240] : selectedColor.primary,
+                    invoiceTemplate === 'modern' ? [255, 255, 255] : selectedColor.primary,
           textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
                     invoiceTemplate === 'creative' ? selectedColor.primary : 
                     invoiceTemplate === 'modern' ? [40, 40, 40] : [255, 255, 255],
           fontStyle: 'bold',
           fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
           cellPadding: invoiceTemplate === 'modern' ? 6 : undefined,
+          lineWidth: invoiceTemplate === 'modern' ? 0 : undefined,
         },
         alternateRowStyles: invoiceTemplate === 'modern' ? {
           fillColor: [255, 255, 255]
@@ -659,11 +660,12 @@ const Invoices = () => {
           if (invoiceTemplate === 'modern' && data.section === 'body') {
             const isLastRow = data.row.index === data.table.body.length - 1;
             if (isLastRow) {
-              data.cell.styles.fillColor = selectedColor.primary;
+              data.cell.styles.fillColor = [255, 255, 255];
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
               data.cell.styles.fontSize = 11;
               data.cell.styles.cellPadding = 6;
+              data.cell.styles.lineWidth = 0;
             }
           }
           // Style the last row for classic template
@@ -675,69 +677,46 @@ const Invoices = () => {
             }
           }
         },
-        didDrawPage: function(data: any) {
-          // Add rounded corners to modern template after table is drawn
-          if (invoiceTemplate === 'modern' && data.table.body.length > 0) {
+        willDrawCell: function(data: any) {
+          if (invoiceTemplate === 'modern') {
             const radius = 8;
+            const doc = data.doc;
             
-            // Get header coordinates
-            const headerRow = data.table.head[0];
-            if (headerRow && headerRow.cells && headerRow.cells.length > 0) {
-              const firstCell = headerRow.cells[0];
-              const lastCell = headerRow.cells[headerRow.cells.length - 1];
-              const headerY = firstCell.y;
-              const headerHeight = firstCell.height;
-              const headerX = firstCell.x;
-              const headerWidth = lastCell.x + lastCell.width - firstCell.x;
-              
-              // Draw rounded rectangle for header
-              doc.setFillColor(200, 220, 240);
-              doc.roundedRect(headerX, headerY, headerWidth, headerHeight, radius, radius, 'F');
-              
-              // Redraw header text
-              doc.setTextColor(40, 40, 40);
-              doc.setFont('helvetica', 'bold');
-              doc.setFontSize(10);
-              headerRow.cells.forEach((cell: any) => {
-                const text = cell.text[0];
-                const textX = cell.textPos.x;
-                const textY = cell.textPos.y;
-                doc.text(text, textX, textY, { align: cell.styles.halign });
-              });
+            // Draw rounded background for header
+            if (data.section === 'head') {
+              const cells = data.row.cells;
+              if (data.column.index === 0) {
+                const firstCell = cells[0];
+                const lastCell = cells[cells.length - 1];
+                const x = firstCell.x;
+                const y = firstCell.y;
+                const width = lastCell.x + lastCell.width - firstCell.x;
+                const height = firstCell.height;
+                
+                doc.setFillColor(200, 220, 240);
+                doc.roundedRect(x, y, width, height, radius, radius, 'F');
+              }
             }
             
-            // Get last row (Total) coordinates
-            const bodyRows = data.table.body;
-            if (bodyRows && bodyRows.length > 0) {
-              const lastRow = bodyRows[bodyRows.length - 1];
-              if (lastRow && lastRow.cells && lastRow.cells.length > 0) {
-                const firstCell = lastRow.cells[0];
-                const lastCell = lastRow.cells[lastRow.cells.length - 1];
-                const totalY = firstCell.y;
-                const totalHeight = firstCell.height;
-                const totalX = firstCell.x;
-                const totalWidth = lastCell.x + lastCell.width - firstCell.x;
+            // Draw rounded background for total row
+            if (data.section === 'body') {
+              const isLastRow = data.row.index === data.table.body.length - 1;
+              if (isLastRow && data.column.index === 0) {
+                const cells = data.row.cells;
+                const firstCell = cells[0];
+                const lastCell = cells[cells.length - 1];
+                const x = firstCell.x;
+                const y = firstCell.y;
+                const width = lastCell.x + lastCell.width - firstCell.x;
+                const height = firstCell.height;
                 
-                // Draw rounded rectangle for total row
                 doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                doc.roundedRect(totalX, totalY, totalWidth, totalHeight, radius, radius, 'F');
-                
-                // Redraw total row text
-                doc.setTextColor(255, 255, 255);
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(11);
-                lastRow.cells.forEach((cell: any) => {
-                  if (cell.text && cell.text[0]) {
-                    const text = cell.text[0];
-                    const textX = cell.textPos.x;
-                    const textY = cell.textPos.y;
-                    doc.text(text, textX, textY, { align: cell.styles.halign });
-                  }
-                });
+                doc.roundedRect(x, y, width, height, radius, radius, 'F');
               }
             }
           }
-          
+        },
+        didDrawPage: function(data: any) {
           // Footer with template styling
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
