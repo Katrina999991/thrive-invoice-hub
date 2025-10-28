@@ -633,7 +633,7 @@ const Invoices = () => {
         headStyles: {
           fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
                     invoiceTemplate === 'creative' ? [255, 255, 255] : 
-                    invoiceTemplate === 'modern' ? [200, 220, 240] : selectedColor.primary,
+                    invoiceTemplate === 'modern' ? undefined : selectedColor.primary,
           textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
                     invoiceTemplate === 'creative' ? selectedColor.primary : 
                     invoiceTemplate === 'modern' ? [40, 40, 40] : [255, 255, 255],
@@ -646,27 +646,26 @@ const Invoices = () => {
           fillColor: [255, 255, 255]
         } : undefined,
         columnStyles: {
-          0: { cellWidth: invoiceTemplate === 'modern' ? 75 : 'auto' },
+          0: { cellWidth: invoiceTemplate === 'modern' ? 70 : 'auto' },
           1: { halign: 'center', cellWidth: invoiceTemplate === 'modern' ? 25 : 'auto' },
-          2: { halign: 'right', cellWidth: invoiceTemplate === 'modern' ? 35 : 'auto' },
-          3: { halign: 'right', fontStyle: 'bold', cellWidth: invoiceTemplate === 'modern' ? 35 : 'auto' },
+          2: { halign: 'right', cellWidth: invoiceTemplate === 'modern' ? 30 : 'auto' },
+          3: { halign: 'right', fontStyle: 'bold', cellWidth: invoiceTemplate === 'modern' ? 45 : 'auto' },
         },
         bodyStyles: {
           textColor: [60, 60, 60],
           fillColor: invoiceTemplate === 'modern' ? [255, 255, 255] : undefined,
         },
         didParseCell: function(data: any) {
-          // Remove fill for header in modern template so custom rounded background shows
+          // Remove fills so custom rounded backgrounds (drawn in willDrawCell) are fully visible
           if (invoiceTemplate === 'modern' && data.section === 'head') {
-            data.cell.styles.fillColor = [200, 220, 240];
+            data.cell.styles.fillColor = undefined;
             data.cell.styles.lineWidth = 0;
           }
-          // Style the last row (Total) for modern template  
           if (invoiceTemplate === 'modern' && data.section === 'body') {
             const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
             const isLastRow = data.row.index === bodyLen - 1;
             if (isLastRow) {
-              data.cell.styles.fillColor = selectedColor.primary;
+              data.cell.styles.fillColor = undefined;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
               data.cell.styles.fontSize = 11;
@@ -684,9 +683,6 @@ const Invoices = () => {
           }
         },
         willDrawCell: function(data: any) {
-          // Not used for modern template - using didDrawCell instead
-        },
-        didDrawCell: function(data: any) {
           if (invoiceTemplate !== 'modern') return;
 
           const doc = data.doc;
@@ -698,21 +694,16 @@ const Invoices = () => {
           const isLastRow = isBody && data.row.index === bodyLen - 1;
           if (!(isHeader || isLastRow)) return;
 
-          const isFirstCol = data.column.index === 0;
-          const isLastCol = data.table && data.table.columns
-            ? data.column.index === data.table.columns.length - 1
-            : false;
+          // Draw once per row only on the first column
+          if (data.column.index !== 0) return;
 
-          // Only draw rounded corners on the outer edges
-          if (!isFirstCol && !isLastCol) return;
-
-          const x = data.cell.x;
+          const startX = (data.table && typeof data.table.startX !== 'undefined') ? data.table.startX : data.cell.x;
+          const totalWidth = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
           const y = data.cell.y;
-          const w = data.cell.width;
-          const h = data.cell.height;
-          if (x === undefined || y === undefined || !w || !h) return;
+          const height = (data.row && typeof data.row.height !== 'undefined') ? data.row.height : data.cell.height;
+          if (startX === undefined || y === undefined || !totalWidth || !height) return;
 
-          // Choose fill color
+          // Choose fill color for the special rows
           if (isHeader) {
             doc.setFillColor(200, 220, 240);
           } else {
@@ -723,18 +714,12 @@ const Invoices = () => {
             );
           }
 
-          // Draw rounded corners over the cell
+          // Single rounded rectangle spanning the full row
           doc.setLineWidth(0);
-          
-          if (isFirstCol) {
-            // Draw rounded left corners
-            doc.roundedRect(x, y, radius * 2, h, radius, radius, 'F');
-          }
-          
-          if (isLastCol) {
-            // Draw rounded right corners
-            doc.roundedRect(x + w - radius * 2, y, radius * 2, h, radius, radius, 'F');
-          }
+          doc.roundedRect(startX, y, totalWidth, height, radius, radius, 'F');
+        },
+        didDrawCell: function(data: any) {
+          // no-op for modern; backgrounds are drawn in willDrawCell
         },
         didDrawPage: function(data: any) {
           // Footer with template styling
