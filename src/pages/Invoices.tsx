@@ -428,11 +428,32 @@ const Invoices = () => {
       // Right side - Company Logo
       if (company?.logo_url) {
         try {
-          // Add logo at top right (max width 40mm, max height 20mm)
+          // Load image to get natural dimensions
+          const img = new Image();
+          img.src = company.logo_url;
+          
+          // Wait for image to load to get its dimensions
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+          
+          // Calculate dimensions maintaining aspect ratio
           const logoMaxWidth = 40;
           const logoMaxHeight = 20;
-          const logoX = 210 - 20 - logoMaxWidth; // Right aligned
-          doc.addImage(company.logo_url, 'PNG', logoX, headerHeight - 5, logoMaxWidth, logoMaxHeight, undefined, 'FAST');
+          const imgRatio = img.naturalWidth / img.naturalHeight;
+          
+          let logoWidth = logoMaxWidth;
+          let logoHeight = logoMaxWidth / imgRatio;
+          
+          // If height exceeds max, scale by height instead
+          if (logoHeight > logoMaxHeight) {
+            logoHeight = logoMaxHeight;
+            logoWidth = logoMaxHeight * imgRatio;
+          }
+          
+          const logoX = 210 - 20 - logoWidth; // Right aligned
+          doc.addImage(company.logo_url, 'PNG', logoX, headerHeight - 5, logoWidth, logoHeight, undefined, 'FAST');
         } catch (error) {
           console.error('Error adding logo to PDF:', error);
         }
