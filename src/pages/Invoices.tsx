@@ -685,16 +685,25 @@ const Invoices = () => {
             // Draw rounded background for header
             if (data.section === 'head') {
               const cells = data.row.cells;
-              if (data.column.index === 0) {
+              if (data.column.index === 0 && cells && cells.length > 0) {
                 const firstCell = cells[0];
                 const lastCell = cells[cells.length - 1];
-                const x = firstCell.x;
-                const y = firstCell.y;
-                const width = lastCell.x + lastCell.width - firstCell.x;
-                const height = firstCell.height;
                 
-                doc.setFillColor(200, 220, 240);
-                doc.roundedRect(x, y, width, height, radius, radius, 'F');
+                // Check if cell properties are defined
+                if (firstCell && lastCell && 
+                    typeof firstCell.x !== 'undefined' && 
+                    typeof firstCell.y !== 'undefined' &&
+                    typeof lastCell.x !== 'undefined' &&
+                    typeof lastCell.width !== 'undefined' &&
+                    typeof firstCell.height !== 'undefined') {
+                  const x = firstCell.x;
+                  const y = firstCell.y;
+                  const width = lastCell.x + lastCell.width - firstCell.x;
+                  const height = firstCell.height;
+                  
+                  doc.setFillColor(200, 220, 240);
+                  doc.roundedRect(x, y, width, height, radius, radius, 'F');
+                }
               }
             }
             
@@ -703,15 +712,26 @@ const Invoices = () => {
               const isLastRow = data.row.index === data.table.body.length - 1;
               if (isLastRow && data.column.index === 0) {
                 const cells = data.row.cells;
-                const firstCell = cells[0];
-                const lastCell = cells[cells.length - 1];
-                const x = firstCell.x;
-                const y = firstCell.y;
-                const width = lastCell.x + lastCell.width - firstCell.x;
-                const height = firstCell.height;
-                
-                doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                doc.roundedRect(x, y, width, height, radius, radius, 'F');
+                if (cells && cells.length > 0) {
+                  const firstCell = cells[0];
+                  const lastCell = cells[cells.length - 1];
+                  
+                  // Check if cell properties are defined
+                  if (firstCell && lastCell && 
+                      typeof firstCell.x !== 'undefined' && 
+                      typeof firstCell.y !== 'undefined' &&
+                      typeof lastCell.x !== 'undefined' &&
+                      typeof lastCell.width !== 'undefined' &&
+                      typeof firstCell.height !== 'undefined') {
+                    const x = firstCell.x;
+                    const y = firstCell.y;
+                    const width = lastCell.x + lastCell.width - firstCell.x;
+                    const height = firstCell.height;
+                    
+                    doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                    doc.roundedRect(x, y, width, height, radius, radius, 'F');
+                  }
+                }
               }
             }
           }
