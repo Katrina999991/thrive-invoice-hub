@@ -296,19 +296,24 @@ export default function Settings() {
                 <p className="text-sm font-medium mb-3">{t("settings.invoice.preview")}</p>
                 {invoiceTemplate === "classic" && (
                   <div className="bg-white border rounded p-4 space-y-3 text-xs">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start pb-2">
                       <div>
                         <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
                         <div className="text-gray-600">123 Main St, City</div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-gray-900">INVOICE #001</div>
-                        <div className="text-gray-600">2024-01-15</div>
-                      </div>
                     </div>
                     <div className={`border-t ${colors.borderLight} pt-2`}>
-                      <div className="font-semibold mb-1 text-gray-900">Bill To:</div>
-                      <div className="text-gray-700">Client Name</div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-semibold mb-1 text-gray-900">Bill To:</div>
+                          <div className="text-gray-700">Client Name</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-gray-900">INVOICE #001</div>
+                          <div className="text-gray-600 text-[10px]">Issue Date: 2024-01-15</div>
+                          <div className="text-gray-600 text-[10px]">Due Date: 2024-01-30</div>
+                        </div>
+                      </div>
                     </div>
                     <div className="border-t pt-2 space-y-1">
                       <div className={`flex justify-between font-semibold text-gray-900 ${colors.bgLight} p-1 rounded`}>

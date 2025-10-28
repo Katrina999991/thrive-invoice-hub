@@ -447,27 +447,7 @@ const Invoices = () => {
         }
       }
       
-      // Right side - Invoice Number and Date
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(40, 40, 40);
-      const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
-      const titleWidth = doc.getTextWidth(invoiceTitle);
-      doc.text(invoiceTitle, 210 - 20 - titleWidth, headerHeight);
-      
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
-      const issueDateWidth = doc.getTextWidth(issueDateText);
-      doc.text(issueDateText, 210 - 20 - issueDateWidth, headerHeight + 6);
-      
-      // Add due date below issue date
-      if (invoice.due_date) {
-        const dueDateText = `${translations.dueDate}: ${invoice.due_date}`;
-        const dueDateWidth = doc.getTextWidth(dueDateText);
-        doc.text(dueDateText, 210 - 20 - dueDateWidth, headerHeight + 12);
-      }
+      // Invoice Number and Date will be positioned at the same level as "Bill To" later
       
       // Separator line after header
       doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
@@ -489,6 +469,28 @@ const Invoices = () => {
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
         doc.text(translations.billTo, 20, clientInfoY);
+        
+        // Right side - Invoice Number and Date (aligned with Bill To)
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 40, 40);
+        const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
+        const titleWidth = doc.getTextWidth(invoiceTitle);
+        doc.text(invoiceTitle, 210 - 20 - titleWidth, clientInfoY);
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
+        const issueDateWidth = doc.getTextWidth(issueDateText);
+        doc.text(issueDateText, 210 - 20 - issueDateWidth, clientInfoY + 6);
+        
+        // Add due date below issue date
+        if (invoice.due_date) {
+          const dueDateText = `${translations.dueDate}: ${invoice.due_date}`;
+          const dueDateWidth = doc.getTextWidth(dueDateText);
+          doc.text(dueDateText, 210 - 20 - dueDateWidth, clientInfoY + 12);
+        }
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
