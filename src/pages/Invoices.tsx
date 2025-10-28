@@ -693,20 +693,21 @@ const Invoices = () => {
           const isBody = data.section === 'body';
           const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
           const isLastRow = isBody && data.row.index === bodyLen - 1;
-          const isFirstCol = data.column.index === 0;
-          const isLastCol = data.column.index === ((data.table && data.table.columns ? data.table.columns.length : 1) - 1);
 
           if (!(isHeader || isLastRow)) return;
 
-          const x = data.cell.x;
+          // Draw once per row to cover the full width
+          if (data.column.index !== 0) return;
+
+          const startX = (data.table && typeof data.table.startX !== 'undefined') ? data.table.startX : data.cell.x;
           const y = data.cell.y;
-          const w = data.cell.width;
-          const h = data.cell.height;
-          if (x === undefined || y === undefined || !w || !h) return;
+          const width = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
+          const height = (data.row && typeof data.row.height !== 'undefined') ? data.row.height : data.cell.height;
+          if (startX === undefined || y === undefined || !width || !height) return;
 
           // Choose fill color for the special rows
           if (isHeader) {
-            doc.setFillColor(200, 220, 240); // light pill for header
+            doc.setFillColor(200, 220, 240);
           } else {
             doc.setFillColor(
               selectedColor.primary[0],
@@ -715,14 +716,8 @@ const Invoices = () => {
             );
           }
 
-          // Draw per-cell to avoid clipping, creating a full-width pill
-          if (isFirstCol || isLastCol) {
-            // Rounded corners on the outer edges; rounding on inner edges will be covered by adjacent cells
-            doc.roundedRect(x, y, w, h, radius, radius, 'F');
-          } else {
-            // Middle cells: simple rectangle fill
-            doc.rect(x, y, w, h, 'F');
-          }
+          // Single rounded rectangle spanning the entire row
+          doc.roundedRect(startX, y, width, height, radius, radius, 'F');
         },
         didDrawPage: function(data: any) {
           // Footer with template styling
