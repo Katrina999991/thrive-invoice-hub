@@ -695,11 +695,14 @@ const Invoices = () => {
           const isLastRow = isBody && data.row.index === bodyLen - 1;
           if (!(isHeader || isLastRow)) return;
 
-          const x = data.cell.x;
+          // Draw once per row only on the first column
+          if (data.column.index !== 0) return;
+
+          const startX = (data.table && typeof data.table.startX !== 'undefined') ? data.table.startX : data.cell.x;
+          const totalWidth = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
           const y = data.cell.y;
-          const w = data.cell.width;
-          const h = data.cell.height;
-          if (x === undefined || y === undefined || !w || !h) return;
+          const height = (data.row && typeof data.row.height !== 'undefined') ? data.row.height : data.cell.height;
+          if (startX === undefined || y === undefined || !totalWidth || !height) return;
 
           // Choose fill color for the special rows
           if (isHeader) {
@@ -712,15 +715,9 @@ const Invoices = () => {
             );
           }
 
-          const isFirstCol = data.column.index === 0;
-          const isLastCol = data.column.index === ((data.table && data.table.columns ? data.table.columns.length : 1) - 1);
-
-          // Draw per-cell to cover the full row with rounded ends
-          if (isFirstCol || isLastCol) {
-            doc.roundedRect(x, y, w, h, radius, radius, 'F');
-          } else {
-            doc.rect(x, y, w, h, 'F');
-          }
+          // Single rounded rectangle spanning the full row
+          doc.setLineWidth(0);
+          doc.roundedRect(startX, y, totalWidth, height, radius, radius, 'F');
         },
         didDrawPage: function(data: any) {
           // Footer with template styling
