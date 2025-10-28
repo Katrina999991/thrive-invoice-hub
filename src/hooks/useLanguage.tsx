@@ -651,7 +651,7 @@ const translations = {
     "settings.invoice.green": "Green",
     "settings.invoice.purple": "Purple",
     "settings.invoice.orange": "Orange",
-    "settings.invoice.red": "Red",
+    "settings.invoice.yellow": "Yellow",
     "settings.invoice.preview": "Preview",
     
     // Password Change
@@ -1346,7 +1346,7 @@ const translations = {
     "settings.invoice.green": "Vert",
     "settings.invoice.purple": "Violet",
     "settings.invoice.orange": "Orange",
-    "settings.invoice.red": "Rouge",
+    "settings.invoice.yellow": "Jaune",
     "settings.invoice.preview": "Aperçu",
     
     // Password Change
