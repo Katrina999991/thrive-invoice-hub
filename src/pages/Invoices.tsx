@@ -684,39 +684,44 @@ const Invoices = () => {
           }
         },
         willDrawCell: function(data: any) {
-          if (invoiceTemplate === 'modern') {
-            const radius = 8;
-            const doc = data.doc;
+          if (invoiceTemplate !== 'modern') return;
 
-            // Draw rounded background for header (span full table width)
-            if (data.section === 'head' && data.column.index === 0) {
-              const x = typeof data.cell.x !== 'undefined' ? data.cell.x : (data.table?.startX ?? 20);
-              const y = typeof data.cell.y !== 'undefined' ? data.cell.y : (data.table?.startY ?? 0);
-              const width = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
-              const height = typeof data.cell.height !== 'undefined' ? data.cell.height : (data.row?.height ?? 0);
+          const doc = data.doc;
+          const radius = 8;
 
-              if (x !== undefined && y !== undefined && width && height) {
-                doc.setFillColor(200, 220, 240);
-                doc.roundedRect(x, y, width, height, radius, radius, 'F');
-              }
-            }
+          const isHeader = data.section === 'head';
+          const isBody = data.section === 'body';
+          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+          const isLastRow = isBody && data.row.index === bodyLen - 1;
+          const isFirstCol = data.column.index === 0;
+          const isLastCol = data.column.index === ((data.table && data.table.columns ? data.table.columns.length : 1) - 1);
 
-            // Draw rounded background for total row (last row)
-            if (data.section === 'body') {
-              const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-              const isLastRow = data.row.index === bodyLen - 1;
-              if (isLastRow && data.column.index === 0) {
-                const x = typeof data.cell.x !== 'undefined' ? data.cell.x : (data.table?.startX ?? 20);
-                const y = typeof data.cell.y !== 'undefined' ? data.cell.y : (data.table?.cursor?.y ?? 0);
-                const width = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
-                const height = typeof data.cell.height !== 'undefined' ? data.cell.height : (data.row?.height ?? 0);
+          if (!(isHeader || isLastRow)) return;
 
-                if (x !== undefined && y !== undefined && width && height) {
-                  doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                  doc.roundedRect(x, y, width, height, radius, radius, 'F');
-                }
-              }
-            }
+          const x = data.cell.x;
+          const y = data.cell.y;
+          const w = data.cell.width;
+          const h = data.cell.height;
+          if (x === undefined || y === undefined || !w || !h) return;
+
+          // Choose fill color for the special rows
+          if (isHeader) {
+            doc.setFillColor(200, 220, 240); // light pill for header
+          } else {
+            doc.setFillColor(
+              selectedColor.primary[0],
+              selectedColor.primary[1],
+              selectedColor.primary[2]
+            );
+          }
+
+          // Draw per-cell to avoid clipping, creating a full-width pill
+          if (isFirstCol || isLastCol) {
+            // Rounded corners on the outer edges; rounding on inner edges will be covered by adjacent cells
+            doc.roundedRect(x, y, w, h, radius, radius, 'F');
+          } else {
+            // Middle cells: simple rectangle fill
+            doc.rect(x, y, w, h, 'F');
           }
         },
         didDrawPage: function(data: any) {
