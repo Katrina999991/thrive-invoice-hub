@@ -14,14 +14,17 @@ export default function Settings() {
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
+  const [invoiceColor, setInvoiceColor] = useState<string>("blue");
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
     const savedDarkMode = localStorage.getItem("app-dark-mode") || "light";
     const savedInvoiceTemplate = localStorage.getItem("invoice-template") || "classic";
+    const savedInvoiceColor = localStorage.getItem("invoice-color") || "blue";
     setTheme(savedTheme);
     setDarkMode(savedDarkMode);
     setInvoiceTemplate(savedInvoiceTemplate);
+    setInvoiceColor(savedInvoiceColor);
     document.documentElement.setAttribute("data-theme", savedTheme);
     if (savedDarkMode === "dark") {
       document.documentElement.classList.add("dark");
@@ -49,6 +52,11 @@ export default function Settings() {
   const handleInvoiceTemplateChange = (value: string) => {
     setInvoiceTemplate(value);
     localStorage.setItem("invoice-template", value);
+  };
+
+  const handleInvoiceColorChange = (value: string) => {
+    setInvoiceColor(value);
+    localStorage.setItem("invoice-color", value);
   };
 
   return (
@@ -186,6 +194,47 @@ export default function Settings() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="creative" id="creative" />
                     <Label htmlFor="creative" className="cursor-pointer">{t("settings.invoice.creative")}</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-3 block">{t("settings.invoice.colorLabel")}</Label>
+                <RadioGroup value={invoiceColor} onValueChange={handleInvoiceColorChange}>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="blue" id="blue" />
+                    <Label htmlFor="blue" className="cursor-pointer flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-blue-600"></div>
+                      {t("settings.invoice.blue")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="green" id="green" />
+                    <Label htmlFor="green" className="cursor-pointer flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-green-600"></div>
+                      {t("settings.invoice.green")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="purple" id="purple" />
+                    <Label htmlFor="purple" className="cursor-pointer flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-purple-600"></div>
+                      {t("settings.invoice.purple")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="orange" id="orange" />
+                    <Label htmlFor="orange" className="cursor-pointer flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-orange-600"></div>
+                      {t("settings.invoice.orange")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="red" id="red" />
+                    <Label htmlFor="red" className="cursor-pointer flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-red-600"></div>
+                      {t("settings.invoice.red")}
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>

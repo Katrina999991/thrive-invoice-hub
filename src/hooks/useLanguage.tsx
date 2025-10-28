@@ -646,6 +646,12 @@ const translations = {
     "settings.invoice.modern": "Modern",
     "settings.invoice.professional": "Professional",
     "settings.invoice.creative": "Creative",
+    "settings.invoice.colorLabel": "Invoice Color",
+    "settings.invoice.blue": "Blue",
+    "settings.invoice.green": "Green",
+    "settings.invoice.purple": "Purple",
+    "settings.invoice.orange": "Orange",
+    "settings.invoice.red": "Red",
     "settings.invoice.preview": "Preview",
     
     // Password Change
@@ -1335,6 +1341,12 @@ const translations = {
     "settings.invoice.modern": "Moderne",
     "settings.invoice.professional": "Professionnel",
     "settings.invoice.creative": "Créatif",
+    "settings.invoice.colorLabel": "Couleur de facture",
+    "settings.invoice.blue": "Bleu",
+    "settings.invoice.green": "Vert",
+    "settings.invoice.purple": "Violet",
+    "settings.invoice.orange": "Orange",
+    "settings.invoice.red": "Rouge",
     "settings.invoice.preview": "Aperçu",
     
     // Password Change
