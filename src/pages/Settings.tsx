@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages } from "lucide-react";
+import { User, Palette, Languages, FileText } from "lucide-react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -13,12 +13,15 @@ export default function Settings() {
   const { language, setLanguage, t } = useLanguage();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
+  const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
     const savedDarkMode = localStorage.getItem("app-dark-mode") || "light";
+    const savedInvoiceTemplate = localStorage.getItem("invoice-template") || "classic";
     setTheme(savedTheme);
     setDarkMode(savedDarkMode);
+    setInvoiceTemplate(savedInvoiceTemplate);
     document.documentElement.setAttribute("data-theme", savedTheme);
     if (savedDarkMode === "dark") {
       document.documentElement.classList.add("dark");
@@ -41,6 +44,11 @@ export default function Settings() {
     } else {
       document.documentElement.classList.remove("dark");
     }
+  };
+
+  const handleInvoiceTemplateChange = (value: string) => {
+    setInvoiceTemplate(value);
+    localStorage.setItem("invoice-template", value);
   };
 
   return (
@@ -145,6 +153,41 @@ export default function Settings() {
                 <Label htmlFor="fr" className="cursor-pointer">{t("settings.language.french")}</Label>
               </div>
             </RadioGroup>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {t("settings.invoice.title")}
+            </CardTitle>
+            <CardDescription>
+              {t("settings.invoice.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label className="text-sm font-medium mb-3 block">{t("settings.invoice.templateLabel")}</Label>
+              <RadioGroup value={invoiceTemplate} onValueChange={handleInvoiceTemplateChange}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="classic" id="classic" />
+                  <Label htmlFor="classic" className="cursor-pointer">{t("settings.invoice.classic")}</Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="modern" id="modern" />
+                  <Label htmlFor="modern" className="cursor-pointer">{t("settings.invoice.modern")}</Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="professional" id="professional" />
+                  <Label htmlFor="professional" className="cursor-pointer">{t("settings.invoice.professional")}</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="creative" id="creative" />
+                  <Label htmlFor="creative" className="cursor-pointer">{t("settings.invoice.creative")}</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </CardContent>
         </Card>
 

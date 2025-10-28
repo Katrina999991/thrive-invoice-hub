@@ -639,6 +639,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
     "settings.language.description": "Choose your preferred language",
     "settings.language.english": "English",
     "settings.language.french": "Français",
+    "settings.invoice.title": "Invoice Design",
+    "settings.invoice.description": "Choose your preferred invoice template",
+    "settings.invoice.templateLabel": "Invoice Template",
+    "settings.invoice.classic": "Classic",
+    "settings.invoice.modern": "Modern",
+    "settings.invoice.professional": "Professional",
+    "settings.invoice.creative": "Creative",
     
     // Password Change
     "password.title": "Change Password",
@@ -1320,6 +1327,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
     "settings.language.description": "Choisissez votre langue préférée",
     "settings.language.english": "English",
     "settings.language.french": "Français",
+    "settings.invoice.title": "Design de facture",
+    "settings.invoice.description": "Choisissez votre modèle de facture préféré",
+    "settings.invoice.templateLabel": "Modèle de facture",
+    "settings.invoice.classic": "Classique",
+    "settings.invoice.modern": "Moderne",
+    "settings.invoice.professional": "Professionnel",
+    "settings.invoice.creative": "Créatif",
     
     // Password Change
     "password.title": "Changer le mot de passe",
