@@ -642,13 +642,37 @@ const Invoices = () => {
           textColor: [60, 60, 60],
         },
         willDrawCell: function(data: any) {
-          // Style total rows for classic template
+          // Style total rows
           if (invoiceTemplate === 'classic') {
             const isLastRow = data.row.index === data.table.body.length - 1;
             if (isLastRow) {
               // Last row (Total) - apply theme color
               doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
               doc.setFont('helvetica', 'bold');
+            }
+          } else if (invoiceTemplate === 'modern') {
+            const isLastRow = data.row.index === data.table.body.length - 1;
+            if (isLastRow) {
+              // Last row (Total) with colored background
+              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+              doc.setTextColor(255, 255, 255);
+              doc.setFont('helvetica', 'bold');
+            }
+          }
+        },
+        didDrawCell: function(data: any) {
+          // Add colored background to last row for modern template
+          if (invoiceTemplate === 'modern' && data.section === 'body') {
+            const isLastRow = data.row.index === data.table.body.length - 1;
+            if (isLastRow) {
+              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+              doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+              doc.setTextColor(255, 255, 255);
+              doc.setFont('helvetica', 'bold');
+              doc.text(data.cell.text, data.cell.x + data.cell.padding('left'), data.cell.y + data.cell.height / 2, {
+                baseline: 'middle',
+                align: data.cell.styles.halign
+              });
             }
           }
         },
