@@ -461,9 +461,40 @@ const Invoices = () => {
                 }
                 
                 // Add logo with preserved aspect ratio
-                doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
-                // Add INVOICE text next to logo (translated)
-                doc.text(translations.invoice, 70, 35);
+                if (invoiceTemplate === 'modern') {
+                  // Modern: Add colored background behind logo area
+                  doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+                  doc.rect(15, 10, 50, 40, 'F');
+                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
+                  doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                  doc.roundedRect(65, 25, 30, 12, 3, 3, 'F');
+                  doc.setTextColor(255, 255, 255);
+                  doc.setFontSize(12);
+                  doc.text(translations.invoice, 70, 33);
+                } else if (invoiceTemplate === 'professional') {
+                  // Professional: Thick border at top
+                  doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                  doc.setLineWidth(3);
+                  doc.line(20, 50, 190, 50);
+                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
+                  doc.setFontSize(20);
+                  doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                  doc.text(translations.invoice, 70, 35);
+                } else if (invoiceTemplate === 'creative') {
+                  // Creative: Colored box for logo
+                  doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+                  doc.roundedRect(15, 10, 45, 40, 5, 5, 'F');
+                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
+                  doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                  doc.circle(180, 30, 15, 'F');
+                  doc.setTextColor(255, 255, 255);
+                  doc.setFontSize(10);
+                  doc.text('#' + invoice.invoice_number.substring(invoice.invoice_number.length - 3), 172, 33);
+                } else {
+                  // Classic: Simple layout
+                  doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
+                  doc.text(translations.invoice, 70, 35);
+                }
                 resolve(undefined);
               } catch (error) {
                 console.error('Error adding logo to PDF:', error);
@@ -486,8 +517,26 @@ const Invoices = () => {
           doc.text(translations.invoice, 20, 30);
         }
       } else {
-        // No logo, just add INVOICE text (translated)
-        doc.text(translations.invoice, 20, 30);
+        // No logo, just add INVOICE text with template styling
+        if (invoiceTemplate === 'modern') {
+          doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          doc.roundedRect(15, 20, 50, 15, 3, 3, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.text(translations.invoice, 20, 30);
+        } else if (invoiceTemplate === 'professional') {
+          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          doc.setLineWidth(3);
+          doc.line(20, 40, 190, 40);
+          doc.text(translations.invoice, 20, 30);
+        } else if (invoiceTemplate === 'creative') {
+          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          doc.roundedRect(15, 15, 60, 25, 5, 5, 'F');
+          doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          doc.text(translations.invoice, 20, 30);
+        } else {
+          // Classic
+          doc.text(translations.invoice, 20, 30);
+        }
       }
       
       // Company information (top right)
@@ -613,31 +662,53 @@ const Invoices = () => {
       tableData.push(['', '', `${translations.total}:`, `$${invoice.total.toFixed(2)}`]);
       
       // Use autoTable for better table formatting
+      const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
+                        invoiceTemplate === 'modern' ? 'striped' : 
+                        invoiceTemplate === 'creative' ? 'plain' : 'grid';
+      
       autoTable(doc, {
         head: [tableHeaders],
         body: tableData,
         startY: startY,
-        theme: 'grid',
+        theme: tableTheme,
         styles: {
           fontSize: 10,
-          cellPadding: 5,
+          cellPadding: invoiceTemplate === 'professional' ? 6 : 5,
+          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : [200, 200, 200],
+          lineWidth: invoiceTemplate === 'professional' ? 0.5 : 0.1,
         },
         headStyles: {
-          fillColor: selectedColor.primary,
-          textColor: [255, 255, 255],
+          fillColor: invoiceTemplate === 'creative' ? [255, 255, 255] : selectedColor.primary,
+          textColor: invoiceTemplate === 'creative' ? selectedColor.primary : [255, 255, 255],
           fontStyle: 'bold',
+          fontSize: invoiceTemplate === 'professional' ? 11 : 10,
         },
+        alternateRowStyles: invoiceTemplate === 'modern' ? {
+          fillColor: selectedColor.light
+        } : undefined,
         columnStyles: {
           1: { halign: 'center' },
           2: { halign: 'right' },
           3: { halign: 'right' },
         },
         didDrawPage: function(data: any) {
-          // Footer
+          // Footer with template styling
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+          
+          if (invoiceTemplate === 'modern') {
+            doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+            doc.rect(0, pageHeight - 30, 210, 30, 'F');
+          } else if (invoiceTemplate === 'professional') {
+            doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+            doc.setLineWidth(2);
+            doc.line(20, pageHeight - 25, 190, pageHeight - 25);
+          }
+          
           doc.setFontSize(8);
-          doc.setTextColor(100, 100, 100);
+          doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                          invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                          invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
           doc.text(translations.thankYou, 20, pageHeight - 20);
         }
       });
