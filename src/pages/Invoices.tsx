@@ -422,149 +422,87 @@ const Invoices = () => {
         website: 'Website'
       };
       
-      // Check if company has a logo
-      if (company && company.logo_url) {
-        try {
-          // Load and add logo
-          const logoImg = new Image();
-          logoImg.crossOrigin = 'anonymous';
-          
-          // Create a promise to handle image loading
-          await new Promise((resolve, reject) => {
-            logoImg.onload = () => {
-              try {
-                // Calculate logo dimensions while maintaining aspect ratio
-                const logoWidth = logoImg.width;
-                const logoHeight = logoImg.height;
-                const maxWidth = 25;
-                const maxHeight = 20;
-                
-                let scaledWidth = maxWidth;
-                let scaledHeight = maxHeight;
-                
-                const aspectRatio = logoWidth / logoHeight;
-                
-                if (aspectRatio > 1) {
-                  // Landscape orientation
-                  scaledHeight = maxWidth / aspectRatio;
-                  if (scaledHeight > maxHeight) {
-                    scaledHeight = maxHeight;
-                    scaledWidth = maxHeight * aspectRatio;
-                  }
-                } else {
-                  // Portrait or square orientation
-                  scaledWidth = maxHeight * aspectRatio;
-                  if (scaledWidth > maxWidth) {
-                    scaledWidth = maxWidth;
-                    scaledHeight = maxWidth / aspectRatio;
-                  }
-                }
-                
-                // Add logo with preserved aspect ratio (all templates same layout)
-                doc.addImage(logoImg, 'JPEG', 20, 15, scaledWidth, scaledHeight);
-                
-                // Add "FACTURE" / "INVOICE" below the logo
-                doc.setFontSize(14);
-                doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                doc.text(translations.invoice, 20, 40);
-                resolve(undefined);
-              } catch (error) {
-                console.error('Error adding logo to PDF:', error);
-                // Fallback: just add text without logo
-                doc.setFontSize(14);
-                doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                doc.text(translations.invoice, 20, 30);
-                resolve(undefined);
-              }
-            };
-            logoImg.onerror = () => {
-              console.error('Error loading logo image');
-              // Fallback: just add text without logo
-              doc.setFontSize(14);
-              doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.text(translations.invoice, 20, 30);
-              resolve(undefined);
-            };
-            logoImg.src = company.logo_url;
-          });
-        } catch (error) {
-          console.error('Error handling logo:', error);
-          // Fallback: just add text without logo
-          doc.setFontSize(14);
-          doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.text(translations.invoice, 20, 30);
-        }
-      } else {
-        // No logo, just add INVOICE text
-        doc.setFontSize(14);
-        doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-        doc.text(translations.invoice, 20, 30);
-      }
+      // Header section - Left: Company name and address, Right: Invoice details
+      let headerHeight = 20;
       
-      // Company information (top right)
+      // Left side - Company Name and Address
       if (company) {
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        const companyLines = [
-          company.name,
-          ...(company.street_address ? [company.street_address] : []),
-          ...(company.city && company.province_state ? [`${company.city}, ${company.province_state} ${company.postal_code || ''}`] : []),
-          ...(company.phone ? [`${translations.phone}: ${company.phone}`] : []),
-          ...(company.email ? [`${translations.email}: ${company.email}`] : [])
-        ];
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.text(company.name, 20, headerHeight);
         
-        let yPos = 15;
-        companyLines.forEach(line => {
-          const textWidth = doc.getTextWidth(line);
-          doc.text(line, 210 - 20 - textWidth, yPos);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        
+        let yPos = headerHeight + 6;
+        if (company.street_address) {
+          doc.text(company.street_address, 20, yPos);
           yPos += 5;
-        });
+        }
+        if (company.city && company.province_state) {
+          doc.text(`${company.city}, ${company.province_state} ${company.postal_code || ''}`, 20, yPos);
+          yPos += 5;
+        }
       }
       
-      // Invoice details (right side, below company info)
-      const invoiceDetailsY = 50;
-      doc.setFontSize(10);
+      // Right side - Invoice Number and Date
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
       doc.setTextColor(40, 40, 40);
-      const invoiceNumText = `${translations.invoiceNumber}: ${invoice.invoice_number}`;
-      const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
-      const dueDateText = `${translations.dueDate}: ${invoice.due_date || 'N/A'}`;
+      const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
+      const titleWidth = doc.getTextWidth(invoiceTitle);
+      doc.text(invoiceTitle, 210 - 20 - titleWidth, headerHeight);
       
-      doc.text(invoiceNumText, 210 - 20 - doc.getTextWidth(invoiceNumText), invoiceDetailsY);
-      doc.text(issueDateText, 210 - 20 - doc.getTextWidth(issueDateText), invoiceDetailsY + 6);
-      doc.text(dueDateText, 210 - 20 - doc.getTextWidth(dueDateText), invoiceDetailsY + 12);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      const dateText = invoice.issue_date;
+      const dateWidth = doc.getTextWidth(dateText);
+      doc.text(dateText, 210 - 20 - dateWidth, headerHeight + 6);
+      
+      // Separator line after header
+      doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, 190, 40);
       
       // Only show status for payment confirmations
       if (emailType === "payment_confirmation") {
-        doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, invoiceDetailsY + 30);
+        doc.setFontSize(10);
+        doc.setTextColor(40, 40, 40);
+        doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, 50);
       }
       
       // Client information
-      const clientInfoY = 75;
+      const clientInfoY = emailType === "payment_confirmation" ? 60 : 50;
+      let nextY = clientInfoY;
       if (client) {
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
         doc.text(translations.billTo, 20, clientInfoY);
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        const clientLines = [
-          client.name,
-          ...(client.contact_person ? [client.contact_person] : []),
-          ...(client.address ? [client.address] : []),
-          ...(client.phone ? [`${translations.phone}: ${client.phone}`] : []),
-          ...(client.email ? [`${translations.email}: ${client.email}`] : [])
-        ];
+        doc.setTextColor(60, 60, 60);
         
-        let yPos = clientInfoY + 8;
-        clientLines.forEach(line => {
-          doc.text(line, 20, yPos);
-          yPos += 5;
-        });
+        nextY = clientInfoY + 7;
+        doc.text(client.name, 20, nextY);
+        nextY += 5;
+        
+        if (client.contact_person) {
+          doc.text(client.contact_person, 20, nextY);
+          nextY += 5;
+        }
+        if (client.address) {
+          doc.text(client.address, 20, nextY);
+          nextY += 5;
+        }
       }
       
-      // Items table
-      const startY = 120;
+      // Items table - add some space after client info
+      const startY = nextY + 15;
       const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
       const tableData: any[] = [];
       
