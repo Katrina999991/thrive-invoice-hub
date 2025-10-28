@@ -553,65 +553,97 @@ const Invoices = () => {
       
       // Items table - add some space after client info
       const startY = nextY + 15;
-      const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
+      const isModern = invoiceTemplate === 'modern';
+      const tableHeaders = isModern
+        ? [translations.description, translations.total]
+        : [translations.description, translations.qty, translations.unitPrice, translations.total];
       const tableData: any[] = [];
       
       // Add invoice items (if available)
       if (invoice.invoice_items && invoice.invoice_items.length > 0) {
         invoice.invoice_items.forEach(item => {
-          tableData.push([
-            item.description,
-            item.quantity.toString(),
-            `$${item.unit_price.toFixed(2)}`,
-            `$${item.total.toFixed(2)}`
-          ]);
+          if (isModern) {
+            tableData.push([
+              item.description,
+              `$${item.total.toFixed(2)}`
+            ]);
+          } else {
+            tableData.push([
+              item.description,
+              item.quantity.toString(),
+              `$${item.unit_price.toFixed(2)}`,
+              `$${item.total.toFixed(2)}`
+            ]);
+          }
           
           // Add product taxes if they exist for this item
           if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
             item.product_taxes.forEach((tax: any) => {
-              // Support both old format and new format
               const taxType = tax.type || 'percentage';
               const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-              
               let taxAmount = 0;
               if (taxType === 'percentage') {
                 taxAmount = item.total * (taxValue / 100);
               } else {
                 taxAmount = taxValue * item.quantity;
               }
-              
               const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
               const taxDetails = `${tax.name} (${taxLabel})`;
-              
-              tableData.push([
-                `  ${translations.tax}: ${taxDetails}`,
-                '',
-                '',
-                `$${taxAmount.toFixed(2)}`
-              ]);
+              if (isModern) {
+                tableData.push([
+                  `  ${translations.tax}: ${taxDetails}`,
+                  `$${taxAmount.toFixed(2)}`
+                ]);
+              } else {
+                tableData.push([
+                  `  ${translations.tax}: ${taxDetails}`,
+                  '',
+                  '',
+                  `$${taxAmount.toFixed(2)}`
+                ]);
+              }
             });
           }
         });
       } else {
         // If no items available, show totals only
-        tableData.push(['Invoice items not available', '', '', '']);
+        if (isModern) {
+          tableData.push(['Invoice items not available', '']);
+        } else {
+          tableData.push(['Invoice items not available', '', '', '']);
+        }
       }
       
       // Add subtotal, individual taxes, and total rows
-      tableData.push(['', '', `${translations.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
+      if (isModern) {
+        tableData.push([`${translations.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
+      } else {
+        tableData.push(['', '', `${translations.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
+      }
       
       // Add individual taxes if company has multiple taxes
       if (company?.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
         company.taxes.forEach((tax: any) => {
           const taxAmount = invoice.subtotal * (tax.percentage / 100);
-          tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
+          if (isModern) {
+            tableData.push([`${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
+          } else {
+            tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
+          }
         });
       } else if (invoice.tax_amount > 0) {
-        // Fallback to generic tax if no specific taxes are configured
-        tableData.push(['', '', `${translations.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
+        if (isModern) {
+          tableData.push([`${translations.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
+        } else {
+          tableData.push(['', '', `${translations.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
+        }
       }
       
-      tableData.push(['', '', `${translations.total}:`, `$${invoice.total.toFixed(2)}`]);
+      if (isModern) {
+        tableData.push([`${translations.total}:`, `$${invoice.total.toFixed(2)}`]);
+      } else {
+        tableData.push(['', '', `${translations.total}:`, `$${invoice.total.toFixed(2)}`]);
+      }
       
       // Use autoTable for better table formatting
       const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
@@ -640,7 +672,10 @@ const Invoices = () => {
         alternateRowStyles: invoiceTemplate === 'modern' ? {
           fillColor: selectedColor.light
         } : undefined,
-        columnStyles: {
+        columnStyles: isModern ? {
+          0: { halign: 'left' },
+          1: { halign: 'right', fontStyle: 'bold' },
+        } : {
           1: { halign: 'center' },
           2: { halign: 'right' },
           3: { halign: 'right', fontStyle: 'bold' },
