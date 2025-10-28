@@ -609,7 +609,7 @@ const Invoices = () => {
       // Use autoTable for better table formatting
       const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
                         invoiceTemplate === 'modern' ? 'striped' : 
-                        invoiceTemplate === 'creative' ? 'plain' : 'grid';
+                        invoiceTemplate === 'creative' ? 'plain' : 'plain';
       
       autoTable(doc, {
         head: [tableHeaders],
@@ -618,13 +618,15 @@ const Invoices = () => {
         theme: tableTheme,
         styles: {
           fontSize: 10,
-          cellPadding: invoiceTemplate === 'professional' ? 6 : 5,
-          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : [200, 200, 200],
-          lineWidth: invoiceTemplate === 'professional' ? 0.5 : 0.1,
+          cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'classic' ? 4 : 5,
+          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : [220, 220, 220],
+          lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : 0.1,
         },
         headStyles: {
-          fillColor: invoiceTemplate === 'creative' ? [255, 255, 255] : selectedColor.primary,
-          textColor: invoiceTemplate === 'creative' ? selectedColor.primary : [255, 255, 255],
+          fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
+                    invoiceTemplate === 'creative' ? [255, 255, 255] : selectedColor.primary,
+          textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
+                    invoiceTemplate === 'creative' ? selectedColor.primary : [255, 255, 255],
           fontStyle: 'bold',
           fontSize: invoiceTemplate === 'professional' ? 11 : 10,
         },
@@ -635,6 +637,20 @@ const Invoices = () => {
           1: { halign: 'center' },
           2: { halign: 'right' },
           3: { halign: 'right' },
+        },
+        bodyStyles: {
+          textColor: [60, 60, 60],
+        },
+        willDrawCell: function(data: any) {
+          // Style total rows for classic template
+          if (invoiceTemplate === 'classic') {
+            const isLastRow = data.row.index === data.table.body.length - 1;
+            if (isLastRow) {
+              // Last row (Total) - apply theme color
+              doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+              doc.setFont('helvetica', 'bold');
+            }
+          }
         },
         didDrawPage: function(data: any) {
           // Footer with template styling
