@@ -658,7 +658,7 @@ const Invoices = () => {
           if (invoiceTemplate === 'modern' && data.section === 'body') {
             const isLastRow = data.row.index === data.table.body.length - 1;
             if (isLastRow) {
-              data.cell.styles.fillColor = [255, 255, 255]; // Transparent for custom drawing
+              data.cell.styles.fillColor = selectedColor.primary;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
               data.cell.styles.fontSize = 11;
@@ -676,45 +676,59 @@ const Invoices = () => {
         },
         didDrawCell: function(data: any) {
           if (invoiceTemplate === 'modern') {
-            // Draw rounded rectangle for header
-            if (data.section === 'head') {
-              doc.setFillColor(200, 220, 240);
-              const radius = 3;
-              const x = data.cell.x;
-              const y = data.cell.y;
-              const w = data.cell.width;
-              const h = data.cell.height;
-              
-              // Only round corners for first and last columns
-              if (data.column.index === 0) {
-                doc.roundedRect(x, y, w, h, radius, radius, 'F');
-              } else if (data.column.index === data.table.columns.length - 1) {
-                doc.roundedRect(x, y, w, h, radius, radius, 'F');
-              } else {
-                doc.rect(x, y, w, h, 'F');
-              }
-              
-              // Redraw text
-              doc.setTextColor(40, 40, 40);
-              doc.setFontSize(10);
-              doc.setFont('helvetica', 'bold');
-            }
+            const radius = 3;
             
-            // Draw rounded rectangle for total row
-            if (data.section === 'body') {
-              const isLastRow = data.row.index === data.table.body.length - 1;
-              if (isLastRow) {
-                doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-                const radius = 3;
+            // Add rounded corners to header row
+            if (data.section === 'head' && data.row.index === 0) {
+              const isFirstCol = data.column.index === 0;
+              const isLastCol = data.column.index === data.table.columns.length - 1;
+              
+              if (isFirstCol || isLastCol) {
                 const x = data.cell.x;
                 const y = data.cell.y;
                 const w = data.cell.width;
                 const h = data.cell.height;
                 
-                // Draw full rounded rectangle spanning all columns
-                if (data.column.index === 0) {
-                  const totalWidth = data.table.columns.reduce((sum: number, col: any) => sum + col.width, 0);
-                  doc.roundedRect(x, y, totalWidth, h, radius, radius, 'F');
+                doc.setFillColor(200, 220, 240);
+                
+                if (isFirstCol) {
+                  // Round top-left corner
+                  doc.circle(x + radius, y + radius, radius, 'F');
+                  doc.rect(x + radius, y, w - radius, h, 'F');
+                  doc.rect(x, y + radius, radius, h - radius, 'F');
+                } else if (isLastCol) {
+                  // Round top-right corner
+                  doc.circle(x + w - radius, y + radius, radius, 'F');
+                  doc.rect(x, y, w - radius, h, 'F');
+                  doc.rect(x + w - radius, y + radius, radius, h - radius, 'F');
+                }
+              }
+            }
+            
+            // Add rounded corners to total row (last row)
+            if (data.section === 'body') {
+              const isLastRow = data.row.index === data.table.body.length - 1;
+              const isFirstCol = data.column.index === 0;
+              const isLastCol = data.column.index === data.table.columns.length - 1;
+              
+              if (isLastRow && (isFirstCol || isLastCol)) {
+                const x = data.cell.x;
+                const y = data.cell.y;
+                const w = data.cell.width;
+                const h = data.cell.height;
+                
+                doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                
+                if (isFirstCol) {
+                  // Round bottom-left corner
+                  doc.circle(x + radius, y + h - radius, radius, 'F');
+                  doc.rect(x + radius, y, w - radius, h, 'F');
+                  doc.rect(x, y, radius, h - radius, 'F');
+                } else if (isLastCol) {
+                  // Round bottom-right corner
+                  doc.circle(x + w - radius, y + h - radius, radius, 'F');
+                  doc.rect(x, y, w - radius, h, 'F');
+                  doc.rect(x + w - radius, y, radius, h - radius, 'F');
                 }
               }
             }
