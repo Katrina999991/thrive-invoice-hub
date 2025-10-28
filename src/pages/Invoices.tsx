@@ -625,30 +625,33 @@ const Invoices = () => {
         theme: tableTheme,
         styles: {
           fontSize: 10,
-          cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 6 : invoiceTemplate === 'classic' ? 4 : 5,
-          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : invoiceTemplate === 'modern' ? [240, 240, 240] : [220, 220, 220],
-          lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : invoiceTemplate === 'modern' ? 0.5 : 0.1,
+          cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 5 : invoiceTemplate === 'classic' ? 4 : 5,
+          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : invoiceTemplate === 'modern' ? [230, 230, 230] : [220, 220, 220],
+          lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : invoiceTemplate === 'modern' ? 0.3 : 0.1,
         },
         headStyles: {
           fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
                     invoiceTemplate === 'creative' ? [255, 255, 255] : 
-                    invoiceTemplate === 'modern' ? selectedColor.primary : selectedColor.primary,
+                    invoiceTemplate === 'modern' ? [200, 220, 240] : selectedColor.primary,
           textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
-                    invoiceTemplate === 'creative' ? selectedColor.primary : [255, 255, 255],
+                    invoiceTemplate === 'creative' ? selectedColor.primary : 
+                    invoiceTemplate === 'modern' ? [40, 40, 40] : [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 11 : 10,
-          cellPadding: invoiceTemplate === 'modern' ? 8 : undefined,
+          fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
+          cellPadding: invoiceTemplate === 'modern' ? 6 : undefined,
         },
         alternateRowStyles: invoiceTemplate === 'modern' ? {
-          fillColor: [250, 250, 250]
+          fillColor: [255, 255, 255]
         } : undefined,
         columnStyles: {
-          1: { halign: 'center' },
-          2: { halign: 'right' },
-          3: { halign: 'right', fontStyle: 'bold' },
+          0: { cellWidth: invoiceTemplate === 'modern' ? 90 : 'auto' },
+          1: { halign: 'center', cellWidth: invoiceTemplate === 'modern' ? 20 : 'auto' },
+          2: { halign: 'right', cellWidth: invoiceTemplate === 'modern' ? 35 : 'auto' },
+          3: { halign: 'right', fontStyle: 'bold', cellWidth: invoiceTemplate === 'modern' ? 35 : 'auto' },
         },
         bodyStyles: {
           textColor: [60, 60, 60],
+          fillColor: invoiceTemplate === 'modern' ? [255, 255, 255] : undefined,
         },
         didParseCell: function(data: any) {
           // Style the last row (Total) for modern template  
@@ -658,8 +661,8 @@ const Invoices = () => {
               data.cell.styles.fillColor = selectedColor.primary;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 12;
-              data.cell.styles.cellPadding = 8;
+              data.cell.styles.fontSize = 11;
+              data.cell.styles.cellPadding = 6;
             }
           }
           // Style the last row for classic template
