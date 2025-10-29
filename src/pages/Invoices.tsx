@@ -735,8 +735,8 @@ const Invoices = () => {
               data.cell.styles.fillColor = selectedColor.primary;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 11;
-              data.cell.styles.cellPadding = 8;
+              data.cell.styles.fontSize = 10;
+              data.cell.styles.cellPadding = 5;
               data.cell.styles.lineWidth = 0;
             } else {
               data.cell.styles.lineColor = [240, 240, 240];
