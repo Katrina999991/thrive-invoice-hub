@@ -504,7 +504,7 @@ const Invoices = () => {
         if (invoiceTemplate === 'modern') {
           doc.setFillColor(245, 245, 245); // Light gray background
           const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
-          doc.roundedRect(20, clientInfoY - 3, 80, boxHeight, 2, 2, 'F');
+          doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
         }
         
         doc.setFontSize(11);
