@@ -625,6 +625,7 @@ const Invoices = () => {
         startY: startY,
         theme: tableTheme,
         tableWidth: invoiceTemplate === 'modern' ? 170 : 'auto',
+        margin: invoiceTemplate === 'modern' ? { left: 20, right: 20 } : { left: 20, right: 20 },
         styles: {
           fontSize: 10,
           cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 5 : invoiceTemplate === 'classic' ? 4 : 5,
