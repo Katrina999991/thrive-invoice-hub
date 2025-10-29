@@ -705,9 +705,20 @@ const Invoices = () => {
             // Draw line above the last row (total row) only once per row
             if (isLastRow && data.column.index === 0) {
               const doc = data.doc;
+              
+              // Calculate total width by summing column widths
+              let totalWidth = 0;
+              if (data.table && data.table.columns) {
+                data.table.columns.forEach((col: any) => {
+                  totalWidth += col.width;
+                });
+              }
+              
+              const startX = data.table.startX || data.cell.x;
+              
               doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
               doc.setLineWidth(0.8);
-              doc.line(data.cell.x, data.cell.y, data.cell.x + data.table.width, data.cell.y);
+              doc.line(startX, data.cell.y, startX + totalWidth, data.cell.y);
             }
           }
         },
