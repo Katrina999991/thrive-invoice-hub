@@ -652,7 +652,7 @@ const Invoices = () => {
           fontStyle: 'bold',
           fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
           cellPadding: invoiceTemplate === 'modern' ? 6 : 4,
-          lineWidth: invoiceTemplate === 'modern' ? 0 : 0.1,
+          lineWidth: 0.5,
         },
         alternateRowStyles: undefined,
         columnStyles: {
