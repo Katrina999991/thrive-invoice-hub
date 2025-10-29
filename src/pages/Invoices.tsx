@@ -554,6 +554,14 @@ const Invoices = () => {
       
       // Items table - add some space after client info
       const startY = nextY + 15;
+      
+      // Add line above table for classic template
+      if (invoiceTemplate === 'classic') {
+        doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.setLineWidth(0.5);
+        doc.line(20, startY - 2, 190, startY - 2);
+      }
+      
       const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
       const tableData: any[] = [];
       
@@ -629,7 +637,9 @@ const Invoices = () => {
         styles: {
           fontSize: 10,
           cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 5 : invoiceTemplate === 'classic' ? 4 : 5,
-          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : invoiceTemplate === 'modern' ? [230, 230, 230] : [220, 220, 220],
+          lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : 
+                    invoiceTemplate === 'modern' ? [230, 230, 230] : 
+                    invoiceTemplate === 'classic' ? [240, 240, 240] : [220, 220, 220],
           lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : invoiceTemplate === 'modern' ? 0.3 : 0.1,
         },
         headStyles: {
