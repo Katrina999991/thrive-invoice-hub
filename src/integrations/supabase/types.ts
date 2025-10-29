@@ -84,6 +84,7 @@ export type Database = {
           invoice_digits: number | null
           invoice_email_message: string | null
           invoice_email_subject: string | null
+          invoice_footer_message: string | null
           invoice_prefix: string | null
           invoice_start_number: number | null
           logo_url: string | null
@@ -115,6 +116,7 @@ export type Database = {
           invoice_digits?: number | null
           invoice_email_message?: string | null
           invoice_email_subject?: string | null
+          invoice_footer_message?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
           logo_url?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           invoice_digits?: number | null
           invoice_email_message?: string | null
           invoice_email_subject?: string | null
+          invoice_footer_message?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
           logo_url?: string | null
@@ -427,10 +430,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_invoice_number: {
-        Args: { company_id: string }
-        Returns: string
-      }
+      generate_invoice_number: { Args: { company_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

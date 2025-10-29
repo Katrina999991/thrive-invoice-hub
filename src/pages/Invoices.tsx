@@ -858,6 +858,35 @@ const Invoices = () => {
         doc.text(splitTerms, 20, finalY + 10);
       }
       
+      // Add footer message from company settings
+      if (company?.invoice_footer_message) {
+        const hasNotes = !!invoice.notes;
+        const hasTerms = !!invoice.terms;
+        let offset = 20;
+        if (hasNotes && hasTerms) offset = 60;
+        else if (hasNotes || hasTerms) offset = 40;
+        
+        const finalY = (doc as any).autoTable.previous.finalY + offset;
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        
+        // Check if we have enough space, otherwise add new page
+        if (finalY > pageHeight - 40) {
+          doc.addPage();
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
+          doc.setFont('helvetica', 'italic');
+          const splitFooter = doc.splitTextToSize((company as any).invoice_footer_message, 170);
+          doc.text(splitFooter, 20, 20);
+        } else {
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
+          doc.setFont('helvetica', 'italic');
+          const splitFooter = doc.splitTextToSize((company as any).invoice_footer_message, 170);
+          doc.text(splitFooter, 20, finalY);
+        }
+      }
+      
       // Save the PDF
       doc.save(`invoice-${invoice.invoice_number}.pdf`);
       

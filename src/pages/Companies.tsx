@@ -199,7 +199,8 @@ Payment details:
 Thank you for your prompt payment and continued business!
 
 Best regards,
-{company_name}`
+{company_name}`,
+    invoice_footer_message: "Thank you for your business!"
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -284,7 +285,8 @@ Best regards,
       overdue_email_subject: newCompany.overdue_email_subject,
       overdue_email_message: newCompany.overdue_email_message,
       payment_confirmation_email_subject: newCompany.payment_confirmation_email_subject,
-      payment_confirmation_email_message: newCompany.payment_confirmation_email_message
+      payment_confirmation_email_message: newCompany.payment_confirmation_email_message,
+      invoice_footer_message: newCompany.invoice_footer_message
     };
     
     if (editingCompany) {
@@ -359,7 +361,8 @@ Payment details:
 Thank you for your prompt payment and continued business!
 
 Best regards,
-{company_name}`
+{company_name}`,
+      invoice_footer_message: "Thank you for your business!"
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -429,7 +432,8 @@ Payment details:
 Thank you for your prompt payment and continued business!
 
 Best regards,
-{company_name}`
+{company_name}`,
+      invoice_footer_message: (company as any).invoice_footer_message || "Thank you for your business!"
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
@@ -848,6 +852,21 @@ Best regards,
                     Available placeholders: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
                   </p>
                 </div>
+              </div>
+              
+              {/* Invoice Footer Message */}
+              <div className="space-y-2">
+                <Label htmlFor="invoice_footer_message">{t("companies.invoiceFooter")}</Label>
+                <Textarea
+                  id="invoice_footer_message"
+                  rows={3}
+                  placeholder="Thank you for your business!"
+                  value={newCompany.invoice_footer_message}
+                  onChange={(e) => setNewCompany({...newCompany, invoice_footer_message: e.target.value})}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("companies.invoiceFooterDesc")}
+                </p>
               </div>
               
               <div className="flex gap-2">
