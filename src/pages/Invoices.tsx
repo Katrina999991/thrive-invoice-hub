@@ -686,7 +686,7 @@ const Invoices = () => {
           if (invoiceTemplate !== 'modern') return;
 
           const doc = data.doc;
-          const radius = 6; // Rayon réduit pour être moins arrondi
+          const radius = 3; // Rayon réduit pour être moins arrondi
 
           const isHeader = data.section === 'head';
           const isBody = data.section === 'body';
