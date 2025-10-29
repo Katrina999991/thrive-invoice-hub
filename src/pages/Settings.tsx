@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -15,6 +19,9 @@ export default function Settings() {
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
   const [invoiceColor, setInvoiceColor] = useState<string>("blue");
+  const [username, setUsername] = useState<string>("");
+  const [isLoadingUsername, setIsLoadingUsername] = useState(false);
+  const [isSavingUsername, setIsSavingUsername] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
@@ -31,7 +38,31 @@ export default function Settings() {
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, []);
+
+    // Load username from profiles
+    const loadUsername = async () => {
+      if (!user?.id) return;
+      setIsLoadingUsername(true);
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data?.username) {
+          setUsername(data.username);
+        }
+      } catch (error) {
+        console.error("Error loading username:", error);
+      } finally {
+        setIsLoadingUsername(false);
+      }
+    };
+
+    loadUsername();
+  }, [user]);
 
   const handleThemeChange = (value: string) => {
     setTheme(value);
@@ -57,6 +88,34 @@ export default function Settings() {
   const handleInvoiceColorChange = (value: string) => {
     setInvoiceColor(value);
     localStorage.setItem("invoice-color", value);
+  };
+
+  const handleSaveUsername = async () => {
+    if (!user?.id) return;
+    
+    setIsSavingUsername(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ username: username.trim() || null })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: t("settings.account.usernameUpdated"),
+        description: t("settings.account.usernameUpdatedDescription"),
+      });
+    } catch (error: any) {
+      console.error("Error updating username:", error);
+      toast({
+        title: t("settings.account.usernameError"),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingUsername(false);
+    }
   };
 
   const getColorClasses = () => {
@@ -146,6 +205,27 @@ export default function Settings() {
               <div>
                 <p className="text-sm font-medium">{t("settings.account.email")}</p>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">{t("settings.account.username")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={t("settings.account.usernamePlaceholder")}
+                    disabled={isLoadingUsername || isSavingUsername}
+                  />
+                  <Button 
+                    onClick={handleSaveUsername} 
+                    disabled={isLoadingUsername || isSavingUsername}
+                  >
+                    {isSavingUsername ? t("settings.account.saving") : t("settings.account.save")}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("settings.account.usernameDescription")}
+                </p>
               </div>
             </div>
           </CardContent>
