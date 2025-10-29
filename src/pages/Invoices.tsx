@@ -547,7 +547,9 @@ const Invoices = () => {
         doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
-        doc.text(translations.billTo, 20, clientInfoY);
+        const leftMargin = invoiceTemplate === 'creative' ? 24 : 20;
+        const rightMargin = invoiceTemplate === 'creative' ? 24 : 20;
+        doc.text(translations.billTo, leftMargin, clientInfoY);
         
         // Right side - Invoice Number and Date (aligned with Bill To)
         doc.setFontSize(11);
@@ -555,20 +557,20 @@ const Invoices = () => {
         doc.setTextColor(40, 40, 40);
         const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
         const titleWidth = doc.getTextWidth(invoiceTitle);
-        doc.text(invoiceTitle, 210 - 20 - titleWidth, clientInfoY);
+        doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY);
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);
         const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
         const issueDateWidth = doc.getTextWidth(issueDateText);
-        doc.text(issueDateText, 210 - 20 - issueDateWidth, clientInfoY + 6);
+        doc.text(issueDateText, 210 - rightMargin - issueDateWidth, clientInfoY + 6);
         
         // Add due date below issue date
         if (invoice.due_date) {
           const dueDateText = `${translations.dueDate}: ${invoice.due_date}`;
           const dueDateWidth = doc.getTextWidth(dueDateText);
-          doc.text(dueDateText, 210 - 20 - dueDateWidth, clientInfoY + 12);
+          doc.text(dueDateText, 210 - rightMargin - dueDateWidth, clientInfoY + 12);
         }
         
         doc.setFont('helvetica', 'normal');
@@ -576,15 +578,15 @@ const Invoices = () => {
         doc.setTextColor(60, 60, 60);
         
         nextY = clientInfoY + 7;
-        doc.text(client.name, 20, nextY);
+        doc.text(client.name, leftMargin, nextY);
         nextY += 5;
         
         if (client.contact_person) {
-          doc.text(client.contact_person, 20, nextY);
+          doc.text(client.contact_person, leftMargin, nextY);
           nextY += 5;
         }
         if (client.address) {
-          doc.text(client.address, 20, nextY);
+          doc.text(client.address, leftMargin, nextY);
           nextY += 5;
         }
       }
