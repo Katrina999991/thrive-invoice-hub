@@ -334,6 +334,7 @@ Best regards,
     
     // Header section - Left: Company name and address, Right: Logo
     let headerHeight = 20;
+    let logoBase64 = ''; // Declare logoBase64 here so it's accessible later for email HTML
     
     // Right side - Company Logo
     if (company.logo_url) {
@@ -356,7 +357,7 @@ Best regards,
           for (let i = 0; i < bytes.length; i++) {
             binaryString += String.fromCharCode(bytes[i]);
           }
-          const logoBase64 = btoa(binaryString);
+          logoBase64 = btoa(binaryString);
           
           // Detect image format from URL
           let imageFormat = 'PNG';
