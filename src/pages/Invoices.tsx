@@ -697,35 +697,31 @@ const Invoices = () => {
         },
         didDrawCell: function(data: any) {
           // Add line above total row for professional template
+          // Draw only after the last cell of the last row is rendered
           if (invoiceTemplate === 'professional' && data.section === 'body') {
             const bodyLen = data.table && data.table.body ? data.table.body.length : 0;
+            const colLen = data.table && data.table.columns ? data.table.columns.length : 0;
             const isLastRow = bodyLen > 0 && data.row.index === bodyLen - 1;
+            const isLastColumn = colLen > 0 && data.column.index === colLen - 1;
             
-            // Draw line above the last row (total row) only once - on first column
-            if (isLastRow && data.column.index === 0) {
+            // Draw line only when rendering the last cell of the total row
+            if (isLastRow && isLastColumn) {
               const doc = data.doc;
               
-              // Determine table width safely
+              // Calculate table width from columns
               let tableWidth = 0;
-              if (data.table && typeof data.table.width === 'number' && !isNaN(data.table.width)) {
-                tableWidth = data.table.width;
-              } else if (data.table && Array.isArray(data.table.columns)) {
+              if (data.table && Array.isArray(data.table.columns)) {
                 tableWidth = data.table.columns.reduce((sum: number, col: any) => sum + (col?.width || 0), 0);
               }
               
-              // Determine start X position reliably
-              const marginLeft = (data.settings && data.settings.margin && typeof data.settings.margin.left === 'number')
-                ? data.settings.margin.left
+              // Get start X position
+              const startX = (data.table && typeof (data.table as any).pageStartX === 'number')
+                ? (data.table as any).pageStartX
                 : 20;
-              const startX = (data.table && typeof (data.table as any).startX === 'number')
-                ? (data.table as any).startX
-                : (data.table && typeof (data.table as any).pageStartX === 'number')
-                  ? (data.table as any).pageStartX
-                  : marginLeft;
               
-              const lineY = typeof data.cell?.y === 'number' ? data.cell.y : undefined;
+              const lineY = data.cell.y;
               
-              if (typeof startX === 'number' && typeof tableWidth === 'number' && typeof lineY === 'number') {
+              if (typeof startX === 'number' && tableWidth > 0 && typeof lineY === 'number') {
                 doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
                 doc.setLineWidth(0.5);
                 doc.line(startX, lineY, startX + tableWidth, lineY);
