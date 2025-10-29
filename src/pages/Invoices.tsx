@@ -470,10 +470,12 @@ const Invoices = () => {
           const boxWidth = companyNameWidth + boxPadding;
           doc.roundedRect(18, headerHeight - 5, boxWidth, 8, 2, 2, 'F');
           
+          // Center text in the box
+          const textX = 18 + (boxWidth / 2);
           doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.text(company.name, 22, headerHeight);
+          doc.text(company.name, textX, headerHeight, { align: 'center' });
         } else {
           doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
