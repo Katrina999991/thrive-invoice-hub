@@ -732,7 +732,8 @@ const Invoices = () => {
             const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
             const isLastRow = data.row.index === bodyLen - 1;
             if (isLastRow) {
-              data.cell.styles.fillColor = selectedColor.primary;
+              // Don't set fillColor here, it will be drawn in willDrawCell
+              data.cell.styles.fillColor = undefined;
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
               data.cell.styles.fontSize = 10;
