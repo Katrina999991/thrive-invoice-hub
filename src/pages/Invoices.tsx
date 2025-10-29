@@ -690,6 +690,26 @@ const Invoices = () => {
               data.cell.styles.fontStyle = 'bold';
             }
           }
+          // Style for creative template - total row with colored background
+          if (invoiceTemplate === 'creative' && data.section === 'body') {
+            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+            const isLastRow = data.row.index === bodyLen - 1;
+            if (isLastRow) {
+              data.cell.styles.fillColor = selectedColor.primary;
+              data.cell.styles.textColor = [255, 255, 255];
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fontSize = 11;
+              data.cell.styles.cellPadding = 8;
+              data.cell.styles.lineWidth = 0;
+            } else {
+              data.cell.styles.lineColor = [240, 240, 240];
+            }
+          }
+          // Remove header background for creative template
+          if (invoiceTemplate === 'creative' && data.section === 'head') {
+            data.cell.styles.fillColor = undefined;
+            data.cell.styles.lineWidth = 0;
+          }
         },
         willDrawCell: function(data: any) {
           // No background colors
