@@ -698,21 +698,38 @@ const Invoices = () => {
         didDrawCell: function(data: any) {
           // Add line above total row for professional template
           if (invoiceTemplate === 'professional' && data.section === 'body') {
-            const bodyLen = data.table.body.length;
-            const isLastRow = data.row.index === bodyLen - 1;
+            const bodyLen = data.table && data.table.body ? data.table.body.length : 0;
+            const isLastRow = bodyLen > 0 && data.row.index === bodyLen - 1;
             
             // Draw line above the last row (total row) only once - on first column
             if (isLastRow && data.column.index === 0) {
               const doc = data.doc;
               
-              // Get the actual table width from the table object
-              const tableWidth = data.table.width;
-              const startX = data.table.pageStartX || 20;
-              const lineY = data.cell.y;
+              // Determine table width safely
+              let tableWidth = 0;
+              if (data.table && typeof data.table.width === 'number' && !isNaN(data.table.width)) {
+                tableWidth = data.table.width;
+              } else if (data.table && Array.isArray(data.table.columns)) {
+                tableWidth = data.table.columns.reduce((sum: number, col: any) => sum + (col?.width || 0), 0);
+              }
               
-              doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.setLineWidth(1);
-              doc.line(startX, lineY, startX + tableWidth, lineY);
+              // Determine start X position reliably
+              const marginLeft = (data.settings && data.settings.margin && typeof data.settings.margin.left === 'number')
+                ? data.settings.margin.left
+                : 20;
+              const startX = (data.table && typeof (data.table as any).startX === 'number')
+                ? (data.table as any).startX
+                : (data.table && typeof (data.table as any).pageStartX === 'number')
+                  ? (data.table as any).pageStartX
+                  : marginLeft;
+              
+              const lineY = typeof data.cell?.y === 'number' ? data.cell.y : undefined;
+              
+              if (typeof startX === 'number' && typeof tableWidth === 'number' && typeof lineY === 'number') {
+                doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                doc.setLineWidth(0.5);
+                doc.line(startX, lineY, startX + tableWidth, lineY);
+              }
             }
           }
         },
