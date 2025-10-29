@@ -717,11 +717,19 @@ const Invoices = () => {
           if (startX === undefined || y === undefined || !totalWidth || !height) return;
 
           // Choose fill color for the special rows
-          doc.setFillColor(
-            selectedColor.primary[0],
-            selectedColor.primary[1],
-            selectedColor.primary[2]
-          );
+          if (isHeader) {
+            doc.setFillColor(
+              selectedColor.light[0],
+              selectedColor.light[1],
+              selectedColor.light[2]
+            );
+          } else {
+            doc.setFillColor(
+              selectedColor.primary[0],
+              selectedColor.primary[1],
+              selectedColor.primary[2]
+            );
+          }
 
           // Single rounded rectangle spanning the full row
           doc.setLineWidth(0);
