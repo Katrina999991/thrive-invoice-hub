@@ -727,30 +727,9 @@ const Invoices = () => {
             );
           }
 
+          // Single rounded rectangle spanning the full row
           doc.setLineWidth(0);
-          
-          // Pour la ligne Total: coins arrondis seulement en haut
-          if (isLastRow) {
-            // Dessiner un rectangle avec coins arrondis en haut seulement
-            const path: any[] = [];
-            // Commencer en bas à gauche
-            path.push(['m', startX, y + height]);
-            // Ligne vers le haut gauche avec coin arrondi
-            path.push(['l', 0, -height + radius]);
-            path.push(['q', 0, -radius, radius, -radius]);
-            // Ligne vers le haut droite avec coin arrondi
-            path.push(['l', totalWidth - 2 * radius, 0]);
-            path.push(['q', radius, 0, radius, radius]);
-            // Ligne vers le bas droite
-            path.push(['l', 0, height - radius]);
-            // Ligne vers le bas gauche (fermer le chemin)
-            path.push(['l', -totalWidth, 0]);
-            
-            doc.path(path, 'F');
-          } else {
-            // Pour l'en-tête: tous les coins arrondis
-            doc.roundedRect(startX, y, totalWidth, height, radius, radius, 'F');
-          }
+          doc.roundedRect(startX, y, totalWidth, height, radius, radius, 'F');
         },
         didDrawCell: function(data: any) {
           // no-op for modern; backgrounds are drawn in willDrawCell
