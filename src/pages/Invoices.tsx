@@ -485,7 +485,11 @@ const Invoices = () => {
       // Invoice Number and Date will be positioned at the same level as "Bill To" later
       
       // Separator line after header
-      doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+      // Use a medium shade between light and primary
+      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+      doc.setDrawColor(mediumR, mediumG, mediumB);
       doc.setLineWidth(0.5);
       doc.line(20, 40, 190, 40);
       
@@ -717,7 +721,11 @@ const Invoices = () => {
               const lineY = data.cell.y;
               
               if (typeof startX === 'number' && tableWidth > 0 && typeof lineY === 'number') {
-                doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+                // Use a medium shade between light and primary
+                const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+                const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+                const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+                doc.setDrawColor(mediumR, mediumG, mediumB);
                 doc.setLineWidth(0.5);
                 doc.line(startX, lineY, startX + tableWidth, lineY);
               }
