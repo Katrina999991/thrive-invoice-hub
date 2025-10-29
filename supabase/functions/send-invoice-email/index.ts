@@ -335,6 +335,7 @@ Best regards,
     // Header section - Left: Company name and address, Right: Logo
     let headerHeight = 20;
     let logoBase64 = ''; // Declare logoBase64 here so it's accessible later for email HTML
+    let logoMime = ''; // Track mime type for HTML preview
     
     // Right side - Company Logo
     if (company.logo_url) {
@@ -368,48 +369,36 @@ Best regards,
           
           console.log('Adding logo to PDF with format:', imageFormat);
           
-          // Extract image dimensions from buffer
-          let imgWidth = 0;
-          let imgHeight = 0;
+          // Set mime for HTML preview
+          logoMime = imageFormat === 'JPEG' ? 'image/jpeg' : 'image/png';
           
-          if (imageFormat === 'PNG' && bytes.length > 24) {
-            // PNG dimensions are at bytes 16-23 (big-endian)
-            imgWidth = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
-            imgHeight = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
-          } else if (imageFormat === 'JPEG') {
-            // For JPEG, scan for SOF marker to get dimensions
-            for (let i = 0; i < bytes.length - 9; i++) {
-              if (bytes[i] === 0xFF && (bytes[i + 1] === 0xC0 || bytes[i + 1] === 0xC2)) {
-                imgHeight = (bytes[i + 5] << 8) | bytes[i + 6];
-                imgWidth = (bytes[i + 7] << 8) | bytes[i + 8];
-                break;
+          // Compute dimensions preserving aspect ratio using jsPDF helper
+          const dataUrl = `data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`;
+          let logoWidth = 40;
+          let logoHeight = 20;
+          try {
+            const props = (doc as any).getImageProperties(dataUrl);
+            if (props && props.width && props.height) {
+              const imgRatio = props.width / props.height;
+              // Start by constraining width
+              logoWidth = 40;
+              logoHeight = logoWidth / imgRatio;
+              // If height exceeds max, constrain by height instead
+              if (logoHeight > 20) {
+                logoHeight = 20;
+                logoWidth = logoHeight * imgRatio;
               }
             }
-          }
-          
-          console.log('Image dimensions:', imgWidth, 'x', imgHeight);
-          
-          // Calculate dimensions maintaining aspect ratio
-          const logoMaxWidth = 40;
-          const logoMaxHeight = 20;
-          let logoWidth = logoMaxWidth;
-          let logoHeight = logoMaxWidth;
-          
-          if (imgWidth > 0 && imgHeight > 0) {
-            const imgRatio = imgWidth / imgHeight;
-            logoHeight = logoMaxWidth / imgRatio;
-            
-            // If height exceeds max, scale by height instead
-            if (logoHeight > logoMaxHeight) {
-              logoHeight = logoMaxHeight;
-              logoWidth = logoMaxHeight * imgRatio;
-            }
+          } catch (_e) {
+            // Fallback to simple ratio if helper not available
+            logoWidth = 40;
+            logoHeight = 20;
           }
           
           console.log('Logo dimensions for PDF:', logoWidth, 'x', logoHeight);
           
           const logoX = 210 - 20 - logoWidth; // Right aligned
-          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, logoX, headerHeight - 5, logoWidth, logoHeight);
+          doc.addImage(dataUrl, imageFormat, logoX, headerHeight - 5, logoWidth, logoHeight);
           console.log('Logo successfully added to PDF');
         }
       } catch (error) {
@@ -878,7 +867,7 @@ Best regards,
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
-          ${company.logo_url && logoBase64 ? `<img src="data:image/png;base64,${logoBase64}" alt="${company.name} Logo" style="max-width: 80px; max-height: 60px; object-fit: contain;" />` : ''}
+          ${company.logo_url && logoBase64 ? `<img src="data:${logoMime || 'image/png'};base64,${logoBase64}" alt="${company.name} Logo" style="max-width: 80px; max-height: 60px; object-fit: contain;" />` : ''}
           <div>
             <h1 style="color: #333; margin: 0;">${company.name}</h1>
             <h2 style="color: #666; margin: 5px 0 0 0;">${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}</h2>
