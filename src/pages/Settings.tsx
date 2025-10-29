@@ -105,6 +105,15 @@ export default function Settings() {
         borderLight: "border-yellow-200",
         gradient: "from-yellow-50 to-yellow-100",
         gradientAccent: "from-yellow-600 to-yellow-700"
+      },
+      gray: {
+        bg: "bg-gray-600",
+        text: "text-gray-700",
+        border: "border-gray-600",
+        bgLight: "bg-gray-100",
+        borderLight: "border-gray-200",
+        gradient: "from-gray-50 to-gray-100",
+        gradientAccent: "from-gray-600 to-gray-700"
       }
     };
     return colorMap[invoiceColor as keyof typeof colorMap] || colorMap.blue;
@@ -282,11 +291,18 @@ export default function Settings() {
                       {t("settings.invoice.orange")}
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value="yellow" id="yellow" />
                     <Label htmlFor="yellow" className="cursor-pointer flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full bg-yellow-600"></div>
                       {t("settings.invoice.yellow")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gray" id="gray" />
+                    <Label htmlFor="gray" className="cursor-pointer flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-gray-600"></div>
+                      {t("settings.invoice.gray")}
                     </Label>
                   </div>
                 </RadioGroup>

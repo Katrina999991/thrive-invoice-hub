@@ -361,7 +361,8 @@ const Invoices = () => {
         green: { primary: [22, 163, 74], light: [220, 252, 231] },
         purple: { primary: [147, 51, 234], light: [243, 232, 255] },
         orange: { primary: [234, 88, 12], light: [255, 237, 213] },
-        yellow: { primary: [202, 138, 4], light: [254, 249, 195] }
+        yellow: { primary: [202, 138, 4], light: [254, 249, 195] },
+        gray: { primary: [75, 85, 99], light: [243, 244, 246] }
       };
       
       const selectedColor = colorMap[invoiceColor] || colorMap.blue;
