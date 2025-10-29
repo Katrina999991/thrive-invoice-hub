@@ -368,11 +368,45 @@ Best regards,
           
           console.log('Adding logo to PDF with format:', imageFormat);
           
+          // Extract image dimensions from buffer
+          let imgWidth = 0;
+          let imgHeight = 0;
+          
+          if (imageFormat === 'PNG' && bytes.length > 24) {
+            // PNG dimensions are at bytes 16-23 (big-endian)
+            imgWidth = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+            imgHeight = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
+          } else if (imageFormat === 'JPEG') {
+            // For JPEG, scan for SOF marker to get dimensions
+            for (let i = 0; i < bytes.length - 9; i++) {
+              if (bytes[i] === 0xFF && (bytes[i + 1] === 0xC0 || bytes[i + 1] === 0xC2)) {
+                imgHeight = (bytes[i + 5] << 8) | bytes[i + 6];
+                imgWidth = (bytes[i + 7] << 8) | bytes[i + 8];
+                break;
+              }
+            }
+          }
+          
+          console.log('Image dimensions:', imgWidth, 'x', imgHeight);
+          
           // Calculate dimensions maintaining aspect ratio
           const logoMaxWidth = 40;
           const logoMaxHeight = 20;
-          const logoWidth = logoMaxWidth;
-          const logoHeight = logoMaxHeight;
+          let logoWidth = logoMaxWidth;
+          let logoHeight = logoMaxWidth;
+          
+          if (imgWidth > 0 && imgHeight > 0) {
+            const imgRatio = imgWidth / imgHeight;
+            logoHeight = logoMaxWidth / imgRatio;
+            
+            // If height exceeds max, scale by height instead
+            if (logoHeight > logoMaxHeight) {
+              logoHeight = logoMaxHeight;
+              logoWidth = logoMaxHeight * imgRatio;
+            }
+          }
+          
+          console.log('Logo dimensions for PDF:', logoWidth, 'x', logoHeight);
           
           const logoX = 210 - 20 - logoWidth; // Right aligned
           doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, logoX, headerHeight - 5, logoWidth, logoHeight);
