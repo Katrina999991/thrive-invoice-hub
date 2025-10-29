@@ -686,7 +686,7 @@ const Invoices = () => {
           if (invoiceTemplate !== 'modern') return;
 
           const doc = data.doc;
-          const radius = 8;
+          const radius = 6; // Rayon réduit pour être moins arrondi
 
           const isHeader = data.section === 'head';
           const isBody = data.section === 'body';
@@ -697,10 +697,23 @@ const Invoices = () => {
           // Draw once per row only on the first column
           if (data.column.index !== 0) return;
 
+          // Calculer la largeur totale en additionnant toutes les largeurs de colonnes
+          let totalWidth = 0;
+          if (data.table && data.table.columns) {
+            data.table.columns.forEach((col: any) => {
+              totalWidth += col.width;
+            });
+          }
+          
+          // Utiliser la largeur de la table si disponible, sinon utiliser le calcul
+          if (data.table && typeof data.table.width !== 'undefined' && data.table.width > totalWidth) {
+            totalWidth = data.table.width;
+          }
+
           const startX = (data.table && typeof data.table.startX !== 'undefined') ? data.table.startX : data.cell.x;
-          const totalWidth = (data.table && typeof data.table.width !== 'undefined') ? data.table.width : data.cell.width;
           const y = data.cell.y;
           const height = (data.row && typeof data.row.height !== 'undefined') ? data.row.height : data.cell.height;
+          
           if (startX === undefined || y === undefined || !totalWidth || !height) return;
 
           // Choose fill color for the special rows
