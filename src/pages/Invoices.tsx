@@ -698,7 +698,18 @@ const Invoices = () => {
           // No background colors
         },
         didDrawCell: function(data: any) {
-          // no-op for modern; backgrounds are drawn in willDrawCell
+          // Add line above total row for professional template
+          if (invoiceTemplate === 'professional' && data.section === 'body') {
+            const isLastRow = data.row.index === data.table.body.length - 1;
+            
+            // Draw line above the last row (total row) only once per row
+            if (isLastRow && data.column.index === 0) {
+              const doc = data.doc;
+              doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+              doc.setLineWidth(0.8);
+              doc.line(data.cell.x, data.cell.y, data.cell.x + data.table.width, data.cell.y);
+            }
+          }
         },
         didDrawPage: function(data: any) {
           // Footer with template styling
