@@ -19,6 +19,8 @@ interface SendInvoiceEmailRequest {
   emailType?: "new" | "overdue" | "payment_confirmation";
   selectedEmails?: string[];
   ccEmails?: string[];
+  invoiceTemplate?: string;
+  invoiceColor?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -28,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { invoiceId, customSubject, customMessage, emailType = "new", selectedEmails, ccEmails = [] }: SendInvoiceEmailRequest = await req.json();
+    const { invoiceId, customSubject, customMessage, emailType = "new", selectedEmails, ccEmails = [], invoiceTemplate = "classic", invoiceColor = "blue" }: SendInvoiceEmailRequest = await req.json();
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -313,11 +315,6 @@ Best regards,
       totalAmount: 'Total Amount'
     };
 
-    // Get template and color settings from invoice data or defaults
-    // In a real implementation, you might fetch these from company settings
-    const invoiceTemplate = "creative"; // Default to creative template
-    const invoiceColor = "blue"; // Default to blue
-    
     // Define color mappings (RGB values for jsPDF)
     const colorMap: Record<string, { primary: [number, number, number], light: [number, number, number] }> = {
       blue: { primary: [37, 99, 235], light: [219, 234, 254] },
