@@ -200,7 +200,8 @@ Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`,
-    invoice_footer_message: "Thank you for your business!"
+    invoice_footer_message: "Thank you for your business!",
+    invoice_footer_message_fr: "Merci pour votre confiance !"
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -286,7 +287,8 @@ Best regards,
       overdue_email_message: newCompany.overdue_email_message,
       payment_confirmation_email_subject: newCompany.payment_confirmation_email_subject,
       payment_confirmation_email_message: newCompany.payment_confirmation_email_message,
-      invoice_footer_message: newCompany.invoice_footer_message
+      invoice_footer_message: newCompany.invoice_footer_message,
+      invoice_footer_message_fr: newCompany.invoice_footer_message_fr
     };
     
     if (editingCompany) {
@@ -362,7 +364,8 @@ Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`,
-      invoice_footer_message: "Thank you for your business!"
+      invoice_footer_message: "Thank you for your business!",
+      invoice_footer_message_fr: "Merci pour votre confiance !"
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -433,7 +436,8 @@ Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`,
-      invoice_footer_message: (company as any).invoice_footer_message || "Thank you for your business!"
+      invoice_footer_message: (company as any).invoice_footer_message || "Thank you for your business!",
+      invoice_footer_message_fr: (company as any).invoice_footer_message_fr || "Merci pour votre confiance !"
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
@@ -856,13 +860,24 @@ Best regards,
               
               {/* Invoice Footer Message */}
               <div className="space-y-2">
-                <Label htmlFor="invoice_footer_message">{t("companies.invoiceFooter")}</Label>
+                <Label htmlFor="invoice_footer_message">{t("companies.invoiceFooter")} (English)</Label>
                 <Textarea
                   id="invoice_footer_message"
                   rows={3}
                   placeholder="Thank you for your business!"
                   value={newCompany.invoice_footer_message}
                   onChange={(e) => setNewCompany({...newCompany, invoice_footer_message: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="invoice_footer_message_fr">{t("companies.invoiceFooter")} (Français)</Label>
+                <Textarea
+                  id="invoice_footer_message_fr"
+                  rows={3}
+                  placeholder="Merci pour votre confiance !"
+                  value={newCompany.invoice_footer_message_fr}
+                  onChange={(e) => setNewCompany({...newCompany, invoice_footer_message_fr: e.target.value})}
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("companies.invoiceFooterDesc")}

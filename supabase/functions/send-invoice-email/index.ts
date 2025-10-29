@@ -62,7 +62,8 @@ const handler = async (req: Request): Promise<Response> => {
             overdue_email_message,
             payment_confirmation_email_subject,
             payment_confirmation_email_message,
-            invoice_footer_message
+            invoice_footer_message,
+            invoice_footer_message_fr
           )
         ),
         invoice_items (
@@ -809,19 +810,24 @@ Best regards,
       const pageSize = (doc as any).internal.pageSize;
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
       
+      // Use client language to determine which footer message to use
+      const footerMessage = clientLanguage === 'french'
+        ? (company.invoice_footer_message_fr || company.invoice_footer_message)
+        : company.invoice_footer_message;
+      
       // Check if we have enough space, otherwise add new page
       if (finalY > pageHeight - 40) {
         doc.addPage();
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'italic');
-        const splitFooter = doc.splitTextToSize(company.invoice_footer_message, 170);
+        const splitFooter = doc.splitTextToSize(footerMessage, 170);
         doc.text(splitFooter, 20, 20);
       } else {
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'italic');
-        const splitFooter = doc.splitTextToSize(company.invoice_footer_message, 170);
+        const splitFooter = doc.splitTextToSize(footerMessage, 170);
         doc.text(splitFooter, 20, finalY);
       }
     }
