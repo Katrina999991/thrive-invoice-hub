@@ -3,12 +3,14 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function Layout() {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     await signOut();
@@ -27,7 +29,7 @@ export default function Layout() {
           <header className="h-14 flex items-center border-b bg-background px-4">
             <SidebarTrigger />
             <div className="ml-4 flex-1">
-              <h1 className="font-semibold">Business Management System</h1>
+              <h1 className="font-semibold">{t("app.title")}</h1>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -14,6 +14,8 @@ const translations = {
   en: {
     reports: "Reports",
     reportsDescription: "Business analytics and performance metrics",
+    // App Title
+    "app.title": "Business Management System",
     // Sidebar Navigation
     "nav.title": "Business Manager",
     "nav.main": "Main",
@@ -711,6 +713,8 @@ const translations = {
   fr: {
     reports: "Rapports",
     reportsDescription: "Analyses commerciales et indicateurs de performance",
+    // App Title
+    "app.title": "Système de Gestion d'Entreprise",
     
     // Sidebar Navigation
     "nav.title": "Gestion d'Entreprise",
