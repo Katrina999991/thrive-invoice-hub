@@ -487,7 +487,7 @@ const Invoices = () => {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);
         
-        let yPos = headerHeight + 6;
+        let yPos = headerHeight + 9;
         if (company.street_address) {
           doc.text(company.street_address, 20, yPos);
           yPos += 5;
