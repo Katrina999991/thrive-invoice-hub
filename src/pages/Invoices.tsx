@@ -659,7 +659,7 @@ const Invoices = () => {
         },
         didParseCell: function(data: any) {
           // Remove fills so custom rounded backgrounds (drawn in willDrawCell) are fully visible
-          if (invoiceTemplate === 'modern' && data.section === 'head') {
+          if ((invoiceTemplate === 'modern' || invoiceTemplate === 'classic') && data.section === 'head') {
             data.cell.styles.fillColor = undefined;
             data.cell.styles.lineWidth = 0;
           }
@@ -685,7 +685,7 @@ const Invoices = () => {
           }
         },
         willDrawCell: function(data: any) {
-          if (invoiceTemplate !== 'modern') return;
+          if (invoiceTemplate !== 'modern' && invoiceTemplate !== 'classic') return;
 
           const doc = data.doc;
           const radius = 2; // Rayon réduit pour être moins arrondi
@@ -694,7 +694,11 @@ const Invoices = () => {
           const isBody = data.section === 'body';
           const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
           const isLastRow = isBody && data.row.index === bodyLen - 1;
-          if (!(isHeader || isLastRow)) return;
+          
+          // Pour classic, on dessine seulement l'en-tête
+          if (invoiceTemplate === 'classic' && !isHeader) return;
+          // Pour modern, on dessine l'en-tête et la dernière ligne
+          if (invoiceTemplate === 'modern' && !(isHeader || isLastRow)) return;
 
           // Draw once per row only on the first column
           if (data.column.index !== 0) return;
