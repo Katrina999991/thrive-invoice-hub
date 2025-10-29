@@ -47,6 +47,46 @@ export const useInvoices = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
+      // Check for overdue invoices and update status
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const invoicesToUpdate: string[] = [];
+      
+      if (data) {
+        for (const invoice of data) {
+          // If invoice is not paid and has a due date that has passed
+          if (invoice.status !== 'paid' && invoice.status !== 'overdue' && invoice.due_date) {
+            const dueDate = new Date(invoice.due_date);
+            dueDate.setHours(0, 0, 0, 0);
+            
+            if (dueDate < today) {
+              invoicesToUpdate.push(invoice.id);
+            }
+          }
+        }
+        
+        // Update overdue invoices in batch
+        if (invoicesToUpdate.length > 0) {
+          const { error: updateError } = await supabase
+            .from("invoices")
+            .update({ status: 'overdue' })
+            .in('id', invoicesToUpdate);
+          
+          if (updateError) {
+            console.error("Error updating overdue invoices:", updateError);
+          } else {
+            // Update local state to reflect changes
+            data.forEach(invoice => {
+              if (invoicesToUpdate.includes(invoice.id)) {
+                invoice.status = 'overdue';
+              }
+            });
+          }
+        }
+      }
+      
       setInvoices(data || []);
     } catch (error) {
       console.error("Error fetching invoices:", error);
