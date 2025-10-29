@@ -544,12 +544,14 @@ const Invoices = () => {
           doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'S');
         }
         
+        const textYOffset = invoiceTemplate === 'creative' ? 2 : 0;
+        
         doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
         const leftMargin = invoiceTemplate === 'creative' ? 24 : 20;
         const rightMargin = invoiceTemplate === 'creative' ? 24 : 20;
-        doc.text(translations.billTo, leftMargin, clientInfoY);
+        doc.text(translations.billTo, leftMargin, clientInfoY + textYOffset);
         
         // Right side - Invoice Number and Date (aligned with Bill To)
         doc.setFontSize(11);
@@ -557,27 +559,27 @@ const Invoices = () => {
         doc.setTextColor(40, 40, 40);
         const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
         const titleWidth = doc.getTextWidth(invoiceTitle);
-        doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY);
+        doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY + textYOffset);
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);
         const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
         const issueDateWidth = doc.getTextWidth(issueDateText);
-        doc.text(issueDateText, 210 - rightMargin - issueDateWidth, clientInfoY + 6);
+        doc.text(issueDateText, 210 - rightMargin - issueDateWidth, clientInfoY + 6 + textYOffset);
         
         // Add due date below issue date
         if (invoice.due_date) {
           const dueDateText = `${translations.dueDate}: ${invoice.due_date}`;
           const dueDateWidth = doc.getTextWidth(dueDateText);
-          doc.text(dueDateText, 210 - rightMargin - dueDateWidth, clientInfoY + 12);
+          doc.text(dueDateText, 210 - rightMargin - dueDateWidth, clientInfoY + 12 + textYOffset);
         }
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
         doc.setTextColor(60, 60, 60);
         
-        nextY = clientInfoY + 7;
+        nextY = clientInfoY + 7 + textYOffset;
         doc.text(client.name, leftMargin, nextY);
         nextY += 5;
         
