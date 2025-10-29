@@ -528,18 +528,15 @@ const Invoices = () => {
           const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
           doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
         } else if (invoiceTemplate === 'creative') {
-          // Add colored background with border for creative template
+          // Add gray background with light colored border for creative template
           const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
           
-          // Fill with light color
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          // Fill with light gray
+          doc.setFillColor(245, 245, 245);
           doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
           
-          // Add medium shade border
-          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-          doc.setDrawColor(mediumR, mediumG, mediumB);
+          // Add light colored border
+          doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
           doc.setLineWidth(0.5);
           doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'S');
         }
