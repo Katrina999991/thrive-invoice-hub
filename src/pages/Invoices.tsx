@@ -625,6 +625,7 @@ const Invoices = () => {
       // Use autoTable for better table formatting
       const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
                         invoiceTemplate === 'modern' ? 'plain' : 
+                        invoiceTemplate === 'classic' ? 'grid' : 
                         invoiceTemplate === 'creative' ? 'plain' : 'plain';
       
       autoTable(doc, {
@@ -639,7 +640,7 @@ const Invoices = () => {
           cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 5 : invoiceTemplate === 'classic' ? 4 : 5,
           lineColor: invoiceTemplate === 'professional' ? selectedColor.primary : 
                     invoiceTemplate === 'modern' ? [230, 230, 230] : 
-                    invoiceTemplate === 'classic' ? [240, 240, 240] : [220, 220, 220],
+                    invoiceTemplate === 'classic' ? [245, 245, 245] : [220, 220, 220],
           lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : invoiceTemplate === 'modern' ? 0.3 : 0.1,
         },
         headStyles: {
