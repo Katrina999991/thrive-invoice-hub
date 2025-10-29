@@ -649,20 +649,14 @@ const Invoices = () => {
           lineWidth: invoiceTemplate === 'classic' ? 0.1 : invoiceTemplate === 'professional' ? 0.5 : invoiceTemplate === 'modern' ? 0.3 : 0.1,
         },
         headStyles: {
-          fillColor: invoiceTemplate === 'classic' ? selectedColor.light : 
-                    invoiceTemplate === 'creative' ? [255, 255, 255] : 
-                    invoiceTemplate === 'modern' ? undefined : selectedColor.primary,
-          textColor: invoiceTemplate === 'classic' ? [40, 40, 40] :
-                    invoiceTemplate === 'creative' ? selectedColor.primary : 
-                    invoiceTemplate === 'modern' ? [40, 40, 40] : [255, 255, 255],
+          fillColor: undefined,
+          textColor: [40, 40, 40],
           fontStyle: 'bold',
           fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
           cellPadding: invoiceTemplate === 'modern' ? 6 : 4,
           lineWidth: invoiceTemplate === 'modern' ? 0 : 0.1,
         },
-        alternateRowStyles: invoiceTemplate === 'modern' ? {
-          fillColor: [255, 255, 255]
-        } : undefined,
+        alternateRowStyles: undefined,
         columnStyles: {
           0: { cellWidth: invoiceTemplate === 'modern' ? 70 : 'auto' },
           1: { halign: 'center', cellWidth: invoiceTemplate === 'modern' ? 25 : 'auto' },
@@ -671,7 +665,7 @@ const Invoices = () => {
         },
         bodyStyles: {
           textColor: [60, 60, 60],
-          fillColor: invoiceTemplate === 'modern' ? [255, 255, 255] : undefined,
+          fillColor: undefined,
         },
         didParseCell: function(data: any) {
           // Remove fills so custom rounded backgrounds (drawn in willDrawCell) are fully visible
@@ -701,61 +695,7 @@ const Invoices = () => {
           }
         },
         willDrawCell: function(data: any) {
-          if (invoiceTemplate !== 'modern' && invoiceTemplate !== 'classic') return;
-
-          const doc = data.doc;
-          const radius = 2; // Rayon réduit pour être moins arrondi
-
-          const isHeader = data.section === 'head';
-          const isBody = data.section === 'body';
-          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-          const isLastRow = isBody && data.row.index === bodyLen - 1;
-          
-          // Pour classic, on dessine seulement l'en-tête
-          if (invoiceTemplate === 'classic' && !isHeader) return;
-          // Pour modern, on dessine l'en-tête et la dernière ligne
-          if (invoiceTemplate === 'modern' && !(isHeader || isLastRow)) return;
-
-          // Draw once per row only on the first column
-          if (data.column.index !== 0) return;
-
-          // Calculer la largeur totale en additionnant toutes les largeurs de colonnes
-          let totalWidth = 0;
-          if (data.table && data.table.columns) {
-            data.table.columns.forEach((col: any) => {
-              totalWidth += col.width;
-            });
-          }
-          
-          // Utiliser la largeur de la table si disponible, sinon utiliser le calcul
-          if (data.table && typeof data.table.width !== 'undefined' && data.table.width > totalWidth) {
-            totalWidth = data.table.width;
-          }
-
-          const startX = (data.table && typeof data.table.startX !== 'undefined') ? data.table.startX : data.cell.x;
-          const y = data.cell.y;
-          const height = (data.row && typeof data.row.height !== 'undefined') ? data.row.height : data.cell.height;
-          
-          if (startX === undefined || y === undefined || !totalWidth || !height) return;
-
-          // Choose fill color for the special rows
-          if (isHeader) {
-            doc.setFillColor(
-              selectedColor.light[0],
-              selectedColor.light[1],
-              selectedColor.light[2]
-            );
-          } else {
-            doc.setFillColor(
-              selectedColor.primary[0],
-              selectedColor.primary[1],
-              selectedColor.primary[2]
-            );
-          }
-
-          // Single rounded rectangle spanning the full row
-          doc.setLineWidth(0);
-          doc.roundedRect(startX, y, totalWidth, height, radius, radius, 'F');
+          // No background colors
         },
         didDrawCell: function(data: any) {
           // no-op for modern; backgrounds are drawn in willDrawCell
