@@ -51,6 +51,10 @@ const handler = async (req: Request): Promise<Response> => {
           companies (
             name,
             logo_url,
+            street_address,
+            city,
+            province_state,
+            postal_code,
             taxes,
             invoice_email_subject,
             invoice_email_message,
@@ -272,6 +276,12 @@ Best regards,
 
     // Define table headers based on language
     const tableHeaders = clientLanguage === 'french' ? {
+      invoice: 'FACTURE',
+      billTo: 'Facturer à :',
+      invoiceNumber: 'Numéro de facture',
+      issueDate: 'Date d\'émission',
+      dueDate: 'Date d\'échéance',
+      status: 'Statut',
       invoiceSummary: 'Résumé de la facture',
       description: 'Description',
       qty: 'Qté',
@@ -279,8 +289,16 @@ Best regards,
       total: 'Total',
       subtotal: 'Sous-total',
       tax: 'Taxe',
+      notes: 'Notes',
+      terms: 'Conditions',
       totalAmount: 'Montant total'
     } : {
+      invoice: 'INVOICE',
+      billTo: 'Bill To:',
+      invoiceNumber: 'Invoice Number',
+      issueDate: 'Issue Date',
+      dueDate: 'Due Date',
+      status: 'Status',
       invoiceSummary: 'Invoice Summary',
       description: 'Description',
       qty: 'Qty',
@@ -288,16 +306,36 @@ Best regards,
       total: 'Total',
       subtotal: 'Subtotal',
       tax: 'Tax',
+      notes: 'Notes',
+      terms: 'Terms',
       totalAmount: 'Total Amount'
     };
 
+    // Get template and color settings from invoice data or defaults
+    // In a real implementation, you might fetch these from company settings
+    const invoiceTemplate = "creative"; // Default to creative template
+    const invoiceColor = "blue"; // Default to blue
+    
+    // Define color mappings (RGB values for jsPDF)
+    const colorMap: Record<string, { primary: [number, number, number], light: [number, number, number] }> = {
+      blue: { primary: [37, 99, 235], light: [219, 234, 254] },
+      green: { primary: [22, 163, 74], light: [220, 252, 231] },
+      purple: { primary: [147, 51, 234], light: [243, 232, 255] },
+      orange: { primary: [234, 88, 12], light: [255, 237, 213] },
+      yellow: { primary: [202, 138, 4], light: [254, 249, 195] },
+      gray: { primary: [75, 85, 99], light: [243, 244, 246] }
+    };
+    
+    const selectedColor = colorMap[invoiceColor] || colorMap.blue;
+    
     // Generate PDF
     const doc = new jsPDF();
     doc.setFont('helvetica');
     
-    // Load and add logo if available
-    let logoLoaded = false;
-    let logoBase64 = '';
+    // Header section - Left: Company name and address, Right: Logo
+    let headerHeight = 20;
+    
+    // Right side - Company Logo
     if (company.logo_url) {
       try {
         console.log('Attempting to load logo from:', company.logo_url);
@@ -318,7 +356,7 @@ Best regards,
           for (let i = 0; i < bytes.length; i++) {
             binaryString += String.fromCharCode(bytes[i]);
           }
-          logoBase64 = btoa(binaryString);
+          const logoBase64 = btoa(binaryString);
           
           // Detect image format from URL
           let imageFormat = 'PNG';
@@ -329,55 +367,161 @@ Best regards,
           
           console.log('Adding logo to PDF with format:', imageFormat);
           
-          // Use same dimensions as the frontend PDF generation
-          // These are the optimal dimensions that work well for most company logos
-          const logoWidth = 30;   // Reduced width for better proportions
-          const logoHeight = 22;  // Proportional height
+          // Calculate dimensions maintaining aspect ratio
+          const logoMaxWidth = 40;
+          const logoMaxHeight = 20;
+          const logoWidth = logoMaxWidth;
+          const logoHeight = logoMaxHeight;
           
-          // Add logo with same dimensions as frontend
-          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, 20, 15, logoWidth, logoHeight);
-          logoLoaded = true;
+          const logoX = 210 - 20 - logoWidth; // Right aligned
+          doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${logoBase64}`, imageFormat, logoX, headerHeight - 5, logoWidth, logoHeight);
           console.log('Logo successfully added to PDF');
         }
       } catch (error) {
         console.error('Error loading logo, continuing without logo:', error);
-        // Continue without logo - don't let this break the email
       }
     }
     
-    // Header - adjust position based on whether logo was added
-    doc.setFontSize(20);
-    doc.setTextColor(40, 40, 40);
-    if (logoLoaded) {
-      doc.text(company.name, 70, 25);
-    } else {
-      doc.text(company.name, 20, 30);
+    // Left side - Company Name and Address
+    if (company) {
+      // Add rounded background box for creative template
+      if (invoiceTemplate === 'creative') {
+        doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+        const companyNameWidth = doc.getStringUnitWidth(company.name) * 12 / doc.internal.scaleFactor;
+        const boxPadding = 8;
+        const boxWidth = companyNameWidth + boxPadding;
+        doc.roundedRect(18, headerHeight - 5, boxWidth, 8, 2, 2, 'F');
+        
+        // Center text in the box
+        const textX = 18 + (boxWidth / 2);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.text(company.name, textX, headerHeight, { align: 'center' });
+      } else {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.text(company.name, 20, headerHeight);
+      }
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      
+      let yPos = headerHeight + 9;
+      if (company.street_address) {
+        doc.text(company.street_address, 20, yPos);
+        yPos += 5;
+      }
+      if (company.city && company.province_state) {
+        doc.text(`${company.city}, ${company.province_state} ${company.postal_code || ''}`, 20, yPos);
+        yPos += 5;
+      }
     }
     
-    // Invoice title - adjust position based on whether logo was added
-    doc.setFontSize(16);
-    if (logoLoaded) {
-      doc.text(`${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}`, 70, 40);
-    } else {
-      doc.text(`${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}`, 20, 45);
+    // Separator line after header (not for creative template)
+    if (invoiceTemplate !== 'creative') {
+      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+      doc.setDrawColor(mediumR, mediumG, mediumB);
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, 190, 40);
     }
     
-    // Company and client info - adjust position based on layout
-    doc.setFontSize(10);
-    const infoStartY = logoLoaded ? 55 : 60;
-    doc.text(`${clientLanguage === 'french' ? 'Date d\'émission' : 'Issue Date'}: ${invoice.issue_date}`, 20, infoStartY);
-    doc.text(`${clientLanguage === 'french' ? 'Date d\'échéance' : 'Due Date'}: ${invoice.due_date}`, 20, infoStartY + 10);
-    
-    // Client info
-    const clientInfoStartY = infoStartY + 25;
-    doc.text(`${clientLanguage === 'french' ? 'Facturé à' : 'Bill To'}:`, 20, clientInfoStartY);
-    doc.text(client.name, 20, clientInfoStartY + 10);
-    if (client.contact_person) {
-      doc.text(client.contact_person, 20, clientInfoStartY + 20);
+    // Only show status for payment confirmations
+    if (emailType === "payment_confirmation") {
+      doc.setFontSize(10);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`${tableHeaders.status || 'Status'}: ${invoice.status.toUpperCase()}`, 20, 50);
     }
     
-    // Invoice items table
+    // Client information
+    const clientInfoY = emailType === "payment_confirmation" ? 60 : 50;
+    let nextY = clientInfoY;
+    if (client) {
+      // Add background box for modern and creative templates
+      if (invoiceTemplate === 'modern') {
+        doc.setFillColor(245, 245, 245);
+        const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
+        doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
+      } else if (invoiceTemplate === 'creative') {
+        // Add gray background with light colored border for creative template
+        const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
+        
+        // Fill with light gray
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
+        
+        // Add light colored border
+        doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'S');
+      }
+      
+      const textYOffset = invoiceTemplate === 'creative' ? 2 : 0;
+      
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      doc.setFont('helvetica', 'bold');
+      const leftMargin = invoiceTemplate === 'creative' ? 24 : 20;
+      const rightMargin = invoiceTemplate === 'creative' ? 24 : 20;
+      doc.text(tableHeaders.billTo || 'Bill To:', leftMargin, clientInfoY + textYOffset);
+      
+      // Right side - Invoice Number and Date (aligned with Bill To)
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(40, 40, 40);
+      const invoiceTitle = `${tableHeaders.invoice || 'INVOICE'} ${invoice.invoice_number}`;
+      const titleWidth = doc.getTextWidth(invoiceTitle);
+      doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY + textYOffset);
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      const issueDateText = `${tableHeaders.issueDate || 'Issue Date'}: ${invoice.issue_date}`;
+      const issueDateWidth = doc.getTextWidth(issueDateText);
+      doc.text(issueDateText, 210 - rightMargin - issueDateWidth, clientInfoY + 6 + textYOffset);
+      
+      // Add due date below issue date
+      if (invoice.due_date) {
+        const dueDateText = `${tableHeaders.dueDate || 'Due Date'}: ${invoice.due_date}`;
+        const dueDateWidth = doc.getTextWidth(dueDateText);
+        doc.text(dueDateText, 210 - rightMargin - dueDateWidth, clientInfoY + 12 + textYOffset);
+      }
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      
+      nextY = clientInfoY + 7 + textYOffset;
+      doc.text(client.name, leftMargin, nextY);
+      nextY += 5;
+      
+      if (client.contact_person) {
+        doc.text(client.contact_person, leftMargin, nextY);
+        nextY += 5;
+      }
+      if (client.address) {
+        doc.text(client.address, leftMargin, nextY);
+        nextY += 5;
+      }
+    }
+    
+    // Items table - add some space after client info
+    const startY = nextY + 15;
+    
+    // Add line above table for classic template
+    if (invoiceTemplate === 'classic') {
+      doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+      doc.setLineWidth(0.5);
+      doc.line(20, startY - 2, 190, startY - 2);
+    }
+    
     const tableData: any[] = [];
+    
+    // Add invoice items
     if (invoice.invoice_items && invoice.invoice_items.length > 0) {
       invoice.invoice_items.forEach((item: any) => {
         tableData.push([
@@ -386,12 +530,12 @@ Best regards,
           `$${item.unit_price.toFixed(2)}`,
           `$${item.total.toFixed(2)}`
         ]);
-
+        
+        // Add product taxes if they exist for this item
         if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-          item.product_taxes.forEach((t: any) => {
-            // Support both old format and new format
-            const taxType = t.type || 'percentage';
-            const taxValue = t.value !== undefined ? t.value : t.percentage;
+          item.product_taxes.forEach((tax: any) => {
+            const taxType = tax.type || 'percentage';
+            const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
             
             let taxAmount = 0;
             if (taxType === 'percentage') {
@@ -401,9 +545,10 @@ Best regards,
             }
             
             const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
+            const taxDetails = `${tax.name} (${taxLabel})`;
             
             tableData.push([
-              `  ${tableHeaders.tax}: ${t.name} (${taxLabel})`,
+              `  ${tableHeaders.tax}: ${taxDetails}`,
               '',
               '',
               `$${taxAmount.toFixed(2)}`
@@ -412,7 +557,28 @@ Best regards,
         }
       });
     }
-
+    
+    // Add subtotal, individual taxes, and total rows
+    tableData.push(['', '', `${tableHeaders.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
+    
+    // Add individual taxes if company has multiple taxes
+    if (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
+      company.taxes.forEach((tax: any) => {
+        const taxAmount = invoice.subtotal * (tax.percentage / 100);
+        tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
+      });
+    } else if (invoice.tax_amount > 0) {
+      tableData.push(['', '', `${tableHeaders.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
+    }
+    
+    tableData.push(['', '', `${tableHeaders.totalAmount}:`, `$${invoice.total.toFixed(2)}`]);
+    
+    // Use autoTable for better table formatting
+    const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
+                      invoiceTemplate === 'modern' ? 'plain' : 
+                      invoiceTemplate === 'classic' ? 'grid' : 
+                      invoiceTemplate === 'creative' ? 'plain' : 'plain';
+    
     (doc as any).autoTable({
       head: [[
         tableHeaders.description,
@@ -421,31 +587,190 @@ Best regards,
         tableHeaders.total
       ]],
       body: tableData,
-      startY: clientInfoStartY + 35,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [248, 249, 250] },
+      startY: startY,
+      theme: tableTheme,
+      tableWidth: invoiceTemplate === 'modern' ? 170 : 'auto',
+      margin: invoiceTemplate === 'modern' ? { left: 20, right: 20 } : { left: 20, right: 20 },
+      styles: {
+        fontSize: 10,
+        cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 5 : invoiceTemplate === 'classic' ? 4 : 5,
+        lineColor: [240, 240, 240],
+        lineWidth: 0.5,
+      },
+      headStyles: {
+        fillColor: undefined,
+        textColor: [40, 40, 40],
+        fontStyle: 'bold',
+        fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
+        cellPadding: invoiceTemplate === 'modern' ? 6 : 4,
+        lineWidth: 0.5,
+      },
+      alternateRowStyles: undefined,
+      columnStyles: {
+        0: { cellWidth: invoiceTemplate === 'modern' ? 70 : 'auto' },
+        1: { halign: 'center', cellWidth: invoiceTemplate === 'modern' ? 25 : 'auto' },
+        2: { halign: 'right', cellWidth: invoiceTemplate === 'modern' ? 30 : 'auto' },
+        3: { halign: 'right', fontStyle: 'bold', cellWidth: invoiceTemplate === 'modern' ? 45 : 'auto' },
+      },
+      bodyStyles: {
+        textColor: [60, 60, 60],
+        fillColor: undefined,
+      },
+      didParseCell: function(data: any) {
+        // Remove fills so custom rounded backgrounds (drawn in willDrawCell) are fully visible
+        if ((invoiceTemplate === 'modern' || invoiceTemplate === 'classic') && data.section === 'head') {
+          data.cell.styles.fillColor = undefined;
+          data.cell.styles.lineWidth = 0;
+        }
+        if (invoiceTemplate === 'modern' && data.section === 'body') {
+          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+          const isLastRow = data.row.index === bodyLen - 1;
+          if (isLastRow) {
+            data.cell.styles.fillColor = undefined;
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fontSize = 11;
+            data.cell.styles.cellPadding = 6;
+            data.cell.styles.lineWidth = 0;
+          }
+        }
+        // Style the last row for classic template
+        if (invoiceTemplate === 'classic' && data.section === 'body') {
+          const isLastRow = data.row.index === data.table.body.length - 1;
+          if (isLastRow) {
+            data.cell.styles.textColor = selectedColor.primary;
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        // Style for creative template - total row with colored background
+        if (invoiceTemplate === 'creative' && data.section === 'body') {
+          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+          const isLastRow = data.row.index === bodyLen - 1;
+          if (isLastRow) {
+            // Don't set fillColor here, it will be drawn in willDrawCell
+            data.cell.styles.fillColor = undefined;
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fontSize = 10;
+            data.cell.styles.cellPadding = 5;
+            data.cell.styles.lineWidth = 0;
+          } else {
+            data.cell.styles.lineColor = [240, 240, 240];
+          }
+        }
+        // Remove header background for creative template
+        if (invoiceTemplate === 'creative' && data.section === 'head') {
+          data.cell.styles.fillColor = undefined;
+          data.cell.styles.lineWidth = 0;
+        }
+      },
+      willDrawCell: function(data: any) {
+        // Draw rounded background for creative template total row
+        if (invoiceTemplate === 'creative' && data.section === 'body') {
+          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+          const isLastRow = data.row.index === bodyLen - 1;
+          
+          // Draw once per row only on the first column
+          if (isLastRow && data.column.index === 0) {
+            const doc = data.doc;
+            
+            // Calculate total width by summing column widths
+            let totalWidth = 0;
+            if (data.table && data.table.columns) {
+              data.table.columns.forEach((col: any) => {
+                totalWidth += col.width;
+              });
+            }
+            
+            const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
+            const y = data.cell.y;
+            const height = data.row.height;
+            
+            // Draw rounded rectangle with colored background
+            doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+            doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
+          }
+        }
+      },
+      didDrawCell: function(data: any) {
+        // Add line above total row for professional template
+        if (invoiceTemplate === 'professional' && data.section === 'body') {
+          const bodyLen = data.table && data.table.body ? data.table.body.length : 0;
+          const colLen = data.table && data.table.columns ? data.table.columns.length : 0;
+          const isLastRow = bodyLen > 0 && data.row.index === bodyLen - 1;
+          const isLastColumn = colLen > 0 && data.column.index === colLen - 1;
+          
+          if (isLastRow && isLastColumn) {
+            const doc = data.doc;
+            
+            let tableWidth = 0;
+            if (data.table && Array.isArray(data.table.columns)) {
+              tableWidth = data.table.columns.reduce((sum: number, col: any) => sum + (col?.width || 0), 0);
+            }
+            
+            const startX = (data.table && typeof (data.table as any).pageStartX === 'number')
+              ? (data.table as any).pageStartX
+              : 20;
+            
+            const lineY = data.cell.y;
+            
+            if (typeof startX === 'number' && tableWidth > 0 && typeof lineY === 'number') {
+              const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+              const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+              const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+              doc.setDrawColor(mediumR, mediumG, mediumB);
+              doc.setLineWidth(0.5);
+              doc.line(startX, lineY, startX + tableWidth, lineY);
+            }
+          }
+        }
+      },
+      didDrawPage: function(data: any) {
+        // Footer with template styling
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        
+        if (invoiceTemplate === 'modern') {
+          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          doc.rect(0, pageHeight - 30, 210, 30, 'F');
+        } else if (invoiceTemplate === 'professional') {
+          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          doc.setLineWidth(2);
+          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
+        }
+        
+        doc.setFontSize(8);
+        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
+        const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
+        doc.text(thankYouText, 20, pageHeight - 20);
+      }
     });
     
-    // Totals
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.text(`${tableHeaders.subtotal}: $${invoice.subtotal.toFixed(2)}`, 120, finalY);
-    
-    // Display company taxes separately
-    let taxYPosition = finalY + 10;
-    if (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
-      company.taxes.forEach((tax: any) => {
-        const taxAmount = invoice.subtotal * (tax.percentage / 100);
-        doc.text(`${tax.name} (${tax.percentage}%): $${taxAmount.toFixed(2)}`, 120, taxYPosition);
-        taxYPosition += 10;
-      });
-    } else if (invoice.tax_amount > 0) {
-      doc.text(`${tableHeaders.tax}: $${invoice.tax_amount.toFixed(2)}`, 120, taxYPosition);
-      taxYPosition += 10;
+    // Add notes if available
+    if (invoice.notes) {
+      const finalY = (doc as any).autoTable.previous.finalY + 20;
+      doc.setFontSize(12);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`${tableHeaders.notes || 'Notes'}:`, 20, finalY);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      const splitNotes = doc.splitTextToSize(invoice.notes, 170);
+      doc.text(splitNotes, 20, finalY + 10);
     }
     
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${tableHeaders.totalAmount}: $${invoice.total.toFixed(2)}`, 120, taxYPosition);
+    // Add terms if available
+    if (invoice.terms) {
+      const finalY = (doc as any).autoTable.previous.finalY + (invoice.notes ? 40 : 20);
+      doc.setFontSize(12);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`${tableHeaders.terms || 'Terms'}:`, 20, finalY);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      const splitTerms = doc.splitTextToSize(invoice.terms, 170);
+      doc.text(splitTerms, 20, finalY + 10);
+    }
     
     // Generate PDF as buffer
     const pdfBuffer = doc.output('arraybuffer');
