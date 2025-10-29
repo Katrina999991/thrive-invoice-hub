@@ -717,7 +717,7 @@ const Invoices = () => {
               const lineY = data.cell.y;
               
               if (typeof startX === 'number' && tableWidth > 0 && typeof lineY === 'number') {
-                doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+                doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
                 doc.setLineWidth(0.5);
                 doc.line(startX, lineY, startX + tableWidth, lineY);
               }
