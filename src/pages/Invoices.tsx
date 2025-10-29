@@ -500,14 +500,16 @@ const Invoices = () => {
       
       // Invoice Number and Date will be positioned at the same level as "Bill To" later
       
-      // Separator line after header
-      // Use a medium shade between light and primary
-      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-      doc.setDrawColor(mediumR, mediumG, mediumB);
-      doc.setLineWidth(0.5);
-      doc.line(20, 40, 190, 40);
+      // Separator line after header (not for creative template)
+      if (invoiceTemplate !== 'creative') {
+        // Use a medium shade between light and primary
+        const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+        const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+        const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+        doc.setDrawColor(mediumR, mediumG, mediumB);
+        doc.setLineWidth(0.5);
+        doc.line(20, 40, 190, 40);
+      }
       
       // Only show status for payment confirmations
       if (emailType === "payment_confirmation") {
