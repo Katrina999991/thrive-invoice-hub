@@ -834,9 +834,12 @@ const Invoices = () => {
         }
       });
       
+      // Get final Y position after table
+      const tableEndY = (doc as any).lastAutoTable?.finalY || (doc as any).autoTable?.previous?.finalY || startY + 100;
+      
       // Add notes if available
       if (invoice.notes) {
-        const finalY = (doc as any).autoTable.previous.finalY + 20;
+        const finalY = tableEndY + 20;
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
         doc.text(`${translations.notes}:`, 20, finalY);
@@ -848,7 +851,7 @@ const Invoices = () => {
       
       // Add terms if available
       if (invoice.terms) {
-        const finalY = (doc as any).autoTable.previous.finalY + (invoice.notes ? 40 : 20);
+        const finalY = tableEndY + (invoice.notes ? 40 : 20);
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
         doc.text(`${translations.terms}:`, 20, finalY);
@@ -866,7 +869,7 @@ const Invoices = () => {
         if (hasNotes && hasTerms) offset = 60;
         else if (hasNotes || hasTerms) offset = 40;
         
-        const finalY = (doc as any).autoTable.previous.finalY + offset;
+        const finalY = tableEndY + offset;
         const pageSize = doc.internal.pageSize;
         const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
         
