@@ -485,8 +485,13 @@ const Invoices = () => {
       // Invoice Number and Date will be positioned at the same level as "Bill To" later
       
       // Separator line after header
-      doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-      doc.setLineWidth(0.5);
+      if (invoiceTemplate === 'classic') {
+        doc.setDrawColor(240, 240, 240);
+        doc.setLineWidth(0.3);
+      } else {
+        doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.setLineWidth(0.5);
+      }
       doc.line(20, 40, 190, 40);
       
       // Only show status for payment confirmations
@@ -557,8 +562,8 @@ const Invoices = () => {
       
       // Add line above table for classic template
       if (invoiceTemplate === 'classic') {
-        doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-        doc.setLineWidth(0.5);
+        doc.setDrawColor(240, 240, 240);
+        doc.setLineWidth(0.3);
         doc.line(20, startY - 2, 190, startY - 2);
       }
       
