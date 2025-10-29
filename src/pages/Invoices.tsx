@@ -1950,7 +1950,7 @@ Best regards,
                       <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)}>
                         <Download className="h-4 w-4" />
                       </Button>
-                      {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid") && (
+                      {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
                         <Button 
                           variant="outline" 
                           size="sm" 
