@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -26,13 +26,43 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export function AppSidebar() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+  const [username, setUsername] = useState<string>("");
+
+  useEffect(() => {
+    const loadUsername = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data?.username) {
+          setUsername(data.username);
+        } else {
+          setUsername(user.email?.split("@")[0] || "User");
+        }
+      } catch (error) {
+        console.error("Error loading username:", error);
+        setUsername(user.email?.split("@")[0] || "User");
+      }
+    };
+
+    loadUsername();
+  }, [user]);
 
   const mainItems = [
     { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard },
@@ -64,9 +94,9 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="p-4">
           <h2 className={`font-bold text-lg ${isCollapsed ? "hidden" : "block"}`}>
-            {t("nav.title")}
+            {username || t("nav.title")}
           </h2>
-          {isCollapsed && <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-primary-foreground font-bold">B</div>}
+          {isCollapsed && <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-primary-foreground font-bold">{username ? username[0].toUpperCase() : "B"}</div>}
         </div>
 
         <SidebarGroup>
