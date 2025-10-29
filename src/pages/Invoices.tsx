@@ -716,7 +716,7 @@ const Invoices = () => {
               
               const startX = data.table.startX || data.cell.x;
               
-              doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+              doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
               doc.setLineWidth(0.8);
               doc.line(startX, data.cell.y, startX + totalWidth, data.cell.y);
             }
