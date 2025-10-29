@@ -462,6 +462,13 @@ const Invoices = () => {
       
       // Left side - Company Name and Address
       if (company) {
+        // Add rounded background box for creative template
+        if (invoiceTemplate === 'creative') {
+          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          const companyNameWidth = doc.getStringUnitWidth(company.name) * 12 / doc.internal.scaleFactor;
+          doc.roundedRect(18, headerHeight - 5, companyNameWidth + 4, 8, 2, 2, 'F');
+        }
+        
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
