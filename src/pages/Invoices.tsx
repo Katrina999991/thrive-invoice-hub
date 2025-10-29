@@ -638,7 +638,7 @@ const Invoices = () => {
         styles: {
           fontSize: 10,
           cellPadding: invoiceTemplate === 'professional' ? 6 : invoiceTemplate === 'modern' ? 5 : invoiceTemplate === 'classic' ? 4 : 5,
-          lineColor: [230, 230, 230],
+          lineColor: [240, 240, 240],
           lineWidth: 0.5,
         },
         headStyles: {
