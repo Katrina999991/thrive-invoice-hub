@@ -698,25 +698,21 @@ const Invoices = () => {
         didDrawCell: function(data: any) {
           // Add line above total row for professional template
           if (invoiceTemplate === 'professional' && data.section === 'body') {
-            const isLastRow = data.row.index === data.table.body.length - 1;
+            const bodyLen = data.table.body.length;
+            const isLastRow = data.row.index === bodyLen - 1;
             
-            // Draw line above the last row (total row) only once per row
+            // Draw line above the last row (total row) only once - on first column
             if (isLastRow && data.column.index === 0) {
               const doc = data.doc;
               
-              // Calculate total width by summing column widths
-              let totalWidth = 0;
-              if (data.table && data.table.columns) {
-                data.table.columns.forEach((col: any) => {
-                  totalWidth += col.width;
-                });
-              }
-              
-              const startX = data.table.startX || data.cell.x;
+              // Get the actual table width from the table object
+              const tableWidth = data.table.width;
+              const startX = data.table.pageStartX || 20;
+              const lineY = data.cell.y;
               
               doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.setLineWidth(0.8);
-              doc.line(startX, data.cell.y, startX + totalWidth, data.cell.y);
+              doc.setLineWidth(1);
+              doc.line(startX, lineY, startX + tableWidth, lineY);
             }
           }
         },
