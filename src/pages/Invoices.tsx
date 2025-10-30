@@ -740,7 +740,7 @@ const Invoices = () => {
           textColor: [40, 40, 40],
           fontStyle: 'bold',
           fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
-          cellPadding: invoiceTemplate === 'modern' ? 6 : 4,
+          cellPadding: invoiceTemplate === 'modern' ? 4 : 4,
           lineWidth: 0.5,
         },
         alternateRowStyles: undefined,
