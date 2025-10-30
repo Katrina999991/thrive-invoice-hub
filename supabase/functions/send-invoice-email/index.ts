@@ -760,18 +760,7 @@ Best regards,
         }
       },
       didDrawPage: function(data: any) {
-        // Footer with template styling (decorative elements only, text on last page)
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        
-        if (invoiceTemplate === 'modern') {
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          doc.rect(0, pageHeight - 30, 210, 30, 'F');
-        } else if (invoiceTemplate === 'professional') {
-          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.setLineWidth(2);
-          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-        }
+        // Footer elements will be drawn on last page only
       }
     });
     
