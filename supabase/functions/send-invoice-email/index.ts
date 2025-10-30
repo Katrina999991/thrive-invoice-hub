@@ -719,7 +719,7 @@ Best regards,
             
             // Draw rounded rectangle with light colored background
             doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-            doc.roundedRect(startX, y, totalWidth, height, 3, 3, 'F');
+            doc.roundedRect(startX, y, totalWidth, height, 1.5, 1.5, 'F');
           }
         }
         
