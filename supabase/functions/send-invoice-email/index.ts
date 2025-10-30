@@ -760,7 +760,7 @@ Best regards,
         }
       },
       didDrawPage: function(data: any) {
-        // Footer with template styling
+        // Footer with template styling (decorative elements only, text on last page)
         const pageSize = doc.internal.pageSize;
         const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
         
@@ -772,13 +772,6 @@ Best regards,
           doc.setLineWidth(2);
           doc.line(20, pageHeight - 25, 190, pageHeight - 25);
         }
-        
-        doc.setFontSize(8);
-        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-        const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
-        doc.text(thankYouText, 20, pageHeight - 20);
       }
     });
     
@@ -806,7 +799,7 @@ Best regards,
       doc.text(splitTerms, 20, finalY + 10);
     }
     
-    // Add footer message from company settings
+    // Add footer message from company settings on last page only
     if (company.invoice_footer_message) {
       const hasNotes = !!invoice.notes;
       const hasTerms = !!invoice.terms;
@@ -823,21 +816,54 @@ Best regards,
         ? (company.invoice_footer_message_fr || company.invoice_footer_message)
         : company.invoice_footer_message;
       
+      const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
+      
       // Check if we have enough space, otherwise add new page
       if (finalY > pageHeight - 40) {
         doc.addPage();
+        // Add decorative footer on new page
+        if (invoiceTemplate === 'modern') {
+          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          doc.rect(0, pageHeight - 30, 210, 30, 'F');
+        } else if (invoiceTemplate === 'professional') {
+          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          doc.setLineWidth(2);
+          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
+        }
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'italic');
         const splitFooter = doc.splitTextToSize(footerMessage, 170);
         doc.text(splitFooter, 20, 20);
+        // Add thank you text at bottom
+        doc.setFontSize(8);
+        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
+        doc.text(thankYouText, 20, pageHeight - 20);
       } else {
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'italic');
         const splitFooter = doc.splitTextToSize(footerMessage, 170);
         doc.text(splitFooter, 20, finalY);
+        // Add thank you text at bottom of last page
+        doc.setFontSize(8);
+        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
+        doc.text(thankYouText, 20, pageHeight - 20);
       }
+    } else {
+      // If no footer message, still add thank you text on last page
+      const pageSize = (doc as any).internal.pageSize;
+      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+      const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
+      doc.setFontSize(8);
+      doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                      invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                      invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
+      doc.text(thankYouText, 20, pageHeight - 20);
     }
     
     // Generate PDF as buffer
