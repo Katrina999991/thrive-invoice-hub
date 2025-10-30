@@ -607,7 +607,15 @@ const Invoices = () => {
         // Right side - Invoice Number and Date (aligned with Bill To)
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(40, 40, 40);
+        // Use same color as "Bill To" for professional template
+        if (invoiceTemplate === 'professional') {
+          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+          doc.setTextColor(mediumR, mediumG, mediumB);
+        } else {
+          doc.setTextColor(40, 40, 40);
+        }
         const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
         const titleWidth = doc.getTextWidth(invoiceTitle);
         doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY + textYOffset);
