@@ -222,6 +222,47 @@ const Invoices = () => {
     
     if (editingInvoice) {
       // Update existing invoice
+      // First, delete all existing items
+      const { error: deleteError } = await supabase
+        .from("invoice_items")
+        .delete()
+        .eq("invoice_id", editingInvoice.id);
+      
+      if (deleteError) {
+        console.error("Error deleting old items:", deleteError);
+        toast({
+          title: "Error",
+          description: "Failed to update invoice items",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Then, insert new items
+      const { error: itemsError } = await supabase
+        .from("invoice_items")
+        .insert(newInvoice.items.map(item => ({
+          invoice_id: editingInvoice.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.total,
+          product_id: item.product_id || null,
+          notes: item.notes || null,
+          product_taxes: item.product_taxes || []
+        })));
+      
+      if (itemsError) {
+        console.error("Error inserting new items:", itemsError);
+        toast({
+          title: "Error",
+          description: "Failed to update invoice items",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Finally, update the invoice itself
       await updateInvoice(editingInvoice.id, {
         client_id: newInvoice.client_id,
         due_date: newInvoice.due_date,
