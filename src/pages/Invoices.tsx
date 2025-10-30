@@ -541,8 +541,8 @@ const Invoices = () => {
       
       // Invoice Number and Date will be positioned at the same level as "Bill To" later
       
-      // Separator line after header (not for creative template)
-      if (invoiceTemplate !== 'creative') {
+      // Separator line after header (not for creative or modern template)
+      if (invoiceTemplate !== 'creative' && invoiceTemplate !== 'modern') {
         if (invoiceTemplate === 'classic') {
           // Use the same light color as the line below client info
           doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
