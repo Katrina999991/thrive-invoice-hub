@@ -590,9 +590,12 @@ const Invoices = () => {
         const textYOffset = invoiceTemplate === 'creative' ? 2 : invoiceTemplate === 'modern' ? 2 : 0;
         
         doc.setFontSize(11);
-        // Use light color for "Bill To" in professional template
+        // Use medium shade color for "Bill To" in professional template (same as separator line)
         if (invoiceTemplate === 'professional') {
-          doc.setTextColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+          doc.setTextColor(mediumR, mediumG, mediumB);
         } else {
           doc.setTextColor(40, 40, 40);
         }
