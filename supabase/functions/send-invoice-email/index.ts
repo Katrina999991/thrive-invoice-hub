@@ -490,7 +490,7 @@ Best regards,
         doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'S');
       }
       
-      const textYOffset = invoiceTemplate === 'creative' ? 2 : invoiceTemplate === 'modern' ? 1 : 0;
+      const textYOffset = invoiceTemplate === 'creative' ? 2 : invoiceTemplate === 'modern' ? 2 : 0;
       
       doc.setFontSize(11);
       doc.setTextColor(40, 40, 40);
