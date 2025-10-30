@@ -495,8 +495,8 @@ Best regards,
       doc.setFontSize(11);
       doc.setTextColor(40, 40, 40);
       doc.setFont('helvetica', 'bold');
-      const leftMargin = invoiceTemplate === 'creative' ? 24 : 20;
-      const rightMargin = invoiceTemplate === 'creative' ? 24 : 20;
+      const leftMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
+      const rightMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
       doc.text(tableHeaders.billTo || 'Bill To:', leftMargin, clientInfoY + textYOffset);
       
       // Right side - Invoice Number and Date (aligned with Bill To)
