@@ -613,6 +613,16 @@ const Invoices = () => {
             `$${item.total.toFixed(2)}`
           ]);
           
+          // Add item notes if they exist
+          if (item.notes) {
+            tableData.push([
+              `  ${translations.notes}: ${item.notes}`,
+              '',
+              '',
+              ''
+            ]);
+          }
+          
           // Add product taxes if they exist for this item
           if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
             item.product_taxes.forEach((tax: any) => {

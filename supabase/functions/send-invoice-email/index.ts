@@ -73,7 +73,8 @@ const handler = async (req: Request): Promise<Response> => {
           quantity,
           unit_price,
           total,
-          product_taxes
+          product_taxes,
+          notes
         )
       `)
       .eq('id', invoiceId)
@@ -553,6 +554,16 @@ Best regards,
           `$${item.unit_price.toFixed(2)}`,
           `$${item.total.toFixed(2)}`
         ]);
+        
+        // Add item notes if they exist
+        if (item.notes) {
+          tableData.push([
+            `  ${tableHeaders.notes}: ${item.notes}`,
+            '',
+            '',
+            ''
+          ]);
+        }
         
         // Add product taxes if they exist for this item
         if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
