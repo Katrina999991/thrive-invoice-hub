@@ -448,10 +448,10 @@ Best regards,
     if (invoiceTemplate !== 'creative') {
       // Use a lighter shade for classic template, medium shade for others
       if (invoiceTemplate === 'classic') {
-        // Use a very light shade (closer to light color)
-        const veryLightR = Math.floor((selectedColor.light[0] * 3 + selectedColor.primary[0]) / 4);
-        const veryLightG = Math.floor((selectedColor.light[1] * 3 + selectedColor.primary[1]) / 4);
-        const veryLightB = Math.floor((selectedColor.light[2] * 3 + selectedColor.primary[2]) / 4);
+        // Use an even lighter shade (much closer to light color)
+        const veryLightR = Math.floor((selectedColor.light[0] * 5 + selectedColor.primary[0]) / 6);
+        const veryLightG = Math.floor((selectedColor.light[1] * 5 + selectedColor.primary[1]) / 6);
+        const veryLightB = Math.floor((selectedColor.light[2] * 5 + selectedColor.primary[2]) / 6);
         doc.setDrawColor(veryLightR, veryLightG, veryLightB);
       } else {
         // Use a medium shade between light and primary
