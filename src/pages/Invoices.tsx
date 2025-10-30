@@ -657,7 +657,7 @@ const Invoices = () => {
           // Add item notes if they exist
           if (item.notes) {
             tableData.push([
-              `  ${translations.notes}: ${item.notes}`,
+              `      ${translations.notes}: ${item.notes}`,
               '',
               '',
               ''

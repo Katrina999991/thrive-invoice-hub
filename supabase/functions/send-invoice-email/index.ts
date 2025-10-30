@@ -558,7 +558,7 @@ Best regards,
         // Add item notes if they exist
         if (item.notes) {
           tableData.push([
-            `  ${tableHeaders.notes}: ${item.notes}`,
+            `      ${tableHeaders.notes}: ${item.notes}`,
             '',
             '',
             ''
