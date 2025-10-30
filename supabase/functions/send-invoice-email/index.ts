@@ -493,7 +493,12 @@ Best regards,
       const textYOffset = invoiceTemplate === 'creative' ? 2 : invoiceTemplate === 'modern' ? 2 : 0;
       
       doc.setFontSize(11);
-      doc.setTextColor(40, 40, 40);
+      // Use light color for "Bill To" in professional template
+      if (invoiceTemplate === 'professional') {
+        doc.setTextColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+      } else {
+        doc.setTextColor(40, 40, 40);
+      }
       doc.setFont('helvetica', 'bold');
       const leftMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
       const rightMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
