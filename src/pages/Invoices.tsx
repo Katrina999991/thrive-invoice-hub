@@ -643,7 +643,7 @@ const Invoices = () => {
       if (invoiceTemplate === 'classic') {
         doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
         doc.setLineWidth(0.5);
-        doc.line(20, startY - 2, 190, startY - 2);
+        doc.line(20, startY - 5, 190, startY - 5);
       }
       
       const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
