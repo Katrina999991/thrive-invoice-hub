@@ -731,7 +731,7 @@ const Invoices = () => {
         margin: invoiceTemplate === 'modern' ? { left: 20, right: 20 } : { left: 20, right: 20 },
         styles: {
           fontSize: 10,
-          cellPadding: invoiceTemplate === 'professional' ? 3 : invoiceTemplate === 'modern' ? 3 : invoiceTemplate === 'classic' ? 2 : 3,
+          cellPadding: invoiceTemplate === 'professional' ? 3 : invoiceTemplate === 'modern' ? 2 : invoiceTemplate === 'classic' ? 2 : 3,
           lineColor: [240, 240, 240],
           lineWidth: 0.5,
         },
