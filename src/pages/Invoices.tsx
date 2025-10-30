@@ -1714,6 +1714,13 @@ Best regards,
                                  <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
                                  <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
                                </TableRow>
+                               {item.notes && (
+                                 <TableRow key={`notes-${item.id}`} className="bg-muted/10">
+                                   <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
+                                     {t("invoices.itemNotes")}: {item.notes}
+                                   </TableCell>
+                                 </TableRow>
+                               )}
                                 {item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0 && (
                                   <TableRow key={`tax-${item.id}`} className="bg-muted/20">
                                     <TableCell colSpan={3} className="text-sm text-muted-foreground pl-8">
