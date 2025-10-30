@@ -273,32 +273,65 @@ const Invoices = () => {
         total: totalAmount
       });
     } else {
-      // Generate invoice number using the company's settings
-      const { data: invoiceNumber, error: numberError } = await supabase
-        .rpc('generate_invoice_number', { company_id: selectedCompanyId });
+      // Retry logic for creating invoice with unique number
+      let invoiceCreated = false;
+      let retryCount = 0;
+      const maxRetries = 3;
 
-      if (numberError) {
-        console.error('Error generating invoice number:', numberError);
+      while (!invoiceCreated && retryCount < maxRetries) {
+        try {
+          // Generate invoice number using the company's settings
+          const { data: invoiceNumber, error: numberError } = await supabase
+            .rpc('generate_invoice_number', { company_id: selectedCompanyId });
+
+          if (numberError) {
+            console.error('Error generating invoice number:', numberError);
+            toast({
+              title: "Error",
+              description: "Failed to generate invoice number",
+              variant: "destructive"
+            });
+            return;
+          }
+
+          // Create new invoice
+          const result = await createInvoice({
+            invoice_number: invoiceNumber,
+            client_id: newInvoice.client_id,
+            issue_date: newInvoice.issue_date,
+            due_date: newInvoice.due_date,
+            terms: newInvoice.terms,
+            notes: newInvoice.notes,
+            subtotal: subtotal,
+            tax_amount: totalTax,
+            total: totalAmount
+          }, newInvoice.items);
+
+          if (result) {
+            invoiceCreated = true;
+          } else {
+            throw new Error('Failed to create invoice');
+          }
+        } catch (error: any) {
+          if (error?.code === 'DUPLICATE_INVOICE_NUMBER' && retryCount < maxRetries - 1) {
+            retryCount++;
+            console.log(`Duplicate invoice number detected, retrying... (${retryCount}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, 300));
+          } else {
+            console.error('Error creating invoice:', error);
+            return;
+          }
+        }
+      }
+
+      if (!invoiceCreated) {
         toast({
           title: "Error",
-          description: "Failed to generate invoice number",
+          description: "Failed to create invoice with unique number after multiple attempts",
           variant: "destructive"
         });
         return;
       }
-
-      // Create new invoice
-      await createInvoice({
-        invoice_number: invoiceNumber,
-        client_id: newInvoice.client_id,
-        issue_date: newInvoice.issue_date,
-        due_date: newInvoice.due_date,
-        terms: newInvoice.terms,
-        notes: newInvoice.notes,
-        subtotal: subtotal,
-        tax_amount: totalTax,
-        total: totalAmount
-      }, newInvoice.items);
     }
 
     // Reset form

@@ -120,9 +120,11 @@ export const useInvoices = () => {
         .single();
 
       if (invoiceError) {
-        // If duplicate invoice number, show more specific error
+        // If duplicate invoice number, return specific error code
         if (invoiceError.code === '23505' && invoiceError.message?.includes('invoices_user_id_invoice_number_key')) {
-          throw new Error('An invoice with this number already exists. Please try again.');
+          const error: any = new Error('An invoice with this number already exists.');
+          error.code = 'DUPLICATE_INVOICE_NUMBER';
+          throw error;
         }
         throw invoiceError;
       }
