@@ -798,6 +798,30 @@ const Invoices = () => {
           }
         },
         willDrawCell: function(data: any) {
+          // Draw rounded background for classic template header row
+          if (invoiceTemplate === 'classic' && data.section === 'head') {
+            // Draw once per row only on the first column
+            if (data.column.index === 0) {
+              const doc = data.doc;
+              
+              // Calculate total width by summing column widths
+              let totalWidth = 0;
+              if (data.table && data.table.columns) {
+                data.table.columns.forEach((col: any) => {
+                  totalWidth += col.width;
+                });
+              }
+              
+              const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
+              const y = data.cell.y;
+              const height = data.row.height;
+              
+              // Draw rounded rectangle with light colored background
+              doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+              doc.roundedRect(startX, y, totalWidth, height, 3, 3, 'F');
+            }
+          }
+          
           // Draw rounded background for creative template total row
           if (invoiceTemplate === 'creative' && data.section === 'body') {
             const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
