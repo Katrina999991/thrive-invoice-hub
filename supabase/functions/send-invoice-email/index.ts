@@ -446,15 +446,11 @@ Best regards,
     
     // Separator line after header (not for creative template)
     if (invoiceTemplate !== 'creative') {
-      // Use a lighter shade for classic template, medium shade for others
       if (invoiceTemplate === 'classic') {
-        // Use an even lighter shade (much closer to light color)
-        const veryLightR = Math.floor((selectedColor.light[0] * 5 + selectedColor.primary[0]) / 6);
-        const veryLightG = Math.floor((selectedColor.light[1] * 5 + selectedColor.primary[1]) / 6);
-        const veryLightB = Math.floor((selectedColor.light[2] * 5 + selectedColor.primary[2]) / 6);
-        doc.setDrawColor(veryLightR, veryLightG, veryLightB);
+        // Use the same light color as the line below client info
+        doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
       } else {
-        // Use a medium shade between light and primary
+        // Use a medium shade between light and primary for other templates
         const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
         const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
         const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
