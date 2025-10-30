@@ -33,6 +33,7 @@ export const useInvoices = () => {
           invoice_items (
             id,
             description,
+            notes,
             quantity,
             unit_price,
             total,
