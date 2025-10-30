@@ -669,8 +669,8 @@ Best regards,
             data.cell.styles.fillColor = undefined;
             data.cell.styles.textColor = [255, 255, 255];
             data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fontSize = 11;
-            data.cell.styles.cellPadding = 6;
+            data.cell.styles.fontSize = 10;
+            data.cell.styles.cellPadding = 4;
             data.cell.styles.lineWidth = 0;
           }
         }
