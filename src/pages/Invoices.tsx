@@ -877,6 +877,33 @@ const Invoices = () => {
               doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
             }
           }
+          
+          // Draw rounded background for modern template total row
+          if (invoiceTemplate === 'modern' && data.section === 'body') {
+            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
+            const isLastRow = data.row.index === bodyLen - 1;
+            
+            // Draw once per row only on the first column
+            if (isLastRow && data.column.index === 0) {
+              const doc = data.doc;
+              
+              // Calculate total width by summing column widths
+              let totalWidth = 0;
+              if (data.table && data.table.columns) {
+                data.table.columns.forEach((col: any) => {
+                  totalWidth += col.width;
+                });
+              }
+              
+              const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
+              const y = data.cell.y;
+              const height = data.row.height;
+              
+              // Draw rounded rectangle with colored background
+              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+              doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
+            }
+          }
         },
         didDrawCell: function(data: any) {
           // Add line above total row for professional template
