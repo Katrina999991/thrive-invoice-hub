@@ -836,6 +836,17 @@ Best regards,
         doc.setFont('helvetica', 'italic');
         const splitFooter = doc.splitTextToSize(footerMessage, 170);
         doc.text(splitFooter, 20, finalY);
+        
+        // Add decorative footer elements on last page
+        if (invoiceTemplate === 'modern') {
+          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+          doc.rect(0, pageHeight - 30, 210, 30, 'F');
+        } else if (invoiceTemplate === 'professional') {
+          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          doc.setLineWidth(2);
+          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
+        }
+        
         // Add thank you text at bottom of last page
         doc.setFontSize(8);
         doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
@@ -844,10 +855,21 @@ Best regards,
         doc.text(thankYouText, 20, pageHeight - 20);
       }
     } else {
-      // If no footer message, still add thank you text on last page
+      // If no footer message, still add decorative footer and thank you text on last page
       const pageSize = (doc as any).internal.pageSize;
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
       const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
+      
+      // Add decorative footer elements
+      if (invoiceTemplate === 'modern') {
+        doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+        doc.rect(0, pageHeight - 30, 210, 30, 'F');
+      } else if (invoiceTemplate === 'professional') {
+        doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+        doc.setLineWidth(2);
+        doc.line(20, pageHeight - 25, 190, pageHeight - 25);
+      }
+      
       doc.setFontSize(8);
       doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
                       invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
