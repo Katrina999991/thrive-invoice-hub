@@ -5,12 +5,7 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { AuthEmail } from './_templates/auth-email.tsx'
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
-// Le secret doit être au format complet v1,whsec_...
-let hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
-// Si le secret ne commence pas par v1, on l'ajoute
-if (!hookSecret.startsWith('v1,')) {
-  hookSecret = `v1,${hookSecret}`
-}
+const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
