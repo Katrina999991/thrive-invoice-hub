@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle } from "lucide-react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -11,10 +11,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
@@ -22,6 +34,8 @@ export default function Settings() {
   const [username, setUsername] = useState<string>("");
   const [isLoadingUsername, setIsLoadingUsername] = useState(false);
   const [isSavingUsername, setIsSavingUsername] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
@@ -115,6 +129,36 @@ export default function Settings() {
       });
     } finally {
       setIsSavingUsername(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.id) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-user-account');
+
+      if (error) throw error;
+
+      toast({
+        title: language === "fr" ? "Compte supprimé" : "Account deleted",
+        description: language === "fr" ? "Votre compte a été supprimé avec succès." : "Your account has been successfully deleted.",
+      });
+
+      // Sign out and redirect to auth page
+      await signOut();
+      navigate("/auth");
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message || (language === "fr" ? "Impossible de supprimer le compte" : "Failed to delete account"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -542,7 +586,77 @@ export default function Settings() {
         </Card>
 
         <PasswordChangeForm />
+
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <SettingsIcon className="h-5 w-5" />
+              {language === "fr" ? "Système" : "System"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" 
+                ? "Gérer votre compte et les paramètres système" 
+                : "Manage your account and system settings"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-destructive mb-1">
+                      {language === "fr" ? "Zone de danger" : "Danger Zone"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {language === "fr" 
+                        ? "La suppression de votre compte est irréversible. Toutes vos données seront définitivement supprimées." 
+                        : "Deleting your account is irreversible. All your data will be permanently deleted."}
+                    </p>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => setShowDeleteDialog(true)}
+                      disabled={isDeleting}
+                    >
+                      {language === "fr" ? "Supprimer le compte" : "Delete Account"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              {language === "fr" ? "Confirmer la suppression" : "Confirm Deletion"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr" 
+                ? "Êtes-vous absolument sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données, y compris vos factures, clients, produits et dépenses." 
+                : "Are you absolutely sure you want to delete your account? This action is irreversible and will delete all your data, including invoices, clients, products, and expenses."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting 
+                ? (language === "fr" ? "Suppression..." : "Deleting...") 
+                : (language === "fr" ? "Oui, supprimer mon compte" : "Yes, delete my account")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
