@@ -51,9 +51,10 @@ export default function Auth() {
       const { data: { session } } = await supabase.auth.getSession();
       console.log("Session check:", session);
       
-      // If we have a session but no previous login, it's likely a recovery
-      if (session?.user && !localStorage.getItem('has_logged_in_before')) {
-        console.log("Recovery detected - new session without previous login");
+      // Only treat as recovery if explicitly from a recovery link
+      const isRecovery = searchParams.get('type') === 'recovery';
+      if (session?.user && isRecovery) {
+        console.log("Recovery detected from URL parameter");
         setIsPasswordRecoveryMode(true);
         setShowUpdatePassword(true);
       }
@@ -70,17 +71,13 @@ export default function Auth() {
         setIsPasswordRecoveryMode(true);
         setShowUpdatePassword(true);
       } else if (event === 'SIGNED_IN' && session?.user) {
-        // Check if this is a recovery sign-in
-        const isRecovery = !localStorage.getItem('has_logged_in_before') || 
-                          searchParams.get('type') === 'recovery';
+        // Only treat as recovery if explicitly from a recovery link
+        const isRecovery = searchParams.get('type') === 'recovery';
         
         if (isRecovery) {
           console.log("Recovery sign-in detected");
           setIsPasswordRecoveryMode(true);
           setShowUpdatePassword(true);
-        } else {
-          // Normal sign-in
-          localStorage.setItem('has_logged_in_before', 'true');
         }
       }
     });
@@ -138,6 +135,8 @@ export default function Auth() {
         title: "Account created!",
         description: "Please check your email to verify your account.",
       });
+      // Mark that user has signed up successfully
+      localStorage.setItem('has_logged_in_before', 'true');
       // Reset form
       setEmail("");
       setPassword("");
