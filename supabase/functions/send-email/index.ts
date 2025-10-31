@@ -5,7 +5,32 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { AuthEmail } from './_templates/auth-email.tsx'
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
-const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
+let hookSecret = (Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string || '').trim()
+
+// Normalize secret to Standard Webhooks expected format: v1,whsec_<base64>
+try {
+  // remove surrounding quotes
+  if ((hookSecret.startsWith('"') && hookSecret.endsWith('"')) || (hookSecret.startsWith("'") && hookSecret.endsWith("'"))) {
+    hookSecret = hookSecret.slice(1, -1)
+  }
+  hookSecret = hookSecret.trim().replace(/\s+/g, '') // remove all spaces/newlines
+
+  // ensure it contains whsec_ prefix
+  if (!hookSecret.includes('whsec_')) {
+    console.log('Webhook secret missing whsec_ prefix')
+  } else {
+    // extract from whsec_ onwards
+    const fromWhsec = hookSecret.slice(hookSecret.indexOf('whsec_'))
+    let b64 = fromWhsec.replace(/^whsec_/, '')
+    // base64url -> base64
+    b64 = b64.replace(/-/g, '+').replace(/_/g, '/')
+    const pad = b64.length % 4
+    if (pad) b64 = b64 + '='.repeat(4 - pad)
+    hookSecret = `v1,whsec_${b64}`
+  }
+} catch (_) {
+  // ignore, fall back to original
+}
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
