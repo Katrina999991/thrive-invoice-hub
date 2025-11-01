@@ -141,7 +141,7 @@ const Expenses = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="description">{t("expenses.description")}</Label>
+                <Label htmlFor="description">{t("expenses.description")} <span className="text-destructive">*</span></Label>
                 <Textarea
                   id="description"
                   placeholder={t("expenses.descPlaceholder")}
@@ -151,7 +151,7 @@ const Expenses = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="amount">{t("expenses.amount")}</Label>
+                <Label htmlFor="amount">{t("expenses.amount")} <span className="text-destructive">*</span></Label>
                 <Input
                   id="amount"
                   type="number"
@@ -163,7 +163,7 @@ const Expenses = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">{t("expenses.category")}</Label>
+                <Label htmlFor="category">{t("expenses.category")} <span className="text-destructive">*</span></Label>
                 <Select value={newExpense.category} onValueChange={(value) => setNewExpense({...newExpense, category: value})}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("expenses.categoryPlaceholder")} />
@@ -181,7 +181,7 @@ const Expenses = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expense_date">{t("expenses.date")}</Label>
+                <Label htmlFor="expense_date">{t("expenses.date")} <span className="text-destructive">*</span></Label>
                 <Input
                   id="expense_date"
                   type="date"
