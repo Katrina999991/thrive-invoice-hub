@@ -302,6 +302,28 @@ Best regards,
       }
     }
 
+    // Validate phone number if provided
+    if (newCompany.phone && newCompany.phone.trim()) {
+      const phoneSchema = z.string().regex(
+        /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/,
+        { message: t("companies.validation.phoneInvalid") }
+      );
+      
+      try {
+        phoneSchema.parse(newCompany.phone.trim());
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          toast({
+            title: t("companies.validation.error"),
+            description: error.errors[0].message,
+            variant: "destructive"
+          });
+          setUploadingLogo(false);
+          return;
+        }
+      }
+    }
+
     // Validate invoice numbering configuration
     const isValid = await validateInvoiceNumbering();
     if (!isValid) {
