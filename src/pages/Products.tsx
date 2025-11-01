@@ -58,6 +58,15 @@ const Products = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!newItem.category) {
+      toast({
+        title: "Error",
+        description: "Please select a category",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const itemData = {
       name: newItem.name,
       description: newItem.description,
