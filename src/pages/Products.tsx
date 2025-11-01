@@ -66,6 +66,15 @@ const Products = () => {
       });
       return;
     }
+
+    if (newItem.type === "product" && parseFloat(newItem.cost) <= 0) {
+      toast({
+        title: "Error",
+        description: "Le prix coûtant d'un produit doit être supérieur à 0$",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const itemData = {
       name: newItem.name,
