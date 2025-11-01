@@ -13,6 +13,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLanguage } from "@/hooks/useLanguage";
+import { z } from "zod";
 
 type Company = Tables<"companies">;
 
@@ -283,6 +284,23 @@ Best regards,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadingLogo(true);
+
+    // Validate email
+    const emailSchema = z.string().trim().min(1, { message: t("companies.validation.emailRequired") }).email({ message: t("companies.validation.emailInvalid") });
+    
+    try {
+      emailSchema.parse(newCompany.email);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: t("companies.validation.error"),
+          description: error.errors[0].message,
+          variant: "destructive"
+        });
+        setUploadingLogo(false);
+        return;
+      }
+    }
 
     // Validate invoice numbering configuration
     const isValid = await validateInvoiceNumbering();
