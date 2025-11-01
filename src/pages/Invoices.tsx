@@ -243,6 +243,58 @@ const Invoices = () => {
       });
       return;
     }
+
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(newInvoice.issue_date)) {
+      toast({
+        title: "Erreur",
+        description: "Le format de la date de facture est invalide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!dateRegex.test(newInvoice.due_date)) {
+      toast({
+        title: "Erreur",
+        description: "Le format de la date d'échéance est invalide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate that dates are valid dates
+    const issueDate = new Date(newInvoice.issue_date);
+    const dueDate = new Date(newInvoice.due_date);
+
+    if (isNaN(issueDate.getTime())) {
+      toast({
+        title: "Erreur",
+        description: "La date de facture n'est pas valide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isNaN(dueDate.getTime())) {
+      toast({
+        title: "Erreur",
+        description: "La date d'échéance n'est pas valide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate that due date is not before issue date
+    if (dueDate < issueDate) {
+      toast({
+        title: "Erreur",
+        description: "La date d'échéance ne peut pas être antérieure à la date de facture",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (newInvoice.items.length === 0) {
       toast({
