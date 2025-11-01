@@ -541,7 +541,7 @@ Best regards,
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t("companies.name")}</Label>
+                <Label htmlFor="name">{t("companies.name")} *</Label>
                 <Input
                   id="name"
                   placeholder={t("companies.namePlaceholder")}
@@ -645,7 +645,7 @@ Best regards,
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">{t("companies.email")}</Label>
+                <Label htmlFor="email">{t("companies.email")} *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -735,10 +735,10 @@ Best regards,
               </div>
 
               <div className="space-y-2">
-                <Label>{t("companies.invoiceSettings")}</Label>
+                <Label>{t("companies.invoiceSettings")} *</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label htmlFor="invoicePrefix" className="text-sm">{t("companies.invoicePrefix")}</Label>
+                    <Label htmlFor="invoicePrefix" className="text-sm">{t("companies.invoicePrefix")} *</Label>
                     <Input
                       id="invoicePrefix"
                       placeholder={t("companies.invoicePrefixPlaceholder")}
@@ -748,7 +748,7 @@ Best regards,
                     />
                   </div>
                   <div>
-                    <Label htmlFor="invoiceDigits" className="text-sm">{t("companies.invoiceDigits")}</Label>
+                    <Label htmlFor="invoiceDigits" className="text-sm">{t("companies.invoiceDigits")} *</Label>
                     <Input
                       id="invoiceDigits"
                       type="number"
@@ -760,7 +760,7 @@ Best regards,
                     />
                   </div>
                   <div>
-                    <Label htmlFor="invoiceStartNumber" className="text-sm">{t("companies.invoiceStart")}</Label>
+                    <Label htmlFor="invoiceStartNumber" className="text-sm">{t("companies.invoiceStart")} *</Label>
                     <Input
                       id="invoiceStartNumber"
                       type="number"

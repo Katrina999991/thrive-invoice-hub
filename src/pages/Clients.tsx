@@ -186,7 +186,7 @@ const Clients = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t("clients.name")}</Label>
+                <Label htmlFor="name">{t("clients.name")} *</Label>
                 <Input
                   id="name"
                   placeholder={t("clients.namePlaceholder")}
