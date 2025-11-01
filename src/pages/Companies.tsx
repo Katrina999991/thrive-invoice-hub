@@ -285,11 +285,62 @@ Best regards,
     e.preventDefault();
     setUploadingLogo(true);
 
-    // Validate email
-    const emailSchema = z.string().trim().min(1, { message: t("companies.validation.emailRequired") }).email({ message: t("companies.validation.emailInvalid") });
+    // Validate required fields
+    if (!newCompany.name?.trim()) {
+      toast({
+        title: t("companies.validation.error"),
+        description: t("companies.validation.nameRequired"),
+        variant: "destructive"
+      });
+      setUploadingLogo(false);
+      return;
+    }
+
+    if (!newCompany.email?.trim()) {
+      toast({
+        title: t("companies.validation.error"),
+        description: t("companies.validation.emailRequired"),
+        variant: "destructive"
+      });
+      setUploadingLogo(false);
+      return;
+    }
+
+    if (!newCompany.invoice_prefix?.trim()) {
+      toast({
+        title: t("companies.validation.error"),
+        description: t("companies.validation.invoicePrefixRequired"),
+        variant: "destructive"
+      });
+      setUploadingLogo(false);
+      return;
+    }
+
+    if (!newCompany.invoice_digits || newCompany.invoice_digits < 1) {
+      toast({
+        title: t("companies.validation.error"),
+        description: t("companies.validation.invoiceDigitsRequired"),
+        variant: "destructive"
+      });
+      setUploadingLogo(false);
+      return;
+    }
+
+    if (!newCompany.invoice_start_number || newCompany.invoice_start_number < 1) {
+      toast({
+        title: t("companies.validation.error"),
+        description: t("companies.validation.invoiceStartNumberRequired"),
+        variant: "destructive"
+      });
+      setUploadingLogo(false);
+      return;
+    }
+
+    // Validate email format
+    const emailSchema = z.string().email({ message: t("companies.validation.emailInvalid") });
     
     try {
-      emailSchema.parse(newCompany.email);
+      emailSchema.parse(newCompany.email.trim());
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
