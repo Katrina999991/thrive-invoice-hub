@@ -64,6 +64,10 @@ Deno.serve(async (req) => {
     console.log('Webhook verified successfully for:', user.email)
     console.log('Email action type:', email_action_type)
 
+    // Extract user language from metadata, default to French
+    const userLanguage = user.raw_user_meta_data?.language || 'fr'
+    console.log('User language:', userLanguage)
+
     const html = await renderAsync(
       React.createElement(AuthEmail, {
         supabase_url: Deno.env.get('SUPABASE_URL') ?? '',
@@ -72,6 +76,7 @@ Deno.serve(async (req) => {
         redirect_to,
         email_action_type,
         email: user.email,
+        language: userLanguage,
       })
     )
 
@@ -84,15 +89,22 @@ Deno.serve(async (req) => {
 
     const getTextContent = () => {
       const verifyLink = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`
+      const isEnglish = userLanguage === 'en'
       
       if (email_action_type === 'recovery') {
-        return `GestionFlow - Réinitialisation de votre mot de passe\n\nVous avez demandé à réinitialiser votre mot de passe pour votre compte GestionFlow.\n\nCliquez sur ce lien pour réinitialiser votre mot de passe:\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+        return isEnglish
+          ? `GestionFlow - Password Reset\n\nYou requested to reset your password for your GestionFlow account.\n\nClick this link to reset your password:\n${verifyLink}\n\nOr copy and paste this temporary code: ${token}\n\nIf you didn't request this action, you can safely ignore this email.\n\nThis email was sent to ${user.email}\n\nGestionFlow - Simplified management for your business`
+          : `GestionFlow - Réinitialisation de votre mot de passe\n\nVous avez demandé à réinitialiser votre mot de passe pour votre compte GestionFlow.\n\nCliquez sur ce lien pour réinitialiser votre mot de passe:\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
       }
       if (email_action_type === 'magiclink') {
-        return `GestionFlow - Connexion\n\nCliquez sur le lien ci-dessous pour vous connecter à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+        return isEnglish
+          ? `GestionFlow - Login\n\nClick the link below to log in to GestionFlow.\n\n${verifyLink}\n\nOr copy and paste this temporary code: ${token}\n\nIf you didn't request this action, you can safely ignore this email.\n\nThis email was sent to ${user.email}\n\nGestionFlow - Simplified management for your business`
+          : `GestionFlow - Connexion\n\nCliquez sur le lien ci-dessous pour vous connecter à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
       }
       if (email_action_type === 'signup') {
-        return `GestionFlow - Bienvenue\n\nBienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+        return isEnglish
+          ? `GestionFlow - Welcome\n\nWelcome! Click the link below to confirm your GestionFlow registration.\n\n${verifyLink}\n\nOr copy and paste this temporary code: ${token}\n\nIf you didn't request this action, you can safely ignore this email.\n\nThis email was sent to ${user.email}\n\nGestionFlow - Simplified management for your business`
+          : `GestionFlow - Bienvenue\n\nBienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
       }
       return `GestionFlow\n\n${verifyLink}\n\nCode: ${token}`
     }

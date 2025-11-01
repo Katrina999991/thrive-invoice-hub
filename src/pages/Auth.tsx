@@ -121,7 +121,10 @@ export default function Auth() {
       return;
     }
 
-    const { error } = await signUp(email, password, displayName);
+    // Get current language from localStorage
+    const currentLanguage = localStorage.getItem('language') || 'fr';
+    
+    const { error } = await signUp(email, password, displayName, currentLanguage);
     
     if (error) {
       setError(error.message);

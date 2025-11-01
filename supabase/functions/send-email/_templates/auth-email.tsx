@@ -17,6 +17,7 @@ interface AuthEmailProps {
   token_hash: string
   token: string
   email: string
+  language?: string
 }
 
 export const AuthEmail = ({
@@ -26,37 +27,61 @@ export const AuthEmail = ({
   redirect_to,
   token_hash,
   email,
+  language = 'fr',
 }: AuthEmailProps) => {
   const isRecovery = email_action_type === 'recovery'
   const isMagicLink = email_action_type === 'magiclink'
   const isSignup = email_action_type === 'signup'
+  const isEnglish = language === 'en'
 
   const getTitle = () => {
-    if (isRecovery) return 'Réinitialisation de votre mot de passe'
-    if (isMagicLink) return 'Connexion à GestionFlow'
-    if (isSignup) return 'Bienvenue sur GestionFlow'
+    if (isRecovery) return isEnglish ? 'Reset your password' : 'Réinitialisation de votre mot de passe'
+    if (isMagicLink) return isEnglish ? 'Login to GestionFlow' : 'Connexion à GestionFlow'
+    if (isSignup) return isEnglish ? 'Welcome to GestionFlow' : 'Bienvenue sur GestionFlow'
     return 'GestionFlow'
   }
 
   const getPreview = () => {
-    if (isRecovery) return 'Réinitialisez votre mot de passe GestionFlow'
-    if (isMagicLink) return 'Connectez-vous à GestionFlow avec ce lien'
-    if (isSignup) return 'Confirmez votre inscription à GestionFlow'
+    if (isRecovery) return isEnglish ? 'Reset your GestionFlow password' : 'Réinitialisez votre mot de passe GestionFlow'
+    if (isMagicLink) return isEnglish ? 'Log in to GestionFlow with this link' : 'Connectez-vous à GestionFlow avec ce lien'
+    if (isSignup) return isEnglish ? 'Confirm your GestionFlow registration' : 'Confirmez votre inscription à GestionFlow'
     return 'GestionFlow'
   }
 
   const getMessage = () => {
-    if (isRecovery) return 'Vous avez demandé à réinitialiser votre mot de passe pour votre compte GestionFlow.'
-    if (isMagicLink) return 'Cliquez sur le lien ci-dessous pour vous connecter à GestionFlow.'
-    if (isSignup) return 'Bienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.'
-    return 'Cliquez sur le lien ci-dessous pour continuer.'
+    if (isRecovery) return isEnglish 
+      ? 'You requested to reset your password for your GestionFlow account.'
+      : 'Vous avez demandé à réinitialiser votre mot de passe pour votre compte GestionFlow.'
+    if (isMagicLink) return isEnglish
+      ? 'Click the link below to log in to GestionFlow.'
+      : 'Cliquez sur le lien ci-dessous pour vous connecter à GestionFlow.'
+    if (isSignup) return isEnglish
+      ? 'Welcome! Click the link below to confirm your GestionFlow registration.'
+      : 'Bienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.'
+    return isEnglish ? 'Click the link below to continue.' : 'Cliquez sur le lien ci-dessous pour continuer.'
   }
 
   const getButtonText = () => {
-    if (isRecovery) return 'Réinitialiser mon mot de passe'
-    if (isMagicLink) return 'Se connecter'
-    if (isSignup) return 'Confirmer mon inscription'
-    return 'Continuer'
+    if (isRecovery) return isEnglish ? 'Reset my password' : 'Réinitialiser mon mot de passe'
+    if (isMagicLink) return isEnglish ? 'Log in' : 'Se connecter'
+    if (isSignup) return isEnglish ? 'Confirm my registration' : 'Confirmer mon inscription'
+    return isEnglish ? 'Continue' : 'Continuer'
+  }
+
+  const getCopyCodeText = () => {
+    return isEnglish ? 'Or copy and paste this temporary code:' : 'Ou copiez et collez ce code temporaire :'
+  }
+
+  const getFooterText = () => {
+    return isEnglish
+      ? "If you didn't request this action, you can safely ignore this email."
+      : "Si vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité."
+  }
+
+  const getFooterBrand = () => {
+    return isEnglish
+      ? 'GestionFlow - Simplified management for your business'
+      : 'GestionFlow - Gestion simplifiée pour votre entreprise'
   }
 
   return (
@@ -76,17 +101,17 @@ export const AuthEmail = ({
             {getButtonText()}
           </Link>
           <Text style={text}>
-            Ou copiez et collez ce code temporaire :
+            {getCopyCodeText()}
           </Text>
           <code style={code}>{token}</code>
           <Text style={footer}>
-            Si vous n&apos;avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.
+            {getFooterText()}
           </Text>
           <Text style={footer}>
-            Cet email a été envoyé à {email}
+            {isEnglish ? 'This email was sent to' : 'Cet email a été envoyé à'} {email}
           </Text>
           <Text style={footerBrand}>
-            GestionFlow - Gestion simplifiée pour votre entreprise
+            {getFooterBrand()}
           </Text>
         </Container>
       </Body>
