@@ -22,6 +22,9 @@ export default function Auth() {
   const [error, setError] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [showVerifyOtp, setShowVerifyOtp] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -159,17 +162,62 @@ export default function Auth() {
     if (error) {
       setError(error.message);
       toast({
-        title: "Reset failed",
+        title: language === 'en' ? 'Reset failed' : 'Échec de la réinitialisation',
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Reset email sent!",
-        description: "Please check your email for reset instructions.",
+        title: language === 'en' ? 'Reset email sent!' : 'Email de réinitialisation envoyé !',
+        description: language === 'en' 
+          ? 'Please check your email for reset instructions.' 
+          : 'Veuillez vérifier votre email pour les instructions de réinitialisation.',
       });
       setShowResetPassword(false);
+      setOtpEmail(resetEmail);
       setResetEmail("");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!otpCode || !otpEmail) {
+      setError(language === 'en' ? 'Please enter your email and code' : 'Veuillez entrer votre email et votre code');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: otpEmail,
+        token: otpCode,
+        type: 'recovery'
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'en' ? 'Code verified!' : 'Code vérifié !',
+        description: language === 'en' 
+          ? 'Please enter your new password.' 
+          : 'Veuillez entrer votre nouveau mot de passe.',
+      });
+      setShowVerifyOtp(false);
+      setOtpCode("");
+      setIsPasswordRecoveryMode(true);
+      setShowUpdatePassword(true);
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        title: language === 'en' ? 'Verification failed' : 'Échec de la vérification',
+        description: error.message,
+        variant: "destructive",
+      });
     }
     
     setIsLoading(false);
@@ -311,6 +359,14 @@ export default function Auth() {
                   >
                     {language === 'en' ? 'Forgot your password?' : 'Mot de passe oublié ?'}
                   </button>
+                  <span className="mx-2 text-muted-foreground">|</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowVerifyOtp(true)}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {language === 'en' ? 'Have a code?' : 'Vous avez un code ?'}
+                  </button>
                 </div>
               </form>
             </TabsContent>
@@ -428,6 +484,76 @@ export default function Auth() {
                   </>
                 ) : (
                   language === 'en' ? 'Send Reset Link' : 'Envoyer le lien'
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showVerifyOtp} onOpenChange={setShowVerifyOtp}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'en' ? 'Verify Reset Code' : 'Vérifier le code de réinitialisation'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'en'
+                ? 'Enter the code from your email to reset your password.'
+                : 'Entrez le code reçu dans votre email pour réinitialiser votre mot de passe.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="otp-email">Email</Label>
+              <Input
+                id="otp-email"
+                type="email"
+                value={otpEmail}
+                onChange={(e) => setOtpEmail(e.target.value)}
+                required
+                disabled={isLoading}
+                placeholder={language === 'en' ? 'Enter your email address' : 'Entrez votre adresse email'}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="otp-code">
+                {language === 'en' ? 'Reset Code' : 'Code de réinitialisation'}
+              </Label>
+              <Input
+                id="otp-code"
+                type="text"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                required
+                disabled={isLoading}
+                placeholder={language === 'en' ? 'Enter your code' : 'Entrez votre code'}
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowVerifyOtp(false)}
+                className="flex-1"
+                disabled={isLoading}
+              >
+                {language === 'en' ? 'Cancel' : 'Annuler'}
+              </Button>
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {language === 'en' ? 'Verifying...' : 'Vérification...'}
+                  </>
+                ) : (
+                  language === 'en' ? 'Verify Code' : 'Vérifier le code'
                 )}
               </Button>
             </div>
