@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2 } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -90,6 +90,7 @@ const Invoices = () => {
   });
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [ccEmails, setCcEmails] = useState<string[]>([]);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Filter clients based on selected company
   const filteredClients = selectedCompanyId 
@@ -1377,6 +1378,8 @@ Best regards,
       return;
     }
     
+    setIsSendingEmail(true);
+    
     try {
       // Get template and color settings from localStorage
       const invoiceTemplate = localStorage.getItem("invoice-template") || "classic";
@@ -1416,6 +1419,8 @@ Best regards,
         description: "Failed to send invoice email. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -2377,10 +2382,11 @@ Best regards,
               <Button 
                 onClick={sendInvoiceEmail}
                 className="flex-1"
-                disabled={!emailForm.subject || !emailForm.message || selectedEmails.length === 0}
+                disabled={!emailForm.subject || !emailForm.message || selectedEmails.length === 0 || isSendingEmail}
               >
+                {isSendingEmail && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <Send className="h-4 w-4 mr-2" />
-                {t("invoices.sendEmail")} {selectedEmails.length > 0 && `(${selectedEmails.length})`}
+                {isSendingEmail ? t("invoices.sending") : t("invoices.sendEmail")} {selectedEmails.length > 0 && !isSendingEmail && `(${selectedEmails.length})`}
               </Button>
             </div>
           </div>
