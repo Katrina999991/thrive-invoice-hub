@@ -82,13 +82,30 @@ Deno.serve(async (req) => {
       return 'GestionFlow'
     }
 
+    const getTextContent = () => {
+      const verifyLink = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`
+      
+      if (email_action_type === 'recovery') {
+        return `GestionFlow - Réinitialisation de votre mot de passe\n\nVous avez demandé à réinitialiser votre mot de passe pour votre compte GestionFlow.\n\nCliquez sur ce lien pour réinitialiser votre mot de passe:\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+      }
+      if (email_action_type === 'magiclink') {
+        return `GestionFlow - Connexion\n\nCliquez sur le lien ci-dessous pour vous connecter à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+      }
+      if (email_action_type === 'signup') {
+        return `GestionFlow - Bienvenue\n\nBienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+      }
+      return `GestionFlow\n\n${verifyLink}\n\nCode: ${token}`
+    }
+
     console.log('Sending email to:', user.email)
 
     const { data, error } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'GestionFlow <onboarding@resend.dev>',
       to: [user.email],
+      reply_to: 'support@gestionflow.net',
       subject: getSubject(),
       html,
+      text: getTextContent(),
     })
 
     if (error) {
