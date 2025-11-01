@@ -445,16 +445,22 @@ const Invoices = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
+    console.log('Editing invoice - issue_date:', invoice.issue_date, 'due_date:', invoice.due_date);
     setEditingInvoice(invoice);
     
     // Find the company ID for this invoice
     const client = clients.find(c => c.id === invoice.client_id);
     setSelectedCompanyId(client?.company_id || "");
     
+    const issueDate = invoice.issue_date || new Date().toISOString().split('T')[0];
+    const dueDate = invoice.due_date || "";
+    
+    console.log('Setting invoice state - issue_date:', issueDate, 'due_date:', dueDate);
+    
     setNewInvoice({
       client_id: invoice.client_id || "",
-      issue_date: invoice.issue_date || new Date().toISOString().split('T')[0],
-      due_date: invoice.due_date || "",
+      issue_date: issueDate,
+      due_date: dueDate,
       terms: invoice.terms || "",
       notes: invoice.notes || "",
       items: invoice.invoice_items?.map(item => ({
@@ -1553,25 +1559,24 @@ Best regards,
                     value={selectedCompanyId} 
                     onValueChange={(value) => {
                       setSelectedCompanyId(value);
-                      // Reset client selection when company changes
-                      setNewInvoice({
-                        ...newInvoice,
-                        client_id: ""
-                      });
                       
                       // Calculate due date based on company's default_due_days
                       const selectedCompany = companies.find(c => c.id === value);
-                      if (selectedCompany?.default_due_days) {
-                        const today = new Date();
-                        const dueDate = new Date(today);
-                        dueDate.setDate(today.getDate() + selectedCompany.default_due_days);
-                        
-                        setNewInvoice(prev => ({
-                          ...prev,
-                          client_id: "",
-                          due_date: dueDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
-                        }));
+                      let updates: any = {
+                        client_id: "" // Reset client selection when company changes
+                      };
+                      
+                      if (selectedCompany?.default_due_days && newInvoice.issue_date) {
+                        const issueDate = new Date(newInvoice.issue_date);
+                        const dueDate = new Date(issueDate);
+                        dueDate.setDate(issueDate.getDate() + selectedCompany.default_due_days);
+                        updates.due_date = dueDate.toISOString().split('T')[0];
                       }
+                      
+                      setNewInvoice({
+                        ...newInvoice,
+                        ...updates
+                      });
                     }}
                   >
                     <SelectTrigger>
@@ -1637,16 +1642,27 @@ Best regards,
                     type="date"
                     value={newInvoice.issue_date}
                     onChange={(e) => {
+                      console.log('Issue date changed:', e.target.value);
                       const issueDate = new Date(e.target.value);
+                      
+                      // Validate date is valid
+                      if (isNaN(issueDate.getTime())) {
+                        console.error('Invalid issue date:', e.target.value);
+                        return;
+                      }
+                      
                       const selectedCompany = companies.find(c => c.id === selectedCompanyId);
                       const dueDays = selectedCompany?.default_due_days || 7;
                       const dueDate = new Date(issueDate);
                       dueDate.setDate(dueDate.getDate() + dueDays);
                       
+                      const newDueDate = dueDate.toISOString().split('T')[0];
+                      console.log('Calculated due date:', newDueDate);
+                      
                       setNewInvoice({
                         ...newInvoice, 
                         issue_date: e.target.value,
-                        due_date: dueDate.toISOString().split('T')[0]
+                        due_date: newDueDate
                       });
                     }}
                     required
@@ -1658,7 +1674,10 @@ Best regards,
                     id="due_date"
                     type="date"
                     value={newInvoice.due_date}
-                    onChange={(e) => setNewInvoice({...newInvoice, due_date: e.target.value})}
+                    onChange={(e) => {
+                      console.log('Due date changed:', e.target.value);
+                      setNewInvoice({...newInvoice, due_date: e.target.value});
+                    }}
                     required
                   />
                 </div>
