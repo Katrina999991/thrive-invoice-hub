@@ -3,10 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Building2, Users, Package, FileText, DollarSign, TrendingUp } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { t } = useLanguage();
   const { data: dashboardData, isLoading } = useDashboard(t);
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -123,19 +125,31 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-2">
-              <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+              <button 
+                onClick={() => navigate("/invoices")}
+                className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
+              >
                 <FileText className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.createInvoice")}</span>
               </button>
-              <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+              <button 
+                onClick={() => navigate("/clients")}
+                className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
+              >
                 <Users className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.addClient")}</span>
               </button>
-              <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+              <button 
+                onClick={() => navigate("/products")}
+                className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
+              >
                 <Package className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.addProduct")}</span>
               </button>
-              <button className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+              <button 
+                onClick={() => navigate("/reports")}
+                className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
+              >
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.viewReports")}</span>
               </button>
