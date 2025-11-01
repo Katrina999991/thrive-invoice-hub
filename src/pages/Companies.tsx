@@ -225,9 +225,71 @@ Best regards,
     setTaxes(newTaxes);
   };
 
+  const validateInvoiceNumbering = async (): Promise<boolean> => {
+    try {
+      // Get all existing invoices to check for conflicts
+      const { data: existingInvoices, error: invoicesError } = await supabase
+        .from('invoices')
+        .select('invoice_number');
+
+      if (invoicesError) throw invoicesError;
+
+      // Get all companies except the one being edited
+      const otherCompanies = companies.filter(c => !editingCompany || c.id !== editingCompany.id);
+
+      // Check if another company has the same prefix
+      const prefixConflict = otherCompanies.some(c => 
+        (c as any).invoice_prefix === newCompany.invoice_prefix
+      );
+
+      if (prefixConflict) {
+        toast({
+          title: t("companies.validation.error"),
+          description: t("companies.validation.prefixConflict"),
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Generate potential invoice numbers based on the new configuration
+      const maxCheck = 100; // Check first 100 potential numbers
+      const potentialNumbers: string[] = [];
+      for (let i = 0; i < maxCheck; i++) {
+        const num = (newCompany.invoice_start_number || 1) + i;
+        const formatted = `${newCompany.invoice_prefix}-${num.toString().padStart(newCompany.invoice_digits, '0')}`;
+        potentialNumbers.push(formatted);
+      }
+
+      // Check if any potential number already exists
+      const existingNumbers = new Set(existingInvoices?.map(inv => inv.invoice_number) || []);
+      const conflicts = potentialNumbers.filter(num => existingNumbers.has(num));
+
+      if (conflicts.length > 0) {
+        toast({
+          title: t("companies.validation.error"),
+          description: t("companies.validation.numberConflict").replace('{numbers}', conflicts.slice(0, 5).join(', ')),
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error validating invoice numbering:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadingLogo(true);
+
+    // Validate invoice numbering configuration
+    const isValid = await validateInvoiceNumbering();
+    if (!isValid) {
+      setUploadingLogo(false);
+      return;
+    }
     
     let logoUrl = newCompany.logo_url;
     
