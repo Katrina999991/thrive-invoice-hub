@@ -1496,7 +1496,7 @@ Best regards,
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company">{t("invoices.selectCompany")}</Label>
+                  <Label htmlFor="company">{t("invoices.selectCompany")} <span className="text-destructive">*</span></Label>
                   <Select
                     value={selectedCompanyId} 
                     onValueChange={(value) => {
@@ -1540,7 +1540,7 @@ Best regards,
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client">{t("invoices.selectClient")}</Label>
+                  <Label htmlFor="client">{t("invoices.selectClient")} <span className="text-destructive">*</span></Label>
                   <Select
                     value={newInvoice.client_id} 
                     onValueChange={(value) => {
@@ -1579,7 +1579,7 @@ Best regards,
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="issue_date">{t("invoices.issueDate")}</Label>
+                  <Label htmlFor="issue_date">{t("invoices.issueDate")} <span className="text-destructive">*</span></Label>
                   <Input
                     id="issue_date"
                     type="date"
@@ -1601,7 +1601,7 @@ Best regards,
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="due_date">{t("invoices.dueDate")}</Label>
+                  <Label htmlFor="due_date">{t("invoices.dueDate")} <span className="text-destructive">*</span></Label>
                   <Input
                     id="due_date"
                     type="date"
@@ -1634,7 +1634,7 @@ Best regards,
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">{t("invoices.addItems")}</h3>
+                <h3 className="text-lg font-medium">{t("invoices.addItems")} <span className="text-destructive">*</span></h3>
                 
                 {/* Product Selector */}
                 <div className="space-y-2">
