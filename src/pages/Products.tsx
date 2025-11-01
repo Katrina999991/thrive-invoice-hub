@@ -75,6 +75,15 @@ const Products = () => {
       });
       return;
     }
+
+    if (parseFloat(newItem.price) < parseFloat(newItem.cost)) {
+      toast({
+        title: "Error",
+        description: "Le prix de vente doit être égal ou supérieur au prix coûtant",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const itemData = {
       name: newItem.name,
