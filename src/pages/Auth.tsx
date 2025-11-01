@@ -14,7 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export default function Auth() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -221,17 +221,44 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Business Management</CardTitle>
+        <CardHeader className="space-y-3">
+          <div className="flex justify-end">
+            <div className="flex gap-2">
+              <Button
+                variant={language === 'fr' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('fr')}
+              >
+                🇫🇷 FR
+              </Button>
+              <Button
+                variant={language === 'en' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('en')}
+              >
+                🇬🇧 EN
+              </Button>
+            </div>
+          </div>
+          <CardTitle className="text-2xl text-center">
+            {language === 'en' ? 'Business Management' : 'Gestion d\'Entreprise'}
+          </CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account or create a new one
+            {language === 'en' 
+              ? 'Sign in to your account or create a new one'
+              : 'Connectez-vous à votre compte ou créez-en un nouveau'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">
+                {language === 'en' ? 'Sign In' : 'Connexion'}
+              </TabsTrigger>
+              <TabsTrigger value="signup">
+                {language === 'en' ? 'Sign Up' : 'Inscription'}
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -248,7 +275,9 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password">
+                    {language === 'en' ? 'Password' : 'Mot de passe'}
+                  </Label>
                   <Input
                     id="signin-password"
                     type="password"
@@ -267,12 +296,12 @@ export default function Auth() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
+                      {language === 'en' ? 'Signing in...' : 'Connexion en cours...'}
                     </>
                   ) : (
                     <>
                       <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
+                      {language === 'en' ? 'Sign In' : 'Se connecter'}
                     </>
                   )}
                 </Button>
@@ -282,7 +311,7 @@ export default function Auth() {
                     onClick={() => setShowResetPassword(true)}
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Forgot your password?
+                    {language === 'en' ? 'Forgot your password?' : 'Mot de passe oublié ?'}
                   </button>
                 </div>
               </form>
@@ -291,7 +320,9 @@ export default function Auth() {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Display Name</Label>
+                  <Label htmlFor="signup-name">
+                    {language === 'en' ? 'Display Name' : 'Nom d\'affichage'}
+                  </Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -313,7 +344,9 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">
+                    {language === 'en' ? 'Password' : 'Mot de passe'}
+                  </Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -333,12 +366,12 @@ export default function Auth() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
+                      {language === 'en' ? 'Creating account...' : 'Création du compte...'}
                     </>
                   ) : (
                     <>
                       <UserPlus className="mr-2 h-4 w-4" />
-                      Create Account
+                      {language === 'en' ? 'Create Account' : 'Créer un compte'}
                     </>
                   )}
                 </Button>
@@ -351,9 +384,14 @@ export default function Auth() {
       <Dialog open={showResetPassword} onOpenChange={setShowResetPassword}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
+            <DialogTitle>
+              {language === 'en' ? 'Reset Password' : 'Réinitialiser le mot de passe'}
+            </DialogTitle>
             <DialogDescription>
-              Enter your email address and we'll send you a link to reset your password.
+              {language === 'en'
+                ? "Enter your email address and we'll send you a link to reset your password."
+                : 'Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.'
+              }
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleResetPassword} className="space-y-4">
@@ -366,7 +404,7 @@ export default function Auth() {
                 onChange={(e) => setResetEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                placeholder="Enter your email address"
+                placeholder={language === 'en' ? 'Enter your email address' : 'Entrez votre adresse email'}
               />
             </div>
             {error && (
@@ -382,16 +420,16 @@ export default function Auth() {
                 className="flex-1"
                 disabled={isLoading}
               >
-                Cancel
+                {language === 'en' ? 'Cancel' : 'Annuler'}
               </Button>
               <Button type="submit" className="flex-1" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    {language === 'en' ? 'Sending...' : 'Envoi...'}
                   </>
                 ) : (
-                  "Send Reset Link"
+                  language === 'en' ? 'Send Reset Link' : 'Envoyer le lien'
                 )}
               </Button>
             </div>
@@ -402,14 +440,18 @@ export default function Auth() {
       <Dialog open={showUpdatePassword} onOpenChange={setShowUpdatePassword}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Password</DialogTitle>
+            <DialogTitle>
+              {language === 'en' ? 'Update Password' : 'Modifier le mot de passe'}
+            </DialogTitle>
             <DialogDescription>
-              Enter your new password below.
+              {language === 'en' ? 'Enter your new password below.' : 'Entrez votre nouveau mot de passe ci-dessous.'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
+              <Label htmlFor="new-password">
+                {language === 'en' ? 'New Password' : 'Nouveau mot de passe'}
+              </Label>
               <Input
                 id="new-password"
                 type="password"
@@ -418,11 +460,13 @@ export default function Auth() {
                 required
                 disabled={isLoading}
                 minLength={6}
-                placeholder="Enter your new password"
+                placeholder={language === 'en' ? 'Enter your new password' : 'Entrez votre nouveau mot de passe'}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Label htmlFor="confirm-password">
+                {language === 'en' ? 'Confirm Password' : 'Confirmer le mot de passe'}
+              </Label>
               <Input
                 id="confirm-password"
                 type="password"
@@ -431,7 +475,7 @@ export default function Auth() {
                 required
                 disabled={isLoading}
                 minLength={6}
-                placeholder="Confirm your new password"
+                placeholder={language === 'en' ? 'Confirm your new password' : 'Confirmez votre nouveau mot de passe'}
               />
             </div>
             {error && (
@@ -443,10 +487,10 @@ export default function Auth() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
+                  {language === 'en' ? 'Updating...' : 'Modification...'}
                 </>
               ) : (
-                "Update Password"
+                language === 'en' ? 'Update Password' : 'Modifier le mot de passe'
               )}
             </Button>
           </form>
