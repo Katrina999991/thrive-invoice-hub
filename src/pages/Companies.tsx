@@ -285,96 +285,6 @@ Best regards,
     e.preventDefault();
     setUploadingLogo(true);
 
-    // Validate required fields
-    if (!newCompany.name?.trim()) {
-      toast({
-        title: t("companies.validation.error"),
-        description: t("companies.validation.nameRequired"),
-        variant: "destructive"
-      });
-      setUploadingLogo(false);
-      return;
-    }
-
-    if (!newCompany.email?.trim()) {
-      toast({
-        title: t("companies.validation.error"),
-        description: t("companies.validation.emailRequired"),
-        variant: "destructive"
-      });
-      setUploadingLogo(false);
-      return;
-    }
-
-    if (!newCompany.invoice_prefix?.trim()) {
-      toast({
-        title: t("companies.validation.error"),
-        description: t("companies.validation.invoicePrefixRequired"),
-        variant: "destructive"
-      });
-      setUploadingLogo(false);
-      return;
-    }
-
-    if (!newCompany.invoice_digits || newCompany.invoice_digits < 1) {
-      toast({
-        title: t("companies.validation.error"),
-        description: t("companies.validation.invoiceDigitsRequired"),
-        variant: "destructive"
-      });
-      setUploadingLogo(false);
-      return;
-    }
-
-    if (!newCompany.invoice_start_number || newCompany.invoice_start_number < 1) {
-      toast({
-        title: t("companies.validation.error"),
-        description: t("companies.validation.invoiceStartNumberRequired"),
-        variant: "destructive"
-      });
-      setUploadingLogo(false);
-      return;
-    }
-
-    // Validate email format
-    const emailSchema = z.string().email({ message: t("companies.validation.emailInvalid") });
-    
-    try {
-      emailSchema.parse(newCompany.email.trim());
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: t("companies.validation.error"),
-          description: error.errors[0].message,
-          variant: "destructive"
-        });
-        setUploadingLogo(false);
-        return;
-      }
-    }
-
-    // Validate phone number if provided
-    if (newCompany.phone && newCompany.phone.trim()) {
-      const phoneSchema = z.string().regex(
-        /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/,
-        { message: t("companies.validation.phoneInvalid") }
-      );
-      
-      try {
-        phoneSchema.parse(newCompany.phone.trim());
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          toast({
-            title: t("companies.validation.error"),
-            description: error.errors[0].message,
-            variant: "destructive"
-          });
-          setUploadingLogo(false);
-          return;
-        }
-      }
-    }
-
     // Validate invoice numbering configuration
     const isValid = await validateInvoiceNumbering();
     if (!isValid) {
@@ -726,9 +636,12 @@ Best regards,
                 <Label htmlFor="phone">{t("companies.phone")}</Label>
                 <Input
                   id="phone"
+                  type="tel"
+                  pattern="[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}"
                   placeholder={t("companies.phonePlaceholder")}
                   value={newCompany.phone}
                   onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
+                  title={t("companies.validation.phoneInvalid")}
                 />
               </div>
               <div className="space-y-2">
@@ -739,6 +652,7 @@ Best regards,
                   placeholder={t("companies.emailPlaceholder")}
                   value={newCompany.email}
                   onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -830,6 +744,7 @@ Best regards,
                       placeholder={t("companies.invoicePrefixPlaceholder")}
                       value={newCompany.invoice_prefix}
                       onChange={(e) => setNewCompany({...newCompany, invoice_prefix: e.target.value})}
+                      required
                     />
                   </div>
                   <div>
@@ -841,6 +756,7 @@ Best regards,
                       max="10"
                       value={newCompany.invoice_digits}
                       onChange={(e) => setNewCompany({...newCompany, invoice_digits: Number(e.target.value)})}
+                      required
                     />
                   </div>
                   <div>
@@ -851,6 +767,7 @@ Best regards,
                       min="1"
                       value={newCompany.invoice_start_number}
                       onChange={(e) => setNewCompany({...newCompany, invoice_start_number: Number(e.target.value)})}
+                      required
                     />
                   </div>
                 </div>
