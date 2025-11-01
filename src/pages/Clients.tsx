@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
+import { z } from "zod";
 
 
 const Clients = () => {
@@ -63,6 +64,40 @@ const Clients = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Validation: vérifier le format des emails
+    const emailSchema = z.string().email();
+    for (const email of emailList) {
+      if (email.trim()) {
+        try {
+          emailSchema.parse(email.trim());
+        } catch (error) {
+          toast({
+            title: t("clients.validation.error"),
+            description: t("clients.validation.emailInvalid"),
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+    }
+
+    // Validation: vérifier le format du téléphone si renseigné
+    if (newClient.phone && newClient.phone.trim()) {
+      const phoneSchema = z.string().regex(
+        /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/
+      );
+      try {
+        phoneSchema.parse(newClient.phone.trim());
+      } catch (error) {
+        toast({
+          title: t("clients.validation.error"),
+          description: t("clients.validation.phoneInvalid"),
+          variant: "destructive"
+        });
+        return;
+      }
     }
     
     if (editingClient) {
@@ -261,9 +296,12 @@ const Clients = () => {
                 <Label htmlFor="phone">{t("clients.phone")}</Label>
                 <Input
                   id="phone"
+                  type="tel"
+                  pattern="[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}"
                   placeholder={t("clients.phonePlaceholder")}
                   value={newClient.phone}
                   onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
+                  title={t("clients.validation.phoneInvalid")}
                 />
               </div>
               <div className="space-y-2">

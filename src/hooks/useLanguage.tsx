@@ -179,6 +179,8 @@ const translations = {
     "clients.validation.error": "Validation Error",
     "clients.validation.companyRequired": "Please select a company",
     "clients.validation.emailRequired": "At least one email is required",
+    "clients.validation.emailInvalid": "Please enter a valid email address",
+    "clients.validation.phoneInvalid": "Please enter a valid phone number (e.g., +1 234 567-8900)",
     "clients.hourlyPlaceholder": "Enter hourly rate",
     
     // Products
@@ -900,6 +902,8 @@ const translations = {
     "clients.validation.error": "Erreur de validation",
     "clients.validation.companyRequired": "Veuillez sélectionner une entreprise",
     "clients.validation.emailRequired": "Au moins un email est requis",
+    "clients.validation.emailInvalid": "Veuillez entrer une adresse email valide",
+    "clients.validation.phoneInvalid": "Veuillez entrer un numéro de téléphone valide (ex: +1 234 567-8900)",
     "clients.hourlyPlaceholder": "Entrez le taux horaire",
     
     // Products
