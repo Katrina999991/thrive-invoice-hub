@@ -357,6 +357,20 @@ const Products = () => {
                     <SelectItem value="Consulting">{t("products.catConsulting")}</SelectItem>
                     <SelectItem value="Hardware">{t("products.catHardware")}</SelectItem>
                     <SelectItem value="Design">{t("products.catDesign")}</SelectItem>
+                    <SelectItem value="Marketing">{t("products.catMarketing")}</SelectItem>
+                    <SelectItem value="Training">{t("products.catTraining")}</SelectItem>
+                    <SelectItem value="Support">{t("products.catSupport")}</SelectItem>
+                    <SelectItem value="Maintenance">{t("products.catMaintenance")}</SelectItem>
+                    <SelectItem value="Hosting">{t("products.catHosting")}</SelectItem>
+                    <SelectItem value="Cloud Services">{t("products.catCloudServices")}</SelectItem>
+                    <SelectItem value="Security">{t("products.catSecurity")}</SelectItem>
+                    <SelectItem value="Data Analysis">{t("products.catDataAnalysis")}</SelectItem>
+                    <SelectItem value="Content Creation">{t("products.catContentCreation")}</SelectItem>
+                    <SelectItem value="Photography">{t("products.catPhotography")}</SelectItem>
+                    <SelectItem value="Video Production">{t("products.catVideoProduction")}</SelectItem>
+                    <SelectItem value="Translation">{t("products.catTranslation")}</SelectItem>
+                    <SelectItem value="Legal Services">{t("products.catLegalServices")}</SelectItem>
+                    <SelectItem value="Accounting">{t("products.catAccounting")}</SelectItem>
                     <SelectItem value="Other">{t("products.catOther")}</SelectItem>
                   </SelectContent>
                 </Select>
