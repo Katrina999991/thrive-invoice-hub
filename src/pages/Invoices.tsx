@@ -208,10 +208,46 @@ const Invoices = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!selectedCompanyId) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez sélectionner une entreprise",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newInvoice.client_id) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez sélectionner un client",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newInvoice.issue_date) {
+      toast({
+        title: "Erreur",
+        description: "La date de facture est obligatoire",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newInvoice.due_date) {
+      toast({
+        title: "Erreur",
+        description: "La date d'échéance est obligatoire",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (newInvoice.items.length === 0) {
       toast({
-        title: "Error",
-        description: "Please add at least one item to the invoice.",
+        title: "Erreur",
+        description: "Vous devez ajouter au moins un article",
         variant: "destructive"
       });
       return;
