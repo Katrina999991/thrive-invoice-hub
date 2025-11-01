@@ -40,6 +40,16 @@ const Expenses = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!newExpense.category) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une catégorie",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (editingExpense) {
       // Update existing expense
       await updateExpense(editingExpense.id, {
@@ -164,7 +174,7 @@ const Expenses = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">{t("expenses.category")} <span className="text-destructive">*</span></Label>
-                <Select value={newExpense.category} onValueChange={(value) => setNewExpense({...newExpense, category: value})}>
+                <Select value={newExpense.category} onValueChange={(value) => setNewExpense({...newExpense, category: value})} required>
                   <SelectTrigger>
                     <SelectValue placeholder={t("expenses.categoryPlaceholder")} />
                   </SelectTrigger>
