@@ -5,8 +5,8 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const Dashboard = () => {
-  const { data: dashboardData, isLoading } = useDashboard();
   const { t } = useLanguage();
+  const { data: dashboardData, isLoading } = useDashboard(t);
 
   const stats = [
     {
