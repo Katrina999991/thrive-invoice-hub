@@ -215,7 +215,11 @@ const Products = () => {
                 
                 return (
                   <div key={index} className="flex items-center text-sm text-muted-foreground">
-                    <Percent className="h-4 w-4 mr-2" />
+                    {taxType === 'percentage' ? (
+                      <Percent className="h-4 w-4 mr-2" />
+                    ) : (
+                      <span className="h-4 w-4 mr-2 flex items-center">$</span>
+                    )}
                     {taxName}: {taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`}
                   </div>
                 );
