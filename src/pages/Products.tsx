@@ -305,7 +305,9 @@ const Products = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">{t("products.name")}</Label>
+                <Label htmlFor="name">
+                  {t("products.name")} <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="name"
                   placeholder={t("products.namePlaceholder")}
@@ -325,7 +327,9 @@ const Products = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cost">{t("products.costPrice")}</Label>
+                  <Label htmlFor="cost">
+                    {t("products.costPrice")} <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="cost"
                     type="number"
@@ -333,10 +337,13 @@ const Products = () => {
                     placeholder="0.00"
                     value={newItem.cost}
                     onChange={(e) => setNewItem({...newItem, cost: e.target.value})}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">{t("products.salePrice")}</Label>
+                  <Label htmlFor="price">
+                    {t("products.salePrice")} <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="price"
                     type="number"
@@ -349,8 +356,10 @@ const Products = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">{t("products.category")}</Label>
-                <Select value={newItem.category} onValueChange={(value) => setNewItem({...newItem, category: value})}>
+                <Label htmlFor="category">
+                  {t("products.category")} <span className="text-destructive">*</span>
+                </Label>
+                <Select value={newItem.category} onValueChange={(value) => setNewItem({...newItem, category: value})} required>
                   <SelectTrigger>
                     <SelectValue placeholder={t("products.categoryPlaceholder")} />
                   </SelectTrigger>
@@ -382,13 +391,16 @@ const Products = () => {
               {newItem.type === "product" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">{t("products.quantity")}</Label>
+                    <Label htmlFor="quantity">
+                      {t("products.quantity")} <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       id="quantity"
                       type="number"
                       placeholder={t("products.quantityPlaceholder")}
                       value={newItem.quantity}
                       onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
