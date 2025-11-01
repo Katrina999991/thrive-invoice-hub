@@ -176,6 +176,9 @@ const translations = {
     "clients.delete": "Delete Client",
     "clients.deleteConfirm": "Are you sure you want to delete {name}? This action cannot be undone.",
     "clients.deleteButton": "Delete",
+    "clients.validation.error": "Validation Error",
+    "clients.validation.companyRequired": "Please select a company",
+    "clients.validation.emailRequired": "At least one email is required",
     "clients.hourlyPlaceholder": "Enter hourly rate",
     
     // Products
@@ -894,6 +897,9 @@ const translations = {
     "clients.delete": "Supprimer le client",
     "clients.deleteConfirm": "Êtes-vous sûr de vouloir supprimer {name} ? Cette action ne peut pas être annulée.",
     "clients.deleteButton": "Supprimer",
+    "clients.validation.error": "Erreur de validation",
+    "clients.validation.companyRequired": "Veuillez sélectionner une entreprise",
+    "clients.validation.emailRequired": "Au moins un email est requis",
     "clients.hourlyPlaceholder": "Entrez le taux horaire",
     
     // Products

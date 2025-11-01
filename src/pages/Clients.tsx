@@ -42,8 +42,28 @@ const Clients = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation: vérifier qu'une compagnie est sélectionnée
+    if (!newClient.company_id || newClient.company_id.trim() === "") {
+      toast({
+        title: t("clients.validation.error"),
+        description: t("clients.validation.companyRequired"),
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Combiner les emails en une seule chaîne séparée par des virgules
     const emailsString = emailList.filter(email => email.trim() !== "").join(", ");
+    
+    // Validation: vérifier qu'au moins un email est renseigné
+    if (!emailsString) {
+      toast({
+        title: t("clients.validation.error"),
+        description: t("clients.validation.emailRequired"),
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (editingClient) {
       await updateClient(editingClient.id, {
@@ -185,8 +205,12 @@ const Clients = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company_id">{t("clients.serviceProvider")}</Label>
-                <Select value={newClient.company_id} onValueChange={(value) => setNewClient({...newClient, company_id: value})}>
+                <Label htmlFor="company_id">{t("clients.serviceProvider")} *</Label>
+                <Select 
+                  value={newClient.company_id} 
+                  onValueChange={(value) => setNewClient({...newClient, company_id: value})}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t("clients.serviceProviderPlaceholder")} />
                   </SelectTrigger>
@@ -200,7 +224,7 @@ const Clients = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>{t("clients.emails")}</Label>
+                <Label>{t("clients.emails")} *</Label>
                 {emailList.map((email, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
@@ -208,6 +232,7 @@ const Clients = () => {
                       placeholder={t("clients.emailPlaceholder")}
                       value={email}
                       onChange={(e) => updateEmailField(index, e.target.value)}
+                      required={index === 0}
                     />
                     {emailList.length > 1 && (
                       <Button
