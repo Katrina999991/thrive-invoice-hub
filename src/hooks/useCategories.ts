@@ -25,7 +25,22 @@ export const useCategories = () => {
         .order("name", { ascending: true });
 
       if (error) throw error;
-      setCategories(data || []);
+      
+      // If no categories exist, create default ones
+      if (!data || data.length === 0) {
+        await createDefaultCategories();
+        // Fetch again after creating defaults
+        const { data: newData, error: newError } = await supabase
+          .from("categories")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("name", { ascending: true });
+        
+        if (newError) throw newError;
+        setCategories(newData || []);
+      } else {
+        setCategories(data || []);
+      }
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast({
@@ -35,6 +50,41 @@ export const useCategories = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createDefaultCategories = async () => {
+    if (!user) return;
+
+    const defaultCategories = [
+      { name: "Web Development", description: "Web development services and products", color: "#3b82f6" },
+      { name: "Mobile Development", description: "Mobile app development", color: "#8b5cf6" },
+      { name: "Software", description: "Software products and licenses", color: "#10b981" },
+      { name: "Consulting", description: "Consulting services", color: "#f59e0b" },
+      { name: "Design", description: "Design services", color: "#ec4899" },
+      { name: "Marketing", description: "Marketing and advertising", color: "#ef4444" },
+      { name: "Training", description: "Training and education", color: "#6366f1" },
+      { name: "Support", description: "Technical support", color: "#06b6d4" },
+      { name: "Office", description: "Office supplies and expenses", color: "#6b7280" },
+      { name: "Meals", description: "Meals and entertainment", color: "#f97316" },
+      { name: "Travel", description: "Travel expenses", color: "#14b8a6" },
+      { name: "Utilities", description: "Utilities and services", color: "#84cc16" },
+      { name: "Other", description: "Other miscellaneous", color: "#a855f7" },
+    ];
+
+    try {
+      const categoriesWithUserId = defaultCategories.map(cat => ({
+        ...cat,
+        user_id: user.id
+      }));
+
+      const { error } = await supabase
+        .from("categories")
+        .insert(categoriesWithUserId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error creating default categories:", error);
     }
   };
 
