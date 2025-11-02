@@ -690,7 +690,7 @@ export default function Settings() {
                         id="invoice_email_subject"
                         value={emailTemplates.invoice_email_subject}
                         onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject: e.target.value})}
-                        placeholder="Invoice {invoice_number} from {company_name}"
+                        placeholder={language === "fr" ? "Facture {invoice_number} de {company_name}" : "Invoice {invoice_number} from {company_name}"}
                       />
                       <p className="text-xs text-muted-foreground">
                         {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
@@ -715,7 +715,7 @@ export default function Settings() {
                         id="overdue_email_subject"
                         value={emailTemplates.overdue_email_subject}
                         onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject: e.target.value})}
-                        placeholder="Payment Overdue - Invoice {invoice_number}"
+                        placeholder={language === "fr" ? "Paiement en retard - Facture {invoice_number}" : "Payment Overdue - Invoice {invoice_number}"}
                       />
                       <p className="text-xs text-muted-foreground">
                         {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
@@ -740,7 +740,7 @@ export default function Settings() {
                         id="payment_confirmation_email_subject"
                         value={emailTemplates.payment_confirmation_email_subject}
                         onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject: e.target.value})}
-                        placeholder="Payment Confirmation - Invoice {invoice_number}"
+                        placeholder={language === "fr" ? "Confirmation de paiement - Facture {invoice_number}" : "Payment Confirmation - Invoice {invoice_number}"}
                       />
                       <p className="text-xs text-muted-foreground">
                         {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
@@ -766,7 +766,7 @@ export default function Settings() {
                         rows={3}
                         value={emailTemplates.invoice_footer_message}
                         onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message: e.target.value})}
-                        placeholder="Thank you for your business!"
+                        placeholder={language === "fr" ? "Merci pour votre confiance !" : "Thank you for your business!"}
                       />
                     </div>
                     <div className="space-y-2">
