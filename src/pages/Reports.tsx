@@ -1336,18 +1336,33 @@ const Reports = () => {
     let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
     if (expenseStartDate && expenseEndDate) {
       dateRangeText = `Period: ${format(expenseStartDate, 'dd/MM/yyyy')} - ${format(expenseEndDate, 'dd/MM/yyyy')}`;
+    } else if (expenseStartDate) {
+      dateRangeText = `From: ${format(expenseStartDate, 'dd/MM/yyyy')}`;
+    } else if (expenseEndDate) {
+      dateRangeText = `Until: ${format(expenseEndDate, 'dd/MM/yyyy')}`;
     }
     doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
     
+    // Filter info
+    let filterText = 'All expenses';
+    if (expenseFilterType === 'company' && expenseSelectedCompanyId) {
+      const company = companies.find(c => c.id === expenseSelectedCompanyId);
+      filterText = `Company: ${company?.name || 'Unknown'}`;
+    } else if (expenseFilterType === 'category' && expenseSelectedCategory) {
+      filterText = `Category: ${expenseSelectedCategory}`;
+    }
+    doc.setFontSize(11);
+    doc.text(`Filter: ${filterText}`, pageWidth / 2, 45, { align: 'center' });
+    
     // Summary
     doc.setFontSize(14);
-    doc.text('Summary', 20, 55);
+    doc.text('Summary', 20, 65);
     doc.setFontSize(12);
-    doc.text(`Total Expenses: $${expenseReportData.totalExpenses.toFixed(2)}`, 20, 70);
-    doc.text(`Paid Expenses: $${expenseReportData.totalPaidExpenses.toFixed(2)}`, 20, 80);
-    doc.text(`Unpaid Expenses: $${expenseReportData.totalUnpaidExpenses.toFixed(2)}`, 20, 90);
+    doc.text(`Total Expenses: $${expenseReportData.totalExpenses.toFixed(2)}`, 20, 80);
+    doc.text(`Paid Expenses: $${expenseReportData.totalPaidExpenses.toFixed(2)}`, 20, 90);
+    doc.text(`Unpaid Expenses: $${expenseReportData.totalUnpaidExpenses.toFixed(2)}`, 20, 100);
     
-    let yPosition = 110;
+    let yPosition = 120;
     
     try {
       // Capture Category Chart
