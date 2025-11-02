@@ -33,6 +33,7 @@ import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCompanies } from "@/hooks/useCompanies";
+import { z } from "zod";
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -55,6 +56,8 @@ export default function Settings() {
   const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [recoveryEmailError, setRecoveryEmailError] = useState<string>("");
+  const [phoneError, setPhoneError] = useState<string>("");
   
   // Email templates
   const { companies, updateCompany } = useCompanies();
@@ -236,6 +239,21 @@ Best regards,
   const handleSaveRecoveryEmail = async () => {
     if (!user?.id) return;
     
+    // Validation
+    const emailSchema = z.string().trim().email({ message: language === "fr" ? "Email invalide" : "Invalid email" }).max(255, { message: language === "fr" ? "L'email doit contenir moins de 255 caractères" : "Email must be less than 255 characters" });
+    
+    try {
+      if (recoveryEmail.trim()) {
+        emailSchema.parse(recoveryEmail);
+      }
+      setRecoveryEmailError("");
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        setRecoveryEmailError(error.errors[0].message);
+        return;
+      }
+    }
+    
     setIsSavingRecoveryEmail(true);
     try {
       const { error } = await supabase
@@ -312,6 +330,24 @@ Best regards,
 
   const handleSavePhone = async () => {
     if (!user?.id) return;
+    
+    // Validation
+    const phoneSchema = z.string().trim()
+      .regex(/^[\d\s\-\+\(\)]+$/, { message: language === "fr" ? "Format de téléphone invalide" : "Invalid phone format" })
+      .min(10, { message: language === "fr" ? "Le numéro doit contenir au moins 10 caractères" : "Phone must be at least 10 characters" })
+      .max(20, { message: language === "fr" ? "Le numéro doit contenir moins de 20 caractères" : "Phone must be less than 20 characters" });
+    
+    try {
+      if (phoneNumber.trim()) {
+        phoneSchema.parse(phoneNumber);
+      }
+      setPhoneError("");
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        setPhoneError(error.errors[0].message);
+        return;
+      }
+    }
     
     setIsSavingPhone(true);
     try {
@@ -507,9 +543,13 @@ Best regards,
                     id="phone"
                     type="tel"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => {
+                      setPhoneNumber(e.target.value);
+                      setPhoneError("");
+                    }}
                     placeholder={language === "fr" ? "+1 (555) 123-4567" : "+1 (555) 123-4567"}
                     disabled={isSavingPhone}
+                    className={phoneError ? "border-destructive" : ""}
                   />
                   <Button 
                     onClick={handleSavePhone} 
@@ -518,6 +558,9 @@ Best regards,
                     {isSavingPhone ? t("settings.account.saving") : t("settings.account.save")}
                   </Button>
                 </div>
+                {phoneError && (
+                  <p className="text-sm text-destructive">{phoneError}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="username">{t("settings.account.username")}</Label>
@@ -549,9 +592,13 @@ Best regards,
                     id="recoveryEmail"
                     type="email"
                     value={recoveryEmail}
-                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                    onChange={(e) => {
+                      setRecoveryEmail(e.target.value);
+                      setRecoveryEmailError("");
+                    }}
                     placeholder={language === "fr" ? "email.recuperation@example.com" : "recovery.email@example.com"}
                     disabled={isLoadingUsername || isSavingRecoveryEmail}
+                    className={recoveryEmailError ? "border-destructive" : ""}
                   />
                   <Button 
                     onClick={handleSaveRecoveryEmail} 
@@ -560,6 +607,9 @@ Best regards,
                     {isSavingRecoveryEmail ? t("settings.account.saving") : t("settings.account.save")}
                   </Button>
                 </div>
+                {recoveryEmailError && (
+                  <p className="text-sm text-destructive">{recoveryEmailError}</p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {language === "fr" 
                     ? "Un email secondaire pour la récupération de votre compte"
