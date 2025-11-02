@@ -259,6 +259,8 @@ const Reports = () => {
   const [taxSelectedYear, setTaxSelectedYear] = useState<Date | undefined>();
   const [taxSelectedCompany, setTaxSelectedCompany] = useState<string>('all');
   const [taxViewMode, setTaxViewMode] = useState<'monthly' | 'yearly'>('monthly');
+  const [taxStartOpen, setTaxStartOpen] = useState(false);
+  const [taxEndOpen, setTaxEndOpen] = useState(false);
   
   // Calculer les dates pour le rapport de taxes
   const { startDate: taxEffectiveStart, endDate: taxEffectiveEnd } = useMemo(() => {
@@ -4134,7 +4136,7 @@ const Reports = () => {
                     <>
                       <div className="space-y-2">
                         <Label>Date de début</Label>
-                        <Popover>
+                        <Popover open={taxStartOpen} onOpenChange={setTaxStartOpen}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -4151,7 +4153,10 @@ const Reports = () => {
                             <Calendar
                               mode="single"
                               selected={taxStartDate}
-                              onSelect={setTaxStartDate}
+                              onSelect={(date) => {
+                                setTaxStartDate(date);
+                                setTaxStartOpen(false);
+                              }}
                               initialFocus
                               className="pointer-events-auto"
                             />
@@ -4160,7 +4165,7 @@ const Reports = () => {
                       </div>
                       <div className="space-y-2">
                         <Label>Date de fin</Label>
-                        <Popover>
+                        <Popover open={taxEndOpen} onOpenChange={setTaxEndOpen}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -4177,7 +4182,10 @@ const Reports = () => {
                             <Calendar
                               mode="single"
                               selected={taxEndDate}
-                              onSelect={setTaxEndDate}
+                              onSelect={(date) => {
+                                setTaxEndDate(date);
+                                setTaxEndOpen(false);
+                              }}
                               initialFocus
                               className="pointer-events-auto"
                             />
