@@ -58,6 +58,7 @@ export default function Settings() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [recoveryEmailError, setRecoveryEmailError] = useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
+  const [newPrimaryEmailError, setNewPrimaryEmailError] = useState<string>("");
   
   // Email templates
   const { companies, updateCompany } = useCompanies();
@@ -318,6 +319,55 @@ Best regards,
   const handleSavePrimaryEmail = async () => {
     if (!user?.id || !user?.email || !newPrimaryEmail.trim() || !passwordForEmailChange.trim()) return;
     
+    // Validation détaillée de l'email
+    const trimmedEmail = newPrimaryEmail.trim();
+    
+    if (!trimmedEmail.includes('@')) {
+      setNewPrimaryEmailError(language === "fr" ? "L'email doit contenir un @" : "Email must contain an @");
+      return;
+    }
+    
+    const parts = trimmedEmail.split('@');
+    if (parts.length > 2) {
+      setNewPrimaryEmailError(language === "fr" ? "L'email contient trop de @" : "Email contains too many @");
+      return;
+    }
+    
+    if (!parts[0] || parts[0].length === 0) {
+      setNewPrimaryEmailError(language === "fr" ? "L'email doit avoir un nom avant le @" : "Email must have a name before @");
+      return;
+    }
+    
+    if (!parts[1] || parts[1].length === 0) {
+      setNewPrimaryEmailError(language === "fr" ? "L'email doit avoir un domaine après le @" : "Email must have a domain after @");
+      return;
+    }
+    
+    if (!parts[1].includes('.')) {
+      setNewPrimaryEmailError(language === "fr" ? "Le domaine doit contenir un point (.)" : "Domain must contain a dot (.)");
+      return;
+    }
+    
+    const domainParts = parts[1].split('.');
+    if (domainParts[domainParts.length - 1].length < 2) {
+      setNewPrimaryEmailError(language === "fr" ? "L'extension du domaine est trop courte" : "Domain extension is too short");
+      return;
+    }
+    
+    if (trimmedEmail.length > 255) {
+      setNewPrimaryEmailError(language === "fr" ? "L'email doit contenir moins de 255 caractères" : "Email must be less than 255 characters");
+      return;
+    }
+    
+    // Validation regex finale
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setNewPrimaryEmailError(language === "fr" ? "Format d'email invalide" : "Invalid email format");
+      return;
+    }
+    
+    setNewPrimaryEmailError("");
+    
     setIsSavingPrimaryEmail(true);
     try {
       // Verify password first
@@ -337,7 +387,7 @@ Best regards,
 
       // Update email
       const { error } = await supabase.auth.updateUser({
-        email: newPrimaryEmail.trim()
+        email: trimmedEmail
       });
 
       if (error) throw error;
@@ -1169,10 +1219,17 @@ Best regards,
                 id="newEmail"
                 type="email"
                 value={newPrimaryEmail}
-                onChange={(e) => setNewPrimaryEmail(e.target.value)}
+                onChange={(e) => {
+                  setNewPrimaryEmail(e.target.value);
+                  setNewPrimaryEmailError("");
+                }}
                 placeholder={language === "fr" ? "nouveau.email@example.com" : "new.email@example.com"}
                 disabled={isSavingPrimaryEmail}
+                className={newPrimaryEmailError ? "border-destructive" : ""}
               />
+              {newPrimaryEmailError && (
+                <p className="text-sm text-destructive">{newPrimaryEmailError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="passwordConfirm">
