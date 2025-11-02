@@ -504,6 +504,8 @@ const Invoices = () => {
     } else if (filterType === "company") {
       const client = clients.find(c => c.id === invoice.client_id);
       return matchesSearch && (!filterValue || filterValue === "all" || client?.company_id === filterValue);
+    } else if (filterType === "status") {
+      return matchesSearch && (!filterValue || filterValue === "all" || invoice.status === filterValue);
     }
     
     return matchesSearch;
@@ -2173,6 +2175,7 @@ Best regards,
             <SelectItem value="all">{t("invoices.allInvoices")}</SelectItem>
             <SelectItem value="client">{t("invoices.byClient")}</SelectItem>
             <SelectItem value="company">{t("invoices.byCompany")}</SelectItem>
+            <SelectItem value="status">Par statut</SelectItem>
           </SelectContent>
         </Select>
         {filterType === "client" && (
@@ -2206,6 +2209,20 @@ Best regards,
               )) : (
                 <SelectItem value="" disabled>No companies available</SelectItem>
               )}
+            </SelectContent>
+          </Select>
+        )}
+        {filterType === "status" && (
+          <Select value={filterValue} onValueChange={setFilterValue}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Sélectionner un statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="draft">Brouillon</SelectItem>
+              <SelectItem value="sent">Envoyé</SelectItem>
+              <SelectItem value="paid">Payé</SelectItem>
+              <SelectItem value="overdue">En retard</SelectItem>
             </SelectContent>
           </Select>
         )}
