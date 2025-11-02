@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 import { jsPDF } from "npm:jspdf@2.5.1";
 import "npm:jspdf-autotable@3.8.2";
 import { translateTemplate, emailTranslations } from './translations.ts';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -13,16 +14,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface SendInvoiceEmailRequest {
-  invoiceId: string;
-  customSubject?: string;
-  customMessage?: string;
-  emailType?: "new" | "overdue" | "payment_confirmation";
-  selectedEmails?: string[];
-  ccEmails?: string[];
-  invoiceTemplate?: string;
-  invoiceColor?: string;
-}
+// Validation schema for send invoice email requests
+const SendInvoiceEmailSchema = z.object({
+  invoiceId: z.string().uuid("Invalid invoice ID format"),
+  customSubject: z.string().max(200, "Subject too long").optional(),
+  customMessage: z.string().max(2000, "Message too long").optional(),
+  emailType: z.enum(['new', 'overdue', 'payment_confirmation']).optional().default('new'),
+  selectedEmails: z.array(z.string().email("Invalid email format")).max(10, "Too many recipients").optional(),
+  ccEmails: z.array(z.string().email("Invalid email format")).max(10, "Too many CC recipients").optional().default([]),
+  invoiceTemplate: z.string().optional().default("classic"),
+  invoiceColor: z.string().optional().default("blue"),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -31,7 +33,33 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { invoiceId, customSubject, customMessage, emailType = "new", selectedEmails, ccEmails = [], invoiceTemplate = "classic", invoiceColor = "blue" }: SendInvoiceEmailRequest = await req.json();
+    // Validate input
+    const requestBody = await req.json();
+    const validationResult = SendInvoiceEmailSchema.safeParse(requestBody);
+    
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid request data. Please check your inputs and try again." 
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+    
+    const { 
+      invoiceId, 
+      customSubject, 
+      customMessage, 
+      emailType,
+      selectedEmails,
+      ccEmails,
+      invoiceTemplate,
+      invoiceColor 
+    } = validationResult.data;
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -90,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (invoiceError || !invoice) {
       console.error('Error fetching invoice:', invoiceError);
       return new Response(
-        JSON.stringify({ error: "Invoice not found" }),
+        JSON.stringify({ error: "The requested invoice could not be found. Please verify the invoice number." }),
         {
           status: 404,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -590,7 +618,9 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-invoice-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: "Failed to send invoice email. Please try again later or contact support." 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

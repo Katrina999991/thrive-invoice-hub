@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,10 +10,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface RecoveryRequest {
-  recoveryEmail: string;
-  language?: string;
-}
+// Validation schema for account recovery requests
+const RecoveryRequestSchema = z.object({
+  recoveryEmail: z.string().email("Invalid email format").max(255, "Email too long"),
+  language: z.enum(["en", "fr"]).optional().default("fr"),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -21,7 +23,24 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recoveryEmail, language = "fr" }: RecoveryRequest = await req.json();
+    // Validate input
+    const requestBody = await req.json();
+    const validationResult = RecoveryRequestSchema.safeParse(requestBody);
+    
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid request. Please check your email format and try again." 
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+    
+    const { recoveryEmail, language } = validationResult.data;
 
     console.log("Account recovery requested for:", recoveryEmail);
 
@@ -131,7 +150,9 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in account-recovery function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: "Unable to process your request. Please try again later or contact support." 
+      }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
