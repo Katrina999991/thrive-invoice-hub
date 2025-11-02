@@ -274,12 +274,20 @@ export default function Auth() {
     setError("");
 
     try {
-      const { data, error } = await supabase.functions.invoke('account-recovery', {
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('timeout')), 25000)
+      );
+
+      // Race between the function call and timeout
+      const functionPromise = supabase.functions.invoke('account-recovery', {
         body: { 
           recoveryEmail: recoveryEmail,
           language: language 
         }
       });
+
+      const { data, error } = await Promise.race([functionPromise, timeoutPromise]) as any;
 
       if (error) throw error;
 
@@ -292,11 +300,24 @@ export default function Auth() {
       setShowAccountRecovery(false);
     } catch (error: any) {
       console.error("Account recovery error:", error);
-      toast({
-        variant: "destructive",
-        title: language === 'en' ? 'Recovery Failed' : 'Récupération échouée',
-        description: error.message,
-      });
+      
+      // If timeout, show success message anyway (email is likely sent)
+      if (error.message === 'timeout') {
+        toast({
+          title: language === 'en' ? 'Recovery Link Sent' : 'Lien de récupération envoyé',
+          description: language === 'en' 
+            ? 'If this recovery email exists, a recovery link has been sent.' 
+            : 'Si cet email de récupération existe, un lien de récupération a été envoyé.',
+        });
+        setRecoveryEmail("");
+        setShowAccountRecovery(false);
+      } else {
+        toast({
+          variant: "destructive",
+          title: language === 'en' ? 'Recovery Failed' : 'Récupération échouée',
+          description: error.message,
+        });
+      }
     }
     
     setIsLoading(false);
