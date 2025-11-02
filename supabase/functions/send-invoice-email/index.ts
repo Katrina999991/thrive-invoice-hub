@@ -208,66 +208,85 @@ Meilleures salutations,
     let emailMessage = customMessage;
 
     if (!emailSubject || !emailMessage) {
-      // Fallback to company templates or defaults based on client language
+      // Prefer company templates; if missing, fallback by client language
       if (emailType === "overdue") {
-        if (clientLanguage === 'french') {
+        if (company.overdue_email_subject || company.overdue_email_message) {
+          emailSubject = emailSubject || company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
+          emailMessage = emailMessage || company.overdue_email_message || `Dear {client_name},
+\nThis is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+\nOriginal amount: {total}
+Due date: {due_date}
+Days overdue: {days_overdue}
+\nPlease remit payment at your earliest convenience to avoid any late fees.
+\nIf you have already sent payment, please disregard this notice.
+\nThank you for your prompt attention to this matter.
+\nBest regards,
+{company_name}`;
+        } else if (clientLanguage === 'french') {
           emailSubject = emailSubject || frenchTemplates.overdue.subject;
           emailMessage = emailMessage || frenchTemplates.overdue.message;
         } else {
-          emailSubject = emailSubject || company.overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}';
-          emailMessage = emailMessage || company.overdue_email_message || `Dear {client_name},
-
-This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
-
-Original amount: {total}
+          emailSubject = emailSubject || 'Payment Overdue - Invoice {invoice_number}';
+          emailMessage = emailMessage || `Dear {client_name},
+\nThis is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+\nOriginal amount: {total}
 Due date: {due_date}
 Days overdue: {days_overdue}
-
-Please remit payment at your earliest convenience to avoid any late fees.
-
-If you have already sent payment, please disregard this notice.
-
-Thank you for your prompt attention to this matter.
-
-Best regards,
+\nPlease remit payment at your earliest convenience to avoid any late fees.
+\nIf you have already sent payment, please disregard this notice.
+\nThank you for your prompt attention to this matter.
+\nBest regards,
 {company_name}`;
         }
       } else if (emailType === "payment_confirmation") {
-        if (clientLanguage === 'french') {
-          emailSubject = emailSubject || frenchTemplates.payment_confirmation.subject;
-          emailMessage = emailMessage || frenchTemplates.payment_confirmation.message;
-        } else {
+        if (company.payment_confirmation_email_subject || company.payment_confirmation_email_message) {
           emailSubject = emailSubject || company.payment_confirmation_email_subject || 'Payment Confirmation - Invoice {invoice_number}';
           emailMessage = emailMessage || company.payment_confirmation_email_message || `Dear {client_name},
-
-We have successfully received your payment for invoice {invoice_number}.
-
-Payment details:
+\nWe have successfully received your payment for invoice {invoice_number}.
+\nPayment details:
 - Invoice: {invoice_number}
 - Amount: {total}
 - Date paid: {payment_date}
-
-Thank you for your prompt payment and continued business!
-
-Best regards,
+\nThank you for your prompt payment and continued business!
+\nBest regards,
+{company_name}`;
+        } else if (clientLanguage === 'french') {
+          emailSubject = emailSubject || frenchTemplates.payment_confirmation.subject;
+          emailMessage = emailMessage || frenchTemplates.payment_confirmation.message;
+        } else {
+          emailSubject = emailSubject || 'Payment Confirmation - Invoice {invoice_number}';
+          emailMessage = emailMessage || `Dear {client_name},
+\nWe have successfully received your payment for invoice {invoice_number}.
+\nPayment details:
+- Invoice: {invoice_number}
+- Amount: {total}
+- Date paid: {payment_date}
+\nThank you for your prompt payment and continued business!
+\nBest regards,
 {company_name}`;
         }
       } else {
-        if (clientLanguage === 'french') {
+        // new invoice
+        if (company.invoice_email_subject || company.invoice_email_message) {
+          emailSubject = emailSubject || company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
+          emailMessage = emailMessage || company.invoice_email_message || `Dear {client_name},
+\nPlease find attached your invoice {invoice_number} dated {issue_date}.
+\nAmount due: {total}
+Due date: {due_date}
+\nThank you for your business!
+\nBest regards,
+{company_name}`;
+        } else if (clientLanguage === 'french') {
           emailSubject = emailSubject || frenchTemplates.new.subject;
           emailMessage = emailMessage || frenchTemplates.new.message;
         } else {
-          emailSubject = emailSubject || company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
-          emailMessage = emailMessage || company.invoice_email_message || `Dear {client_name},
-
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
+          emailSubject = emailSubject || 'Invoice {invoice_number} from {company_name}';
+          emailMessage = emailMessage || `Dear {client_name},
+\nPlease find attached your invoice {invoice_number} dated {issue_date}.
+\nAmount due: {total}
 Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
+\nThank you for your business!
+\nBest regards,
 {company_name}`;
         }
       }
