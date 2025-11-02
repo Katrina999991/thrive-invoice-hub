@@ -40,7 +40,11 @@ export default function Settings() {
   const [recoveryEmail, setRecoveryEmail] = useState<string>("");
   const [isSavingRecoveryEmail, setIsSavingRecoveryEmail] = useState(false);
   const [newPrimaryEmail, setNewPrimaryEmail] = useState<string>("");
+  const [passwordForEmailChange, setPasswordForEmailChange] = useState<string>("");
+  const [showEmailChangeDialog, setShowEmailChangeDialog] = useState(false);
   const [isSavingPrimaryEmail, setIsSavingPrimaryEmail] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -247,10 +251,26 @@ Best regards,
   };
 
   const handleSavePrimaryEmail = async () => {
-    if (!user?.id || !newPrimaryEmail.trim()) return;
+    if (!user?.id || !user?.email || !newPrimaryEmail.trim() || !passwordForEmailChange.trim()) return;
     
     setIsSavingPrimaryEmail(true);
     try {
+      // Verify password first
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordForEmailChange
+      });
+
+      if (signInError) {
+        toast({
+          title: language === "fr" ? "Erreur" : "Error",
+          description: language === "fr" ? "Mot de passe incorrect" : "Incorrect password",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update email
       const { error } = await supabase.auth.updateUser({
         email: newPrimaryEmail.trim()
       });
@@ -260,11 +280,13 @@ Best regards,
       toast({
         title: language === "fr" ? "Email de confirmation envoyé" : "Confirmation email sent",
         description: language === "fr" 
-          ? "Un email de confirmation a été envoyé à votre nouvelle adresse. Veuillez vérifier votre boîte de réception pour confirmer le changement."
-          : "A confirmation email has been sent to your new address. Please check your inbox to confirm the change.",
+          ? "Un email de confirmation a été envoyé à votre nouvelle adresse. Utilisez ce nouvel email pour vous connecter après confirmation."
+          : "A confirmation email has been sent to your new address. Use this new email to sign in after confirmation.",
       });
       
       setNewPrimaryEmail("");
+      setPasswordForEmailChange("");
+      setShowEmailChangeDialog(false);
     } catch (error: any) {
       console.error("Error updating primary email:", error);
       toast({
@@ -274,6 +296,36 @@ Best regards,
       });
     } finally {
       setIsSavingPrimaryEmail(false);
+    }
+  };
+
+  const handleSavePhone = async () => {
+    if (!user?.id) return;
+    
+    setIsSavingPhone(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ phone_number: phoneNumber.trim() || null })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: language === "fr" ? "Succès" : "Success",
+        description: language === "fr" 
+          ? "Numéro de téléphone mis à jour avec succès"
+          : "Phone number updated successfully",
+      });
+    } catch (error: any) {
+      console.error("Error updating phone:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingPhone(false);
     }
   };
 
@@ -420,30 +472,40 @@ Best regards,
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
                 <div className="pt-2">
-                  <Label htmlFor="newPrimaryEmail">
+                  <Label>
                     {language === "fr" ? "Changer l'email principal" : "Change primary email"}
                   </Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input
-                      id="newPrimaryEmail"
-                      type="email"
-                      value={newPrimaryEmail}
-                      onChange={(e) => setNewPrimaryEmail(e.target.value)}
-                      placeholder={language === "fr" ? "nouveau.email@example.com" : "new.email@example.com"}
-                      disabled={isSavingPrimaryEmail}
-                    />
-                    <Button 
-                      onClick={handleSavePrimaryEmail} 
-                      disabled={isSavingPrimaryEmail || !newPrimaryEmail.trim()}
-                    >
-                      {isSavingPrimaryEmail ? t("settings.account.saving") : t("settings.account.save")}
-                    </Button>
-                  </div>
+                  <Button 
+                    onClick={() => setShowEmailChangeDialog(true)} 
+                    variant="outline"
+                    className="w-full mt-2"
+                  >
+                    {language === "fr" ? "Modifier l'email" : "Change email"}
+                  </Button>
                   <p className="text-xs text-muted-foreground mt-1">
                     {language === "fr" 
-                      ? "Vous recevrez un email de confirmation pour valider le changement"
-                      : "You will receive a confirmation email to validate the change"}
+                      ? "Vous devrez confirmer avec votre mot de passe et valider le changement par email"
+                      : "You will need to confirm with your password and validate the change by email"}
                   </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">{language === "fr" ? "Numéro de téléphone" : "Phone number"}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder={language === "fr" ? "+1 (555) 123-4567" : "+1 (555) 123-4567"}
+                    disabled={isSavingPhone}
+                  />
+                  <Button 
+                    onClick={handleSavePhone} 
+                    disabled={isSavingPhone}
+                  >
+                    {isSavingPhone ? t("settings.account.saving") : t("settings.account.save")}
+                  </Button>
                 </div>
               </div>
               <div className="space-y-2">
