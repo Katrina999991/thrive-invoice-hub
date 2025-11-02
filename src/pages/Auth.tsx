@@ -21,6 +21,8 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showAccountRecovery, setShowAccountRecovery] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
   const [resetEmail, setResetEmail] = useState("");
   const [showVerifyOtp, setShowVerifyOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
@@ -266,6 +268,40 @@ export default function Auth() {
     setIsLoading(false);
   };
 
+  const handleAccountRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('account-recovery', {
+        body: { 
+          recoveryEmail: recoveryEmail,
+          language: language 
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'en' ? 'Recovery Link Sent' : 'Lien de récupération envoyé',
+        description: data.message,
+      });
+      
+      setRecoveryEmail("");
+      setShowAccountRecovery(false);
+    } catch (error: any) {
+      console.error("Account recovery error:", error);
+      toast({
+        variant: "destructive",
+        title: language === 'en' ? 'Recovery Failed' : 'Récupération échouée',
+        description: error.message,
+      });
+    }
+    
+    setIsLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -351,21 +387,30 @@ export default function Auth() {
                     </>
                   )}
                 </Button>
-                <div className="text-center">
+                <div className="text-center space-y-1">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword(true)}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {language === 'en' ? 'Forgot your password?' : 'Mot de passe oublié ?'}
+                    </button>
+                    <span className="mx-2 text-muted-foreground">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowVerifyOtp(true)}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {language === 'en' ? 'Have a code?' : 'Vous avez un code ?'}
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setShowResetPassword(true)}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => setShowAccountRecovery(true)}
+                    className="text-xs text-muted-foreground/70 hover:text-primary transition-colors block mx-auto"
                   >
-                    {language === 'en' ? 'Forgot your password?' : 'Mot de passe oublié ?'}
-                  </button>
-                  <span className="mx-2 text-muted-foreground">|</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowVerifyOtp(true)}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {language === 'en' ? 'Have a code?' : 'Vous avez un code ?'}
+                    {language === 'en' ? '🔒 Lost access to your email?' : '🔒 Accès perdu à votre email ?'}
                   </button>
                 </div>
               </form>
@@ -484,6 +529,64 @@ export default function Auth() {
                   </>
                 ) : (
                   language === 'en' ? 'Send Reset Link' : 'Envoyer le lien'
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={showAccountRecovery} onOpenChange={setShowAccountRecovery}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'en' ? 'Account Recovery' : 'Récupération de compte'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'en'
+                ? "Enter your recovery email address and we'll send you a link to reset your password and regain access to your account."
+                : 'Entrez votre adresse email de récupération et nous vous enverrons un lien pour réinitialiser votre mot de passe et retrouver l\'accès à votre compte.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAccountRecovery} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="recovery-email">
+                {language === 'en' ? 'Recovery Email' : 'Email de récupération'}
+              </Label>
+              <Input
+                id="recovery-email"
+                type="email"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                required
+                disabled={isLoading}
+                placeholder={language === 'en' ? 'Enter your recovery email address' : 'Entrez votre adresse email de récupération'}
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAccountRecovery(false)}
+                className="flex-1"
+                disabled={isLoading}
+              >
+                {language === 'en' ? 'Cancel' : 'Annuler'}
+              </Button>
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {language === 'en' ? 'Sending...' : 'Envoi...'}
+                  </>
+                ) : (
+                  language === 'en' ? 'Send Recovery Link' : 'Envoyer le lien'
                 )}
               </Button>
             </div>
