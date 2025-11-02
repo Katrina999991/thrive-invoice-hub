@@ -12,6 +12,7 @@ import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2 } from "lucide
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { emailTranslations, translateTemplate } from "@/lib/emailTranslations";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -1282,39 +1283,18 @@ const Invoices = () => {
       // Check client language
       const isFrench = (client?.language || '').toLowerCase().startsWith('fr');
 
-      // Default English templates
-      const defaultEnglishSubject = 'Invoice {invoice_number} from {company_name}';
-      const defaultEnglishMessage = `Dear {client_name},
+      // Get base templates
+      let baseSubject = company.invoice_email_subject || emailTranslations.en.newInvoice.subject;
+      let baseMessage = company.invoice_email_message || emailTranslations.en.newInvoice.body;
 
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
-Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
-{company_name}`;
-
-      // Use language-specific custom templates if available, otherwise use defaults
+      // Translate to French if needed using static translations
       let defaultSubject: string, defaultMessage: string;
-
       if (isFrench) {
-        defaultSubject = (company as any).invoice_email_subject_fr || company.invoice_email_subject || 'Facture {invoice_number} de {company_name}';
-        defaultMessage = (company as any).invoice_email_message_fr || company.invoice_email_message || `Cher/Chère {client_name},
-
-Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
-
-Montant dû : {total}$
-Date d'échéance : {due_date}
-
-Merci pour votre confiance !
-
-Meilleures salutations,
-{company_name}`;
+        defaultSubject = translateTemplate(baseSubject, 'newInvoice', true);
+        defaultMessage = translateTemplate(baseMessage, 'newInvoice', false);
       } else {
-        defaultSubject = company.invoice_email_subject || defaultEnglishSubject;
-        defaultMessage = company.invoice_email_message || defaultEnglishMessage;
+        defaultSubject = baseSubject;
+        defaultMessage = baseMessage;
       }
 
       // Replace template variables
@@ -1432,68 +1412,31 @@ Best regards,
 
       let subject: string, message: string;
       
+      // Get base templates
+      let baseSubject: string;
+      let baseMessage: string;
+      
       if (type === "overdue") {
-        // Use language-specific custom templates if available, otherwise use defaults
-        if (isFrench) {
-          subject = (company as any).overdue_email_subject_fr || company.overdue_email_subject || 'Paiement en retard - Facture {invoice_number}';
-          message = (company as any).overdue_email_message_fr || company.overdue_email_message || `Cher/Chère {client_name},
-
-Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
-
-Montant original : {total}$
-Date d'échéance : {due_date}
-Jours de retard : {days_overdue}
-
-Veuillez effectuer le paiement à votre plus tôt possible pour éviter des frais de retard.
-
-Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
-
-Merci pour votre attention prompte à cette question.
-
-Meilleures salutations,
-{company_name}`;
-        } else {
-          subject = company.overdue_email_subject || defaultEnglishTemplates.overdue.subject;
-          message = company.overdue_email_message || defaultEnglishTemplates.overdue.message;
-        }
+        baseSubject = company.overdue_email_subject || emailTranslations.en.overdue.subject;
+        baseMessage = company.overdue_email_message || emailTranslations.en.overdue.body;
       } else if (type === "payment_confirmation") {
-        if (isFrench) {
-          subject = (company as any).payment_confirmation_email_subject_fr || company.payment_confirmation_email_subject || 'Confirmation de paiement - Facture {invoice_number}';
-          message = (company as any).payment_confirmation_email_message_fr || company.payment_confirmation_email_message || `Cher/Chère {client_name},
-
-Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
-
-Détails du paiement :
-- Facture : {invoice_number}
-- Montant : {total}$
-- Date de paiement : ${new Date().toLocaleDateString('fr-CA')}
-
-Merci pour votre paiement rapide et votre fidélité !
-
-Meilleures salutations,
-{company_name}`;
-        } else {
-          subject = company.payment_confirmation_email_subject || defaultEnglishTemplates.payment.subject;
-          message = company.payment_confirmation_email_message || defaultEnglishTemplates.payment.message;
-        }
+        baseSubject = company.payment_confirmation_email_subject || emailTranslations.en.paymentConfirmation.subject;
+        baseMessage = company.payment_confirmation_email_message || emailTranslations.en.paymentConfirmation.body;
       } else {
-        if (isFrench) {
-          subject = (company as any).invoice_email_subject_fr || company.invoice_email_subject || 'Facture {invoice_number} de {company_name}';
-          message = (company as any).invoice_email_message_fr || company.invoice_email_message || `Cher/Chère {client_name},
+        baseSubject = company.invoice_email_subject || emailTranslations.en.newInvoice.subject;
+        baseMessage = company.invoice_email_message || emailTranslations.en.newInvoice.body;
+      }
 
-Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
-
-Montant dû : {total}$
-Date d'échéance : {due_date}
-
-Merci pour votre confiance !
-
-Meilleures salutations,
-{company_name}`;
-        } else {
-          subject = company.invoice_email_subject || defaultEnglishTemplates.new.subject;
-          message = company.invoice_email_message || defaultEnglishTemplates.new.message;
-        }
+      // Translate to French if needed using static translations
+      if (isFrench) {
+        const templateType = type === "overdue" ? "overdue" : 
+                           type === "payment_confirmation" ? "paymentConfirmation" : 
+                           "newInvoice";
+        subject = translateTemplate(baseSubject, templateType, true);
+        message = translateTemplate(baseMessage, templateType, false);
+      } else {
+        subject = baseSubject;
+        message = baseMessage;
       }
 
       // Replace template variables

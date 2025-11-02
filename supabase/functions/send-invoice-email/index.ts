@@ -3,52 +3,9 @@ import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 import { jsPDF } from "npm:jspdf@2.5.1";
 import "npm:jspdf-autotable@3.8.2";
+import { translateTemplate, emailTranslations } from './translations.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-// Helper function to translate text using Lovable AI
-async function translateText(text: string, targetLanguage: 'french' | 'english'): Promise<string> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  
-  if (!LOVABLE_API_KEY) {
-    console.warn('LOVABLE_API_KEY not configured, skipping translation');
-    return text;
-  }
-
-  try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a professional translator. Translate the following text to ${targetLanguage}. Keep all placeholders like {invoice_number}, {client_name}, {total}, {due_date}, {issue_date}, {company_name}, {days_overdue}, {payment_date} exactly as they are. Only translate the regular text, not the placeholders.`
-          },
-          {
-            role: 'user',
-            content: text
-          }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Translation API error:', response.status);
-      return text;
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content || text;
-  } catch (error) {
-    console.error('Translation error:', error);
-    return text;
-  }
-}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -193,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
     const isFrench = client.language === 'french';
     console.log('Client language:', client.language, 'Is French:', isFrench);
 
-    // Email subject and message selection with automatic translation
+    // Email subject and message selection with static translation
     let emailSubject: string;
     let emailMessage: string;
 
@@ -202,64 +159,28 @@ const handler = async (req: Request): Promise<Response> => {
       emailSubject = customSubject;
       emailMessage = customMessage;
     } else {
-      // Default English templates
-      const defaultTemplates = {
-        new: {
-          subject: 'Invoice {invoice_number} from {company_name}',
-          message: `Dear {client_name},\n
-Please find attached your invoice {invoice_number} dated {issue_date}.\n
-Amount due: {total}\n
-Due date: {due_date}\n
-Thank you for your business!\n
-Best regards,\n
-{company_name}`
-        },
-        overdue: {
-          subject: 'Payment Overdue - Invoice {invoice_number}',
-          message: `Dear {client_name},\n
-This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.\n
-Original amount: {total}\n
-Due date: {due_date}\n
-Days overdue: {days_overdue}\n
-Please remit payment at your earliest convenience to avoid any late fees.\n
-If you have already sent payment, please disregard this notice.\n
-Thank you for your prompt attention to this matter.\n
-Best regards,\n
-{company_name}`
-        },
-        payment_confirmation: {
-          subject: 'Payment Confirmation - Invoice {invoice_number}',
-          message: `Dear {client_name},\n
-We have successfully received your payment for invoice {invoice_number}.\n
-Payment details:\n
-- Invoice: {invoice_number}\n
-- Amount: {total}\n
-- Date paid: {payment_date}\n
-Thank you for your prompt payment and continued business!\n
-Best regards,\n
-{company_name}`
-        }
-      };
-
-      // Get base templates
+      // Get base templates from company or defaults
       let baseSubject: string;
       let baseMessage: string;
 
       if (emailType === "overdue") {
-        baseSubject = company.overdue_email_subject || defaultTemplates.overdue.subject;
-        baseMessage = company.overdue_email_message || defaultTemplates.overdue.message;
+        baseSubject = company.overdue_email_subject || emailTranslations.en.overdue.subject;
+        baseMessage = company.overdue_email_message || emailTranslations.en.overdue.body;
       } else if (emailType === "payment_confirmation") {
-        baseSubject = company.payment_confirmation_email_subject || defaultTemplates.payment_confirmation.subject;
-        baseMessage = company.payment_confirmation_email_message || defaultTemplates.payment_confirmation.message;
+        baseSubject = company.payment_confirmation_email_subject || emailTranslations.en.paymentConfirmation.subject;
+        baseMessage = company.payment_confirmation_email_message || emailTranslations.en.paymentConfirmation.body;
       } else {
-        baseSubject = company.invoice_email_subject || defaultTemplates.new.subject;
-        baseMessage = company.invoice_email_message || defaultTemplates.new.message;
+        baseSubject = company.invoice_email_subject || emailTranslations.en.newInvoice.subject;
+        baseMessage = company.invoice_email_message || emailTranslations.en.newInvoice.body;
       }
 
-      // Translate to French if needed
+      // Translate to French if needed using static translations
       if (isFrench) {
-        emailSubject = await translateText(baseSubject, 'french');
-        emailMessage = await translateText(baseMessage, 'french');
+        const templateType = emailType === "overdue" ? "overdue" : 
+                           emailType === "payment_confirmation" ? "paymentConfirmation" : 
+                           "newInvoice";
+        emailSubject = translateTemplate(baseSubject, templateType, true);
+        emailMessage = translateTemplate(baseMessage, templateType, false);
       } else {
         emailSubject = baseSubject;
         emailMessage = baseMessage;
@@ -618,12 +539,12 @@ Best regards,\n
       finalY += 5;
     }
 
-    // Add company footer message (translate if needed)
-    let footerMessage = company.invoice_footer_message || (isFrench ? 'Merci pour votre confiance !' : 'Thank you for your business!');
+    // Add company footer message (translate if needed using static translations)
+    let footerMessage = company.invoice_footer_message || emailTranslations.en.footer;
     
     // Translate footer message if needed
-    if (isFrench && company.invoice_footer_message) {
-      footerMessage = await translateText(company.invoice_footer_message, 'french');
+    if (isFrench) {
+      footerMessage = translateTemplate(footerMessage, 'footer', false);
     }
 
     doc.setFontSize(9);
