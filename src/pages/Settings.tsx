@@ -683,7 +683,7 @@ export default function Settings() {
               {selectedCompanyId && (
                 <>
                   <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium">{language === "fr" ? "Email de facture" : "Invoice Email"}</h4>
+                    <h4 className="font-medium">{language === "fr" ? "Email de nouvelle facture" : "New Invoice Email"}</h4>
                     <div className="space-y-2">
                       <Label htmlFor="invoice_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
                       <Input
