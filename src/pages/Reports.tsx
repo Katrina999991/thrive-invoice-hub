@@ -78,6 +78,13 @@ const Reports = () => {
         }
         return { startDate: undefined, endDate: undefined };
       case 'year':
+        // Si une plage d'années est sélectionnée, utiliser celle-ci
+        if (yearRangeStart || yearRangeEnd) {
+          const startOfRange = yearRangeStart ? new Date(yearRangeStart.getFullYear(), 0, 1) : undefined;
+          const endOfRange = yearRangeEnd ? new Date(yearRangeEnd.getFullYear(), 11, 31) : undefined;
+          return { startDate: startOfRange, endDate: endOfRange };
+        }
+        // Sinon, utiliser l'année spécifique sélectionnée
         if (selectedYear) {
           const startOfYear = new Date(selectedYear.getFullYear(), 0, 1);
           const endOfYear = new Date(selectedYear.getFullYear(), 11, 31);
@@ -87,7 +94,7 @@ const Reports = () => {
       default:
         return { startDate: undefined, endDate: undefined };
     }
-  }, [activeTab, customStartDate, customEndDate, selectedMonth, selectedYear]);
+  }, [activeTab, customStartDate, customEndDate, selectedMonth, selectedYear, yearRangeStart, yearRangeEnd]);
   
   const { revenueData: realRevenueData, loading, error } = useReports(
     startDate, 
