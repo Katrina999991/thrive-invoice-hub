@@ -101,10 +101,11 @@ export default function Settings() {
     if (selectedCompanyId && companies.length > 0) {
       const company = companies.find(c => c.id === selectedCompanyId);
       if (company) {
-        // Default English templates
-        const defaultEnglish = {
-          invoice_subject: 'Invoice {invoice_number} from {company_name}',
-          invoice_message: `Dear {client_name},
+        // Default templates in both languages
+        const defaults = {
+          en: {
+            invoice_subject: 'Invoice {invoice_number} from {company_name}',
+            invoice_message: `Dear {client_name},
 
 Please find attached your invoice {invoice_number} dated {issue_date}.
 
@@ -115,8 +116,8 @@ Thank you for your business!
 
 Best regards,
 {company_name}`,
-          overdue_subject: 'Payment Overdue - Invoice {invoice_number}',
-          overdue_message: `Dear {client_name},
+            overdue_subject: 'Payment Overdue - Invoice {invoice_number}',
+            overdue_message: `Dear {client_name},
 
 This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
 
@@ -132,8 +133,8 @@ Thank you for your prompt attention to this matter.
 
 Best regards,
 {company_name}`,
-          payment_subject: 'Payment Confirmation - Invoice {invoice_number}',
-          payment_message: `Dear {client_name},
+            payment_subject: 'Payment Confirmation - Invoice {invoice_number}',
+            payment_message: `Dear {client_name},
 
 We have successfully received your payment for invoice {invoice_number}.
 
@@ -146,13 +147,11 @@ Thank you for your prompt payment and continued business!
 
 Best regards,
 {company_name}`,
-          footer: 'Thank you for your business!'
-        };
-
-        // Default French templates
-        const defaultFrench = {
-          invoice_subject: 'Facture {invoice_number} de {company_name}',
-          invoice_message: `Cher/Chère {client_name},
+            footer: 'Thank you for your business!'
+          },
+          fr: {
+            invoice_subject: 'Facture {invoice_number} de {company_name}',
+            invoice_message: `Cher/Chère {client_name},
 
 Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
 
@@ -163,8 +162,8 @@ Merci pour votre confiance !
 
 Meilleures salutations,
 {company_name}`,
-          overdue_subject: 'Paiement en retard - Facture {invoice_number}',
-          overdue_message: `Cher/Chère {client_name},
+            overdue_subject: 'Paiement en retard - Facture {invoice_number}',
+            overdue_message: `Cher/Chère {client_name},
 
 Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
 
@@ -180,8 +179,8 @@ Merci pour votre attention prompte à cette question.
 
 Meilleures salutations,
 {company_name}`,
-          payment_subject: 'Confirmation de paiement - Facture {invoice_number}',
-          payment_message: `Cher/Chère {client_name},
+            payment_subject: 'Confirmation de paiement - Facture {invoice_number}',
+            payment_message: `Cher/Chère {client_name},
 
 Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
 
@@ -194,11 +193,19 @@ Merci pour votre paiement rapide et votre fidélité !
 
 Meilleures salutations,
 {company_name}`,
-          footer: 'Merci pour votre confiance !'
+            footer: 'Merci pour votre confiance !'
+          }
         };
 
-        // Use French defaults if interface is French and company has default English or empty templates
         const isFrench = language === 'fr';
+        const displayLang = isFrench ? 'fr' : 'en';
+        
+        // Helper function to check if a value is a default template in any language
+        const isDefaultTemplate = (value: string | null, field: 'invoice_subject' | 'invoice_message' | 'overdue_subject' | 'overdue_message' | 'payment_subject' | 'payment_message' | 'footer') => {
+          if (!value) return true;
+          return value === defaults.en[field] || value === defaults.fr[field];
+        };
+
         const invoiceSubject = (company as any).invoice_email_subject;
         const invoiceMessage = (company as any).invoice_email_message;
         const overdueSubject = (company as any).overdue_email_subject;
@@ -208,26 +215,26 @@ Meilleures salutations,
         const footerMessage = (company as any).invoice_footer_message;
 
         setEmailTemplates({
-          invoice_email_subject: (!invoiceSubject || invoiceSubject === defaultEnglish.invoice_subject) && isFrench
-            ? defaultFrench.invoice_subject
+          invoice_email_subject: isDefaultTemplate(invoiceSubject, 'invoice_subject')
+            ? defaults[displayLang].invoice_subject
             : invoiceSubject || "",
-          invoice_email_message: (!invoiceMessage || invoiceMessage === defaultEnglish.invoice_message) && isFrench
-            ? defaultFrench.invoice_message
+          invoice_email_message: isDefaultTemplate(invoiceMessage, 'invoice_message')
+            ? defaults[displayLang].invoice_message
             : invoiceMessage || "",
-          overdue_email_subject: (!overdueSubject || overdueSubject === defaultEnglish.overdue_subject) && isFrench
-            ? defaultFrench.overdue_subject
+          overdue_email_subject: isDefaultTemplate(overdueSubject, 'overdue_subject')
+            ? defaults[displayLang].overdue_subject
             : overdueSubject || "",
-          overdue_email_message: (!overdueMessage || overdueMessage === defaultEnglish.overdue_message) && isFrench
-            ? defaultFrench.overdue_message
+          overdue_email_message: isDefaultTemplate(overdueMessage, 'overdue_message')
+            ? defaults[displayLang].overdue_message
             : overdueMessage || "",
-          payment_confirmation_email_subject: (!paymentSubject || paymentSubject === defaultEnglish.payment_subject) && isFrench
-            ? defaultFrench.payment_subject
+          payment_confirmation_email_subject: isDefaultTemplate(paymentSubject, 'payment_subject')
+            ? defaults[displayLang].payment_subject
             : paymentSubject || "",
-          payment_confirmation_email_message: (!paymentMessage || paymentMessage === defaultEnglish.payment_message) && isFrench
-            ? defaultFrench.payment_message
+          payment_confirmation_email_message: isDefaultTemplate(paymentMessage, 'payment_message')
+            ? defaults[displayLang].payment_message
             : paymentMessage || "",
-          invoice_footer_message: (!footerMessage || footerMessage === defaultEnglish.footer) && isFrench
-            ? defaultFrench.footer
+          invoice_footer_message: isDefaultTemplate(footerMessage, 'footer')
+            ? defaults[displayLang].footer
             : footerMessage || "",
           invoice_footer_message_fr: (company as any).invoice_footer_message_fr || ""
         });
