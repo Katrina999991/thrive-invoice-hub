@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
     } = wh.verify(payload, headers) as {
       user: {
         email: string
+        new_email?: string
       }
       email_data: {
         token: string
@@ -63,6 +64,10 @@ Deno.serve(async (req) => {
 
     console.log('Webhook verified successfully for:', user.email)
     console.log('Email action type:', email_action_type)
+    
+    // For email change, use the new email address
+    const targetEmail = email_action_type === 'email_change' && user.new_email ? user.new_email : user.email
+    console.log('Target email:', targetEmail)
 
     // Extract user language from metadata, default to French
     const userLanguage = user.raw_user_meta_data?.language || 'fr'
@@ -84,6 +89,7 @@ Deno.serve(async (req) => {
       if (email_action_type === 'recovery') return 'Réinitialisation de votre mot de passe GestionFlow'
       if (email_action_type === 'magiclink') return 'Connexion à GestionFlow'
       if (email_action_type === 'signup') return 'Bienvenue sur GestionFlow'
+      if (email_action_type === 'email_change') return userLanguage === 'en' ? 'Confirm your email change - GestionFlow' : 'Confirmez votre changement d\'email - GestionFlow'
       return 'GestionFlow'
     }
 
@@ -106,14 +112,19 @@ Deno.serve(async (req) => {
           ? `GestionFlow - Welcome\n\nWelcome! Click the link below to confirm your GestionFlow registration.\n\n${verifyLink}\n\nOr copy and paste this temporary code: ${token}\n\nIf you didn't request this action, you can safely ignore this email.\n\nThis email was sent to ${user.email}\n\nGestionFlow - Simplified management for your business`
           : `GestionFlow - Bienvenue\n\nBienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.\n\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité.\n\nCet email a été envoyé à ${user.email}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
       }
+      if (email_action_type === 'email_change') {
+        return isEnglish
+          ? `GestionFlow - Email Change Confirmation\n\nYou requested to change your email address.\n\nClick the link below to confirm this change:\n${verifyLink}\n\nOr copy and paste this temporary code: ${token}\n\nIf you didn't request this action, please contact support immediately.\n\nThis email was sent to ${targetEmail}\n\nGestionFlow - Simplified management for your business`
+          : `GestionFlow - Confirmation de changement d'email\n\nVous avez demandé à changer votre adresse email.\n\nCliquez sur le lien ci-dessous pour confirmer ce changement:\n${verifyLink}\n\nOu copiez et collez ce code temporaire: ${token}\n\nSi vous n'avez pas demandé cette action, veuillez contacter le support immédiatement.\n\nCet email a été envoyé à ${targetEmail}\n\nGestionFlow - Gestion simplifiée pour votre entreprise`
+      }
       return `GestionFlow\n\n${verifyLink}\n\nCode: ${token}`
     }
 
-    console.log('Sending email to:', user.email)
+    console.log('Sending email to:', targetEmail)
 
     const { data, error } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'GestionFlow <onboarding@resend.dev>',
-      to: [user.email],
+      to: [targetEmail],
       reply_to: 'support@gestionflow.net',
       subject: getSubject(),
       html,

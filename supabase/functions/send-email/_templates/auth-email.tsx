@@ -32,12 +32,14 @@ export const AuthEmail = ({
   const isRecovery = email_action_type === 'recovery'
   const isMagicLink = email_action_type === 'magiclink'
   const isSignup = email_action_type === 'signup'
+  const isEmailChange = email_action_type === 'email_change'
   const isEnglish = language === 'en'
 
   const getTitle = () => {
     if (isRecovery) return isEnglish ? 'Reset your password' : 'Réinitialisation de votre mot de passe'
     if (isMagicLink) return isEnglish ? 'Login to GestionFlow' : 'Connexion à GestionFlow'
     if (isSignup) return isEnglish ? 'Welcome to GestionFlow' : 'Bienvenue sur GestionFlow'
+    if (isEmailChange) return isEnglish ? 'Confirm your email change' : 'Confirmez votre changement d\'email'
     return 'GestionFlow'
   }
 
@@ -45,6 +47,7 @@ export const AuthEmail = ({
     if (isRecovery) return isEnglish ? 'Reset your GestionFlow password' : 'Réinitialisez votre mot de passe GestionFlow'
     if (isMagicLink) return isEnglish ? 'Log in to GestionFlow with this link' : 'Connectez-vous à GestionFlow avec ce lien'
     if (isSignup) return isEnglish ? 'Confirm your GestionFlow registration' : 'Confirmez votre inscription à GestionFlow'
+    if (isEmailChange) return isEnglish ? 'Confirm your new email address' : 'Confirmez votre nouvelle adresse email'
     return 'GestionFlow'
   }
 
@@ -58,6 +61,9 @@ export const AuthEmail = ({
     if (isSignup) return isEnglish
       ? 'Welcome! Click the link below to confirm your GestionFlow registration.'
       : 'Bienvenue ! Cliquez sur le lien ci-dessous pour confirmer votre inscription à GestionFlow.'
+    if (isEmailChange) return isEnglish
+      ? 'You requested to change your email address. Click the link below to confirm this change.'
+      : 'Vous avez demandé à changer votre adresse email. Cliquez sur le lien ci-dessous pour confirmer ce changement.'
     return isEnglish ? 'Click the link below to continue.' : 'Cliquez sur le lien ci-dessous pour continuer.'
   }
 
@@ -65,6 +71,7 @@ export const AuthEmail = ({
     if (isRecovery) return isEnglish ? 'Reset my password' : 'Réinitialiser mon mot de passe'
     if (isMagicLink) return isEnglish ? 'Log in' : 'Se connecter'
     if (isSignup) return isEnglish ? 'Confirm my registration' : 'Confirmer mon inscription'
+    if (isEmailChange) return isEnglish ? 'Confirm email change' : 'Confirmer le changement'
     return isEnglish ? 'Continue' : 'Continuer'
   }
 
@@ -73,6 +80,11 @@ export const AuthEmail = ({
   }
 
   const getFooterText = () => {
+    if (isEmailChange) {
+      return isEnglish
+        ? "If you didn't request this action, please contact support immediately."
+        : "Si vous n'avez pas demandé cette action, veuillez contacter le support immédiatement."
+    }
     return isEnglish
       ? "If you didn't request this action, you can safely ignore this email."
       : "Si vous n'avez pas demandé cette action, vous pouvez ignorer cet email en toute sécurité."
