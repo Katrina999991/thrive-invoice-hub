@@ -59,10 +59,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     const primaryEmail = userData.user.email;
 
-    // Generate a password reset link for the user
+    // Generate a password reset link for the user with explicit redirect to the app /auth page
+    const originHeader = req.headers.get("origin") || req.headers.get("referer") || "";
+    let redirectTo: string | undefined = undefined;
+    try {
+      if (originHeader) {
+        const base = new URL(originHeader).origin;
+        redirectTo = `${base}/auth`;
+      }
+    } catch (_) { /* noop */ }
+    console.log("Account recovery redirectTo:", redirectTo);
+
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: primaryEmail!,
+      options: { redirectTo: redirectTo || undefined }
     });
 
     if (resetError) {
