@@ -477,6 +477,250 @@ const INDIA_STATES = [
   { value: "West Bengal", label: "West Bengal" }
 ];
 
+const CHINA_PROVINCES = [
+  { value: "Anhui", label: "Anhui" },
+  { value: "Beijing", label: "Beijing" },
+  { value: "Chongqing", label: "Chongqing" },
+  { value: "Fujian", label: "Fujian" },
+  { value: "Gansu", label: "Gansu" },
+  { value: "Guangdong", label: "Guangdong" },
+  { value: "Guangxi", label: "Guangxi" },
+  { value: "Guizhou", label: "Guizhou" },
+  { value: "Hainan", label: "Hainan" },
+  { value: "Hebei", label: "Hebei" },
+  { value: "Heilongjiang", label: "Heilongjiang" },
+  { value: "Henan", label: "Henan" },
+  { value: "Hong Kong", label: "Hong Kong" },
+  { value: "Hubei", label: "Hubei" },
+  { value: "Hunan", label: "Hunan" },
+  { value: "Inner Mongolia", label: "Inner Mongolia" },
+  { value: "Jiangsu", label: "Jiangsu" },
+  { value: "Jiangxi", label: "Jiangxi" },
+  { value: "Jilin", label: "Jilin" },
+  { value: "Liaoning", label: "Liaoning" },
+  { value: "Macau", label: "Macau" },
+  { value: "Ningxia", label: "Ningxia" },
+  { value: "Qinghai", label: "Qinghai" },
+  { value: "Shaanxi", label: "Shaanxi" },
+  { value: "Shandong", label: "Shandong" },
+  { value: "Shanghai", label: "Shanghai" },
+  { value: "Shanxi", label: "Shanxi" },
+  { value: "Sichuan", label: "Sichuan" },
+  { value: "Tianjin", label: "Tianjin" },
+  { value: "Tibet", label: "Tibet" },
+  { value: "Xinjiang", label: "Xinjiang" },
+  { value: "Yunnan", label: "Yunnan" },
+  { value: "Zhejiang", label: "Zhejiang" }
+];
+
+const JAPAN_PREFECTURES = [
+  { value: "Aichi", label: "Aichi" },
+  { value: "Akita", label: "Akita" },
+  { value: "Aomori", label: "Aomori" },
+  { value: "Chiba", label: "Chiba" },
+  { value: "Ehime", label: "Ehime" },
+  { value: "Fukui", label: "Fukui" },
+  { value: "Fukuoka", label: "Fukuoka" },
+  { value: "Fukushima", label: "Fukushima" },
+  { value: "Gifu", label: "Gifu" },
+  { value: "Gunma", label: "Gunma" },
+  { value: "Hiroshima", label: "Hiroshima" },
+  { value: "Hokkaido", label: "Hokkaido" },
+  { value: "Hyogo", label: "Hyogo" },
+  { value: "Ibaraki", label: "Ibaraki" },
+  { value: "Ishikawa", label: "Ishikawa" },
+  { value: "Iwate", label: "Iwate" },
+  { value: "Kagawa", label: "Kagawa" },
+  { value: "Kagoshima", label: "Kagoshima" },
+  { value: "Kanagawa", label: "Kanagawa" },
+  { value: "Kochi", label: "Kochi" },
+  { value: "Kumamoto", label: "Kumamoto" },
+  { value: "Kyoto", label: "Kyoto" },
+  { value: "Mie", label: "Mie" },
+  { value: "Miyagi", label: "Miyagi" },
+  { value: "Miyazaki", label: "Miyazaki" },
+  { value: "Nagano", label: "Nagano" },
+  { value: "Nagasaki", label: "Nagasaki" },
+  { value: "Nara", label: "Nara" },
+  { value: "Niigata", label: "Niigata" },
+  { value: "Oita", label: "Oita" },
+  { value: "Okayama", label: "Okayama" },
+  { value: "Okinawa", label: "Okinawa" },
+  { value: "Osaka", label: "Osaka" },
+  { value: "Saga", label: "Saga" },
+  { value: "Saitama", label: "Saitama" },
+  { value: "Shiga", label: "Shiga" },
+  { value: "Shimane", label: "Shimane" },
+  { value: "Shizuoka", label: "Shizuoka" },
+  { value: "Tochigi", label: "Tochigi" },
+  { value: "Tokushima", label: "Tokushima" },
+  { value: "Tokyo", label: "Tokyo" },
+  { value: "Tottori", label: "Tottori" },
+  { value: "Toyama", label: "Toyama" },
+  { value: "Wakayama", label: "Wakayama" },
+  { value: "Yamagata", label: "Yamagata" },
+  { value: "Yamaguchi", label: "Yamaguchi" },
+  { value: "Yamanashi", label: "Yamanashi" }
+];
+
+const RUSSIA_REGIONS = [
+  { value: "Moscow", label: "Moscow" },
+  { value: "Saint Petersburg", label: "Saint Petersburg" },
+  { value: "Novosibirsk", label: "Novosibirsk" },
+  { value: "Yekaterinburg", label: "Yekaterinburg" },
+  { value: "Kazan", label: "Kazan" },
+  { value: "Nizhny Novgorod", label: "Nizhny Novgorod" },
+  { value: "Chelyabinsk", label: "Chelyabinsk" },
+  { value: "Samara", label: "Samara" },
+  { value: "Omsk", label: "Omsk" },
+  { value: "Rostov-on-Don", label: "Rostov-on-Don" },
+  { value: "Ufa", label: "Ufa" },
+  { value: "Krasnoyarsk", label: "Krasnoyarsk" },
+  { value: "Voronezh", label: "Voronezh" },
+  { value: "Perm", label: "Perm" },
+  { value: "Volgograd", label: "Volgograd" }
+];
+
+const ARGENTINA_PROVINCES = [
+  { value: "Buenos Aires", label: "Buenos Aires" },
+  { value: "Catamarca", label: "Catamarca" },
+  { value: "Chaco", label: "Chaco" },
+  { value: "Chubut", label: "Chubut" },
+  { value: "Córdoba", label: "Córdoba" },
+  { value: "Corrientes", label: "Corrientes" },
+  { value: "Entre Ríos", label: "Entre Ríos" },
+  { value: "Formosa", label: "Formosa" },
+  { value: "Jujuy", label: "Jujuy" },
+  { value: "La Pampa", label: "La Pampa" },
+  { value: "La Rioja", label: "La Rioja" },
+  { value: "Mendoza", label: "Mendoza" },
+  { value: "Misiones", label: "Misiones" },
+  { value: "Neuquén", label: "Neuquén" },
+  { value: "Río Negro", label: "Río Negro" },
+  { value: "Salta", label: "Salta" },
+  { value: "San Juan", label: "San Juan" },
+  { value: "San Luis", label: "San Luis" },
+  { value: "Santa Cruz", label: "Santa Cruz" },
+  { value: "Santa Fe", label: "Santa Fe" },
+  { value: "Santiago del Estero", label: "Santiago del Estero" },
+  { value: "Tierra del Fuego", label: "Tierra del Fuego" },
+  { value: "Tucumán", label: "Tucumán" }
+];
+
+const SOUTH_AFRICA_PROVINCES = [
+  { value: "Eastern Cape", label: "Eastern Cape" },
+  { value: "Free State", label: "Free State" },
+  { value: "Gauteng", label: "Gauteng" },
+  { value: "KwaZulu-Natal", label: "KwaZulu-Natal" },
+  { value: "Limpopo", label: "Limpopo" },
+  { value: "Mpumalanga", label: "Mpumalanga" },
+  { value: "North West", label: "North West" },
+  { value: "Northern Cape", label: "Northern Cape" },
+  { value: "Western Cape", label: "Western Cape" }
+];
+
+const NETHERLANDS_PROVINCES = [
+  { value: "Drenthe", label: "Drenthe" },
+  { value: "Flevoland", label: "Flevoland" },
+  { value: "Friesland", label: "Friesland" },
+  { value: "Gelderland", label: "Gelderland" },
+  { value: "Groningen", label: "Groningen" },
+  { value: "Limburg", label: "Limburg" },
+  { value: "North Brabant", label: "North Brabant" },
+  { value: "North Holland", label: "North Holland" },
+  { value: "Overijssel", label: "Overijssel" },
+  { value: "South Holland", label: "South Holland" },
+  { value: "Utrecht", label: "Utrecht" },
+  { value: "Zeeland", label: "Zeeland" }
+];
+
+const BELGIUM_REGIONS = [
+  { value: "Brussels", label: "Brussels" },
+  { value: "Flanders", label: "Flanders" },
+  { value: "Wallonia", label: "Wallonia" }
+];
+
+const SWITZERLAND_CANTONS = [
+  { value: "Aargau", label: "Aargau" },
+  { value: "Appenzell Ausserrhoden", label: "Appenzell Ausserrhoden" },
+  { value: "Appenzell Innerrhoden", label: "Appenzell Innerrhoden" },
+  { value: "Basel-Landschaft", label: "Basel-Landschaft" },
+  { value: "Basel-Stadt", label: "Basel-Stadt" },
+  { value: "Bern", label: "Bern" },
+  { value: "Fribourg", label: "Fribourg" },
+  { value: "Geneva", label: "Geneva" },
+  { value: "Glarus", label: "Glarus" },
+  { value: "Graubünden", label: "Graubünden" },
+  { value: "Jura", label: "Jura" },
+  { value: "Lucerne", label: "Lucerne" },
+  { value: "Neuchâtel", label: "Neuchâtel" },
+  { value: "Nidwalden", label: "Nidwalden" },
+  { value: "Obwalden", label: "Obwalden" },
+  { value: "Schaffhausen", label: "Schaffhausen" },
+  { value: "Schwyz", label: "Schwyz" },
+  { value: "Solothurn", label: "Solothurn" },
+  { value: "St. Gallen", label: "St. Gallen" },
+  { value: "Thurgau", label: "Thurgau" },
+  { value: "Ticino", label: "Ticino" },
+  { value: "Uri", label: "Uri" },
+  { value: "Valais", label: "Valais" },
+  { value: "Vaud", label: "Vaud" },
+  { value: "Zug", label: "Zug" },
+  { value: "Zurich", label: "Zurich" }
+];
+
+const AUSTRIA_STATES = [
+  { value: "Burgenland", label: "Burgenland" },
+  { value: "Carinthia", label: "Carinthia" },
+  { value: "Lower Austria", label: "Lower Austria" },
+  { value: "Upper Austria", label: "Upper Austria" },
+  { value: "Salzburg", label: "Salzburg" },
+  { value: "Styria", label: "Styria" },
+  { value: "Tyrol", label: "Tyrol" },
+  { value: "Vorarlberg", label: "Vorarlberg" },
+  { value: "Vienna", label: "Vienna" }
+];
+
+const PORTUGAL_DISTRICTS = [
+  { value: "Aveiro", label: "Aveiro" },
+  { value: "Beja", label: "Beja" },
+  { value: "Braga", label: "Braga" },
+  { value: "Bragança", label: "Bragança" },
+  { value: "Castelo Branco", label: "Castelo Branco" },
+  { value: "Coimbra", label: "Coimbra" },
+  { value: "Évora", label: "Évora" },
+  { value: "Faro", label: "Faro" },
+  { value: "Guarda", label: "Guarda" },
+  { value: "Leiria", label: "Leiria" },
+  { value: "Lisbon", label: "Lisbon" },
+  { value: "Portalegre", label: "Portalegre" },
+  { value: "Porto", label: "Porto" },
+  { value: "Santarém", label: "Santarém" },
+  { value: "Setúbal", label: "Setúbal" },
+  { value: "Viana do Castelo", label: "Viana do Castelo" },
+  { value: "Vila Real", label: "Vila Real" },
+  { value: "Viseu", label: "Viseu" }
+];
+
+const POLAND_VOIVODESHIPS = [
+  { value: "Greater Poland", label: "Greater Poland" },
+  { value: "Kuyavian-Pomeranian", label: "Kuyavian-Pomeranian" },
+  { value: "Lesser Poland", label: "Lesser Poland" },
+  { value: "Lodz", label: "Lodz" },
+  { value: "Lower Silesian", label: "Lower Silesian" },
+  { value: "Lublin", label: "Lublin" },
+  { value: "Lubusz", label: "Lubusz" },
+  { value: "Masovian", label: "Masovian" },
+  { value: "Opole", label: "Opole" },
+  { value: "Podkarpackie", label: "Podkarpackie" },
+  { value: "Podlaskie", label: "Podlaskie" },
+  { value: "Pomeranian", label: "Pomeranian" },
+  { value: "Silesian", label: "Silesian" },
+  { value: "Swietokrzyskie", label: "Swietokrzyskie" },
+  { value: "Warmian-Masurian", label: "Warmian-Masurian" },
+  { value: "West Pomeranian", label: "West Pomeranian" }
+];
+
 // Helper function to get regions for a country
 const getRegionsForCountry = (country: string) => {
   switch (country) {
@@ -502,6 +746,28 @@ const getRegionsForCountry = (country: string) => {
       return AUSTRALIA_STATES;
     case "India":
       return INDIA_STATES;
+    case "China":
+      return CHINA_PROVINCES;
+    case "Japan":
+      return JAPAN_PREFECTURES;
+    case "Russia":
+      return RUSSIA_REGIONS;
+    case "Argentina":
+      return ARGENTINA_PROVINCES;
+    case "South Africa":
+      return SOUTH_AFRICA_PROVINCES;
+    case "Netherlands":
+      return NETHERLANDS_PROVINCES;
+    case "Belgium":
+      return BELGIUM_REGIONS;
+    case "Switzerland":
+      return SWITZERLAND_CANTONS;
+    case "Austria":
+      return AUSTRIA_STATES;
+    case "Portugal":
+      return PORTUGAL_DISTRICTS;
+    case "Poland":
+      return POLAND_VOIVODESHIPS;
     default:
       return null;
   }
