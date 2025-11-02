@@ -59,13 +59,20 @@ const handler = async (req: Request): Promise<Response> => {
             province_state,
             postal_code,
             taxes,
-            invoice_email_subject,
-            invoice_email_message,
-            overdue_email_subject,
-            overdue_email_message,
-            payment_confirmation_email_subject,
-            payment_confirmation_email_message,
-            invoice_footer_message
+            invoice_email_subject_en,
+            invoice_email_subject_fr,
+            invoice_email_message_en,
+            invoice_email_message_fr,
+            overdue_email_subject_en,
+            overdue_email_subject_fr,
+            overdue_email_message_en,
+            overdue_email_message_fr,
+            payment_confirmation_email_subject_en,
+            payment_confirmation_email_subject_fr,
+            payment_confirmation_email_message_en,
+            payment_confirmation_email_message_fr,
+            invoice_footer_message_en,
+            invoice_footer_message_fr
           )
         ),
         invoice_items (
@@ -150,7 +157,7 @@ const handler = async (req: Request): Promise<Response> => {
     const isFrench = client.language === 'french';
     console.log('Client language:', client.language, 'Is French:', isFrench);
 
-    // Email subject and message selection with static translation
+    // Email subject and message selection based on client language
     let emailSubject: string;
     let emailMessage: string;
 
@@ -159,31 +166,28 @@ const handler = async (req: Request): Promise<Response> => {
       emailSubject = customSubject;
       emailMessage = customMessage;
     } else {
-      // Get base templates from company or defaults
-      let baseSubject: string;
-      let baseMessage: string;
-
+      // Select templates based on email type and client language
       if (emailType === "overdue") {
-        baseSubject = company.overdue_email_subject || emailTranslations.en.overdue.subject;
-        baseMessage = company.overdue_email_message || emailTranslations.en.overdue.body;
+        emailSubject = isFrench 
+          ? (company.overdue_email_subject_fr || emailTranslations.fr.overdue.subject)
+          : (company.overdue_email_subject_en || emailTranslations.en.overdue.subject);
+        emailMessage = isFrench 
+          ? (company.overdue_email_message_fr || emailTranslations.fr.overdue.body)
+          : (company.overdue_email_message_en || emailTranslations.en.overdue.body);
       } else if (emailType === "payment_confirmation") {
-        baseSubject = company.payment_confirmation_email_subject || emailTranslations.en.paymentConfirmation.subject;
-        baseMessage = company.payment_confirmation_email_message || emailTranslations.en.paymentConfirmation.body;
+        emailSubject = isFrench 
+          ? (company.payment_confirmation_email_subject_fr || emailTranslations.fr.paymentConfirmation.subject)
+          : (company.payment_confirmation_email_subject_en || emailTranslations.en.paymentConfirmation.subject);
+        emailMessage = isFrench 
+          ? (company.payment_confirmation_email_message_fr || emailTranslations.fr.paymentConfirmation.body)
+          : (company.payment_confirmation_email_message_en || emailTranslations.en.paymentConfirmation.body);
       } else {
-        baseSubject = company.invoice_email_subject || emailTranslations.en.newInvoice.subject;
-        baseMessage = company.invoice_email_message || emailTranslations.en.newInvoice.body;
-      }
-
-      // Translate to French if needed using static translations
-      if (isFrench) {
-        const templateType = emailType === "overdue" ? "overdue" : 
-                           emailType === "payment_confirmation" ? "paymentConfirmation" : 
-                           "newInvoice";
-        emailSubject = translateTemplate(baseSubject, templateType, true);
-        emailMessage = translateTemplate(baseMessage, templateType, false);
-      } else {
-        emailSubject = baseSubject;
-        emailMessage = baseMessage;
+        emailSubject = isFrench 
+          ? (company.invoice_email_subject_fr || emailTranslations.fr.newInvoice.subject)
+          : (company.invoice_email_subject_en || emailTranslations.en.newInvoice.subject);
+        emailMessage = isFrench 
+          ? (company.invoice_email_message_fr || emailTranslations.fr.newInvoice.body)
+          : (company.invoice_email_message_en || emailTranslations.en.newInvoice.body);
       }
     }
 
@@ -539,13 +543,10 @@ const handler = async (req: Request): Promise<Response> => {
       finalY += 5;
     }
 
-    // Add company footer message (translate if needed using static translations)
-    let footerMessage = company.invoice_footer_message || emailTranslations.en.footer;
-    
-    // Translate footer message if needed
-    if (isFrench) {
-      footerMessage = translateTemplate(footerMessage, 'footer', false);
-    }
+    // Add company footer message based on client language
+    const footerMessage = isFrench 
+      ? (company.invoice_footer_message_fr || emailTranslations.fr.footer)
+      : (company.invoice_footer_message_en || emailTranslations.en.footer);
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
