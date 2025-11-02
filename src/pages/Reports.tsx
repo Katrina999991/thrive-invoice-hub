@@ -2083,6 +2083,97 @@ const Reports = () => {
     }
   };
 
+  const exportInvoicesToPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text('Rapport des Factures', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.text(`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 32);
+    
+    // Afficher les filtres
+    const statusLabels: Record<string, string> = {
+      all: 'Tous',
+      paid: 'Payé',
+      sent: 'Envoyé',
+      overdue: 'En retard',
+      draft: 'Brouillon'
+    };
+    const filterText = invoiceStatusFilters.includes('all') 
+      ? 'Tous les statuts' 
+      : invoiceStatusFilters.map(s => statusLabels[s] || s).join(', ');
+    doc.text(`Filtres: ${filterText}`, 14, 40);
+    doc.text(`Total: $${invoiceGrandTotal.toFixed(2)}`, 14, 48);
+    
+    // Préparer les données du tableau
+    const tableData = filteredInvoicesByStatus.map(invoice => {
+      const client = clients.find(c => c.id === invoice.client_id);
+      const statusText = statusLabels[invoice.status] || invoice.status;
+      return [
+        invoice.invoice_number,
+        client?.name || 'N/A',
+        format(new Date(invoice.issue_date), 'dd/MM/yyyy'),
+        invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy') : 'N/A',
+        `$${Number(invoice.total).toFixed(2)}`,
+        statusText
+      ];
+    });
+    
+    autoTable(doc, {
+      head: [['Numéro', 'Client', 'Date émission', 'Date échéance', 'Montant', 'Statut']],
+      body: tableData,
+      startY: 56,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [66, 139, 202] }
+    });
+    
+    doc.save(`rapport-factures-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  };
+
+  const exportInvoicesToExcel = () => {
+    const statusLabels: Record<string, string> = {
+      all: 'Tous',
+      paid: 'Payé',
+      sent: 'Envoyé',
+      overdue: 'En retard',
+      draft: 'Brouillon'
+    };
+    
+    const filterText = invoiceStatusFilters.includes('all') 
+      ? 'Tous les statuts' 
+      : invoiceStatusFilters.map(s => statusLabels[s] || s).join(', ');
+    
+    // Données de l'en-tête
+    const headerData = [
+      ['Rapport des Factures'],
+      [`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`],
+      [`Filtres: ${filterText}`],
+      [`Grand Total: $${invoiceGrandTotal.toFixed(2)}`],
+      []
+    ];
+    
+    // Données des factures
+    const invoiceData = filteredInvoicesByStatus.map(invoice => {
+      const client = clients.find(c => c.id === invoice.client_id);
+      return {
+        'Numéro': invoice.invoice_number,
+        'Client': client?.name || 'N/A',
+        'Date d\'émission': format(new Date(invoice.issue_date), 'dd/MM/yyyy'),
+        'Date d\'échéance': invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy') : 'N/A',
+        'Montant': Number(invoice.total).toFixed(2),
+        'Statut': statusLabels[invoice.status] || invoice.status
+      };
+    });
+    
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(headerData);
+    XLSX.utils.sheet_add_json(ws, invoiceData, { origin: -1 });
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Factures');
+    XLSX.writeFile(wb, `rapport-factures-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -4650,6 +4741,25 @@ const Reports = () => {
                   )}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Téléchargement</CardTitle>
+              <CardDescription>Exporter le rapport des factures</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Button onClick={exportInvoicesToPDF} variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+                <Button onClick={exportInvoicesToExcel} variant="outline" size="sm">
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Excel
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
