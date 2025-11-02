@@ -6,6 +6,50 @@ import "npm:jspdf-autotable@3.8.2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// Helper function to translate text using Lovable AI
+async function translateText(text: string, targetLanguage: 'french' | 'english'): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  
+  if (!LOVABLE_API_KEY) {
+    console.warn('LOVABLE_API_KEY not configured, skipping translation');
+    return text;
+  }
+
+  try {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a professional translator. Translate the following text to ${targetLanguage}. Keep all placeholders like {invoice_number}, {client_name}, {total}, {due_date}, {issue_date}, {company_name}, {days_overdue}, {payment_date} exactly as they are. Only translate the regular text, not the placeholders.`
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Translation API error:', response.status);
+      return text;
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content || text;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return text;
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -64,8 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
             overdue_email_message,
             payment_confirmation_email_subject,
             payment_confirmation_email_message,
-            invoice_footer_message,
-            invoice_footer_message_fr
+            invoice_footer_message
           )
         ),
         invoice_items (
@@ -147,134 +190,79 @@ const handler = async (req: Request): Promise<Response> => {
       '{payment_date}': today.toLocaleDateString(),
     };
 
-    // Define French translations
-    const frenchTemplates = {
-      overdue: {
-        subject: 'Paiement en retard - Facture {invoice_number}',
-        message: `Cher/Chère {client_name},
+    const isFrench = client.language === 'french';
+    console.log('Client language:', client.language, 'Is French:', isFrench);
 
-Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+    // Email subject and message selection with automatic translation
+    let emailSubject: string;
+    let emailMessage: string;
 
-Montant original : {total}$
-Date d'échéance : {due_date}
-Jours de retard : {days_overdue}
-
-Veuillez effectuer le paiement à votre plus tôt possible pour éviter des frais de retard.
-
-Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
-
-Merci pour votre attention prompte à cette question.
-
-Meilleures salutations,
-{company_name}`
-      },
-      payment_confirmation: {
-        subject: 'Confirmation de paiement - Facture {invoice_number}',
-        message: `Cher/Chère {client_name},
-
-Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
-
-Détails du paiement :
-- Facture : {invoice_number}
-- Montant : {total}$
-- Date de paiement : {payment_date}
-
-Merci pour votre paiement rapide et votre fidélité !
-
-Meilleures salutations,
-{company_name}`
-      },
-      new: {
-        subject: 'Facture {invoice_number} de {company_name}',
-        message: `Cher/Chère {client_name},
-
-Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
-
-Montant dû : {total}$
-Date d'échéance : {due_date}
-
-Merci pour votre confiance !
-
-Meilleures salutations,
-{company_name}`
-      }
-    };
-
-    // Determine if we should use French templates
-    const clientLanguage = client.language || 'english';
-
-    // Use custom email content if provided, otherwise use company templates
-    let emailSubject = customSubject;
-    let emailMessage = customMessage;
-
-    if (!emailSubject || !emailMessage) {
-      const isFrench = (clientLanguage || '').toLowerCase().startsWith('fr');
-
+    // Use custom email content if provided
+    if (customSubject && customMessage) {
+      emailSubject = customSubject;
+      emailMessage = customMessage;
+    } else {
       // Default English templates
-      const defaultEnglishTemplates = {
-        overdue: {
-          subject: 'Payment Overdue - Invoice {invoice_number}',
-          message: `Dear {client_name},
-\nThis is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
-\nOriginal amount: {total}
-Due date: {due_date}
-Days overdue: {days_overdue}
-\nPlease remit payment at your earliest convenience to avoid any late fees.
-\nIf you have already sent payment, please disregard this notice.
-\nThank you for your prompt attention to this matter.
-\nBest regards,
-{company_name}`
-        },
-        payment: {
-          subject: 'Payment Confirmation - Invoice {invoice_number}',
-          message: `Dear {client_name},
-\nWe have successfully received your payment for invoice {invoice_number}.
-\nPayment details:
-- Invoice: {invoice_number}
-- Amount: {total}
-- Date paid: {payment_date}
-\nThank you for your prompt payment and continued business!
-\nBest regards,
-{company_name}`
-        },
+      const defaultTemplates = {
         new: {
           subject: 'Invoice {invoice_number} from {company_name}',
-          message: `Dear {client_name},
-\nPlease find attached your invoice {invoice_number} dated {issue_date}.
-\nAmount due: {total}
-Due date: {due_date}
-\nThank you for your business!
-\nBest regards,
+          message: `Dear {client_name},\n
+Please find attached your invoice {invoice_number} dated {issue_date}.\n
+Amount due: {total}\n
+Due date: {due_date}\n
+Thank you for your business!\n
+Best regards,\n
+{company_name}`
+        },
+        overdue: {
+          subject: 'Payment Overdue - Invoice {invoice_number}',
+          message: `Dear {client_name},\n
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.\n
+Original amount: {total}\n
+Due date: {due_date}\n
+Days overdue: {days_overdue}\n
+Please remit payment at your earliest convenience to avoid any late fees.\n
+If you have already sent payment, please disregard this notice.\n
+Thank you for your prompt attention to this matter.\n
+Best regards,\n
+{company_name}`
+        },
+        payment_confirmation: {
+          subject: 'Payment Confirmation - Invoice {invoice_number}',
+          message: `Dear {client_name},\n
+We have successfully received your payment for invoice {invoice_number}.\n
+Payment details:\n
+- Invoice: {invoice_number}\n
+- Amount: {total}\n
+- Date paid: {payment_date}\n
+Thank you for your prompt payment and continued business!\n
+Best regards,\n
 {company_name}`
         }
       };
 
-      // Determine which template to use based on email type and client language
+      // Get base templates
+      let baseSubject: string;
+      let baseMessage: string;
+
       if (emailType === "overdue") {
-        // Use language-specific custom templates if available, otherwise use defaults in client's language
-        if (isFrench) {
-          emailSubject = emailSubject || (company as any).overdue_email_subject_fr || company.overdue_email_subject || frenchTemplates.overdue.subject;
-          emailMessage = emailMessage || (company as any).overdue_email_message_fr || company.overdue_email_message || frenchTemplates.overdue.message;
-        } else {
-          emailSubject = emailSubject || company.overdue_email_subject || defaultEnglishTemplates.overdue.subject;
-          emailMessage = emailMessage || company.overdue_email_message || defaultEnglishTemplates.overdue.message;
-        }
+        baseSubject = company.overdue_email_subject || defaultTemplates.overdue.subject;
+        baseMessage = company.overdue_email_message || defaultTemplates.overdue.message;
       } else if (emailType === "payment_confirmation") {
-        if (isFrench) {
-          emailSubject = emailSubject || (company as any).payment_confirmation_email_subject_fr || company.payment_confirmation_email_subject || frenchTemplates.payment_confirmation.subject;
-          emailMessage = emailMessage || (company as any).payment_confirmation_email_message_fr || company.payment_confirmation_email_message || frenchTemplates.payment_confirmation.message;
-        } else {
-          emailSubject = emailSubject || company.payment_confirmation_email_subject || defaultEnglishTemplates.payment.subject;
-          emailMessage = emailMessage || company.payment_confirmation_email_message || defaultEnglishTemplates.payment.message;
-        }
+        baseSubject = company.payment_confirmation_email_subject || defaultTemplates.payment_confirmation.subject;
+        baseMessage = company.payment_confirmation_email_message || defaultTemplates.payment_confirmation.message;
       } else {
-        if (isFrench) {
-          emailSubject = emailSubject || (company as any).invoice_email_subject_fr || company.invoice_email_subject || frenchTemplates.new.subject;
-          emailMessage = emailMessage || (company as any).invoice_email_message_fr || company.invoice_email_message || frenchTemplates.new.message;
-        } else {
-          emailSubject = emailSubject || company.invoice_email_subject || defaultEnglishTemplates.new.subject;
-          emailMessage = emailMessage || company.invoice_email_message || defaultEnglishTemplates.new.message;
-        }
+        baseSubject = company.invoice_email_subject || defaultTemplates.new.subject;
+        baseMessage = company.invoice_email_message || defaultTemplates.new.message;
+      }
+
+      // Translate to French if needed
+      if (isFrench) {
+        emailSubject = await translateText(baseSubject, 'french');
+        emailMessage = await translateText(baseMessage, 'french');
+      } else {
+        emailSubject = baseSubject;
+        emailMessage = baseMessage;
       }
     }
 
@@ -285,7 +273,7 @@ Due date: {due_date}
     });
 
     // Define table headers based on language
-    const tableHeaders = clientLanguage === 'french' ? {
+    const tableHeaders = isFrench ? {
       invoice: 'FACTURE',
       billTo: 'Facturer à :',
       invoiceNumber: 'Numéro de facture',
@@ -469,679 +457,214 @@ Due date: {due_date}
     if (emailType === "payment_confirmation") {
       doc.setFontSize(10);
       doc.setTextColor(40, 40, 40);
-      doc.text(`${tableHeaders.status || 'Status'}: ${invoice.status.toUpperCase()}`, 20, 50);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${tableHeaders.status}: ${tableHeaders.billTo.includes('Facturer') ? 'Payé' : 'Paid'}`, 20, 48);
     }
+    
+    // INVOICE label and info
+    let invoiceInfoY = emailType === "payment_confirmation" ? 58 : 48;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+    doc.text(tableHeaders.invoice, 20, invoiceInfoY);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${tableHeaders.invoiceNumber}: ${invoice.invoice_number}`, 20, invoiceInfoY + 7);
+    doc.text(`${tableHeaders.issueDate}: ${invoice.issue_date}`, 20, invoiceInfoY + 12);
+    doc.text(`${tableHeaders.dueDate}: ${invoice.due_date || 'N/A'}`, 20, invoiceInfoY + 17);
     
     // Client information
-    const clientInfoY = emailType === "payment_confirmation" ? 60 : 50;
-    let nextY = clientInfoY;
-    if (client) {
-      // Add background box for modern and creative templates
-      if (invoiceTemplate === 'modern') {
-        doc.setFillColor(245, 245, 245);
-        const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
-        doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
-      } else if (invoiceTemplate === 'creative') {
-        // Add gray background with light colored border for creative template
-        const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
-        
-        // Fill with light gray
-        doc.setFillColor(245, 245, 245);
-        doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
-        
-        // Add light colored border
-        doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'S');
-      }
-      
-      const textYOffset = invoiceTemplate === 'creative' ? 2 : invoiceTemplate === 'modern' ? 2 : 0;
-      
-      doc.setFontSize(11);
-      // Use medium shade color for "Bill To" in professional template (same as separator line)
-      if (invoiceTemplate === 'professional') {
-        const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-        const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-        const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-        doc.setTextColor(mediumR, mediumG, mediumB);
-      } else {
-        doc.setTextColor(40, 40, 40);
-      }
-      doc.setFont('helvetica', 'bold');
-      const leftMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
-      const rightMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
-      doc.text(tableHeaders.billTo || 'Bill To:', leftMargin, clientInfoY + textYOffset);
-      
-      // Right side - Invoice Number and Date (aligned with Bill To)
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      // Use same color as "Bill To" for professional template
-      if (invoiceTemplate === 'professional') {
-        const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-        const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-        const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-        doc.setTextColor(mediumR, mediumG, mediumB);
-      } else {
-        doc.setTextColor(40, 40, 40);
-      }
-      const invoiceTitle = `${tableHeaders.invoice || 'INVOICE'} ${invoice.invoice_number}`;
-      const titleWidth = doc.getTextWidth(invoiceTitle);
-      doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY + textYOffset);
-      
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      const issueDateText = `${tableHeaders.issueDate || 'Issue Date'}: ${invoice.issue_date}`;
-      const issueDateWidth = doc.getTextWidth(issueDateText);
-      doc.text(issueDateText, 210 - rightMargin - issueDateWidth, clientInfoY + 6 + textYOffset);
-      
-      // Add due date below issue date
-      if (invoice.due_date) {
-        const dueDateText = `${tableHeaders.dueDate || 'Due Date'}: ${invoice.due_date}`;
-        const dueDateWidth = doc.getTextWidth(dueDateText);
-        doc.text(dueDateText, 210 - rightMargin - dueDateWidth, clientInfoY + 12 + textYOffset);
-      }
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(60, 60, 60);
-      
-      nextY = clientInfoY + 7 + textYOffset;
-      doc.text(client.name, leftMargin, nextY);
-      nextY += 5;
-      
-      if (client.contact_person) {
-        doc.text(client.contact_person, leftMargin, nextY);
-        nextY += 5;
-      }
-      if (client.address) {
-        doc.text(client.address, leftMargin, nextY);
-        nextY += 5;
-      }
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40, 40, 40);
+    doc.text(tableHeaders.billTo, 130, invoiceInfoY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(client.name, 130, invoiceInfoY + 7);
+    if (client.address) {
+      const addressLines = doc.splitTextToSize(client.address, 60);
+      let addressY = invoiceInfoY + 12;
+      addressLines.forEach((line: string) => {
+        doc.text(line, 130, addressY);
+        addressY += 5;
+      });
     }
     
-    // Items table - add some space after client info
-    const startY = nextY + 15;
-    
-    // Add line above table for classic template
+    // Separator line after invoice info
+    const afterInfoY = invoiceInfoY + 30;
     if (invoiceTemplate === 'classic') {
+      // Use the same light color as before
       doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+    } else if (invoiceTemplate !== 'creative' && invoiceTemplate !== 'modern') {
+      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+      doc.setDrawColor(mediumR, mediumG, mediumB);
+    }
+    if (invoiceTemplate !== 'creative' && invoiceTemplate !== 'modern') {
       doc.setLineWidth(0.5);
-      doc.line(20, startY - 5, 190, startY - 5);
+      doc.line(20, afterInfoY, 190, afterInfoY);
     }
     
-    const tableData: any[] = [];
+    // Items table
+    const tableStartY = afterInfoY + 8;
     
-    // Add invoice items
-    if (invoice.invoice_items && invoice.invoice_items.length > 0) {
-      invoice.invoice_items.forEach((item: any) => {
-        tableData.push([
-          item.description,
-          item.quantity.toString(),
-          `$${item.unit_price.toFixed(2)}`,
-          `$${item.total.toFixed(2)}`
-        ]);
-        
-        // Add item notes if they exist
-        if (item.notes) {
-          tableData.push([
-            `      ${tableHeaders.notes}: ${item.notes}`,
-            '',
-            '',
-            ''
-          ]);
-        }
-        
-        // Add product taxes if they exist for this item
-        if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-          item.product_taxes.forEach((tax: any) => {
-            const taxType = tax.type || 'percentage';
-            const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-            
-            let taxAmount = 0;
-            if (taxType === 'percentage') {
-              taxAmount = item.total * (taxValue / 100);
-            } else {
-              taxAmount = taxValue * item.quantity;
-            }
-            
-            const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
-            const taxDetails = `${tax.name} (${taxLabel})`;
-            
-            tableData.push([
-              `  ${tableHeaders.tax}: ${taxDetails}`,
-              '',
-              '',
-              `$${taxAmount.toFixed(2)}`
-            ]);
-          });
-        }
-      });
-    }
-    
-    // Add subtotal, individual taxes, and total rows
-    tableData.push(['', '', `${tableHeaders.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
-    
-    // Add individual taxes if company has multiple taxes
-    if (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
-      company.taxes.forEach((tax: any) => {
-        const taxAmount = invoice.subtotal * (tax.percentage / 100);
-        tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
-      });
-    } else if (invoice.tax_amount > 0) {
-      tableData.push(['', '', `${tableHeaders.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
-    }
-    
-    tableData.push(['', '', `${tableHeaders.totalAmount}:`, `$${invoice.total.toFixed(2)}`]);
-    
-    // Use autoTable for better table formatting
-    const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
-                      invoiceTemplate === 'modern' ? 'plain' : 
-                      invoiceTemplate === 'classic' ? 'grid' : 
-                      invoiceTemplate === 'creative' ? 'plain' : 'plain';
-    
-    (doc as any).autoTable({
-      head: [[
-        tableHeaders.description,
-        tableHeaders.qty,
-        tableHeaders.unitPrice,
-        tableHeaders.total
-      ]],
-      body: tableData,
-      startY: startY,
-      theme: tableTheme,
-      tableWidth: invoiceTemplate === 'modern' ? 170 : 'auto',
-      margin: invoiceTemplate === 'modern' ? { left: 20, right: 20 } : { left: 20, right: 20 },
-      styles: {
-        fontSize: 10,
-        cellPadding: invoiceTemplate === 'professional' ? 3 : invoiceTemplate === 'modern' ? 2 : invoiceTemplate === 'classic' ? 2 : 3,
-        lineColor: [240, 240, 240],
-        lineWidth: 0.5,
-      },
-      headStyles: {
-        fillColor: undefined,
-        textColor: [40, 40, 40],
-        fontStyle: 'bold',
-        fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
-        cellPadding: invoiceTemplate === 'modern' ? 4 : 4,
-        lineWidth: 0.5,
-      },
-      alternateRowStyles: undefined,
-      columnStyles: {
-        0: { cellWidth: invoiceTemplate === 'modern' ? 70 : 'auto' },
-        1: { halign: 'center', cellWidth: invoiceTemplate === 'modern' ? 25 : 'auto' },
-        2: { halign: 'right', cellWidth: invoiceTemplate === 'modern' ? 30 : 'auto' },
-        3: { halign: 'right', fontStyle: 'bold', cellWidth: invoiceTemplate === 'modern' ? 45 : 'auto' },
-      },
-      bodyStyles: {
-        textColor: [60, 60, 60],
-        fillColor: undefined,
-      },
-      didParseCell: function(data: any) {
-        // Remove fills so custom rounded backgrounds (drawn in willDrawCell) are fully visible
-        if ((invoiceTemplate === 'modern' || invoiceTemplate === 'classic') && data.section === 'head') {
-          data.cell.styles.fillColor = undefined;
-          data.cell.styles.lineWidth = 0;
-        }
-        if (invoiceTemplate === 'modern' && data.section === 'body') {
-          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-          const isLastRow = data.row.index === bodyLen - 1;
-          if (isLastRow) {
-            data.cell.styles.fillColor = undefined;
-            data.cell.styles.textColor = [255, 255, 255];
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fontSize = 10;
-            data.cell.styles.cellPadding = 4;
-            data.cell.styles.lineWidth = 0;
-          }
-        }
-        // Style the last row for classic template
-        if (invoiceTemplate === 'classic' && data.section === 'body') {
-          const isLastRow = data.row.index === data.table.body.length - 1;
-          if (isLastRow) {
-            data.cell.styles.textColor = selectedColor.primary;
-            data.cell.styles.fontStyle = 'bold';
-          }
-        }
-        // Style for creative template - total row with colored background
-        if (invoiceTemplate === 'creative' && data.section === 'body') {
-          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-          const isLastRow = data.row.index === bodyLen - 1;
-          if (isLastRow) {
-            // Don't set fillColor here, it will be drawn in willDrawCell
-            data.cell.styles.fillColor = undefined;
-            data.cell.styles.textColor = [255, 255, 255];
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fontSize = 10;
-            data.cell.styles.cellPadding = 5;
-            data.cell.styles.lineWidth = 0;
-          } else {
-            data.cell.styles.lineColor = [240, 240, 240];
-          }
-        }
-        // Remove header background for creative template
-        if (invoiceTemplate === 'creative' && data.section === 'head') {
-          data.cell.styles.fillColor = undefined;
-          data.cell.styles.lineWidth = 0;
-        }
-      },
-      willDrawCell: function(data: any) {
-        // Draw rounded background for modern template header row
-        if (invoiceTemplate === 'modern' && data.section === 'head') {
-          // Draw once per row only on the first column
-          if (data.column.index === 0) {
-            const doc = data.doc;
-            
-            // Calculate total width by summing column widths
-            let totalWidth = 0;
-            if (data.table && data.table.columns) {
-              data.table.columns.forEach((col: any) => {
-                totalWidth += col.width;
-              });
-            }
-            
-            const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-            const y = data.cell.y;
-            const height = data.row.height;
-            
-            // Draw rounded rectangle with light colored background
-            doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-            doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
-          }
-        }
-        
-        // Draw rounded background for classic template header row
-        if (invoiceTemplate === 'classic' && data.section === 'head') {
-          // Draw once per row only on the first column
-          if (data.column.index === 0) {
-            const doc = data.doc;
-            
-            // Calculate total width by summing column widths
-            let totalWidth = 0;
-            if (data.table && data.table.columns) {
-              data.table.columns.forEach((col: any) => {
-                totalWidth += col.width;
-              });
-            }
-            
-            const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-            const y = data.cell.y;
-            const height = data.row.height;
-            
-            // Draw rounded rectangle with light colored background
-            doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-            doc.roundedRect(startX, y, totalWidth, height, 1.5, 1.5, 'F');
-          }
-        }
-        
-        // Draw rounded background for creative template total row
-        if (invoiceTemplate === 'creative' && data.section === 'body') {
-          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-          const isLastRow = data.row.index === bodyLen - 1;
-          
-          // Draw once per row only on the first column
-          if (isLastRow && data.column.index === 0) {
-            const doc = data.doc;
-            
-            // Calculate total width by summing column widths
-            let totalWidth = 0;
-            if (data.table && data.table.columns) {
-              data.table.columns.forEach((col: any) => {
-                totalWidth += col.width;
-              });
-            }
-            
-            const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-            const y = data.cell.y;
-            const height = data.row.height;
-            
-            // Draw rounded rectangle with colored background
-            doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-            doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
-          }
-        }
-        
-        // Draw rounded background for modern template total row
-        if (invoiceTemplate === 'modern' && data.section === 'body') {
-          const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-          const isLastRow = data.row.index === bodyLen - 1;
-          
-          // Draw once per row only on the first column
-          if (isLastRow && data.column.index === 0) {
-            const doc = data.doc;
-            
-            // Calculate total width by summing column widths
-            let totalWidth = 0;
-            if (data.table && data.table.columns) {
-              data.table.columns.forEach((col: any) => {
-                totalWidth += col.width;
-              });
-            }
-            
-            const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-            const y = data.cell.y;
-            const height = data.row.height;
-            
-            // Draw rounded rectangle with colored background
-            doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-            doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
-          }
-        }
-      },
-      didDrawCell: function(data: any) {
-        // Add line above total row for professional template
-        if (invoiceTemplate === 'professional' && data.section === 'body') {
-          const bodyLen = data.table && data.table.body ? data.table.body.length : 0;
-          const colLen = data.table && data.table.columns ? data.table.columns.length : 0;
-          const isLastRow = bodyLen > 0 && data.row.index === bodyLen - 1;
-          const isLastColumn = colLen > 0 && data.column.index === colLen - 1;
-          
-          if (isLastRow && isLastColumn) {
-            const doc = data.doc;
-            
-            let tableWidth = 0;
-            if (data.table && Array.isArray(data.table.columns)) {
-              tableWidth = data.table.columns.reduce((sum: number, col: any) => sum + (col?.width || 0), 0);
-            }
-            
-            const startX = (data.table && typeof (data.table as any).pageStartX === 'number')
-              ? (data.table as any).pageStartX
-              : 20;
-            
-            const lineY = data.cell.y;
-            
-            if (typeof startX === 'number' && tableWidth > 0 && typeof lineY === 'number') {
-              const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-              const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-              const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-              doc.setDrawColor(mediumR, mediumG, mediumB);
-              doc.setLineWidth(0.5);
-              doc.line(startX, lineY, startX + tableWidth, lineY);
-            }
-          }
-        }
-      },
-      didDrawPage: function(data: any) {
-        // Footer elements will be drawn on last page only
-      }
-    });
-    
-    // Add notes if available
-    if (invoice.notes) {
-      const finalY = (doc as any).autoTable.previous.finalY + 20;
-      doc.setFontSize(12);
-      doc.setTextColor(40, 40, 40);
-      doc.text(`${tableHeaders.notes || 'Notes'}:`, 20, finalY);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const splitNotes = doc.splitTextToSize(invoice.notes, 170);
-      doc.text(splitNotes, 20, finalY + 10);
-    }
-    
-    // Add terms if available
-    if (invoice.terms) {
-      const finalY = (doc as any).autoTable.previous.finalY + (invoice.notes ? 40 : 20);
-      doc.setFontSize(12);
-      doc.setTextColor(40, 40, 40);
-      doc.text(`${tableHeaders.terms || 'Terms'}:`, 20, finalY);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const splitTerms = doc.splitTextToSize(invoice.terms, 170);
-      doc.text(splitTerms, 20, finalY + 10);
-    }
-    
-    // Add footer message from company settings on last page only
-    if (company.invoice_footer_message) {
-      const hasNotes = !!invoice.notes;
-      const hasTerms = !!invoice.terms;
-      let offset = 20;
-      if (hasNotes && hasTerms) offset = 60;
-      else if (hasNotes || hasTerms) offset = 40;
-      
-      const finalY = (doc as any).autoTable.previous.finalY + offset;
-      const pageSize = (doc as any).internal.pageSize;
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-      
-      // Use client language to determine which footer message to use
-      const footerMessage = clientLanguage === 'french'
-        ? (company.invoice_footer_message_fr || company.invoice_footer_message)
-        : company.invoice_footer_message;
-      
-      const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
-      
-      // Check if we have enough space, otherwise add new page
-      if (finalY > pageHeight - 40) {
-        doc.addPage();
-        // Add decorative footer on new page
-        if (invoiceTemplate === 'modern') {
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          doc.rect(0, pageHeight - 30, 210, 30, 'F');
-        } else if (invoiceTemplate === 'professional') {
-          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.setLineWidth(2);
-          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-        }
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont('helvetica', 'italic');
-        const splitFooter = doc.splitTextToSize(footerMessage, 170);
-        doc.text(splitFooter, 20, 20);
-        // Add thank you text at bottom
-        doc.setFontSize(8);
-        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-        doc.text(thankYouText, 20, pageHeight - 20);
-      } else {
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont('helvetica', 'italic');
-        const splitFooter = doc.splitTextToSize(footerMessage, 170);
-        doc.text(splitFooter, 20, finalY);
-        
-        // Add decorative footer elements on last page
-        if (invoiceTemplate === 'modern') {
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          doc.rect(0, pageHeight - 30, 210, 30, 'F');
-        } else if (invoiceTemplate === 'professional') {
-          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.setLineWidth(2);
-          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-        }
-        
-        // Add thank you text at bottom of last page
-        doc.setFontSize(8);
-        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-        doc.text(thankYouText, 20, pageHeight - 20);
-      }
-    } else {
-      // If no footer message, still add decorative footer and thank you text on last page
-      const pageSize = (doc as any).internal.pageSize;
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-      const thankYouText = clientLanguage === 'french' ? 'Merci pour votre confiance !' : 'Thank you for your business!';
-      
-      // Add decorative footer elements
-      if (invoiceTemplate === 'modern') {
-        doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-        doc.rect(0, pageHeight - 30, 210, 30, 'F');
-      } else if (invoiceTemplate === 'professional') {
-        doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-        doc.setLineWidth(2);
-        doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-      }
-      
-      doc.setFontSize(8);
-      doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                      invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                      invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-      doc.text(thankYouText, 20, pageHeight - 20);
-    }
-    
-    // Generate PDF as buffer
-    const pdfBuffer = doc.output('arraybuffer');
-    const pdfBytes = new Uint8Array(pdfBuffer);
-    
-    // Convert PDF to base64 safely
-    let pdfBinaryString = '';
-    for (let i = 0; i < pdfBytes.length; i++) {
-      pdfBinaryString += String.fromCharCode(pdfBytes[i]);
-    }
-    const pdfBase64 = btoa(pdfBinaryString);
-
-    // Create HTML email content
-    // Build items HTML including product taxes per item
-    const itemsHtml = (invoice.invoice_items || []).map((item: any) => {
-      const baseRow = `
-                  <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6;">${item.description}</td>
-                    <td style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">${item.quantity}</td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${item.unit_price.toFixed(2)}</td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${item.total.toFixed(2)}</td>
-                  </tr>`;
-      let taxesRow = '';
+    // Prepare table data
+    const tableData = invoice.invoice_items.map((item: any) => {
+      // Calculate item taxes if any
+      let itemTaxAmount = 0;
       if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-        item.product_taxes.forEach((t: any) => {
-          // Support both old format and new format
-          const taxType = t.type || 'percentage';
-          const taxValue = t.value !== undefined ? t.value : t.percentage;
-          
-          let taxAmount = 0;
-          if (taxType === 'percentage') {
-            taxAmount = item.total * (taxValue / 100);
-          } else {
-            taxAmount = taxValue * item.quantity;
+        item.product_taxes.forEach((tax: any) => {
+          if (tax.type === 'percentage') {
+            itemTaxAmount += (item.unit_price * tax.value / 100) * item.quantity;
+          } else if (tax.type === 'amount') {
+            itemTaxAmount += tax.value * item.quantity;
           }
-          
-          const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
-          
-          taxesRow += `
-                  <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; color: #555; padding-left: 30px;">${tableHeaders.tax}: ${t.name} (${taxLabel})</td>
-                    <td style="padding: 10px; text-align: center; border: 1px solid #dee2e6;"></td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;"></td>
-                    <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${taxAmount.toFixed(2)}</td>
-                  </tr>`;
         });
       }
-      return baseRow + taxesRow;
-    }).join('');
-
-    // Build company taxes rows
-    let companyTaxesHtml = '';
-    if (company.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
-      companyTaxesHtml = company.taxes.map((tax: any) => {
-        const taxAmount = invoice.subtotal * (tax.percentage / 100);
-        return `
-                <tr style="background-color: #f8f9fa;">
-                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tax.name} (${tax.percentage}%):</td>
-                  <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${taxAmount.toFixed(2)}</td>
-                </tr>`;
-      }).join('');
-    } else if (invoice.tax_amount > 0) {
-      companyTaxesHtml = `
-                <tr style="background-color: #f8f9fa;">
-                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.tax}:</td>
-                  <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.tax_amount.toFixed(2)}</td>
-                </tr>`;
-    }
-
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
-          ${company.logo_url && logoBase64 ? `<img src="data:${logoMime || 'image/png'};base64,${logoBase64}" alt="${company.name} Logo" style="max-width: 80px; max-height: 60px; object-fit: contain;" />` : ''}
-          <div>
-            <h1 style="color: #333; margin: 0;">${company.name}</h1>
-            <h2 style="color: #666; margin: 5px 0 0 0;">${clientLanguage === 'french' ? 'Facture' : 'Invoice'} ${invoice.invoice_number}</h2>
-          </div>
-        </div>
-        
-        <div style="background-color: white; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px;">
-          <div style="white-space: pre-line; line-height: 1.6; color: #333; margin-bottom: 30px;">
-            ${emailMessage}
-          </div>
-          
-          <div style="border-top: 2px solid #e9ecef; padding-top: 20px;">
-            <h3 style="color: #333; margin-bottom: 15px;">${tableHeaders.invoiceSummary}</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background-color: #f8f9fa;">
-                  <th style="padding: 10px; text-align: left; border: 1px solid #dee2e6;">${tableHeaders.description}</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">${tableHeaders.qty}</th>
-                  <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.unitPrice}</th>
-                  <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.total}</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${itemsHtml}
-                <tr style="background-color: #f8f9fa; font-weight: bold;">
-                  <td colspan="3" style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.subtotal}:</td>
-                  <td style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">$${invoice.subtotal.toFixed(2)}</td>
-                </tr>
-                ${companyTaxesHtml}
-                <tr style="background-color: #e9ecef; font-weight: bold; font-size: 16px;">
-                  <td colspan="3" style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">${tableHeaders.totalAmount}:</td>
-                  <td style="padding: 15px; text-align: right; border: 1px solid #dee2e6;">$${invoice.total.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Send email with PDF attachment
-    const emailPayload: any = {
-      from: `${company.name} <info@gestionflow.net>`,
-      to: emailsToSend,
-      subject: emailSubject,
-      html: htmlContent,
-      attachments: [
-        {
-          filename: `invoice-${invoice.invoice_number}.pdf`,
-          content: pdfBase64,
-          type: 'application/pdf',
-        },
-      ],
-    };
-    
-    // Add CC emails if provided
-    if (ccEmails && ccEmails.length > 0) {
-      const validCcEmails = ccEmails.filter(email => email.trim() !== "");
-      if (validCcEmails.length > 0) {
-        emailPayload.cc = validCcEmails;
-      }
-    }
-    
-    const emailResponse = await resend.emails.send(emailPayload);
-
-    console.log(`Email sent successfully to ${emailsToSend.length} recipient(s):`, emailResponse);
-
-    // Update invoice status only for new invoices (not for confirmations or reminders)
-    if (emailType === "new") {
-      const { error: updateError } = await supabase
-        .from('invoices')
-        .update({ status: 'sent' })
-        .eq('id', invoiceId);
-
-      if (updateError) {
-        console.error('Error updating invoice status:', updateError);
-      }
-    }
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      emailResponse,
-      message: "Invoice email sent successfully" 
-    }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      
+      const itemSubtotal = item.unit_price * item.quantity;
+      const itemTotalWithTax = itemSubtotal + itemTaxAmount;
+      
+      return [
+        item.description,
+        item.quantity.toString(),
+        `$${item.unit_price.toFixed(2)}`,
+        `$${itemTotalWithTax.toFixed(2)}`
+      ];
     });
 
+    // Use autoTable for the items table
+    (doc as any).autoTable({
+      head: [[tableHeaders.description, tableHeaders.qty, tableHeaders.unitPrice, tableHeaders.total]],
+      body: tableData,
+      startY: tableStartY,
+      theme: invoiceTemplate === 'modern' ? 'plain' : 'striped',
+      headStyles: {
+        fillColor: selectedColor.primary,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 4
+      },
+      columnStyles: {
+        0: { cellWidth: 90 },
+        1: { cellWidth: 30, halign: 'center' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right' }
+      },
+      margin: { left: 20, right: 20 }
+    });
+
+    // Get the Y position after the table
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Summary section
+    const summaryX = 130;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(40, 40, 40);
+    
+    doc.text(`${tableHeaders.subtotal}:`, summaryX, finalY);
+    doc.text(`$${invoice.subtotal.toFixed(2)}`, 185, finalY, { align: 'right' });
+    
+    finalY += 5;
+    doc.text(`${tableHeaders.tax}:`, summaryX, finalY);
+    doc.text(`$${invoice.tax_amount.toFixed(2)}`, 185, finalY, { align: 'right' });
+    
+    finalY += 7;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text(`${tableHeaders.totalAmount}:`, summaryX, finalY);
+    doc.text(`$${invoice.total.toFixed(2)}`, 185, finalY, { align: 'right' });
+
+    // Footer section
+    finalY += 15;
+    
+    // Add notes if present
+    if (invoice.notes) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(40, 40, 40);
+      doc.text(`${tableHeaders.notes}:`, 20, finalY);
+      finalY += 5;
+      doc.setFont('helvetica', 'normal');
+      const notesLines = doc.splitTextToSize(invoice.notes, 170);
+      notesLines.forEach((line: string) => {
+        doc.text(line, 20, finalY);
+        finalY += 5;
+      });
+      finalY += 5;
+    }
+
+    // Add terms if present
+    if (invoice.terms) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(40, 40, 40);
+      doc.text(`${tableHeaders.terms}:`, 20, finalY);
+      finalY += 5;
+      doc.setFont('helvetica', 'normal');
+      const termsLines = doc.splitTextToSize(invoice.terms, 170);
+      termsLines.forEach((line: string) => {
+        doc.text(line, 20, finalY);
+        finalY += 5;
+      });
+      finalY += 5;
+    }
+
+    // Add company footer message (translate if needed)
+    let footerMessage = company.invoice_footer_message || (isFrench ? 'Merci pour votre confiance !' : 'Thank you for your business!');
+    
+    // Translate footer message if needed
+    if (isFrench && company.invoice_footer_message) {
+      footerMessage = await translateText(company.invoice_footer_message, 'french');
+    }
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text(footerMessage, 105, finalY, { align: 'center' });
+
+    // Convert PDF to base64 for email attachment
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+    // Send email with PDF attachment using Resend
+    const emailResponse = await resend.emails.send({
+      from: Deno.env.get("RESEND_FROM") || "Invoice <onboarding@resend.dev>",
+      to: emailsToSend,
+      cc: ccEmails.length > 0 ? ccEmails : undefined,
+      subject: emailSubject,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          ${logoBase64 ? `
+            <div style="text-align: center; padding: 20px 0;">
+              <img src="data:${logoMime};base64,${logoBase64}" alt="${company.name}" style="max-width: 200px; height: auto;" />
+            </div>
+          ` : ''}
+          <div style="white-space: pre-wrap;">${emailMessage}</div>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
+            <p>${footerMessage}</p>
+          </div>
+        </div>
+      `,
+      attachments: [{
+        filename: `${invoice.invoice_number}.pdf`,
+        content: pdfBase64,
+      }],
+    });
+
+    console.log("Email sent successfully:", emailResponse);
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error: any) {
     console.error("Error in send-invoice-email function:", error);
     return new Response(

@@ -83,23 +83,16 @@ export type Database = {
           id: string
           invoice_digits: number | null
           invoice_email_message: string | null
-          invoice_email_message_fr: string | null
           invoice_email_subject: string | null
-          invoice_email_subject_fr: string | null
           invoice_footer_message: string | null
-          invoice_footer_message_fr: string | null
           invoice_prefix: string | null
           invoice_start_number: number | null
           logo_url: string | null
           name: string
           overdue_email_message: string | null
-          overdue_email_message_fr: string | null
           overdue_email_subject: string | null
-          overdue_email_subject_fr: string | null
           payment_confirmation_email_message: string | null
-          payment_confirmation_email_message_fr: string | null
           payment_confirmation_email_subject: string | null
-          payment_confirmation_email_subject_fr: string | null
           phone: string | null
           postal_code: string | null
           province_state: string | null
@@ -122,23 +115,16 @@ export type Database = {
           id?: string
           invoice_digits?: number | null
           invoice_email_message?: string | null
-          invoice_email_message_fr?: string | null
           invoice_email_subject?: string | null
-          invoice_email_subject_fr?: string | null
           invoice_footer_message?: string | null
-          invoice_footer_message_fr?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
           logo_url?: string | null
           name: string
           overdue_email_message?: string | null
-          overdue_email_message_fr?: string | null
           overdue_email_subject?: string | null
-          overdue_email_subject_fr?: string | null
           payment_confirmation_email_message?: string | null
-          payment_confirmation_email_message_fr?: string | null
           payment_confirmation_email_subject?: string | null
-          payment_confirmation_email_subject_fr?: string | null
           phone?: string | null
           postal_code?: string | null
           province_state?: string | null
@@ -161,23 +147,16 @@ export type Database = {
           id?: string
           invoice_digits?: number | null
           invoice_email_message?: string | null
-          invoice_email_message_fr?: string | null
           invoice_email_subject?: string | null
-          invoice_email_subject_fr?: string | null
           invoice_footer_message?: string | null
-          invoice_footer_message_fr?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
           logo_url?: string | null
           name?: string
           overdue_email_message?: string | null
-          overdue_email_message_fr?: string | null
           overdue_email_subject?: string | null
-          overdue_email_subject_fr?: string | null
           payment_confirmation_email_message?: string | null
-          payment_confirmation_email_message_fr?: string | null
           payment_confirmation_email_subject?: string | null
-          payment_confirmation_email_subject_fr?: string | null
           phone?: string | null
           postal_code?: string | null
           province_state?: string | null
