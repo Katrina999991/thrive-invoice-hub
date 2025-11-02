@@ -200,10 +200,19 @@ Meilleures salutations,
         const isFrench = language === 'fr';
         const displayLang = isFrench ? 'fr' : 'en';
         
+        // Helper function to normalize strings for comparison (remove extra whitespace, normalize line breaks)
+        const normalize = (str: string | null) => {
+          if (!str) return '';
+          return str.trim().replace(/\s+/g, ' ').replace(/\n\s*/g, '\n');
+        };
+        
         // Helper function to check if a value is a default template in any language
         const isDefaultTemplate = (value: string | null, field: 'invoice_subject' | 'invoice_message' | 'overdue_subject' | 'overdue_message' | 'payment_subject' | 'payment_message' | 'footer') => {
           if (!value) return true;
-          return value === defaults.en[field] || value === defaults.fr[field];
+          const normalizedValue = normalize(value);
+          const normalizedEnDefault = normalize(defaults.en[field]);
+          const normalizedFrDefault = normalize(defaults.fr[field]);
+          return normalizedValue === normalizedEnDefault || normalizedValue === normalizedFrDefault;
         };
 
         const invoiceSubject = (company as any).invoice_email_subject;
