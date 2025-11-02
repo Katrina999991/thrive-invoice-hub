@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Companies from "./pages/Companies";
 import Clients from "./pages/Clients";
+import Categories from "./pages/Categories";
 import Products from "./pages/Products";
 import Invoices from "./pages/Invoices";
 import Expenses from "./pages/Expenses";
@@ -42,6 +43,7 @@ const App = () => {
                   <Route index element={<Dashboard />} />
                   <Route path="companies" element={<Companies />} />
                   <Route path="clients" element={<Clients />} />
+                  <Route path="categories" element={<Categories />} />
                   <Route path="products" element={<Products />} />
                   <Route path="invoices" element={<Invoices />} />
                   <Route path="expenses" element={<Expenses />} />
