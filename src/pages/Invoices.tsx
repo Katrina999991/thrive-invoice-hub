@@ -1296,26 +1296,12 @@ Thank you for your business!
 Best regards,
 {company_name}`;
 
-      // Normalize and check if company template is customized (different from default English)
-      const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
-      const isCustomSubject = !!(company.invoice_email_subject && 
-        normalize(company.invoice_email_subject) !== normalize(defaultEnglishSubject));
-      const isCustomMessage = !!(company.invoice_email_message && 
-        normalize(company.invoice_email_message) !== normalize(defaultEnglishMessage));
-
+      // Use language-specific custom templates if available, otherwise use defaults
       let defaultSubject: string, defaultMessage: string;
 
-      // Priority: 1. Custom templates from company, 2. Default templates in client's language
-      if (isCustomSubject) {
-        defaultSubject = company.invoice_email_subject!;
-      } else {
-        defaultSubject = isFrench ? 'Facture {invoice_number} de {company_name}' : defaultEnglishSubject;
-      }
-
-      if (isCustomMessage) {
-        defaultMessage = company.invoice_email_message!;
-      } else {
-        defaultMessage = isFrench ? `Cher/Chère {client_name},
+      if (isFrench) {
+        defaultSubject = (company as any).invoice_email_subject_fr || company.invoice_email_subject || 'Facture {invoice_number} de {company_name}';
+        defaultMessage = (company as any).invoice_email_message_fr || company.invoice_email_message || `Cher/Chère {client_name},
 
 Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
 
@@ -1325,7 +1311,10 @@ Date d'échéance : {due_date}
 Merci pour votre confiance !
 
 Meilleures salutations,
-{company_name}` : defaultEnglishMessage;
+{company_name}`;
+      } else {
+        defaultSubject = company.invoice_email_subject || defaultEnglishSubject;
+        defaultMessage = company.invoice_email_message || defaultEnglishMessage;
       }
 
       // Replace template variables
@@ -1444,23 +1433,10 @@ Best regards,
       let subject: string, message: string;
       
       if (type === "overdue") {
-        const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
-        const isCustomSubject = !!(company.overdue_email_subject && 
-          normalize(company.overdue_email_subject) !== normalize(defaultEnglishTemplates.overdue.subject));
-        const isCustomMessage = !!(company.overdue_email_message && 
-          normalize(company.overdue_email_message) !== normalize(defaultEnglishTemplates.overdue.message));
-
-        // Priority: 1. Custom templates from company, 2. Default templates in client's language
-        if (isCustomSubject) {
-          subject = company.overdue_email_subject!;
-        } else {
-          subject = isFrench ? 'Paiement en retard - Facture {invoice_number}' : defaultEnglishTemplates.overdue.subject;
-        }
-
-        if (isCustomMessage) {
-          message = company.overdue_email_message!;
-        } else {
-          message = isFrench ? `Cher/Chère {client_name},
+        // Use language-specific custom templates if available, otherwise use defaults
+        if (isFrench) {
+          subject = (company as any).overdue_email_subject_fr || company.overdue_email_subject || 'Paiement en retard - Facture {invoice_number}';
+          message = (company as any).overdue_email_message_fr || company.overdue_email_message || `Cher/Chère {client_name},
 
 Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
 
@@ -1475,25 +1451,15 @@ Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
 Merci pour votre attention prompte à cette question.
 
 Meilleures salutations,
-{company_name}` : defaultEnglishTemplates.overdue.message;
+{company_name}`;
+        } else {
+          subject = company.overdue_email_subject || defaultEnglishTemplates.overdue.subject;
+          message = company.overdue_email_message || defaultEnglishTemplates.overdue.message;
         }
       } else if (type === "payment_confirmation") {
-        const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
-        const isCustomSubject = !!(company.payment_confirmation_email_subject && 
-          normalize(company.payment_confirmation_email_subject) !== normalize(defaultEnglishTemplates.payment.subject));
-        const isCustomMessage = !!(company.payment_confirmation_email_message && 
-          normalize(company.payment_confirmation_email_message) !== normalize(defaultEnglishTemplates.payment.message));
-
-        if (isCustomSubject) {
-          subject = company.payment_confirmation_email_subject!;
-        } else {
-          subject = isFrench ? 'Confirmation de paiement - Facture {invoice_number}' : defaultEnglishTemplates.payment.subject;
-        }
-
-        if (isCustomMessage) {
-          message = company.payment_confirmation_email_message!;
-        } else {
-          message = isFrench ? `Cher/Chère {client_name},
+        if (isFrench) {
+          subject = (company as any).payment_confirmation_email_subject_fr || company.payment_confirmation_email_subject || 'Confirmation de paiement - Facture {invoice_number}';
+          message = (company as any).payment_confirmation_email_message_fr || company.payment_confirmation_email_message || `Cher/Chère {client_name},
 
 Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
 
@@ -1505,25 +1471,15 @@ Détails du paiement :
 Merci pour votre paiement rapide et votre fidélité !
 
 Meilleures salutations,
-{company_name}` : defaultEnglishTemplates.payment.message;
+{company_name}`;
+        } else {
+          subject = company.payment_confirmation_email_subject || defaultEnglishTemplates.payment.subject;
+          message = company.payment_confirmation_email_message || defaultEnglishTemplates.payment.message;
         }
       } else {
-        const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
-        const isCustomSubject = !!(company.invoice_email_subject && 
-          normalize(company.invoice_email_subject) !== normalize(defaultEnglishTemplates.new.subject));
-        const isCustomMessage = !!(company.invoice_email_message && 
-          normalize(company.invoice_email_message) !== normalize(defaultEnglishTemplates.new.message));
-
-        if (isCustomSubject) {
-          subject = company.invoice_email_subject!;
-        } else {
-          subject = isFrench ? 'Facture {invoice_number} de {company_name}' : defaultEnglishTemplates.new.subject;
-        }
-
-        if (isCustomMessage) {
-          message = company.invoice_email_message!;
-        } else {
-          message = isFrench ? `Cher/Chère {client_name},
+        if (isFrench) {
+          subject = (company as any).invoice_email_subject_fr || company.invoice_email_subject || 'Facture {invoice_number} de {company_name}';
+          message = (company as any).invoice_email_message_fr || company.invoice_email_message || `Cher/Chère {client_name},
 
 Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
 
@@ -1533,7 +1489,10 @@ Date d'échéance : {due_date}
 Merci pour votre confiance !
 
 Meilleures salutations,
-{company_name}` : defaultEnglishTemplates.new.message;
+{company_name}`;
+        } else {
+          subject = company.invoice_email_subject || defaultEnglishTemplates.new.subject;
+          message = company.invoice_email_message || defaultEnglishTemplates.new.message;
         }
       }
 
