@@ -37,6 +37,8 @@ export default function Settings() {
   const [username, setUsername] = useState<string>("");
   const [isLoadingUsername, setIsLoadingUsername] = useState(false);
   const [isSavingUsername, setIsSavingUsername] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState<string>("");
+  const [isSavingRecoveryEmail, setIsSavingRecoveryEmail] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -70,14 +72,14 @@ export default function Settings() {
       document.documentElement.classList.remove("dark");
     }
 
-    // Load username from profiles
-    const loadUsername = async () => {
+    // Load username and recovery email from profiles
+    const loadUserProfile = async () => {
       if (!user?.id) return;
       setIsLoadingUsername(true);
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("username")
+          .select("username, recovery_email")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -85,14 +87,17 @@ export default function Settings() {
         if (data?.username) {
           setUsername(data.username);
         }
+        if (data?.recovery_email) {
+          setRecoveryEmail(data.recovery_email);
+        }
       } catch (error) {
-        console.error("Error loading username:", error);
+        console.error("Error loading user profile:", error);
       } finally {
         setIsLoadingUsername(false);
       }
     };
 
-    loadUsername();
+    loadUserProfile();
   }, [user]);
 
   // Load email templates when company is selected
@@ -208,6 +213,34 @@ Best regards,
       });
     } finally {
       setIsSavingUsername(false);
+    }
+  };
+
+  const handleSaveRecoveryEmail = async () => {
+    if (!user?.id) return;
+    
+    setIsSavingRecoveryEmail(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ recovery_email: recoveryEmail.trim() || null })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: language === "fr" ? "Email de récupération mis à jour" : "Recovery email updated",
+        description: language === "fr" ? "Votre email de récupération a été mis à jour avec succès." : "Your recovery email has been successfully updated.",
+      });
+    } catch (error: any) {
+      console.error("Error updating recovery email:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingRecoveryEmail(false);
     }
   };
 
@@ -371,6 +404,32 @@ Best regards,
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {t("settings.account.usernameDescription")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="recoveryEmail">
+                  {language === "fr" ? "Email de récupération" : "Recovery Email"}
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="recoveryEmail"
+                    type="email"
+                    value={recoveryEmail}
+                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                    placeholder={language === "fr" ? "email.recuperation@example.com" : "recovery.email@example.com"}
+                    disabled={isLoadingUsername || isSavingRecoveryEmail}
+                  />
+                  <Button 
+                    onClick={handleSaveRecoveryEmail} 
+                    disabled={isLoadingUsername || isSavingRecoveryEmail}
+                  >
+                    {isSavingRecoveryEmail ? t("settings.account.saving") : t("settings.account.save")}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {language === "fr" 
+                    ? "Un email secondaire pour la récupération de votre compte"
+                    : "A secondary email for account recovery"}
                 </p>
               </div>
             </div>
