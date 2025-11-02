@@ -2043,37 +2043,6 @@ const Reports = () => {
     });
   }, [invoices, startDate, endDate, filterType, selectedCompanyId, selectedClientId]);
 
-
-  const invoiceStatusData = useMemo(() => {
-    if (!invoices) return [];
-    
-    // Filter invoices based on selected status
-    const filteredByStatus = invoiceStatusFilter === 'all' 
-      ? invoices 
-      : invoices.filter(inv => inv.status === invoiceStatusFilter);
-    
-    // Count by status
-    const statusCounts: Record<string, { count: number; color: string; label: string }> = {
-      paid: { count: 0, color: '#00ff88', label: 'Payé' },
-      sent: { count: 0, color: '#ffc658', label: 'Envoyé' },
-      overdue: { count: 0, color: '#ff7300', label: 'En retard' },
-      draft: { count: 0, color: '#8884d8', label: 'Brouillon' }
-    };
-    
-    filteredByStatus.forEach(invoice => {
-      const status = invoice.status || 'draft';
-      if (statusCounts[status]) {
-        statusCounts[status].count++;
-      }
-    });
-    
-    return Object.entries(statusCounts).map(([status, data]) => ({
-      status: data.label,
-      count: data.count,
-      color: data.color
-    }));
-  }, [invoices, invoiceStatusFilter]);
-
   // Filtrer les factures pour l'affichage
   const filteredInvoicesByStatus = useMemo(() => {
     if (!invoices) return [];
@@ -4504,10 +4473,14 @@ const Reports = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Aperçu des statuts de factures</CardTitle>
-                  <CardDescription>Distribution actuelle des statuts de factures</CardDescription>
-                </div>
+                <CardTitle>
+                  Liste des factures 
+                  {invoiceStatusFilter !== 'all' && ` - ${
+                    invoiceStatusFilter === 'paid' ? 'Payé' :
+                    invoiceStatusFilter === 'sent' ? 'Envoyé' :
+                    invoiceStatusFilter === 'overdue' ? 'En retard' : 'Brouillon'
+                  }`}
+                </CardTitle>
                 <Select value={invoiceStatusFilter} onValueChange={setInvoiceStatusFilter}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Filtrer par statut" />
@@ -4521,34 +4494,6 @@ const Reports = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={invoiceStatusData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="status" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8">
-                    {invoiceStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Liste des factures 
-                {invoiceStatusFilter !== 'all' && ` - ${
-                  invoiceStatusFilter === 'paid' ? 'Payé' :
-                  invoiceStatusFilter === 'sent' ? 'Envoyé' :
-                  invoiceStatusFilter === 'overdue' ? 'En retard' : 'Brouillon'
-                }`}
-              </CardTitle>
               <CardDescription>
                 {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
               </CardDescription>
