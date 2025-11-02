@@ -285,6 +285,228 @@ const US_STATES = [
   { value: "WY", label: "Wyoming" }
 ];
 
+const FRANCE_REGIONS = [
+  { value: "Auvergne-Rhône-Alpes", label: "Auvergne-Rhône-Alpes" },
+  { value: "Bourgogne-Franche-Comté", label: "Bourgogne-Franche-Comté" },
+  { value: "Bretagne", label: "Bretagne" },
+  { value: "Centre-Val de Loire", label: "Centre-Val de Loire" },
+  { value: "Corse", label: "Corse" },
+  { value: "Grand Est", label: "Grand Est" },
+  { value: "Hauts-de-France", label: "Hauts-de-France" },
+  { value: "Île-de-France", label: "Île-de-France" },
+  { value: "Normandie", label: "Normandie" },
+  { value: "Nouvelle-Aquitaine", label: "Nouvelle-Aquitaine" },
+  { value: "Occitanie", label: "Occitanie" },
+  { value: "Pays de la Loire", label: "Pays de la Loire" },
+  { value: "Provence-Alpes-Côte d'Azur", label: "Provence-Alpes-Côte d'Azur" }
+];
+
+const UK_REGIONS = [
+  { value: "England", label: "England" },
+  { value: "Scotland", label: "Scotland" },
+  { value: "Wales", label: "Wales" },
+  { value: "Northern Ireland", label: "Northern Ireland" }
+];
+
+const GERMANY_STATES = [
+  { value: "Baden-Württemberg", label: "Baden-Württemberg" },
+  { value: "Bavaria", label: "Bavaria" },
+  { value: "Berlin", label: "Berlin" },
+  { value: "Brandenburg", label: "Brandenburg" },
+  { value: "Bremen", label: "Bremen" },
+  { value: "Hamburg", label: "Hamburg" },
+  { value: "Hesse", label: "Hesse" },
+  { value: "Lower Saxony", label: "Lower Saxony" },
+  { value: "Mecklenburg-Vorpommern", label: "Mecklenburg-Vorpommern" },
+  { value: "North Rhine-Westphalia", label: "North Rhine-Westphalia" },
+  { value: "Rhineland-Palatinate", label: "Rhineland-Palatinate" },
+  { value: "Saarland", label: "Saarland" },
+  { value: "Saxony", label: "Saxony" },
+  { value: "Saxony-Anhalt", label: "Saxony-Anhalt" },
+  { value: "Schleswig-Holstein", label: "Schleswig-Holstein" },
+  { value: "Thuringia", label: "Thuringia" }
+];
+
+const SPAIN_REGIONS = [
+  { value: "Andalusia", label: "Andalusia" },
+  { value: "Aragon", label: "Aragon" },
+  { value: "Asturias", label: "Asturias" },
+  { value: "Balearic Islands", label: "Balearic Islands" },
+  { value: "Basque Country", label: "Basque Country" },
+  { value: "Canary Islands", label: "Canary Islands" },
+  { value: "Cantabria", label: "Cantabria" },
+  { value: "Castile and León", label: "Castile and León" },
+  { value: "Castile-La Mancha", label: "Castile-La Mancha" },
+  { value: "Catalonia", label: "Catalonia" },
+  { value: "Extremadura", label: "Extremadura" },
+  { value: "Galicia", label: "Galicia" },
+  { value: "La Rioja", label: "La Rioja" },
+  { value: "Madrid", label: "Madrid" },
+  { value: "Murcia", label: "Murcia" },
+  { value: "Navarre", label: "Navarre" },
+  { value: "Valencia", label: "Valencia" }
+];
+
+const ITALY_REGIONS = [
+  { value: "Abruzzo", label: "Abruzzo" },
+  { value: "Aosta Valley", label: "Aosta Valley" },
+  { value: "Apulia", label: "Apulia" },
+  { value: "Basilicata", label: "Basilicata" },
+  { value: "Calabria", label: "Calabria" },
+  { value: "Campania", label: "Campania" },
+  { value: "Emilia-Romagna", label: "Emilia-Romagna" },
+  { value: "Friuli-Venezia Giulia", label: "Friuli-Venezia Giulia" },
+  { value: "Lazio", label: "Lazio" },
+  { value: "Liguria", label: "Liguria" },
+  { value: "Lombardy", label: "Lombardy" },
+  { value: "Marche", label: "Marche" },
+  { value: "Molise", label: "Molise" },
+  { value: "Piedmont", label: "Piedmont" },
+  { value: "Sardinia", label: "Sardinia" },
+  { value: "Sicily", label: "Sicily" },
+  { value: "Trentino-South Tyrol", label: "Trentino-South Tyrol" },
+  { value: "Tuscany", label: "Tuscany" },
+  { value: "Umbria", label: "Umbria" },
+  { value: "Veneto", label: "Veneto" }
+];
+
+const MEXICO_STATES = [
+  { value: "Aguascalientes", label: "Aguascalientes" },
+  { value: "Baja California", label: "Baja California" },
+  { value: "Baja California Sur", label: "Baja California Sur" },
+  { value: "Campeche", label: "Campeche" },
+  { value: "Chiapas", label: "Chiapas" },
+  { value: "Chihuahua", label: "Chihuahua" },
+  { value: "Coahuila", label: "Coahuila" },
+  { value: "Colima", label: "Colima" },
+  { value: "Durango", label: "Durango" },
+  { value: "Guanajuato", label: "Guanajuato" },
+  { value: "Guerrero", label: "Guerrero" },
+  { value: "Hidalgo", label: "Hidalgo" },
+  { value: "Jalisco", label: "Jalisco" },
+  { value: "Mexico City", label: "Mexico City" },
+  { value: "Mexico State", label: "Mexico State" },
+  { value: "Michoacán", label: "Michoacán" },
+  { value: "Morelos", label: "Morelos" },
+  { value: "Nayarit", label: "Nayarit" },
+  { value: "Nuevo León", label: "Nuevo León" },
+  { value: "Oaxaca", label: "Oaxaca" },
+  { value: "Puebla", label: "Puebla" },
+  { value: "Querétaro", label: "Querétaro" },
+  { value: "Quintana Roo", label: "Quintana Roo" },
+  { value: "San Luis Potosí", label: "San Luis Potosí" },
+  { value: "Sinaloa", label: "Sinaloa" },
+  { value: "Sonora", label: "Sonora" },
+  { value: "Tabasco", label: "Tabasco" },
+  { value: "Tamaulipas", label: "Tamaulipas" },
+  { value: "Tlaxcala", label: "Tlaxcala" },
+  { value: "Veracruz", label: "Veracruz" },
+  { value: "Yucatán", label: "Yucatán" },
+  { value: "Zacatecas", label: "Zacatecas" }
+];
+
+const BRAZIL_STATES = [
+  { value: "AC", label: "Acre" },
+  { value: "AL", label: "Alagoas" },
+  { value: "AP", label: "Amapá" },
+  { value: "AM", label: "Amazonas" },
+  { value: "BA", label: "Bahia" },
+  { value: "CE", label: "Ceará" },
+  { value: "DF", label: "Distrito Federal" },
+  { value: "ES", label: "Espírito Santo" },
+  { value: "GO", label: "Goiás" },
+  { value: "MA", label: "Maranhão" },
+  { value: "MT", label: "Mato Grosso" },
+  { value: "MS", label: "Mato Grosso do Sul" },
+  { value: "MG", label: "Minas Gerais" },
+  { value: "PA", label: "Pará" },
+  { value: "PB", label: "Paraíba" },
+  { value: "PR", label: "Paraná" },
+  { value: "PE", label: "Pernambuco" },
+  { value: "PI", label: "Piauí" },
+  { value: "RJ", label: "Rio de Janeiro" },
+  { value: "RN", label: "Rio Grande do Norte" },
+  { value: "RS", label: "Rio Grande do Sul" },
+  { value: "RO", label: "Rondônia" },
+  { value: "RR", label: "Roraima" },
+  { value: "SC", label: "Santa Catarina" },
+  { value: "SP", label: "São Paulo" },
+  { value: "SE", label: "Sergipe" },
+  { value: "TO", label: "Tocantins" }
+];
+
+const AUSTRALIA_STATES = [
+  { value: "ACT", label: "Australian Capital Territory" },
+  { value: "NSW", label: "New South Wales" },
+  { value: "NT", label: "Northern Territory" },
+  { value: "QLD", label: "Queensland" },
+  { value: "SA", label: "South Australia" },
+  { value: "TAS", label: "Tasmania" },
+  { value: "VIC", label: "Victoria" },
+  { value: "WA", label: "Western Australia" }
+];
+
+const INDIA_STATES = [
+  { value: "Andhra Pradesh", label: "Andhra Pradesh" },
+  { value: "Arunachal Pradesh", label: "Arunachal Pradesh" },
+  { value: "Assam", label: "Assam" },
+  { value: "Bihar", label: "Bihar" },
+  { value: "Chhattisgarh", label: "Chhattisgarh" },
+  { value: "Goa", label: "Goa" },
+  { value: "Gujarat", label: "Gujarat" },
+  { value: "Haryana", label: "Haryana" },
+  { value: "Himachal Pradesh", label: "Himachal Pradesh" },
+  { value: "Jharkhand", label: "Jharkhand" },
+  { value: "Karnataka", label: "Karnataka" },
+  { value: "Kerala", label: "Kerala" },
+  { value: "Madhya Pradesh", label: "Madhya Pradesh" },
+  { value: "Maharashtra", label: "Maharashtra" },
+  { value: "Manipur", label: "Manipur" },
+  { value: "Meghalaya", label: "Meghalaya" },
+  { value: "Mizoram", label: "Mizoram" },
+  { value: "Nagaland", label: "Nagaland" },
+  { value: "Odisha", label: "Odisha" },
+  { value: "Punjab", label: "Punjab" },
+  { value: "Rajasthan", label: "Rajasthan" },
+  { value: "Sikkim", label: "Sikkim" },
+  { value: "Tamil Nadu", label: "Tamil Nadu" },
+  { value: "Telangana", label: "Telangana" },
+  { value: "Tripura", label: "Tripura" },
+  { value: "Uttar Pradesh", label: "Uttar Pradesh" },
+  { value: "Uttarakhand", label: "Uttarakhand" },
+  { value: "West Bengal", label: "West Bengal" }
+];
+
+// Helper function to get regions for a country
+const getRegionsForCountry = (country: string) => {
+  switch (country) {
+    case "Canada":
+      return CANADA_PROVINCES;
+    case "United States":
+      return US_STATES;
+    case "France":
+      return FRANCE_REGIONS;
+    case "United Kingdom":
+      return UK_REGIONS;
+    case "Germany":
+      return GERMANY_STATES;
+    case "Spain":
+      return SPAIN_REGIONS;
+    case "Italy":
+      return ITALY_REGIONS;
+    case "Mexico":
+      return MEXICO_STATES;
+    case "Brazil":
+      return BRAZIL_STATES;
+    case "Australia":
+      return AUSTRALIA_STATES;
+    case "India":
+      return INDIA_STATES;
+    default:
+      return null;
+  }
+};
+
 const Companies = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -790,31 +1012,34 @@ Best regards,
 
                 <div className="space-y-2">
                   <Label htmlFor="province_state">
-                    {newCompany.country === "Canada" ? t("companies.provinceState") : newCompany.country === "United States" ? t("companies.provinceState") : t("companies.provinceState")}
+                    {t("companies.provinceState")}
                   </Label>
-                  {newCompany.country === "Canada" || newCompany.country === "United States" ? (
-                    <Select value={newCompany.province_state} onValueChange={(value) => {
-                      setNewCompany({...newCompany, province_state: value});
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("companies.provinceStatePlaceholder")} />
-                      </SelectTrigger>
-                      <SelectContent className="z-50 bg-popover">
-                        {(newCompany.country === "Canada" ? CANADA_PROVINCES : US_STATES).map((region) => (
-                          <SelectItem key={region.value} value={region.value}>
-                            {region.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      id="province_state"
-                      placeholder={t("companies.provinceStatePlaceholder")}
-                      value={newCompany.province_state}
-                      onChange={(e) => setNewCompany({...newCompany, province_state: e.target.value})}
-                    />
-                  )}
+                  {(() => {
+                    const regions = getRegionsForCountry(newCompany.country);
+                    return regions ? (
+                      <Select value={newCompany.province_state} onValueChange={(value) => {
+                        setNewCompany({...newCompany, province_state: value});
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("companies.provinceStatePlaceholder")} />
+                        </SelectTrigger>
+                        <SelectContent className="z-50 bg-popover max-h-[300px]">
+                          {regions.map((region) => (
+                            <SelectItem key={region.value} value={region.value}>
+                              {region.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="province_state"
+                        placeholder={t("companies.provinceStatePlaceholder")}
+                        value={newCompany.province_state}
+                        onChange={(e) => setNewCompany({...newCompany, province_state: e.target.value})}
+                      />
+                    );
+                  })()}
                 </div>
               </div>
               <div className="space-y-2">
