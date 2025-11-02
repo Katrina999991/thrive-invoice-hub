@@ -101,19 +101,139 @@ export default function Settings() {
     if (selectedCompanyId && companies.length > 0) {
       const company = companies.find(c => c.id === selectedCompanyId);
       if (company) {
+        // Default English templates
+        const defaultEnglish = {
+          invoice_subject: 'Invoice {invoice_number} from {company_name}',
+          invoice_message: `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`,
+          overdue_subject: 'Payment Overdue - Invoice {invoice_number}',
+          overdue_message: `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: {total}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`,
+          payment_subject: 'Payment Confirmation - Invoice {invoice_number}',
+          payment_message: `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: {total}
+- Date paid: {payment_date}
+
+Thank you for your prompt payment and continued business!
+
+Best regards,
+{company_name}`,
+          footer: 'Thank you for your business!'
+        };
+
+        // Default French templates
+        const defaultFrench = {
+          invoice_subject: 'Facture {invoice_number} de {company_name}',
+          invoice_message: `Cher/Chère {client_name},
+
+Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
+
+Montant dû : {total}$
+Date d'échéance : {due_date}
+
+Merci pour votre confiance !
+
+Meilleures salutations,
+{company_name}`,
+          overdue_subject: 'Paiement en retard - Facture {invoice_number}',
+          overdue_message: `Cher/Chère {client_name},
+
+Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+
+Montant original : {total}$
+Date d'échéance : {due_date}
+Jours de retard : {days_overdue}
+
+Veuillez effectuer le paiement à votre plus tôt possible pour éviter des frais de retard.
+
+Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
+
+Merci pour votre attention prompte à cette question.
+
+Meilleures salutations,
+{company_name}`,
+          payment_subject: 'Confirmation de paiement - Facture {invoice_number}',
+          payment_message: `Cher/Chère {client_name},
+
+Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
+
+Détails du paiement :
+- Facture : {invoice_number}
+- Montant : {total}$
+- Date de paiement : {payment_date}
+
+Merci pour votre paiement rapide et votre fidélité !
+
+Meilleures salutations,
+{company_name}`,
+          footer: 'Merci pour votre confiance !'
+        };
+
+        // Use French defaults if interface is French and company has default English or empty templates
+        const isFrench = language === 'fr';
+        const invoiceSubject = (company as any).invoice_email_subject;
+        const invoiceMessage = (company as any).invoice_email_message;
+        const overdueSubject = (company as any).overdue_email_subject;
+        const overdueMessage = (company as any).overdue_email_message;
+        const paymentSubject = (company as any).payment_confirmation_email_subject;
+        const paymentMessage = (company as any).payment_confirmation_email_message;
+        const footerMessage = (company as any).invoice_footer_message;
+
         setEmailTemplates({
-          invoice_email_subject: (company as any).invoice_email_subject || "",
-          invoice_email_message: (company as any).invoice_email_message || "",
-          overdue_email_subject: (company as any).overdue_email_subject || "",
-          overdue_email_message: (company as any).overdue_email_message || "",
-          payment_confirmation_email_subject: (company as any).payment_confirmation_email_subject || "",
-          payment_confirmation_email_message: (company as any).payment_confirmation_email_message || "",
-          invoice_footer_message: (company as any).invoice_footer_message || "",
+          invoice_email_subject: (!invoiceSubject || invoiceSubject === defaultEnglish.invoice_subject) && isFrench
+            ? defaultFrench.invoice_subject
+            : invoiceSubject || "",
+          invoice_email_message: (!invoiceMessage || invoiceMessage === defaultEnglish.invoice_message) && isFrench
+            ? defaultFrench.invoice_message
+            : invoiceMessage || "",
+          overdue_email_subject: (!overdueSubject || overdueSubject === defaultEnglish.overdue_subject) && isFrench
+            ? defaultFrench.overdue_subject
+            : overdueSubject || "",
+          overdue_email_message: (!overdueMessage || overdueMessage === defaultEnglish.overdue_message) && isFrench
+            ? defaultFrench.overdue_message
+            : overdueMessage || "",
+          payment_confirmation_email_subject: (!paymentSubject || paymentSubject === defaultEnglish.payment_subject) && isFrench
+            ? defaultFrench.payment_subject
+            : paymentSubject || "",
+          payment_confirmation_email_message: (!paymentMessage || paymentMessage === defaultEnglish.payment_message) && isFrench
+            ? defaultFrench.payment_message
+            : paymentMessage || "",
+          invoice_footer_message: (!footerMessage || footerMessage === defaultEnglish.footer) && isFrench
+            ? defaultFrench.footer
+            : footerMessage || "",
           invoice_footer_message_fr: (company as any).invoice_footer_message_fr || ""
         });
       }
     }
-  }, [selectedCompanyId, companies]);
+  }, [selectedCompanyId, companies, language]);
 
   // Set first company as default when companies are loaded
   useEffect(() => {
