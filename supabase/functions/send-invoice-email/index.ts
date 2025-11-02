@@ -250,26 +250,33 @@ Due date: {due_date}
       };
 
       // Determine which template to use based on email type and client language
+      const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
       if (emailType === "overdue") {
+        const isCustomSubject = !!(company.overdue_email_subject && normalize(company.overdue_email_subject) !== normalize(defaultEnglishTemplates.overdue.subject));
+        const isCustomMessage = !!(company.overdue_email_message && normalize(company.overdue_email_message) !== normalize(defaultEnglishTemplates.overdue.message));
         if (isFrench) {
-          emailSubject = emailSubject || company.overdue_email_subject || frenchTemplates.overdue.subject;
-          emailMessage = emailMessage || company.overdue_email_message || frenchTemplates.overdue.message;
+          emailSubject = emailSubject || (isCustomSubject ? company.overdue_email_subject! : frenchTemplates.overdue.subject);
+          emailMessage = emailMessage || (isCustomMessage ? company.overdue_email_message! : frenchTemplates.overdue.message);
         } else {
           emailSubject = emailSubject || company.overdue_email_subject || defaultEnglishTemplates.overdue.subject;
           emailMessage = emailMessage || company.overdue_email_message || defaultEnglishTemplates.overdue.message;
         }
       } else if (emailType === "payment_confirmation") {
+        const isCustomSubject = !!(company.payment_confirmation_email_subject && normalize(company.payment_confirmation_email_subject) !== normalize(defaultEnglishTemplates.payment.subject));
+        const isCustomMessage = !!(company.payment_confirmation_email_message && normalize(company.payment_confirmation_email_message) !== normalize(defaultEnglishTemplates.payment.message));
         if (isFrench) {
-          emailSubject = emailSubject || company.payment_confirmation_email_subject || frenchTemplates.payment_confirmation.subject;
-          emailMessage = emailMessage || company.payment_confirmation_email_message || frenchTemplates.payment_confirmation.message;
+          emailSubject = emailSubject || (isCustomSubject ? company.payment_confirmation_email_subject! : frenchTemplates.payment_confirmation.subject);
+          emailMessage = emailMessage || (isCustomMessage ? company.payment_confirmation_email_message! : frenchTemplates.payment_confirmation.message);
         } else {
           emailSubject = emailSubject || company.payment_confirmation_email_subject || defaultEnglishTemplates.payment.subject;
           emailMessage = emailMessage || company.payment_confirmation_email_message || defaultEnglishTemplates.payment.message;
         }
       } else {
+        const isCustomSubject = !!(company.invoice_email_subject && normalize(company.invoice_email_subject) !== normalize(defaultEnglishTemplates.new.subject));
+        const isCustomMessage = !!(company.invoice_email_message && normalize(company.invoice_email_message) !== normalize(defaultEnglishTemplates.new.message));
         if (isFrench) {
-          emailSubject = emailSubject || company.invoice_email_subject || frenchTemplates.new.subject;
-          emailMessage = emailMessage || company.invoice_email_message || frenchTemplates.new.message;
+          emailSubject = emailSubject || (isCustomSubject ? company.invoice_email_subject! : frenchTemplates.new.subject);
+          emailMessage = emailMessage || (isCustomMessage ? company.invoice_email_message! : frenchTemplates.new.message);
         } else {
           emailSubject = emailSubject || company.invoice_email_subject || defaultEnglishTemplates.new.subject;
           emailMessage = emailMessage || company.invoice_email_message || defaultEnglishTemplates.new.message;

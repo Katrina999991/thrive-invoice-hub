@@ -1296,13 +1296,12 @@ Thank you for your business!
 Best regards,
 {company_name}`;
 
-      // Check if company template is customized (different from default English)
-      const isCustomSubject = company.invoice_email_subject && 
-        company.invoice_email_subject.trim() !== '' && 
-        company.invoice_email_subject !== defaultEnglishSubject;
-      const isCustomMessage = company.invoice_email_message && 
-        company.invoice_email_message.trim() !== '' && 
-        company.invoice_email_message !== defaultEnglishMessage;
+      // Normalize and check if company template is customized (different from default English)
+      const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
+      const isCustomSubject = !!(company.invoice_email_subject && 
+        normalize(company.invoice_email_subject) !== normalize(defaultEnglishSubject));
+      const isCustomMessage = !!(company.invoice_email_message && 
+        normalize(company.invoice_email_message) !== normalize(defaultEnglishMessage));
 
       let defaultSubject: string, defaultMessage: string;
 
@@ -1473,12 +1472,11 @@ Best regards,
       let subject: string, message: string;
       
       if (type === "overdue") {
-        const isCustomSubject = company.overdue_email_subject && 
-          company.overdue_email_subject.trim() !== '' && 
-          company.overdue_email_subject !== defaultEnglishTemplates.overdue.subject;
-        const isCustomMessage = company.overdue_email_message && 
-          company.overdue_email_message.trim() !== '' && 
-          company.overdue_email_message !== defaultEnglishTemplates.overdue.message;
+        const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
+        const isCustomSubject = !!(company.overdue_email_subject && 
+          normalize(company.overdue_email_subject) !== normalize(defaultEnglishTemplates.overdue.subject));
+        const isCustomMessage = !!(company.overdue_email_message && 
+          normalize(company.overdue_email_message) !== normalize(defaultEnglishTemplates.overdue.message));
 
         if (isFrench && !isCustomMessage) {
           subject = isCustomSubject ? company.overdue_email_subject! : 'Paiement en retard - Facture {invoice_number}';
@@ -1521,12 +1519,11 @@ Meilleures salutations,
           );
         }
       } else if (type === "payment_confirmation") {
-        const isCustomSubject = company.payment_confirmation_email_subject && 
-          company.payment_confirmation_email_subject.trim() !== '' && 
-          company.payment_confirmation_email_subject !== defaultEnglishTemplates.payment.subject;
-        const isCustomMessage = company.payment_confirmation_email_message && 
-          company.payment_confirmation_email_message.trim() !== '' && 
-          company.payment_confirmation_email_message !== defaultEnglishTemplates.payment.message;
+        const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
+        const isCustomSubject = !!(company.payment_confirmation_email_subject && 
+          normalize(company.payment_confirmation_email_subject) !== normalize(defaultEnglishTemplates.payment.subject));
+        const isCustomMessage = !!(company.payment_confirmation_email_message && 
+          normalize(company.payment_confirmation_email_message) !== normalize(defaultEnglishTemplates.payment.message));
 
         if (isFrench && !isCustomMessage) {
           subject = isCustomSubject ? company.payment_confirmation_email_subject! : 'Confirmation de paiement - Facture {invoice_number}';
@@ -1563,12 +1560,11 @@ Meilleures salutations,
           );
         }
       } else {
-        const isCustomSubject = company.invoice_email_subject && 
-          company.invoice_email_subject.trim() !== '' && 
-          company.invoice_email_subject !== defaultEnglishTemplates.new.subject;
-        const isCustomMessage = company.invoice_email_message && 
-          company.invoice_email_message.trim() !== '' && 
-          company.invoice_email_message !== defaultEnglishTemplates.new.message;
+        const normalize = (s?: string | null) => (s ?? "").replace(/\r\n|\r|\n/g, "\n").replace(/\s+/g, " ").trim().toLowerCase();
+        const isCustomSubject = !!(company.invoice_email_subject && 
+          normalize(company.invoice_email_subject) !== normalize(defaultEnglishTemplates.new.subject));
+        const isCustomMessage = !!(company.invoice_email_message && 
+          normalize(company.invoice_email_message) !== normalize(defaultEnglishTemplates.new.message));
 
         if (isFrench && !isCustomMessage) {
           subject = isCustomSubject ? company.invoice_email_subject! : 'Facture {invoice_number} de {company_name}';
