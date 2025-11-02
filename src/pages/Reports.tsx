@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useReports } from "@/hooks/useReports";
@@ -306,7 +307,7 @@ const Reports = () => {
   };
   
   // États pour le rapport de factures
-  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>('all');
+  const [invoiceStatusFilters, setInvoiceStatusFilters] = useState<string[]>(['all']);
 
   // Filtrer les clients par date de création
   const filteredClientsByDate = useMemo(() => {
@@ -2047,10 +2048,35 @@ const Reports = () => {
   const filteredInvoicesByStatus = useMemo(() => {
     if (!invoices) return [];
     
-    return invoiceStatusFilter === 'all' 
-      ? invoices 
-      : invoices.filter(inv => inv.status === invoiceStatusFilter);
-  }, [invoices, invoiceStatusFilter]);
+    // Si "all" est sélectionné, afficher toutes les factures
+    if (invoiceStatusFilters.includes('all')) {
+      return invoices;
+    }
+    
+    // Sinon, filtrer selon les statuts sélectionnés
+    return invoices.filter(inv => invoiceStatusFilters.includes(inv.status));
+  }, [invoices, invoiceStatusFilters]);
+
+  const handleStatusToggle = (status: string) => {
+    if (status === 'all') {
+      setInvoiceStatusFilters(['all']);
+    } else {
+      setInvoiceStatusFilters(prev => {
+        // Retirer "all" si présent
+        const withoutAll = prev.filter(s => s !== 'all');
+        
+        if (withoutAll.includes(status)) {
+          // Si le statut est déjà sélectionné, le retirer
+          const newFilters = withoutAll.filter(s => s !== status);
+          // Si plus aucun filtre, revenir à "all"
+          return newFilters.length === 0 ? ['all'] : newFilters;
+        } else {
+          // Ajouter le statut
+          return [...withoutAll, status];
+        }
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -4473,30 +4499,92 @@ const Reports = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>
-                  Liste des factures 
-                  {invoiceStatusFilter !== 'all' && ` - ${
-                    invoiceStatusFilter === 'paid' ? 'Payé' :
-                    invoiceStatusFilter === 'sent' ? 'Envoyé' :
-                    invoiceStatusFilter === 'overdue' ? 'En retard' : 'Brouillon'
-                  }`}
-                </CardTitle>
-                <Select value={invoiceStatusFilter} onValueChange={setInvoiceStatusFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Filtrer par statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les statuts</SelectItem>
-                    <SelectItem value="draft">Brouillon</SelectItem>
-                    <SelectItem value="sent">Envoyé</SelectItem>
-                    <SelectItem value="paid">Payé</SelectItem>
-                    <SelectItem value="overdue">En retard</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <CardTitle>Liste des factures</CardTitle>
+                  <CardDescription>
+                    {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
+                  </CardDescription>
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-48">
+                      Filtrer par statut ({invoiceStatusFilters.includes('all') ? 'Tous' : invoiceStatusFilters.length})
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56">
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">Statuts</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="status-all"
+                            checked={invoiceStatusFilters.includes('all')}
+                            onCheckedChange={() => handleStatusToggle('all')}
+                          />
+                          <label
+                            htmlFor="status-all"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Tous les statuts
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="status-draft"
+                            checked={invoiceStatusFilters.includes('draft')}
+                            onCheckedChange={() => handleStatusToggle('draft')}
+                          />
+                          <label
+                            htmlFor="status-draft"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Brouillon
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="status-sent"
+                            checked={invoiceStatusFilters.includes('sent')}
+                            onCheckedChange={() => handleStatusToggle('sent')}
+                          />
+                          <label
+                            htmlFor="status-sent"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Envoyé
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="status-paid"
+                            checked={invoiceStatusFilters.includes('paid')}
+                            onCheckedChange={() => handleStatusToggle('paid')}
+                          />
+                          <label
+                            htmlFor="status-paid"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Payé
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="status-overdue"
+                            checked={invoiceStatusFilters.includes('overdue')}
+                            onCheckedChange={() => handleStatusToggle('overdue')}
+                          />
+                          <label
+                            htmlFor="status-overdue"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            En retard
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
-              <CardDescription>
-                {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
