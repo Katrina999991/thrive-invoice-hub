@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail } from "lucide-react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -22,6 +22,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useCompanies } from "@/hooks/useCompanies";
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -36,6 +39,21 @@ export default function Settings() {
   const [isSavingUsername, setIsSavingUsername] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Email templates
+  const { companies, updateCompany } = useCompanies();
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [emailTemplates, setEmailTemplates] = useState({
+    invoice_email_subject: "",
+    invoice_email_message: "",
+    overdue_email_subject: "",
+    overdue_email_message: "",
+    payment_confirmation_email_subject: "",
+    payment_confirmation_email_message: "",
+    invoice_footer_message: "",
+    invoice_footer_message_fr: ""
+  });
+  const [isSavingTemplates, setIsSavingTemplates] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
@@ -77,6 +95,32 @@ export default function Settings() {
 
     loadUsername();
   }, [user]);
+
+  // Load email templates when company is selected
+  useEffect(() => {
+    if (selectedCompanyId && companies.length > 0) {
+      const company = companies.find(c => c.id === selectedCompanyId);
+      if (company) {
+        setEmailTemplates({
+          invoice_email_subject: (company as any).invoice_email_subject || "",
+          invoice_email_message: (company as any).invoice_email_message || "",
+          overdue_email_subject: (company as any).overdue_email_subject || "",
+          overdue_email_message: (company as any).overdue_email_message || "",
+          payment_confirmation_email_subject: (company as any).payment_confirmation_email_subject || "",
+          payment_confirmation_email_message: (company as any).payment_confirmation_email_message || "",
+          invoice_footer_message: (company as any).invoice_footer_message || "",
+          invoice_footer_message_fr: (company as any).invoice_footer_message_fr || ""
+        });
+      }
+    }
+  }, [selectedCompanyId, companies]);
+
+  // Set first company as default when companies are loaded
+  useEffect(() => {
+    if (companies.length > 0 && !selectedCompanyId) {
+      setSelectedCompanyId(companies[0].id);
+    }
+  }, [companies]);
 
   const handleThemeChange = (value: string) => {
     setTheme(value);
@@ -159,6 +203,29 @@ export default function Settings() {
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
+    }
+  };
+
+  const handleSaveEmailTemplates = async () => {
+    if (!selectedCompanyId) return;
+    
+    setIsSavingTemplates(true);
+    try {
+      await updateCompany(selectedCompanyId, emailTemplates);
+      
+      toast({
+        title: language === "fr" ? "Modèles sauvegardés" : "Templates saved",
+        description: language === "fr" ? "Les modèles d'email ont été mis à jour avec succès." : "Email templates have been updated successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error updating email templates:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingTemplates(false);
     }
   };
 
@@ -581,6 +648,146 @@ export default function Settings() {
                   </div>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              {language === "fr" ? "Modèles d'email" : "Email Templates"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" ? "Personnalisez les modèles d'email pour chaque entreprise" : "Customize email templates for each company"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>{language === "fr" ? "Sélectionner l'entreprise" : "Select Company"}</Label>
+                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === "fr" ? "Choisir une entreprise" : "Choose a company"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedCompanyId && (
+                <>
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium">{language === "fr" ? "Email de facture" : "Invoice Email"}</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoice_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
+                      <Input
+                        id="invoice_email_subject"
+                        value={emailTemplates.invoice_email_subject}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject: e.target.value})}
+                        placeholder="Invoice {invoice_number} from {company_name}"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoice_email_message">{language === "fr" ? "Message" : "Message"}</Label>
+                      <Textarea
+                        id="invoice_email_message"
+                        rows={6}
+                        value={emailTemplates.invoice_email_message}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium">{language === "fr" ? "Email de rappel de paiement" : "Overdue Payment Reminder"}</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="overdue_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
+                      <Input
+                        id="overdue_email_subject"
+                        value={emailTemplates.overdue_email_subject}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject: e.target.value})}
+                        placeholder="Payment Overdue - Invoice {invoice_number}"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="overdue_email_message">{language === "fr" ? "Message" : "Message"}</Label>
+                      <Textarea
+                        id="overdue_email_message"
+                        rows={6}
+                        value={emailTemplates.overdue_email_message}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium">{language === "fr" ? "Email de confirmation de paiement" : "Payment Confirmation Email"}</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="payment_confirmation_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
+                      <Input
+                        id="payment_confirmation_email_subject"
+                        value={emailTemplates.payment_confirmation_email_subject}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject: e.target.value})}
+                        placeholder="Payment Confirmation - Invoice {invoice_number}"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="payment_confirmation_email_message">{language === "fr" ? "Message" : "Message"}</Label>
+                      <Textarea
+                        id="payment_confirmation_email_message"
+                        rows={6}
+                        value={emailTemplates.payment_confirmation_email_message}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium">{language === "fr" ? "Messages de pied de page de facture" : "Invoice Footer Messages"}</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoice_footer_message">{language === "fr" ? "Message (Anglais)" : "Message (English)"}</Label>
+                      <Textarea
+                        id="invoice_footer_message"
+                        rows={3}
+                        value={emailTemplates.invoice_footer_message}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message: e.target.value})}
+                        placeholder="Thank you for your business!"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoice_footer_message_fr">{language === "fr" ? "Message (Français)" : "Message (French)"}</Label>
+                      <Textarea
+                        id="invoice_footer_message_fr"
+                        rows={3}
+                        value={emailTemplates.invoice_footer_message_fr}
+                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_fr: e.target.value})}
+                        placeholder="Merci pour votre confiance !"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button onClick={handleSaveEmailTemplates} disabled={isSavingTemplates}>
+                      {isSavingTemplates ? (language === "fr" ? "Sauvegarde..." : "Saving...") : (language === "fr" ? "Sauvegarder les modèles" : "Save Templates")}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
