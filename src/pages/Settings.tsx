@@ -64,13 +64,20 @@ export default function Settings() {
   const { companies, updateCompany } = useCompanies();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [emailTemplates, setEmailTemplates] = useState({
-    invoice_email_subject: "",
-    invoice_email_message: "",
-    overdue_email_subject: "",
-    overdue_email_message: "",
-    payment_confirmation_email_subject: "",
-    payment_confirmation_email_message: "",
-    invoice_footer_message: ""
+    invoice_email_subject_en: "",
+    invoice_email_subject_fr: "",
+    invoice_email_message_en: "",
+    invoice_email_message_fr: "",
+    overdue_email_subject_en: "",
+    overdue_email_subject_fr: "",
+    overdue_email_message_en: "",
+    overdue_email_message_fr: "",
+    payment_confirmation_email_subject_en: "",
+    payment_confirmation_email_subject_fr: "",
+    payment_confirmation_email_message_en: "",
+    payment_confirmation_email_message_fr: "",
+    invoice_footer_message_en: "",
+    invoice_footer_message_fr: ""
   });
   const [isSavingTemplates, setIsSavingTemplates] = useState(false);
 
@@ -127,8 +134,9 @@ export default function Settings() {
       const company = companies.find(c => c.id === selectedCompanyId);
       if (company) {
         setEmailTemplates({
-          invoice_email_subject: (company as any).invoice_email_subject || 'Invoice {invoice_number} from {company_name}',
-          invoice_email_message: (company as any).invoice_email_message || `Dear {client_name},
+          invoice_email_subject_en: (company as any).invoice_email_subject_en || 'Invoice {invoice_number} from {company_name}',
+          invoice_email_subject_fr: (company as any).invoice_email_subject_fr || 'Facture {invoice_number} de {company_name}',
+          invoice_email_message_en: (company as any).invoice_email_message_en || `Dear {client_name},
 
 Please find attached your invoice {invoice_number} dated {issue_date}.
 
@@ -139,8 +147,20 @@ Thank you for your business!
 
 Best regards,
 {company_name}`,
-          overdue_email_subject: (company as any).overdue_email_subject || 'Payment Overdue - Invoice {invoice_number}',
-          overdue_email_message: (company as any).overdue_email_message || `Dear {client_name},
+          invoice_email_message_fr: (company as any).invoice_email_message_fr || `Cher(e) {client_name},
+
+Veuillez trouver ci-joint votre facture {invoice_number} datée du {issue_date}.
+
+Montant dû: {total}
+Date d'échéance: {due_date}
+
+Merci pour votre confiance!
+
+Cordialement,
+{company_name}`,
+          overdue_email_subject_en: (company as any).overdue_email_subject_en || 'Payment Overdue - Invoice {invoice_number}',
+          overdue_email_subject_fr: (company as any).overdue_email_subject_fr || 'Paiement en retard - Facture {invoice_number}',
+          overdue_email_message_en: (company as any).overdue_email_message_en || `Dear {client_name},
 
 This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
 
@@ -156,21 +176,48 @@ Thank you for your prompt attention to this matter.
 
 Best regards,
 {company_name}`,
-          payment_confirmation_email_subject: (company as any).payment_confirmation_email_subject || 'Payment Confirmation - Invoice {invoice_number}',
-          payment_confirmation_email_message: (company as any).payment_confirmation_email_message || `Dear {client_name},
+          overdue_email_message_fr: (company as any).overdue_email_message_fr || `Cher(e) {client_name},
 
-We have successfully received your payment for invoice {invoice_number}.
+Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
 
-Payment details:
-- Invoice: {invoice_number}
-- Amount: {total}
-- Date paid: {payment_date}
+Montant initial: {total}
+Date d'échéance: {due_date}
+Jours de retard: {days_overdue}
 
-Thank you for your prompt payment and continued business!
+Veuillez effectuer le paiement dès que possible pour éviter des frais de retard.
+
+Si vous avez déjà effectué le paiement, veuillez ignorer cet avis.
+
+Merci de votre attention rapide à cette question.
+
+Cordialement,
+{company_name}`,
+          payment_confirmation_email_subject_en: (company as any).payment_confirmation_email_subject_en || 'Payment Confirmation - Invoice {invoice_number}',
+          payment_confirmation_email_subject_fr: (company as any).payment_confirmation_email_subject_fr || 'Confirmation de paiement - Facture {invoice_number}',
+          payment_confirmation_email_message_en: (company as any).payment_confirmation_email_message_en || `Dear {client_name},
+
+This confirms that we have received your payment for invoice {invoice_number}.
+
+Amount paid: {total}
+Payment date: {payment_date}
+
+Thank you for your prompt payment!
 
 Best regards,
 {company_name}`,
-          invoice_footer_message: (company as any).invoice_footer_message || 'Thank you for your business!'
+          payment_confirmation_email_message_fr: (company as any).payment_confirmation_email_message_fr || `Cher(e) {client_name},
+
+Ceci confirme que nous avons bien reçu votre paiement pour la facture {invoice_number}.
+
+Montant payé: {total}
+Date de paiement: {payment_date}
+
+Merci pour votre paiement rapide!
+
+Cordialement,
+{company_name}`,
+          invoice_footer_message_en: (company as any).invoice_footer_message_en || 'Thank you for your business!',
+          invoice_footer_message_fr: (company as any).invoice_footer_message_fr || 'Merci pour votre confiance!'
         });
       }
     }
@@ -1054,92 +1101,176 @@ Best regards,
                     </p>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-6 pt-4 border-t">
                     <h4 className="font-medium">{language === "fr" ? "Email de nouvelle facture" : "New Invoice Email"}</h4>
-                    <div className="space-y-2">
-                      <Label htmlFor="invoice_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
-                      <Input
-                        id="invoice_email_subject"
-                        value={emailTemplates.invoice_email_subject}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject: e.target.value})}
-                        placeholder="Invoice {invoice_number} from {company_name}"
-                      />
-                    </div>
                     <p className="text-xs text-muted-foreground">
                       {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
                     </p>
-                    <div className="space-y-2">
-                      <Label htmlFor="invoice_email_message">{language === "fr" ? "Message" : "Message"}</Label>
-                      <Textarea
-                        id="invoice_email_message"
-                        rows={6}
-                        value={emailTemplates.invoice_email_message}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message: e.target.value})}
-                      />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_email_subject_en">Subject (English)</Label>
+                        <Input
+                          id="invoice_email_subject_en"
+                          value={emailTemplates.invoice_email_subject_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_en: e.target.value})}
+                          placeholder="Invoice {invoice_number} from {company_name}"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_email_subject_fr">Sujet (Français)</Label>
+                        <Input
+                          id="invoice_email_subject_fr"
+                          value={emailTemplates.invoice_email_subject_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_fr: e.target.value})}
+                          placeholder="Facture {invoice_number} de {company_name}"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_email_message_en">Message (English)</Label>
+                        <Textarea
+                          id="invoice_email_message_en"
+                          rows={6}
+                          value={emailTemplates.invoice_email_message_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_en: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_email_message_fr">Message (Français)</Label>
+                        <Textarea
+                          id="invoice_email_message_fr"
+                          rows={6}
+                          value={emailTemplates.invoice_email_message_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_fr: e.target.value})}
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-6 pt-4 border-t">
                     <h4 className="font-medium">{language === "fr" ? "Email de rappel de paiement" : "Overdue Payment Reminder"}</h4>
-                    <div className="space-y-2">
-                      <Label htmlFor="overdue_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
-                      <Input
-                        id="overdue_email_subject"
-                        value={emailTemplates.overdue_email_subject}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject: e.target.value})}
-                        placeholder="Payment Overdue - Invoice {invoice_number}"
-                      />
-                    </div>
                     <p className="text-xs text-muted-foreground">
                       {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
                     </p>
-                    <div className="space-y-2">
-                      <Label htmlFor="overdue_email_message">{language === "fr" ? "Message" : "Message"}</Label>
-                      <Textarea
-                        id="overdue_email_message"
-                        rows={6}
-                        value={emailTemplates.overdue_email_message}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message: e.target.value})}
-                      />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="overdue_email_subject_en">Subject (English)</Label>
+                        <Input
+                          id="overdue_email_subject_en"
+                          value={emailTemplates.overdue_email_subject_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_en: e.target.value})}
+                          placeholder="Payment Overdue - Invoice {invoice_number}"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="overdue_email_subject_fr">Sujet (Français)</Label>
+                        <Input
+                          id="overdue_email_subject_fr"
+                          value={emailTemplates.overdue_email_subject_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_fr: e.target.value})}
+                          placeholder="Paiement en retard - Facture {invoice_number}"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="overdue_email_message_en">Message (English)</Label>
+                        <Textarea
+                          id="overdue_email_message_en"
+                          rows={6}
+                          value={emailTemplates.overdue_email_message_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_en: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="overdue_email_message_fr">Message (Français)</Label>
+                        <Textarea
+                          id="overdue_email_message_fr"
+                          rows={6}
+                          value={emailTemplates.overdue_email_message_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_fr: e.target.value})}
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-6 pt-4 border-t">
                     <h4 className="font-medium">{language === "fr" ? "Email de confirmation de paiement" : "Payment Confirmation Email"}</h4>
-                    <div className="space-y-2">
-                      <Label htmlFor="payment_confirmation_email_subject">{language === "fr" ? "Sujet" : "Subject"}</Label>
-                      <Input
-                        id="payment_confirmation_email_subject"
-                        value={emailTemplates.payment_confirmation_email_subject}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject: e.target.value})}
-                        placeholder="Payment Confirmation - Invoice {invoice_number}"
-                      />
-                    </div>
                     <p className="text-xs text-muted-foreground">
                       {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
                     </p>
-                    <div className="space-y-2">
-                      <Label htmlFor="payment_confirmation_email_message">{language === "fr" ? "Message" : "Message"}</Label>
-                      <Textarea
-                        id="payment_confirmation_email_message"
-                        rows={6}
-                        value={emailTemplates.payment_confirmation_email_message}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message: e.target.value})}
-                      />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="payment_confirmation_email_subject_en">Subject (English)</Label>
+                        <Input
+                          id="payment_confirmation_email_subject_en"
+                          value={emailTemplates.payment_confirmation_email_subject_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_en: e.target.value})}
+                          placeholder="Payment Confirmation - Invoice {invoice_number}"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="payment_confirmation_email_subject_fr">Sujet (Français)</Label>
+                        <Input
+                          id="payment_confirmation_email_subject_fr"
+                          value={emailTemplates.payment_confirmation_email_subject_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_fr: e.target.value})}
+                          placeholder="Confirmation de paiement - Facture {invoice_number}"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="payment_confirmation_email_message_en">Message (English)</Label>
+                        <Textarea
+                          id="payment_confirmation_email_message_en"
+                          rows={6}
+                          value={emailTemplates.payment_confirmation_email_message_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_en: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="payment_confirmation_email_message_fr">Message (Français)</Label>
+                        <Textarea
+                          id="payment_confirmation_email_message_fr"
+                          rows={6}
+                          value={emailTemplates.payment_confirmation_email_message_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_fr: e.target.value})}
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-6 pt-4 border-t">
                     <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
-                    <div className="space-y-2">
-                      <Label htmlFor="invoice_footer_message">{language === "fr" ? "Message" : "Message"}</Label>
-                      <Textarea
-                        id="invoice_footer_message"
-                        rows={3}
-                        value={emailTemplates.invoice_footer_message}
-                        onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message: e.target.value})}
-                        placeholder={language === "fr" ? "Merci pour votre confiance !" : "Thank you for your business!"}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_footer_message_en">Message (English)</Label>
+                        <Textarea
+                          id="invoice_footer_message_en"
+                          rows={3}
+                          value={emailTemplates.invoice_footer_message_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_en: e.target.value})}
+                          placeholder="Thank you for your business!"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_footer_message_fr">Message (Français)</Label>
+                        <Textarea
+                          id="invoice_footer_message_fr"
+                          rows={3}
+                          value={emailTemplates.invoice_footer_message_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_fr: e.target.value})}
+                          placeholder="Merci pour votre confiance!"
+                        />
+                      </div>
                     </div>
                   </div>
 
