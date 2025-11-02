@@ -112,10 +112,14 @@ export const AuthEmail = ({
           >
             {getButtonText()}
           </Link>
-          <Text style={text}>
-            {getCopyCodeText()}
-          </Text>
-          <code style={code}>{token}</code>
+          {!isEmailChange && (
+            <>
+              <Text style={text}>
+                {getCopyCodeText()}
+              </Text>
+              <code style={code}>{token}</code>
+            </>
+          )}
           <Text style={footer}>
             {getFooterText()}
           </Text>
