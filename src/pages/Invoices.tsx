@@ -1282,36 +1282,10 @@ const Invoices = () => {
       // Check client language
       const isFrench = client?.language === 'french';
 
-      // Default to new invoice template with language support (prefer company template)
+      // Language-first: if client is French, use French defaults (until FR templates are added)
       let defaultSubject, defaultMessage;
       
-      if (company.invoice_email_subject || company.invoice_email_message) {
-        defaultSubject = company.invoice_email_subject || (isFrench ? 'Facture {invoice_number} de {company_name}' : 'Invoice {invoice_number} from {company_name}');
-        defaultMessage = company.invoice_email_message || (isFrench
-          ? `Cher/Chère {client_name},
-
-Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
-
-Montant dû : {total}$
-Date d'échéance : {due_date}
-
-Merci pour votre confiance !
-
-Meilleures salutations,
-{company_name}`
-          : `Dear {client_name},
-
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
-Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
-{company_name}`
-        );
-      } else if (isFrench) {
+      if (isFrench) {
         defaultSubject = 'Facture {invoice_number} de {company_name}';
         defaultMessage = `Cher/Chère {client_name},
 
@@ -1323,6 +1297,19 @@ Date d'échéance : {due_date}
 Merci pour votre confiance !
 
 Meilleures salutations,
+{company_name}`;
+      } else if (company.invoice_email_subject || company.invoice_email_message) {
+        defaultSubject = company.invoice_email_subject || 'Invoice {invoice_number} from {company_name}';
+        defaultMessage = company.invoice_email_message || `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
 {company_name}`;
       } else {
         defaultSubject = 'Invoice {invoice_number} from {company_name}';
