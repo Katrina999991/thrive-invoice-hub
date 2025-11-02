@@ -39,6 +39,8 @@ export default function Settings() {
   const [isSavingUsername, setIsSavingUsername] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState<string>("");
   const [isSavingRecoveryEmail, setIsSavingRecoveryEmail] = useState(false);
+  const [newPrimaryEmail, setNewPrimaryEmail] = useState<string>("");
+  const [isSavingPrimaryEmail, setIsSavingPrimaryEmail] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -244,6 +246,37 @@ Best regards,
     }
   };
 
+  const handleSavePrimaryEmail = async () => {
+    if (!user?.id || !newPrimaryEmail.trim()) return;
+    
+    setIsSavingPrimaryEmail(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: newPrimaryEmail.trim()
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: language === "fr" ? "Email de confirmation envoyé" : "Confirmation email sent",
+        description: language === "fr" 
+          ? "Un email de confirmation a été envoyé à votre nouvelle adresse. Veuillez vérifier votre boîte de réception pour confirmer le changement."
+          : "A confirmation email has been sent to your new address. Please check your inbox to confirm the change.",
+      });
+      
+      setNewPrimaryEmail("");
+    } catch (error: any) {
+      console.error("Error updating primary email:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingPrimaryEmail(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!user?.id) return;
     
@@ -381,9 +414,37 @@ Best regards,
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium">{t("settings.account.email")}</p>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-sm font-medium">{t("settings.account.email")}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
+                <div className="pt-2">
+                  <Label htmlFor="newPrimaryEmail">
+                    {language === "fr" ? "Changer l'email principal" : "Change primary email"}
+                  </Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="newPrimaryEmail"
+                      type="email"
+                      value={newPrimaryEmail}
+                      onChange={(e) => setNewPrimaryEmail(e.target.value)}
+                      placeholder={language === "fr" ? "nouveau.email@example.com" : "new.email@example.com"}
+                      disabled={isSavingPrimaryEmail}
+                    />
+                    <Button 
+                      onClick={handleSavePrimaryEmail} 
+                      disabled={isSavingPrimaryEmail || !newPrimaryEmail.trim()}
+                    >
+                      {isSavingPrimaryEmail ? t("settings.account.saving") : t("settings.account.save")}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {language === "fr" 
+                      ? "Vous recevrez un email de confirmation pour valider le changement"
+                      : "You will receive a confirmation email to validate the change"}
+                  </p>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="username">{t("settings.account.username")}</Label>
