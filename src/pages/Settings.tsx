@@ -200,10 +200,17 @@ Meilleures salutations,
         const isFrench = language === 'fr';
         const displayLang = isFrench ? 'fr' : 'en';
         
-        // Helper function to normalize strings for comparison (remove extra whitespace, normalize line breaks)
+        // Helper function to normalize strings for comparison
         const normalize = (str: string | null) => {
           if (!str) return '';
-          return str.trim().replace(/\s+/g, ' ').replace(/\n\s*/g, '\n');
+          // Remove all whitespace variations and normalize
+          return str
+            .trim()
+            .replace(/\r\n/g, '\n')  // Normalize Windows line endings
+            .replace(/\r/g, '\n')     // Normalize old Mac line endings
+            .replace(/\n+/g, '\n')    // Multiple newlines to single
+            .replace(/[ \t]+/g, ' ')  // Multiple spaces/tabs to single space
+            .toLowerCase();           // Case insensitive comparison
         };
         
         // Helper function to check if a value is a default template in any language
@@ -212,7 +219,16 @@ Meilleures salutations,
           const normalizedValue = normalize(value);
           const normalizedEnDefault = normalize(defaults.en[field]);
           const normalizedFrDefault = normalize(defaults.fr[field]);
-          return normalizedValue === normalizedEnDefault || normalizedValue === normalizedFrDefault;
+          
+          // Also check if it's close enough (allowing for minor variations)
+          const isEnglishDefault = normalizedValue === normalizedEnDefault || 
+            normalizedValue.includes(normalize('Dear {client_name}')) ||
+            normalizedValue.includes(normalize('Thank you for your business'));
+          const isFrenchDefault = normalizedValue === normalizedFrDefault ||
+            normalizedValue.includes(normalize('Cher/Chère {client_name}')) ||
+            normalizedValue.includes(normalize('Merci pour votre confiance'));
+          
+          return isEnglishDefault || isFrenchDefault;
         };
 
         const invoiceSubject = (company as any).invoice_email_subject;
