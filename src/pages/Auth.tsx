@@ -334,14 +334,14 @@ export default function Auth() {
                 size="sm"
                 onClick={() => setLanguage('fr')}
               >
-                🇫🇷 FR
+                FR
               </Button>
               <Button
                 variant={language === 'en' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setLanguage('en')}
               >
-                🇬🇧 EN
+                EN
               </Button>
             </div>
           </div>
