@@ -21,6 +21,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,7 +93,7 @@ export default function Settings() {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("username, recovery_email")
+          .select("username, recovery_email, phone_number")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -95,6 +103,9 @@ export default function Settings() {
         }
         if (data?.recovery_email) {
           setRecoveryEmail(data.recovery_email);
+        }
+        if (data?.phone_number) {
+          setPhoneNumber(data.phone_number);
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
