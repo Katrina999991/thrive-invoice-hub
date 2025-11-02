@@ -239,20 +239,56 @@ Best regards,
   const handleSaveRecoveryEmail = async () => {
     if (!user?.id) return;
     
-    // Validation
-    const emailSchema = z.string().trim().email({ message: language === "fr" ? "Email invalide" : "Invalid email" }).max(255, { message: language === "fr" ? "L'email doit contenir moins de 255 caractères" : "Email must be less than 255 characters" });
+    // Validation détaillée
+    const trimmedEmail = recoveryEmail.trim();
     
-    try {
-      if (recoveryEmail.trim()) {
-        emailSchema.parse(recoveryEmail);
+    if (trimmedEmail) {
+      if (!trimmedEmail.includes('@')) {
+        setRecoveryEmailError(language === "fr" ? "L'email doit contenir un @" : "Email must contain an @");
+        return;
       }
-      setRecoveryEmailError("");
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        setRecoveryEmailError(error.errors[0].message);
+      
+      const parts = trimmedEmail.split('@');
+      if (parts.length > 2) {
+        setRecoveryEmailError(language === "fr" ? "L'email contient trop de @" : "Email contains too many @");
+        return;
+      }
+      
+      if (!parts[0] || parts[0].length === 0) {
+        setRecoveryEmailError(language === "fr" ? "L'email doit avoir un nom avant le @" : "Email must have a name before @");
+        return;
+      }
+      
+      if (!parts[1] || parts[1].length === 0) {
+        setRecoveryEmailError(language === "fr" ? "L'email doit avoir un domaine après le @" : "Email must have a domain after @");
+        return;
+      }
+      
+      if (!parts[1].includes('.')) {
+        setRecoveryEmailError(language === "fr" ? "Le domaine doit contenir un point (.)" : "Domain must contain a dot (.)");
+        return;
+      }
+      
+      const domainParts = parts[1].split('.');
+      if (domainParts[domainParts.length - 1].length < 2) {
+        setRecoveryEmailError(language === "fr" ? "L'extension du domaine est trop courte" : "Domain extension is too short");
+        return;
+      }
+      
+      if (trimmedEmail.length > 255) {
+        setRecoveryEmailError(language === "fr" ? "L'email doit contenir moins de 255 caractères" : "Email must be less than 255 characters");
+        return;
+      }
+      
+      // Validation regex finale
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        setRecoveryEmailError(language === "fr" ? "Format d'email invalide" : "Invalid email format");
         return;
       }
     }
+    
+    setRecoveryEmailError("");
     
     setIsSavingRecoveryEmail(true);
     try {
