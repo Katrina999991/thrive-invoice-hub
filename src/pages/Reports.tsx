@@ -2057,6 +2057,11 @@ const Reports = () => {
     return invoices.filter(inv => invoiceStatusFilters.includes(inv.status));
   }, [invoices, invoiceStatusFilters]);
 
+  // Calculer le grand total
+  const invoiceGrandTotal = useMemo(() => {
+    return filteredInvoicesByStatus.reduce((sum, invoice) => sum + Number(invoice.total), 0);
+  }, [filteredInvoicesByStatus]);
+
   const handleStatusToggle = (status: string) => {
     if (status === 'all') {
       setInvoiceStatusFilters(['all']);
@@ -4505,85 +4510,91 @@ const Reports = () => {
                     {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
                   </CardDescription>
                 </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-48">
-                      Filtrer par statut ({invoiceStatusFilters.includes('all') ? 'Tous' : invoiceStatusFilters.length})
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56">
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">Statuts</h4>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-all"
-                            checked={invoiceStatusFilters.includes('all')}
-                            onCheckedChange={() => handleStatusToggle('all')}
-                          />
-                          <label
-                            htmlFor="status-all"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Tous les statuts
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-draft"
-                            checked={invoiceStatusFilters.includes('draft')}
-                            onCheckedChange={() => handleStatusToggle('draft')}
-                          />
-                          <label
-                            htmlFor="status-draft"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Brouillon
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-sent"
-                            checked={invoiceStatusFilters.includes('sent')}
-                            onCheckedChange={() => handleStatusToggle('sent')}
-                          />
-                          <label
-                            htmlFor="status-sent"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Envoyé
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-paid"
-                            checked={invoiceStatusFilters.includes('paid')}
-                            onCheckedChange={() => handleStatusToggle('paid')}
-                          />
-                          <label
-                            htmlFor="status-paid"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Payé
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-overdue"
-                            checked={invoiceStatusFilters.includes('overdue')}
-                            onCheckedChange={() => handleStatusToggle('overdue')}
-                          />
-                          <label
-                            htmlFor="status-overdue"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            En retard
-                          </label>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Grand Total</div>
+                    <div className="text-2xl font-bold">${invoiceGrandTotal.toFixed(2)}</div>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-48">
+                        Filtrer par statut ({invoiceStatusFilters.includes('all') ? 'Tous' : invoiceStatusFilters.length})
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56">
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm">Statuts</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="status-all"
+                              checked={invoiceStatusFilters.includes('all')}
+                              onCheckedChange={() => handleStatusToggle('all')}
+                            />
+                            <label
+                              htmlFor="status-all"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Tous les statuts
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="status-draft"
+                              checked={invoiceStatusFilters.includes('draft')}
+                              onCheckedChange={() => handleStatusToggle('draft')}
+                            />
+                            <label
+                              htmlFor="status-draft"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Brouillon
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="status-sent"
+                              checked={invoiceStatusFilters.includes('sent')}
+                              onCheckedChange={() => handleStatusToggle('sent')}
+                            />
+                            <label
+                              htmlFor="status-sent"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Envoyé
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="status-paid"
+                              checked={invoiceStatusFilters.includes('paid')}
+                              onCheckedChange={() => handleStatusToggle('paid')}
+                            />
+                            <label
+                              htmlFor="status-paid"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Payé
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="status-overdue"
+                              checked={invoiceStatusFilters.includes('overdue')}
+                              onCheckedChange={() => handleStatusToggle('overdue')}
+                            />
+                            <label
+                              htmlFor="status-overdue"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              En retard
+                            </label>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
