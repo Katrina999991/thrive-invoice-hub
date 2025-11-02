@@ -102,8 +102,8 @@ const Reports = () => {
     filterType, 
     filterType === 'company' ? selectedCompanyId : selectedClientId
   );
-  const { profitData, loading: profitLoading } = useProductProfit(customStartDate, customEndDate);
-  const { salesData, loading: salesLoading } = useSalesReport(customStartDate, customEndDate);
+  const { profitData, loading: profitLoading } = useProductProfit(startDate, endDate);
+  const { salesData, loading: salesLoading } = useSalesReport(startDate, endDate);
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
