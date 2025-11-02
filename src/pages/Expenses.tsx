@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useCategories } from "@/hooks/useCategories";
 import { useClients } from "@/hooks/useClients";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { Tables } from "@/integrations/supabase/types";
@@ -19,8 +21,9 @@ type Expense = Tables<"expenses">;
 
 const Expenses = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
+  const { categories, loading: categoriesLoading } = useCategories();
   const { clients, loading: clientsLoading } = useClients();
 
   const [newExpense, setNewExpense] = useState({
@@ -179,14 +182,24 @@ const Expenses = () => {
                     <SelectValue placeholder={t("expenses.categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Office">{t("expenses.categories.Office")}</SelectItem>
-                    <SelectItem value="Meals">{t("expenses.categories.Meals")}</SelectItem>
-                    <SelectItem value="Travel">{t("expenses.categories.Travel")}</SelectItem>
-                    <SelectItem value="Software">{t("expenses.categories.Software")}</SelectItem>
-                    <SelectItem value="Marketing">{t("expenses.categories.Marketing")}</SelectItem>
-                    <SelectItem value="Utilities">{t("expenses.categories.Utilities")}</SelectItem>
-                    <SelectItem value="Products">{t("expenses.categories.Products")}</SelectItem>
-                    <SelectItem value="Other">{t("expenses.categories.Other")}</SelectItem>
+                    {categories.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        {language === "fr" ? "Aucune catégorie. " : "No categories. "}
+                        <Link to="/categories" className="text-primary hover:underline inline-flex items-center gap-1">
+                          {language === "fr" ? "Créer une catégorie" : "Create a category"}
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    ) : (
+                      categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
+                            {cat.name}
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -307,7 +320,7 @@ const Expenses = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {expense.vendor ? `${expense.vendor} • ` : ""}{t(`expenses.categories.${expense.category}`) || expense.category} • {expense.expense_date}
+                    {expense.vendor ? `${expense.vendor} • ` : ""}{expense.category} • {expense.expense_date}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">

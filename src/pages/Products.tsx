@@ -10,9 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2, X, Percent } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2, X, Percent, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -20,9 +22,10 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 const Products = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
+  const { categories, loading: categoriesLoading } = useCategories();
   const { createExpense } = useExpenses();
 
   const [newItem, setNewItem] = useState({
@@ -391,27 +394,24 @@ const Products = () => {
                     <SelectValue placeholder={t("products.categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Web Development">{t("products.catWebDev")}</SelectItem>
-                    <SelectItem value="Mobile Development">{t("products.catMobileDev")}</SelectItem>
-                    <SelectItem value="Software">{t("products.catSoftware")}</SelectItem>
-                    <SelectItem value="Consulting">{t("products.catConsulting")}</SelectItem>
-                    <SelectItem value="Hardware">{t("products.catHardware")}</SelectItem>
-                    <SelectItem value="Design">{t("products.catDesign")}</SelectItem>
-                    <SelectItem value="Marketing">{t("products.catMarketing")}</SelectItem>
-                    <SelectItem value="Training">{t("products.catTraining")}</SelectItem>
-                    <SelectItem value="Support">{t("products.catSupport")}</SelectItem>
-                    <SelectItem value="Maintenance">{t("products.catMaintenance")}</SelectItem>
-                    <SelectItem value="Hosting">{t("products.catHosting")}</SelectItem>
-                    <SelectItem value="Cloud Services">{t("products.catCloudServices")}</SelectItem>
-                    <SelectItem value="Security">{t("products.catSecurity")}</SelectItem>
-                    <SelectItem value="Data Analysis">{t("products.catDataAnalysis")}</SelectItem>
-                    <SelectItem value="Content Creation">{t("products.catContentCreation")}</SelectItem>
-                    <SelectItem value="Photography">{t("products.catPhotography")}</SelectItem>
-                    <SelectItem value="Video Production">{t("products.catVideoProduction")}</SelectItem>
-                    <SelectItem value="Translation">{t("products.catTranslation")}</SelectItem>
-                    <SelectItem value="Legal Services">{t("products.catLegalServices")}</SelectItem>
-                    <SelectItem value="Accounting">{t("products.catAccounting")}</SelectItem>
-                    <SelectItem value="Other">{t("products.catOther")}</SelectItem>
+                    {categories.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        {language === "fr" ? "Aucune catégorie. " : "No categories. "}
+                        <Link to="/categories" className="text-primary hover:underline inline-flex items-center gap-1">
+                          {language === "fr" ? "Créer une catégorie" : "Create a category"}
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    ) : (
+                      categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
+                            {cat.name}
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
