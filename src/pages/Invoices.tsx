@@ -1283,18 +1283,14 @@ const Invoices = () => {
       // Check client language
       const isFrench = (client?.language || '').toLowerCase().startsWith('fr');
 
-      // Get base templates
-      let baseSubject = company.invoice_email_subject || emailTranslations.en.newInvoice.subject;
-      let baseMessage = company.invoice_email_message || emailTranslations.en.newInvoice.body;
-
-      // Translate to French if needed using static translations
+      // Get templates based on client language
       let defaultSubject: string, defaultMessage: string;
       if (isFrench) {
-        defaultSubject = translateTemplate(baseSubject, 'newInvoice', true);
-        defaultMessage = translateTemplate(baseMessage, 'newInvoice', false);
+        defaultSubject = (company as any).invoice_email_subject_fr || emailTranslations.fr.newInvoice.subject;
+        defaultMessage = (company as any).invoice_email_message_fr || emailTranslations.fr.newInvoice.body;
       } else {
-        defaultSubject = baseSubject;
-        defaultMessage = baseMessage;
+        defaultSubject = (company as any).invoice_email_subject_en || emailTranslations.en.newInvoice.subject;
+        defaultMessage = (company as any).invoice_email_message_en || emailTranslations.en.newInvoice.body;
       }
 
       // Replace template variables
@@ -1412,31 +1408,31 @@ Best regards,
 
       let subject: string, message: string;
       
-      // Get base templates
-      let baseSubject: string;
-      let baseMessage: string;
-      
+      // Get templates based on client language
       if (type === "overdue") {
-        baseSubject = company.overdue_email_subject || emailTranslations.en.overdue.subject;
-        baseMessage = company.overdue_email_message || emailTranslations.en.overdue.body;
+        if (isFrench) {
+          subject = (company as any).overdue_email_subject_fr || emailTranslations.fr.overdue.subject;
+          message = (company as any).overdue_email_message_fr || emailTranslations.fr.overdue.body;
+        } else {
+          subject = (company as any).overdue_email_subject_en || emailTranslations.en.overdue.subject;
+          message = (company as any).overdue_email_message_en || emailTranslations.en.overdue.body;
+        }
       } else if (type === "payment_confirmation") {
-        baseSubject = company.payment_confirmation_email_subject || emailTranslations.en.paymentConfirmation.subject;
-        baseMessage = company.payment_confirmation_email_message || emailTranslations.en.paymentConfirmation.body;
+        if (isFrench) {
+          subject = (company as any).payment_confirmation_email_subject_fr || emailTranslations.fr.paymentConfirmation.subject;
+          message = (company as any).payment_confirmation_email_message_fr || emailTranslations.fr.paymentConfirmation.body;
+        } else {
+          subject = (company as any).payment_confirmation_email_subject_en || emailTranslations.en.paymentConfirmation.subject;
+          message = (company as any).payment_confirmation_email_message_en || emailTranslations.en.paymentConfirmation.body;
+        }
       } else {
-        baseSubject = company.invoice_email_subject || emailTranslations.en.newInvoice.subject;
-        baseMessage = company.invoice_email_message || emailTranslations.en.newInvoice.body;
-      }
-
-      // Translate to French if needed using static translations
-      if (isFrench) {
-        const templateType = type === "overdue" ? "overdue" : 
-                           type === "payment_confirmation" ? "paymentConfirmation" : 
-                           "newInvoice";
-        subject = translateTemplate(baseSubject, templateType, true);
-        message = translateTemplate(baseMessage, templateType, false);
-      } else {
-        subject = baseSubject;
-        message = baseMessage;
+        if (isFrench) {
+          subject = (company as any).invoice_email_subject_fr || emailTranslations.fr.newInvoice.subject;
+          message = (company as any).invoice_email_message_fr || emailTranslations.fr.newInvoice.body;
+        } else {
+          subject = (company as any).invoice_email_subject_en || emailTranslations.en.newInvoice.subject;
+          message = (company as any).invoice_email_message_en || emailTranslations.en.newInvoice.body;
+        }
       }
 
       // Replace template variables
