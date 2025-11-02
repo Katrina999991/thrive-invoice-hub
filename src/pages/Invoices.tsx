@@ -1223,12 +1223,25 @@ const Invoices = () => {
     }
   };
 
-  const openEmailDialog = (invoice: Invoice) => {
+  const openEmailDialog = async (invoice: Invoice) => {
     setEmailingInvoice(invoice);
     
-    // Find client and company for template variables
+    // Find client
     const client = clients.find(c => c.id === invoice.client_id);
-    const company = companies.find(c => c.id === client?.company_id);
+    
+    // Fetch fresh company data from database to get latest email templates
+    let company = null;
+    if (client?.company_id) {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', client.company_id)
+        .single();
+      
+      if (!error && data) {
+        company = data;
+      }
+    }
     
     // Parse and pre-select all client emails
     if (client?.email) {
@@ -1316,13 +1329,26 @@ Best regards,
     setIsEmailDialogOpen(true);
   };
 
-  const handleEmailTypeChange = (type: "new" | "overdue" | "payment_confirmation") => {
+  const handleEmailTypeChange = async (type: "new" | "overdue" | "payment_confirmation") => {
     setEmailType(type);
     
     if (!emailingInvoice) return;
     
     const client = clients.find(c => c.id === emailingInvoice.client_id);
-    const company = companies.find(c => c.id === client?.company_id);
+    
+    // Fetch fresh company data from database to get latest email templates
+    let company = null;
+    if (client?.company_id) {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', client.company_id)
+        .single();
+      
+      if (!error && data) {
+        company = data;
+      }
+    }
     
     if (company) {
       const dueDate = new Date(emailingInvoice.due_date || '');
