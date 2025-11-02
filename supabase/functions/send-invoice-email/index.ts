@@ -210,14 +210,11 @@ Meilleures salutations,
     if (!emailSubject || !emailMessage) {
       const isFrench = (clientLanguage || '').toLowerCase().startsWith('fr');
 
-      // Company-first: use company templates when provided; otherwise fallback by language
-      if (emailType === "overdue") {
-        emailSubject = emailSubject || company.overdue_email_subject || (isFrench
-          ? frenchTemplates.overdue.subject
-          : 'Payment Overdue - Invoice {invoice_number}');
-        emailMessage = emailMessage || company.overdue_email_message || (isFrench
-          ? frenchTemplates.overdue.message
-          : `Dear {client_name},
+      // Default English templates
+      const defaultEnglishTemplates = {
+        overdue: {
+          subject: 'Payment Overdue - Invoice {invoice_number}',
+          message: `Dear {client_name},
 \nThis is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
 \nOriginal amount: {total}
 Due date: {due_date}
@@ -226,14 +223,11 @@ Days overdue: {days_overdue}
 \nIf you have already sent payment, please disregard this notice.
 \nThank you for your prompt attention to this matter.
 \nBest regards,
-{company_name}`);
-      } else if (emailType === "payment_confirmation") {
-        emailSubject = emailSubject || company.payment_confirmation_email_subject || (isFrench
-          ? frenchTemplates.payment_confirmation.subject
-          : 'Payment Confirmation - Invoice {invoice_number}');
-        emailMessage = emailMessage || company.payment_confirmation_email_message || (isFrench
-          ? frenchTemplates.payment_confirmation.message
-          : `Dear {client_name},
+{company_name}`
+        },
+        payment: {
+          subject: 'Payment Confirmation - Invoice {invoice_number}',
+          message: `Dear {client_name},
 \nWe have successfully received your payment for invoice {invoice_number}.
 \nPayment details:
 - Invoice: {invoice_number}
@@ -241,20 +235,69 @@ Days overdue: {days_overdue}
 - Date paid: {payment_date}
 \nThank you for your prompt payment and continued business!
 \nBest regards,
-{company_name}`);
-      } else {
-        emailSubject = emailSubject || company.invoice_email_subject || (isFrench
-          ? frenchTemplates.new.subject
-          : 'Invoice {invoice_number} from {company_name}');
-        emailMessage = emailMessage || company.invoice_email_message || (isFrench
-          ? frenchTemplates.new.message
-          : `Dear {client_name},
+{company_name}`
+        },
+        new: {
+          subject: 'Invoice {invoice_number} from {company_name}',
+          message: `Dear {client_name},
 \nPlease find attached your invoice {invoice_number} dated {issue_date}.
 \nAmount due: {total}
 Due date: {due_date}
 \nThank you for your business!
 \nBest regards,
-{company_name}`);
+{company_name}`
+        }
+      };
+
+      // Check if company template is customized (different from default English)
+      if (emailType === "overdue") {
+        const isCustom = company.overdue_email_message && 
+          company.overdue_email_message.trim() !== '' && 
+          company.overdue_email_message !== defaultEnglishTemplates.overdue.message;
+        
+        if (isFrench && !isCustom) {
+          emailSubject = emailSubject || frenchTemplates.overdue.subject;
+          emailMessage = emailMessage || frenchTemplates.overdue.message;
+        } else {
+          emailSubject = emailSubject || company.overdue_email_subject || (isFrench
+            ? frenchTemplates.overdue.subject
+            : defaultEnglishTemplates.overdue.subject);
+          emailMessage = emailMessage || company.overdue_email_message || (isFrench
+            ? frenchTemplates.overdue.message
+            : defaultEnglishTemplates.overdue.message);
+        }
+      } else if (emailType === "payment_confirmation") {
+        const isCustom = company.payment_confirmation_email_message && 
+          company.payment_confirmation_email_message.trim() !== '' && 
+          company.payment_confirmation_email_message !== defaultEnglishTemplates.payment.message;
+        
+        if (isFrench && !isCustom) {
+          emailSubject = emailSubject || frenchTemplates.payment_confirmation.subject;
+          emailMessage = emailMessage || frenchTemplates.payment_confirmation.message;
+        } else {
+          emailSubject = emailSubject || company.payment_confirmation_email_subject || (isFrench
+            ? frenchTemplates.payment_confirmation.subject
+            : defaultEnglishTemplates.payment.subject);
+          emailMessage = emailMessage || company.payment_confirmation_email_message || (isFrench
+            ? frenchTemplates.payment_confirmation.message
+            : defaultEnglishTemplates.payment.message);
+        }
+      } else {
+        const isCustom = company.invoice_email_message && 
+          company.invoice_email_message.trim() !== '' && 
+          company.invoice_email_message !== defaultEnglishTemplates.new.message;
+        
+        if (isFrench && !isCustom) {
+          emailSubject = emailSubject || frenchTemplates.new.subject;
+          emailMessage = emailMessage || frenchTemplates.new.message;
+        } else {
+          emailSubject = emailSubject || company.invoice_email_subject || (isFrench
+            ? frenchTemplates.new.subject
+            : defaultEnglishTemplates.new.subject);
+          emailMessage = emailMessage || company.invoice_email_message || (isFrench
+            ? frenchTemplates.new.message
+            : defaultEnglishTemplates.new.message);
+        }
       }
     }
 

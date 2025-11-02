@@ -1282,11 +1282,47 @@ const Invoices = () => {
       // Check client language
       const isFrench = (client?.language || '').toLowerCase().startsWith('fr');
 
-      // Company-first: use company templates when provided; otherwise fallback to language defaults
+      // Default English templates
+      const defaultEnglishSubject = 'Invoice {invoice_number} from {company_name}';
+      const defaultEnglishMessage = `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`;
+
+      // Check if company template is customized (different from default English)
+      const isCustomSubject = company.invoice_email_subject && 
+        company.invoice_email_subject.trim() !== '' && 
+        company.invoice_email_subject !== defaultEnglishSubject;
+      const isCustomMessage = company.invoice_email_message && 
+        company.invoice_email_message.trim() !== '' && 
+        company.invoice_email_message !== defaultEnglishMessage;
+
       let defaultSubject: string, defaultMessage: string;
 
-      if (company.invoice_email_subject || company.invoice_email_message) {
-        defaultSubject = company.invoice_email_subject || (isFrench ? 'Facture {invoice_number} de {company_name}' : 'Invoice {invoice_number} from {company_name}');
+      // If French client and company template is NOT customized, use French
+      if (isFrench && !isCustomMessage) {
+        defaultSubject = isCustomSubject ? company.invoice_email_subject! : 'Facture {invoice_number} de {company_name}';
+        defaultMessage = `Cher/Chère {client_name},
+
+Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
+
+Montant dû : {total}$
+Date d'échéance : {due_date}
+
+Merci pour votre confiance !
+
+Meilleures salutations,
+{company_name}`;
+      } else if (isCustomSubject || isCustomMessage) {
+        // Use customized company templates
+        defaultSubject = company.invoice_email_subject || (isFrench ? 'Facture {invoice_number} de {company_name}' : defaultEnglishSubject);
         defaultMessage = company.invoice_email_message || (isFrench
           ? `Cher/Chère {client_name},
 
@@ -1299,19 +1335,10 @@ Merci pour votre confiance !
 
 Meilleures salutations,
 {company_name}`
-          : `Dear {client_name},
-
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
-Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
-{company_name}`
+          : defaultEnglishMessage
         );
       } else if (isFrench) {
+        // French client, no custom template
         defaultSubject = 'Facture {invoice_number} de {company_name}';
         defaultMessage = `Cher/Chère {client_name},
 
@@ -1325,18 +1352,9 @@ Merci pour votre confiance !
 Meilleures salutations,
 {company_name}`;
       } else {
-        defaultSubject = 'Invoice {invoice_number} from {company_name}';
-        defaultMessage = `Dear {client_name},
-
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
-Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
-{company_name}`;
+        // English client, default template
+        defaultSubject = defaultEnglishSubject;
+        defaultMessage = defaultEnglishMessage;
       }
 
       // Replace template variables
@@ -1397,13 +1415,91 @@ Best regards,
       };
 
       // Check client language
-      const isFrench = client?.language === 'french';
+      const isFrench = (client?.language || '').toLowerCase().startsWith('fr');
 
-      let subject, message;
+      // Default English templates
+      const defaultEnglishTemplates = {
+        overdue: {
+          subject: 'Payment Overdue - Invoice {invoice_number}',
+          message: `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: {total}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`
+        },
+        payment: {
+          subject: 'Payment Confirmation - Invoice {invoice_number}',
+          message: `Dear {client_name},
+
+We have successfully received your payment for invoice {invoice_number}.
+
+Payment details:
+- Invoice: {invoice_number}
+- Amount: {total}
+- Date paid: ${new Date().toLocaleDateString()}
+
+Thank you for your prompt payment and continued business!
+
+Best regards,
+{company_name}`
+        },
+        new: {
+          subject: 'Invoice {invoice_number} from {company_name}',
+          message: `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`
+        }
+      };
+
+      let subject: string, message: string;
       
       if (type === "overdue") {
-        if (company.overdue_email_subject || company.overdue_email_message) {
-          subject = company.overdue_email_subject || (isFrench ? 'Paiement en retard - Facture {invoice_number}' : 'Payment Overdue - Invoice {invoice_number}');
+        const isCustomSubject = company.overdue_email_subject && 
+          company.overdue_email_subject.trim() !== '' && 
+          company.overdue_email_subject !== defaultEnglishTemplates.overdue.subject;
+        const isCustomMessage = company.overdue_email_message && 
+          company.overdue_email_message.trim() !== '' && 
+          company.overdue_email_message !== defaultEnglishTemplates.overdue.message;
+
+        if (isFrench && !isCustomMessage) {
+          subject = isCustomSubject ? company.overdue_email_subject! : 'Paiement en retard - Facture {invoice_number}';
+          message = `Cher/Chère {client_name},
+
+Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+
+Montant original : {total}$
+Date d'échéance : {due_date}
+Jours de retard : {days_overdue}
+
+Veuillez effectuer le paiement à votre plus tôt possible pour éviter des frais de retard.
+
+Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
+
+Merci pour votre attention prompte à cette question.
+
+Meilleures salutations,
+{company_name}`;
+        } else {
+          subject = company.overdue_email_subject || (isFrench ? 'Paiement en retard - Facture {invoice_number}' : defaultEnglishTemplates.overdue.subject);
           message = company.overdue_email_message || (isFrench
             ? `Cher/Chère {client_name},
 
@@ -1421,63 +1517,34 @@ Merci pour votre attention prompte à cette question.
 
 Meilleures salutations,
 {company_name}`
-            : `Dear {client_name},
-
-This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
-
-Original amount: {total}
-Due date: {due_date}
-Days overdue: {days_overdue}
-
-Please remit payment at your earliest convenience to avoid any late fees.
-
-If you have already sent payment, please disregard this notice.
-
-Thank you for your prompt attention to this matter.
-
-Best regards,
-{company_name}`
+            : defaultEnglishTemplates.overdue.message
           );
-        } else if (isFrench) {
-          subject = 'Paiement en retard - Facture {invoice_number}';
+        }
+      } else if (type === "payment_confirmation") {
+        const isCustomSubject = company.payment_confirmation_email_subject && 
+          company.payment_confirmation_email_subject.trim() !== '' && 
+          company.payment_confirmation_email_subject !== defaultEnglishTemplates.payment.subject;
+        const isCustomMessage = company.payment_confirmation_email_message && 
+          company.payment_confirmation_email_message.trim() !== '' && 
+          company.payment_confirmation_email_message !== defaultEnglishTemplates.payment.message;
+
+        if (isFrench && !isCustomMessage) {
+          subject = isCustomSubject ? company.payment_confirmation_email_subject! : 'Confirmation de paiement - Facture {invoice_number}';
           message = `Cher/Chère {client_name},
 
-Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
 
-Montant original : {total}$
-Date d'échéance : {due_date}
-Jours de retard : {days_overdue}
+Détails du paiement :
+- Facture : {invoice_number}
+- Montant : {total}$
+- Date de paiement : ${new Date().toLocaleDateString('fr-CA')}
 
-Veuillez effectuer le paiement à votre plus tôt possible pour éviter des frais de retard.
-
-Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
-
-Merci pour votre attention prompte à cette question.
+Merci pour votre paiement rapide et votre fidélité !
 
 Meilleures salutations,
 {company_name}`;
         } else {
-          subject = 'Payment Overdue - Invoice {invoice_number}';
-          message = `Dear {client_name},
-
-This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
-
-Original amount: {total}
-Due date: {due_date}
-Days overdue: {days_overdue}
-
-Please remit payment at your earliest convenience to avoid any late fees.
-
-If you have already sent payment, please disregard this notice.
-
-Thank you for your prompt attention to this matter.
-
-Best regards,
-{company_name}`;
-        }
-      } else if (type === "payment_confirmation") {
-        if (company.payment_confirmation_email_subject || company.payment_confirmation_email_message) {
-          subject = company.payment_confirmation_email_subject || (isFrench ? 'Confirmation de paiement - Facture {invoice_number}' : 'Payment Confirmation - Invoice {invoice_number}');
+          subject = company.payment_confirmation_email_subject || (isFrench ? 'Confirmation de paiement - Facture {invoice_number}' : defaultEnglishTemplates.payment.subject);
           message = company.payment_confirmation_email_message || (isFrench
             ? `Cher/Chère {client_name},
 
@@ -1492,54 +1559,32 @@ Merci pour votre paiement rapide et votre fidélité !
 
 Meilleures salutations,
 {company_name}`
-            : `Dear {client_name},
-
-We have successfully received your payment for invoice {invoice_number}.
-
-Payment details:
-- Invoice: {invoice_number}
-- Amount: {total}
-- Date paid: ${new Date().toLocaleDateString()}
-
-Thank you for your prompt payment and continued business!
-
-Best regards,
-{company_name}`
+            : defaultEnglishTemplates.payment.message
           );
-        } else if (isFrench) {
-          subject = 'Confirmation de paiement - Facture {invoice_number}';
+        }
+      } else {
+        const isCustomSubject = company.invoice_email_subject && 
+          company.invoice_email_subject.trim() !== '' && 
+          company.invoice_email_subject !== defaultEnglishTemplates.new.subject;
+        const isCustomMessage = company.invoice_email_message && 
+          company.invoice_email_message.trim() !== '' && 
+          company.invoice_email_message !== defaultEnglishTemplates.new.message;
+
+        if (isFrench && !isCustomMessage) {
+          subject = isCustomSubject ? company.invoice_email_subject! : 'Facture {invoice_number} de {company_name}';
           message = `Cher/Chère {client_name},
 
-Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
+Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
 
-Détails du paiement :
-- Facture : {invoice_number}
-- Montant : {total}$
-- Date de paiement : ${new Date().toLocaleDateString('fr-CA')}
+Montant dû : {total}$
+Date d'échéance : {due_date}
 
-Merci pour votre paiement rapide et votre fidélité !
+Merci pour votre confiance !
 
 Meilleures salutations,
 {company_name}`;
         } else {
-          subject = 'Payment Confirmation - Invoice {invoice_number}';
-          message = `Dear {client_name},
-
-We have successfully received your payment for invoice {invoice_number}.
-
-Payment details:
-- Invoice: {invoice_number}
-- Amount: {total}
-- Date paid: ${new Date().toLocaleDateString()}
-
-Thank you for your prompt payment and continued business!
-
-Best regards,
-{company_name}`;
-        }
-      } else {
-        if (company.invoice_email_subject || company.invoice_email_message) {
-          subject = company.invoice_email_subject || (isFrench ? 'Facture {invoice_number} de {company_name}' : 'Invoice {invoice_number} from {company_name}');
+          subject = company.invoice_email_subject || (isFrench ? 'Facture {invoice_number} de {company_name}' : defaultEnglishTemplates.new.subject);
           message = company.invoice_email_message || (isFrench
             ? `Cher/Chère {client_name},
 
@@ -1552,44 +1597,8 @@ Merci pour votre confiance !
 
 Meilleures salutations,
 {company_name}`
-            : `Dear {client_name},
-
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
-Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
-{company_name}`
+            : defaultEnglishTemplates.new.message
           );
-        } else if (isFrench) {
-          subject = 'Facture {invoice_number} de {company_name}';
-          message = `Cher/Chère {client_name},
-
-Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
-
-Montant dû : {total}$
-Date d'échéance : {due_date}
-
-Merci pour votre confiance !
-
-Meilleures salutations,
-{company_name}`;
-        } else {
-          subject = 'Invoice {invoice_number} from {company_name}';
-          message = `Dear {client_name},
-
-Please find attached your invoice {invoice_number} dated {issue_date}.
-
-Amount due: {total}
-Due date: {due_date}
-
-Thank you for your business!
-
-Best regards,
-{company_name}`;
         }
       }
 
