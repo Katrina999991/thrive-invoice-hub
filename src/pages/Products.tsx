@@ -403,14 +403,16 @@ const Products = () => {
                         </Link>
                       </div>
                     ) : (
-                      categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.name}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
-                            {cat.name}
-                          </div>
-                        </SelectItem>
-                      ))
+                      categories
+                        .filter(cat => newItem.type === "product" ? cat.for_products : cat.for_services)
+                        .map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))
                     )}
                   </SelectContent>
                 </Select>

@@ -57,19 +57,19 @@ export const useCategories = () => {
     if (!user) return;
 
     const defaultCategories = [
-      { name: "Web Development", description: "Web development services and products", color: "#3b82f6" },
-      { name: "Mobile Development", description: "Mobile app development", color: "#8b5cf6" },
-      { name: "Software", description: "Software products and licenses", color: "#10b981" },
-      { name: "Consulting", description: "Consulting services", color: "#f59e0b" },
-      { name: "Design", description: "Design services", color: "#ec4899" },
-      { name: "Marketing", description: "Marketing and advertising", color: "#ef4444" },
-      { name: "Training", description: "Training and education", color: "#6366f1" },
-      { name: "Support", description: "Technical support", color: "#06b6d4" },
-      { name: "Office", description: "Office supplies and expenses", color: "#6b7280" },
-      { name: "Meals", description: "Meals and entertainment", color: "#f97316" },
-      { name: "Travel", description: "Travel expenses", color: "#14b8a6" },
-      { name: "Utilities", description: "Utilities and services", color: "#84cc16" },
-      { name: "Other", description: "Other miscellaneous", color: "#a855f7" },
+      { name: "Web Development", description: "Web development services and products", color: "#3b82f6", for_products: true, for_services: true, for_expenses: false },
+      { name: "Mobile Development", description: "Mobile app development", color: "#8b5cf6", for_products: true, for_services: true, for_expenses: false },
+      { name: "Software", description: "Software products and licenses", color: "#10b981", for_products: true, for_services: false, for_expenses: true },
+      { name: "Consulting", description: "Consulting services", color: "#f59e0b", for_products: false, for_services: true, for_expenses: false },
+      { name: "Design", description: "Design services", color: "#ec4899", for_products: true, for_services: true, for_expenses: false },
+      { name: "Marketing", description: "Marketing and advertising", color: "#ef4444", for_products: true, for_services: true, for_expenses: true },
+      { name: "Training", description: "Training and education", color: "#6366f1", for_products: false, for_services: true, for_expenses: true },
+      { name: "Support", description: "Technical support", color: "#06b6d4", for_products: false, for_services: true, for_expenses: false },
+      { name: "Office", description: "Office supplies and expenses", color: "#6b7280", for_products: true, for_services: false, for_expenses: true },
+      { name: "Meals", description: "Meals and entertainment", color: "#f97316", for_products: false, for_services: false, for_expenses: true },
+      { name: "Travel", description: "Travel expenses", color: "#14b8a6", for_products: false, for_services: false, for_expenses: true },
+      { name: "Utilities", description: "Utilities and services", color: "#84cc16", for_products: false, for_services: false, for_expenses: true },
+      { name: "Other", description: "Other miscellaneous", color: "#a855f7", for_products: true, for_services: true, for_expenses: true },
     ];
 
     try {

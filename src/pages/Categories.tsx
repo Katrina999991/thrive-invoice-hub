@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Briefcase, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -41,7 +42,10 @@ export default function Categories() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    color: "#3b82f6"
+    color: "#3b82f6",
+    for_products: true,
+    for_services: true,
+    for_expenses: true
   });
 
   const handleOpenDialog = (category?: Category) => {
@@ -50,14 +54,20 @@ export default function Categories() {
       setFormData({
         name: category.name,
         description: category.description || "",
-        color: category.color || "#3b82f6"
+        color: category.color || "#3b82f6",
+        for_products: category.for_products ?? true,
+        for_services: category.for_services ?? true,
+        for_expenses: category.for_expenses ?? true
       });
     } else {
       setEditingCategory(null);
       setFormData({
         name: "",
         description: "",
-        color: "#3b82f6"
+        color: "#3b82f6",
+        for_products: true,
+        for_services: true,
+        for_expenses: true
       });
     }
     setIsDialogOpen(true);
@@ -69,7 +79,10 @@ export default function Categories() {
     setFormData({
       name: "",
       description: "",
-      color: "#3b82f6"
+      color: "#3b82f6",
+      for_products: true,
+      for_services: true,
+      for_expenses: true
     });
   };
 
@@ -171,11 +184,31 @@ export default function Categories() {
                 </div>
               </div>
             </CardHeader>
-            {category.description && (
-              <CardContent>
+            <CardContent className="space-y-3">
+              {category.description && (
                 <CardDescription>{category.description}</CardDescription>
-              </CardContent>
-            )}
+              )}
+              <div className="flex gap-2 flex-wrap">
+                {category.for_products && (
+                  <div className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                    <Package className="h-3 w-3" />
+                    {language === "fr" ? "Produits" : "Products"}
+                  </div>
+                )}
+                {category.for_services && (
+                  <div className="flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">
+                    <Briefcase className="h-3 w-3" />
+                    {language === "fr" ? "Services" : "Services"}
+                  </div>
+                )}
+                {category.for_expenses && (
+                  <div className="flex items-center gap-1 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded">
+                    <Receipt className="h-3 w-3" />
+                    {language === "fr" ? "Dépenses" : "Expenses"}
+                  </div>
+                )}
+              </div>
+            </CardContent>
           </Card>
         ))}
 
@@ -259,6 +292,62 @@ export default function Categories() {
                     title={option.label}
                   />
                 ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>
+                {language === "fr" ? "Utiliser pour" : "Use for"}
+              </Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="for_products"
+                    checked={formData.for_products}
+                    onCheckedChange={(checked) => 
+                      setFormData({ ...formData, for_products: checked === true })
+                    }
+                  />
+                  <label
+                    htmlFor="for_products"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                  >
+                    <Package className="h-4 w-4" />
+                    {language === "fr" ? "Produits" : "Products"}
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="for_services"
+                    checked={formData.for_services}
+                    onCheckedChange={(checked) => 
+                      setFormData({ ...formData, for_services: checked === true })
+                    }
+                  />
+                  <label
+                    htmlFor="for_services"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    {language === "fr" ? "Services" : "Services"}
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="for_expenses"
+                    checked={formData.for_expenses}
+                    onCheckedChange={(checked) => 
+                      setFormData({ ...formData, for_expenses: checked === true })
+                    }
+                  />
+                  <label
+                    htmlFor="for_expenses"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                  >
+                    <Receipt className="h-4 w-4" />
+                    {language === "fr" ? "Dépenses" : "Expenses"}
+                  </label>
+                </div>
               </div>
             </div>
           </div>
