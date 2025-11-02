@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useReports } from "@/hooks/useReports";
@@ -2071,6 +2072,15 @@ const Reports = () => {
       count: data.count,
       color: data.color
     }));
+  }, [invoices, invoiceStatusFilter]);
+
+  // Filtrer les factures pour l'affichage
+  const filteredInvoicesByStatus = useMemo(() => {
+    if (!invoices) return [];
+    
+    return invoiceStatusFilter === 'all' 
+      ? invoices 
+      : invoices.filter(inv => inv.status === invoiceStatusFilter);
   }, [invoices, invoiceStatusFilter]);
 
   return (
@@ -4526,6 +4536,76 @@ const Reports = () => {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Liste des factures 
+                {invoiceStatusFilter !== 'all' && ` - ${
+                  invoiceStatusFilter === 'paid' ? 'Payé' :
+                  invoiceStatusFilter === 'sent' ? 'Envoyé' :
+                  invoiceStatusFilter === 'overdue' ? 'En retard' : 'Brouillon'
+                }`}
+              </CardTitle>
+              <CardDescription>
+                {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Numéro</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Date d'émission</TableHead>
+                    <TableHead>Date d'échéance</TableHead>
+                    <TableHead>Montant</TableHead>
+                    <TableHead>Statut</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInvoicesByStatus.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        Aucune facture trouvée
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredInvoicesByStatus.map((invoice) => {
+                      const client = clients.find(c => c.id === invoice.client_id);
+                      const statusColors: Record<string, string> = {
+                        paid: 'bg-green-100 text-green-800',
+                        sent: 'bg-yellow-100 text-yellow-800',
+                        overdue: 'bg-red-100 text-red-800',
+                        draft: 'bg-gray-100 text-gray-800'
+                      };
+                      const statusLabels: Record<string, string> = {
+                        paid: 'Payé',
+                        sent: 'Envoyé',
+                        overdue: 'En retard',
+                        draft: 'Brouillon'
+                      };
+                      
+                      return (
+                        <TableRow key={invoice.id}>
+                          <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                          <TableCell>{client?.name || 'N/A'}</TableCell>
+                          <TableCell>{format(new Date(invoice.issue_date), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>{invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy') : 'N/A'}</TableCell>
+                          <TableCell>${Number(invoice.total).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[invoice.status] || 'bg-gray-100 text-gray-800'}>
+                              {statusLabels[invoice.status] || invoice.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
