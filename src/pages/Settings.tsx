@@ -1061,6 +1061,69 @@ Best regards,
         </Card>
       </div>
 
+      {/* Email Change Dialog */}
+      <Dialog open={showEmailChangeDialog} onOpenChange={setShowEmailChangeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === "fr" ? "Changer l'email principal" : "Change primary email"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "fr" 
+                ? "Entrez votre nouveau email et votre mot de passe actuel pour confirmer le changement."
+                : "Enter your new email and current password to confirm the change."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newEmail">
+                {language === "fr" ? "Nouvel email" : "New email"}
+              </Label>
+              <Input
+                id="newEmail"
+                type="email"
+                value={newPrimaryEmail}
+                onChange={(e) => setNewPrimaryEmail(e.target.value)}
+                placeholder={language === "fr" ? "nouveau.email@example.com" : "new.email@example.com"}
+                disabled={isSavingPrimaryEmail}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="passwordConfirm">
+                {language === "fr" ? "Mot de passe actuel" : "Current password"}
+              </Label>
+              <Input
+                id="passwordConfirm"
+                type="password"
+                value={passwordForEmailChange}
+                onChange={(e) => setPasswordForEmailChange(e.target.value)}
+                placeholder="••••••••"
+                disabled={isSavingPrimaryEmail}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEmailChangeDialog(false);
+                setNewPrimaryEmail("");
+                setPasswordForEmailChange("");
+              }}
+              disabled={isSavingPrimaryEmail}
+            >
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button
+              onClick={handleSavePrimaryEmail}
+              disabled={isSavingPrimaryEmail || !newPrimaryEmail.trim() || !passwordForEmailChange.trim()}
+            >
+              {isSavingPrimaryEmail ? (language === "fr" ? "Modification..." : "Changing...") : (language === "fr" ? "Changer l'email" : "Change email")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
