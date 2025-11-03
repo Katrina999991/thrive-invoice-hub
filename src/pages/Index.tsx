@@ -13,14 +13,19 @@ const Index = () => {
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   
-  const [darkMode, setDarkMode] = useState<string>(
-    localStorage.getItem("app-dark-mode") || "light"
-  );
+  const [darkMode, setDarkMode] = useState<string>(() => {
+    const savedMode = localStorage.getItem("app-dark-mode");
+    return savedMode || "light";
+  });
   
   useEffect(() => {
     const handleStorageChange = () => {
-      setDarkMode(localStorage.getItem("app-dark-mode") || "light");
+      const newMode = localStorage.getItem("app-dark-mode") || "light";
+      setDarkMode(newMode);
     };
+    
+    // Check immediately on mount
+    handleStorageChange();
     
     window.addEventListener("storage", handleStorageChange);
     const interval = setInterval(handleStorageChange, 100);
