@@ -67,22 +67,22 @@ export function AppSidebar() {
   }, [user]);
 
   const mainItems = [
-    { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard },
-    { titleKey: "nav.companies", url: "/companies", icon: Building2 },
-    { titleKey: "nav.clients", url: "/clients", icon: Users },
-    { titleKey: "nav.categories", url: "/categories", icon: Tag },
-    { titleKey: "nav.products", url: "/products", icon: Package },
-    { titleKey: "nav.invoices", url: "/invoices", icon: FileText },
-    { titleKey: "nav.expenses", url: "/expenses", icon: Receipt },
-    { titleKey: "nav.reports", url: "/reports", icon: BarChart3 },
+    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard },
+    { titleKey: "nav.companies", url: "/dashboard/companies", icon: Building2 },
+    { titleKey: "nav.clients", url: "/dashboard/clients", icon: Users },
+    { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag },
+    { titleKey: "nav.products", url: "/dashboard/products", icon: Package },
+    { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText },
+    { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt },
+    { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3 },
   ];
 
   const settingsItems = [
-    { titleKey: "nav.settings", url: "/settings", icon: Settings },
+    { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings },
   ];
 
   const isActive = (path: string) => {
-    if (path === "/") return currentPath === "/";
+    if (path === "/dashboard") return currentPath === "/dashboard";
     return currentPath.startsWith(path);
   };
 
