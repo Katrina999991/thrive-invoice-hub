@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const Index = () => {
@@ -18,6 +19,10 @@ const Index = () => {
         subtitle: "Factures, dépenses, clients - tout en un seul endroit. Gérez votre entreprise avec simplicité et efficacité.",
         signUp: "Inscription gratuite",
         signIn: "Se connecter"
+      },
+      dashboardPreview: {
+        title: "Tableau de bord intuitif",
+        subtitle: "Visualisez toutes vos données importantes en un coup d'œil. Statistiques en temps réel, activités récentes et actions rapides."
       },
       features: {
         title: "Fonctionnalités principales",
@@ -76,6 +81,10 @@ const Index = () => {
         subtitle: "Invoices, expenses, clients - everything in one place. Manage your business with simplicity and efficiency.",
         signUp: "Sign up for free",
         signIn: "Sign in"
+      },
+      dashboardPreview: {
+        title: "Intuitive dashboard",
+        subtitle: "View all your important data at a glance. Real-time statistics, recent activities and quick actions."
       },
       features: {
         title: "Key features",
@@ -184,6 +193,29 @@ const Index = () => {
           >
             {t.hero.signIn}
           </Button>
+        </div>
+      </section>
+
+      {/* Dashboard Preview Section */}
+      <section className="bg-muted py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              {t.dashboardPreview.title}
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              {t.dashboardPreview.subtitle}
+            </p>
+          </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+              <img 
+                src={dashboardPreview} 
+                alt="Dashboard Preview" 
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
