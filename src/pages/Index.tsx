@@ -32,6 +32,7 @@ const Index = () => {
   }, []);
   
   const currentLogo = isDark ? logoDark : logo;
+  const footerLogo = isDark ? logo : logoDark; // Inverse logic for footer with primary background
   const currentLang = language.toUpperCase() as "FR" | "EN";
 
   const translations = {
@@ -376,7 +377,7 @@ const Index = () => {
           <div className="flex flex-col items-center gap-6">
             <div className="text-center">
               <div className="mb-4 flex justify-center">
-                <img src={logoDark} alt="GestionFlow" className="h-16" />
+                <img src={footerLogo} alt="GestionFlow" className="h-16" />
               </div>
               <p className="text-primary-foreground/80 mb-2">
                 {t.footer.description}
