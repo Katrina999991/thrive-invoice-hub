@@ -3,11 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
-import { useState } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState<"FR" | "EN">("FR");
+  const { language, setLanguage } = useLanguage();
+  
+  const currentLang = language.toUpperCase() as "FR" | "EN";
 
   const translations = {
     FR: {
@@ -128,7 +130,7 @@ const Index = () => {
     }
   };
 
-  const t = translations[language];
+  const t = translations[currentLang];
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,17 +139,17 @@ const Index = () => {
         <div className="flex items-center gap-2 bg-background border border-border rounded-lg p-2">
           <Globe className="h-4 w-4 text-muted-foreground" />
           <Button
-            variant={language === "FR" ? "default" : "ghost"}
+            variant={currentLang === "FR" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setLanguage("FR")}
+            onClick={() => setLanguage("fr")}
             className="h-8 px-3"
           >
             FR
           </Button>
           <Button
-            variant={language === "EN" ? "default" : "ghost"}
+            variant={currentLang === "EN" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setLanguage("EN")}
+            onClick={() => setLanguage("en")}
             className="h-8 px-3"
           >
             EN
