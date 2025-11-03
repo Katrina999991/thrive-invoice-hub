@@ -53,16 +53,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <span className="text-xl font-bold text-foreground">GestionFlow</span>
-          <Button onClick={() => navigate("/auth")} variant="outline">
-            Se connecter
-          </Button>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="flex justify-center mb-8">
