@@ -56,10 +56,7 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="GestionFlow" className="h-8" />
-            <span className="text-xl font-bold text-foreground">GestionFlow</span>
-          </div>
+          <span className="text-xl font-bold text-foreground">GestionFlow</span>
           <Button onClick={() => navigate("/auth")} variant="outline">
             Se connecter
           </Button>
