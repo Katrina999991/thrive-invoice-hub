@@ -6,6 +6,7 @@ import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
 import dashboardPreview from "@/assets/dashboard-preview-new.jpg";
 import categoriesPreview from "@/assets/dashboard-preview-categories.jpg";
+import invoicesPreview from "@/assets/dashboard-preview-invoices.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 
@@ -48,6 +49,10 @@ const Index = () => {
       categoriesPreview: {
         title: "Gestion des catégories",
         subtitle: "Organisez vos produits, services et dépenses par catégories personnalisées pour une meilleure organisation."
+      },
+      invoicesPreview: {
+        title: "Gestion des factures",
+        subtitle: "Créez, suivez et gérez toutes vos factures en un seul endroit. Suivi du statut de paiement et dates d'échéance."
       },
       features: {
         title: "Fonctionnalités principales",
@@ -114,6 +119,10 @@ const Index = () => {
       categoriesPreview: {
         title: "Category management",
         subtitle: "Organize your products, services and expenses by custom categories for better organization."
+      },
+      invoicesPreview: {
+        title: "Invoice management",
+        subtitle: "Create, track and manage all your invoices in one place. Payment status tracking and due dates."
       },
       features: {
         title: "Key features",
@@ -264,6 +273,29 @@ const Index = () => {
               <img 
                 src={categoriesPreview} 
                 alt="Categories Preview" 
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Invoices Preview Section */}
+      <section className="bg-muted py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              {t.invoicesPreview.title}
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              {t.invoicesPreview.subtitle}
+            </p>
+          </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+              <img 
+                src={invoicesPreview} 
+                alt="Invoices Preview" 
                 className="w-full h-auto"
               />
             </div>
