@@ -324,8 +324,8 @@ const Index = () => {
                   </div>
                 </CarouselItem>
               </CarouselContent>
-              <CarouselPrevious className="left-4 h-12 w-12 bg-primary text-primary-foreground hover:bg-primary/90 border-0 shadow-lg" />
-              <CarouselNext className="right-4 h-12 w-12 bg-primary text-primary-foreground hover:bg-primary/90 border-0 shadow-lg" />
+              <CarouselPrevious className="left-4 h-12 w-12 bg-transparent hover:bg-background/50 border-2 border-foreground text-foreground shadow-lg" />
+              <CarouselNext className="right-4 h-12 w-12 bg-transparent hover:bg-background/50 border-2 border-foreground text-foreground shadow-lg" />
             </Carousel>
           </div>
         </div>
