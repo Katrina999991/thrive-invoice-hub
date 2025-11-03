@@ -328,26 +328,28 @@ export default function Auth() {
     <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
-          <div className="flex justify-end mb-20">
-            <div className="flex gap-2">
-              <Button
-                variant={language === 'fr' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setLanguage('fr')}
-              >
-                FR
-              </Button>
-              <Button
-                variant={language === 'en' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setLanguage('en')}
-              >
-                EN
-              </Button>
+          <div className="mb-4">
+            <div className="flex justify-end mb-2">
+              <div className="flex gap-2">
+                <Button
+                  variant={language === 'fr' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLanguage('fr')}
+                >
+                  FR
+                </Button>
+                <Button
+                  variant={language === 'en' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLanguage('en')}
+                >
+                  EN
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="flex justify-center mb-4">
-            <img src={gestionflowLogo} alt="GestionFlow" className="h-40 w-auto" />
+            <div className="flex justify-center">
+              <img src={gestionflowLogo} alt="GestionFlow" className="h-40 w-auto" />
+            </div>
           </div>
           <CardDescription className="text-center">
             {language === 'en' 
