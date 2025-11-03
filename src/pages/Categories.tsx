@@ -142,7 +142,7 @@ export default function Categories() {
           <h1 className="text-3xl font-bold">
             {language === "fr" ? "Catégories" : "Categories"}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-lg font-medium text-foreground mt-2">
             {language === "fr" 
               ? "Gérez vos catégories de produits, services et dépenses." 
               : "Manage your product, service and expense categories."}
