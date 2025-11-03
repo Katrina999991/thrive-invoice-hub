@@ -26,6 +26,23 @@ const Expenses = () => {
   const { categories, loading: categoriesLoading } = useCategories();
   const { clients, loading: clientsLoading } = useClients();
 
+  // Helper to get translated category name
+  const getCategoryName = (category: any) => {
+    if (!category) return "";
+    if (language === "fr") {
+      return category.name_fr || category.name;
+    }
+    return category.name_en || category.name;
+  };
+
+  // Helper to get translated category name from string
+  const getTranslatedCategoryName = (categoryName: string) => {
+    if (!categoryName) return "";
+    const category = categories.find(cat => cat.name === categoryName);
+    if (!category) return categoryName;
+    return getCategoryName(category);
+  };
+
   const [newExpense, setNewExpense] = useState({
     description: "",
     amount: "",
@@ -197,7 +214,7 @@ const Expenses = () => {
                           <SelectItem key={cat.id} value={cat.name}>
                             <div className="flex items-center gap-2">
                               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
-                              {cat.name}
+                              {getCategoryName(cat)}
                             </div>
                           </SelectItem>
                         ))
@@ -322,7 +339,7 @@ const Expenses = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {expense.vendor ? `${expense.vendor} • ` : ""}{expense.category} • {expense.expense_date}
+                    {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">

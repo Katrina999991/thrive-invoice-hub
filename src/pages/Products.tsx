@@ -28,6 +28,23 @@ const Products = () => {
   const { categories, loading: categoriesLoading } = useCategories();
   const { createExpense } = useExpenses();
 
+  // Helper to get translated category name
+  const getCategoryName = (category: any) => {
+    if (!category) return "";
+    if (language === "fr") {
+      return category.name_fr || category.name;
+    }
+    return category.name_en || category.name;
+  };
+
+  // Helper to get translated category name from string
+  const getTranslatedCategoryName = (categoryName: string) => {
+    if (!categoryName) return "";
+    const category = categories.find(cat => cat.name === categoryName);
+    if (!category) return categoryName;
+    return getCategoryName(category);
+  };
+
   const [newItem, setNewItem] = useState({
     type: "product", // product or service
     name: "",
@@ -210,7 +227,7 @@ const Products = () => {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("products.category")}</p>
-            <p className="font-medium">{item.category || "—"}</p>
+            <p className="font-medium">{getTranslatedCategoryName(item.category) || "—"}</p>
           </div>
           <div className="space-y-1">
             <div>
@@ -403,16 +420,16 @@ const Products = () => {
                         </Link>
                       </div>
                     ) : (
-                      categories
-                        .filter(cat => newItem.type === "product" ? cat.for_products : cat.for_services)
-                        .map((cat) => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
-                              {cat.name}
-                            </div>
-                          </SelectItem>
-                        ))
+                       categories
+                         .filter(cat => newItem.type === "product" ? cat.for_products : cat.for_services)
+                         .map((cat) => (
+                           <SelectItem key={cat.id} value={cat.name}>
+                             <div className="flex items-center gap-2">
+                               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || "#3b82f6" }} />
+                               {getCategoryName(cat)}
+                             </div>
+                           </SelectItem>
+                         ))
                     )}
                   </SelectContent>
                 </Select>
