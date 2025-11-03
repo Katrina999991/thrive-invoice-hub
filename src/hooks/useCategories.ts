@@ -56,7 +56,24 @@ export const useCategories = () => {
   const createDefaultCategories = async () => {
     if (!user) return;
 
-    const defaultCategories = [
+    // Get current language from localStorage
+    const language = localStorage.getItem("app-language") || "en";
+
+    const defaultCategories = language === "fr" ? [
+      { name: "Développement Web", description: "Services et produits de développement web", color: "#3b82f6", for_products: true, for_services: true, for_expenses: false },
+      { name: "Développement Mobile", description: "Développement d'applications mobiles", color: "#8b5cf6", for_products: true, for_services: true, for_expenses: false },
+      { name: "Logiciels", description: "Produits logiciels et licences", color: "#10b981", for_products: true, for_services: false, for_expenses: true },
+      { name: "Consultation", description: "Services de consultation", color: "#f59e0b", for_products: false, for_services: true, for_expenses: false },
+      { name: "Design", description: "Services de design", color: "#ec4899", for_products: true, for_services: true, for_expenses: false },
+      { name: "Marketing", description: "Marketing et publicité", color: "#ef4444", for_products: true, for_services: true, for_expenses: true },
+      { name: "Formation", description: "Formation et éducation", color: "#6366f1", for_products: false, for_services: true, for_expenses: true },
+      { name: "Support", description: "Support technique", color: "#06b6d4", for_products: false, for_services: true, for_expenses: false },
+      { name: "Bureau", description: "Fournitures et dépenses de bureau", color: "#6b7280", for_products: true, for_services: false, for_expenses: true },
+      { name: "Repas", description: "Repas et divertissement", color: "#f97316", for_products: false, for_services: false, for_expenses: true },
+      { name: "Voyage", description: "Frais de voyage", color: "#14b8a6", for_products: false, for_services: false, for_expenses: true },
+      { name: "Services publics", description: "Services publics et utilitaires", color: "#84cc16", for_products: false, for_services: false, for_expenses: true },
+      { name: "Autre", description: "Divers", color: "#a855f7", for_products: true, for_services: true, for_expenses: true },
+    ] : [
       { name: "Web Development", description: "Web development services and products", color: "#3b82f6", for_products: true, for_services: true, for_expenses: false },
       { name: "Mobile Development", description: "Mobile app development", color: "#8b5cf6", for_products: true, for_services: true, for_expenses: false },
       { name: "Software", description: "Software products and licenses", color: "#10b981", for_products: true, for_services: false, for_expenses: true },
