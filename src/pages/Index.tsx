@@ -19,6 +19,7 @@ import categoriesPreviewEn from "@/assets/dashboard-preview-categories-en.jpg";
 import invoicesPreviewEn from "@/assets/dashboard-preview-invoices-en.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
+import Autoplay from "embla-carousel-autoplay";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -253,7 +254,17 @@ const Index = () => {
       <section className="bg-muted py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <Carousel className="w-full">
+            <Carousel 
+              className="w-full"
+              plugins={[
+                Autoplay({
+                  delay: 5000,
+                }),
+              ]}
+              opts={{
+                loop: true,
+              }}
+            >
               <CarouselContent>
                 <CarouselItem>
                   <div className="space-y-8">
