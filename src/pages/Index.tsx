@@ -277,7 +277,7 @@ const Index = () => {
                       </p>
                     </div>
                     <div className="flex items-center justify-center">
-                      <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                      <div className="rounded-lg overflow-hidden shadow-md border border-border">
                         <img 
                           src={currentDashboardPreview} 
                           alt="Dashboard Preview" 
@@ -298,7 +298,7 @@ const Index = () => {
                       </p>
                     </div>
                     <div className="flex items-center justify-center">
-                      <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                      <div className="rounded-lg overflow-hidden shadow-lg border border-border">
                         <img 
                           src={currentCategoriesPreview} 
                           alt="Categories Preview" 
@@ -319,7 +319,7 @@ const Index = () => {
                       </p>
                     </div>
                     <div className="flex items-center justify-center">
-                      <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                      <div className="rounded-lg overflow-hidden shadow-lg border border-border">
                         <img 
                           src={currentInvoicesPreview} 
                           alt="Invoices Preview" 
