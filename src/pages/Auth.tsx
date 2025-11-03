@@ -44,8 +44,8 @@ export default function Auth() {
   // Handle redirects in useEffect, not during render
   useEffect(() => {
     if (user && !isPasswordRecoveryMode && !showUpdatePassword) {
-      console.log("Redirecting to / because user exists and not in recovery mode");
-      navigate("/");
+      console.log("Redirecting to /dashboard because user exists and not in recovery mode");
+      navigate("/dashboard");
     }
   }, [user, isPasswordRecoveryMode, showUpdatePassword, navigate]);
 
@@ -110,7 +110,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/");
+      navigate("/dashboard");
     }
     
     setIsLoading(false);
@@ -263,7 +263,7 @@ export default function Auth() {
       setConfirmPassword("");
       // Mark that user has logged in normally
       localStorage.setItem('has_logged_in_before', 'true');
-      navigate("/");
+      navigate("/dashboard");
     }
     
     setIsLoading(false);
