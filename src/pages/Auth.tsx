@@ -349,7 +349,6 @@ export default function Auth() {
               </Button>
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">GestionFlow</CardTitle>
           <CardDescription className="text-center">
             {language === 'en' 
               ? 'Sign in to your account or create a new one'
