@@ -347,7 +347,7 @@ export default function Auth() {
                 </Button>
               </div>
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center mt-6">
               <img src={gestionflowLogo} alt="GestionFlow" className="h-64 w-auto" />
             </div>
           </div>
