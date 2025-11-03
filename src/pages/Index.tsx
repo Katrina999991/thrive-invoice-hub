@@ -65,13 +65,23 @@ const Index = () => {
           Factures, dépenses, clients - tout en un seul endroit. Gérez votre
           entreprise avec simplicité et efficacité.
         </p>
-        <Button
-          onClick={() => navigate("/auth")}
-          size="lg"
-          className="text-lg px-8 py-6"
-        >
-          Sign up for free
-        </Button>
+        <div className="flex gap-4 justify-center">
+          <Button
+            onClick={() => navigate("/auth")}
+            size="lg"
+            className="text-lg px-8 py-6"
+          >
+            Sign up for free
+          </Button>
+          <Button
+            onClick={() => navigate("/auth")}
+            variant="outline"
+            size="lg"
+            className="text-lg px-8 py-6"
+          >
+            Sign in
+          </Button>
+        </div>
       </section>
 
       {/* Features Section */}
