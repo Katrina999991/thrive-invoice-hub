@@ -153,9 +153,8 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src={logo} alt="GestionFlow" className="h-8 brightness-0 invert" />
-                <span className="text-xl font-bold">GestionFlow</span>
+              <div className="mb-4">
+                <img src={logo} alt="GestionFlow" className="h-16 brightness-0 invert" />
               </div>
               <p className="text-primary-foreground/80">
                 La solution complète pour gérer votre entreprise
