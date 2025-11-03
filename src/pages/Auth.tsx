@@ -325,19 +325,18 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20 relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-4 left-4"
-        onClick={() => navigate("/")}
-      >
-        <Home className="h-5 w-5" />
-      </Button>
+    <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
           <div className="mb-4">
-            <div className="flex justify-end mb-2">
+            <div className="flex justify-between items-center mb-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+              >
+                <Home className="h-5 w-5" />
+              </Button>
               <div className="flex gap-2">
                 <Button
                   variant={language === 'fr' ? 'default' : 'outline'}
