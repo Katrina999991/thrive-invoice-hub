@@ -328,7 +328,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
-          <div className="flex justify-start mb-2">
+          <div className="flex justify-end mb-2">
             <div className="flex gap-2">
               <Button
                 variant={language === 'fr' ? 'default' : 'outline'}
