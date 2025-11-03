@@ -328,8 +328,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
-          <div className="flex justify-center items-center gap-4 mb-4">
-            <img src={gestionflowLogo} alt="GestionFlow" className="h-40 w-auto" />
+          <div className="flex justify-start mb-2">
             <div className="flex gap-2">
               <Button
                 variant={language === 'fr' ? 'default' : 'outline'}
@@ -346,6 +345,9 @@ export default function Auth() {
                 EN
               </Button>
             </div>
+          </div>
+          <div className="flex justify-center mb-4">
+            <img src={gestionflowLogo} alt="GestionFlow" className="h-40 w-auto" />
           </div>
           <CardDescription className="text-center">
             {language === 'en' 
