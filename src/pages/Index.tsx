@@ -7,6 +7,9 @@ import logoDark from "@/assets/gestionflow-logo-dark.png";
 import dashboardPreview from "@/assets/dashboard-preview-new.jpg";
 import categoriesPreview from "@/assets/dashboard-preview-categories.jpg";
 import invoicesPreview from "@/assets/dashboard-preview-invoices.jpg";
+import dashboardPreviewEn from "@/assets/dashboard-preview-new-en.jpg";
+import categoriesPreviewEn from "@/assets/dashboard-preview-categories-en.jpg";
+import invoicesPreviewEn from "@/assets/dashboard-preview-invoices-en.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 
@@ -34,6 +37,10 @@ const Index = () => {
   const currentLogo = isDark ? logoDark : logo;
   const footerLogo = isDark ? logo : logoDark; // Inverse logic for footer with primary background
   const currentLang = language.toUpperCase() as "FR" | "EN";
+  
+  const currentDashboardPreview = currentLang === "EN" ? dashboardPreviewEn : dashboardPreview;
+  const currentCategoriesPreview = currentLang === "EN" ? categoriesPreviewEn : categoriesPreview;
+  const currentInvoicesPreview = currentLang === "EN" ? invoicesPreviewEn : invoicesPreview;
 
   const translations = {
     FR: {
@@ -249,7 +256,7 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
               <img 
-                src={dashboardPreview} 
+                src={currentDashboardPreview} 
                 alt="Dashboard Preview" 
                 className="w-full h-auto"
               />
@@ -272,7 +279,7 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
               <img 
-                src={categoriesPreview} 
+                src={currentCategoriesPreview} 
                 alt="Categories Preview" 
                 className="w-full h-auto"
               />
@@ -295,7 +302,7 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
               <img 
-                src={invoicesPreview} 
+                src={currentInvoicesPreview} 
                 alt="Invoices Preview" 
                 className="w-full h-auto"
               />
