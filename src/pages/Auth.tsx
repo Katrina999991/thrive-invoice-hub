@@ -356,7 +356,7 @@ export default function Auth() {
                 size="icon"
                 onClick={() => navigate("/")}
               >
-                <Home className="h-5 w-5" />
+                <Home className="h-6 w-6" />
               </Button>
               <div className="flex gap-2">
                 <Button
