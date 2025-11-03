@@ -3,14 +3,35 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
+import logoDark from "@/assets/gestionflow-logo-dark.png";
 import dashboardPreview from "@/assets/dashboard-preview-new.jpg";
 import categoriesPreview from "@/assets/dashboard-preview-categories.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useState, useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   
+  const [darkMode, setDarkMode] = useState<string>(
+    localStorage.getItem("app-dark-mode") || "light"
+  );
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setDarkMode(localStorage.getItem("app-dark-mode") || "light");
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    const interval = setInterval(handleStorageChange, 100);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+  
+  const currentLogo = darkMode === "dark" ? logoDark : logo;
   const currentLang = language.toUpperCase() as "FR" | "EN";
 
   const translations = {
@@ -178,7 +199,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="flex justify-center mb-8">
-          <img src={logo} alt="GestionFlow" className="h-24" />
+          <img src={currentLogo} alt="GestionFlow" className="h-24" />
         </div>
         <h1 className="text-5xl font-bold text-foreground mb-6">
           {t.hero.title}
@@ -324,7 +345,7 @@ const Index = () => {
           <div className="flex flex-col items-center gap-6">
             <div className="text-center">
               <div className="mb-4 flex justify-center">
-                <img src={logo} alt="GestionFlow" className="h-16 brightness-0 invert" />
+                <img src={currentLogo} alt="GestionFlow" className="h-16" />
               </div>
               <p className="text-primary-foreground/80 mb-2">
                 {t.footer.description}

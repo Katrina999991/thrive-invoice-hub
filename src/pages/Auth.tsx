@@ -13,6 +13,7 @@ import { Loader2, LogIn, UserPlus, Home } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
+import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
 
 export default function Auth() {
   const { t, language, setLanguage } = useLanguage();
@@ -35,6 +36,26 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
+  
+  const [darkMode, setDarkMode] = useState<string>(
+    localStorage.getItem("app-dark-mode") || "light"
+  );
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setDarkMode(localStorage.getItem("app-dark-mode") || "light");
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    const interval = setInterval(handleStorageChange, 100);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+  
+  const currentLogo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
 
   console.log("Auth component render - searchParams:", Object.fromEntries(searchParams));
   console.log("Auth component render - user:", user);
@@ -355,7 +376,7 @@ export default function Auth() {
               </div>
             </div>
             <div className="flex justify-center mt-6">
-              <img src={gestionflowLogo} alt="GestionFlow" className="h-32 w-auto object-contain" />
+              <img src={currentLogo} alt="GestionFlow" className="h-32 w-auto object-contain" />
             </div>
           </div>
           <CardDescription className="text-center">
