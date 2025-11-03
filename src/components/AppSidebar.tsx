@@ -29,17 +29,36 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
-import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 
 export function AppSidebar() {
   const { t } = useLanguage();
   const { user, username } = useAuth();
   const { state } = useSidebar();
-  const { theme } = useTheme();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
-  const logo = theme === "dark" ? gestionflowLogoDark : gestionflowLogo;
+  
+  const [darkMode, setDarkMode] = useState<string>(
+    localStorage.getItem("app-dark-mode") || "light"
+  );
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setDarkMode(localStorage.getItem("app-dark-mode") || "light");
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    
+    const interval = setInterval(handleStorageChange, 100);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+  
+  const logo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
 
   const mainItems = [
     { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard },
