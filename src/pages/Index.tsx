@@ -251,9 +251,9 @@ const Index = () => {
       </section>
 
       {/* Screenshots Carousel Section */}
-      <section className="bg-muted py-16">
+      <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-6xl mx-auto bg-muted rounded-xl p-8">
             <Carousel 
               className="w-full"
               plugins={[
