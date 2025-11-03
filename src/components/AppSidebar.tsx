@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -28,43 +27,15 @@ import {
 } from "@/components/ui/sidebar";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 
 export function AppSidebar() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
-  const [username, setUsername] = useState<string>("");
-
-  useEffect(() => {
-    const loadUsername = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (error) throw error;
-        if (data?.username) {
-          setUsername(data.username);
-        } else {
-          setUsername(user.email?.split("@")[0] || "User");
-        }
-      } catch (error) {
-        console.error("Error loading username:", error);
-        setUsername(user.email?.split("@")[0] || "User");
-      }
-    };
-
-    loadUsername();
-  }, [user]);
 
   const mainItems = [
     { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard },

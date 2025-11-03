@@ -36,7 +36,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { z } from "zod";
 
 export default function Settings() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [theme, setTheme] = useState<string>("default");
@@ -293,6 +293,8 @@ Cordialement,
         .eq("user_id", user.id);
 
       if (error) throw error;
+
+      updateAuthUsername(username.trim());
 
       toast({
         title: t("settings.account.usernameUpdated"),

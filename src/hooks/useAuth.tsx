@@ -7,11 +7,13 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  username: string;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, displayName?: string, language?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
+  updateUsername: (newUsername: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
     console.log("AuthProvider: Setting up auth state listener");
@@ -39,6 +42,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Load username when user changes
+        if (session?.user) {
+          setTimeout(() => {
+            loadUsername(session.user.id);
+          }, 0);
+        } else {
+          setUsername("");
+        }
       }
     );
 
@@ -48,6 +60,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        loadUsername(session.user.id);
+      }
     });
 
     return () => {
@@ -55,6 +71,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const loadUsername = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data?.username) {
+        setUsername(data.username);
+      } else {
+        const email = user?.email?.split("@")[0] || "User";
+        setUsername(email);
+      }
+    } catch (error) {
+      console.error("Error loading username:", error);
+      const email = user?.email?.split("@")[0] || "User";
+      setUsername(email);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -103,15 +141,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const updateUsername = (newUsername: string) => {
+    setUsername(newUsername);
+  };
+
   const value = {
     user,
     session,
     loading,
+    username,
     signIn,
     signUp,
     signOut,
     resetPassword,
     updatePassword,
+    updateUsername,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
