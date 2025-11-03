@@ -151,38 +151,14 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="mb-4">
+          <div className="flex flex-col items-center gap-6">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
                 <img src={logo} alt="GestionFlow" className="h-16 brightness-0 invert" />
               </div>
               <p className="text-primary-foreground/80">
                 La solution complète pour gérer votre entreprise
               </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Produit</h3>
-              <ul className="space-y-2 text-primary-foreground/80">
-                <li>Fonctionnalités</li>
-                <li>Tarifs</li>
-                <li>Documentation</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Entreprise</h3>
-              <ul className="space-y-2 text-primary-foreground/80">
-                <li>À propos</li>
-                <li>Blog</li>
-                <li>Carrières</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-primary-foreground/80">
-                <li>Aide</li>
-                <li>Contact</li>
-                <li>Conditions d'utilisation</li>
-              </ul>
             </div>
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-primary-foreground/80">
