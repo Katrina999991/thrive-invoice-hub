@@ -9,49 +9,126 @@ const Index = () => {
   const navigate = useNavigate();
   const [language, setLanguage] = useState<"FR" | "EN">("FR");
 
-  const reviews = [
-    {
-      name: "Sophie Martin",
-      role: "Directrice Financière",
-      comment: "GestionFlow a transformé notre gestion comptable. Simple et efficace!",
-      rating: 5,
+  const translations = {
+    FR: {
+      hero: {
+        title: "Simplifiez votre gestion d'entreprise",
+        subtitle: "Factures, dépenses, clients - tout en un seul endroit. Gérez votre entreprise avec simplicité et efficacité.",
+        signUp: "Sign up for free",
+        signIn: "Sign in"
+      },
+      features: {
+        title: "Fonctionnalités principales",
+        items: [
+          {
+            title: "Gestion des factures",
+            description: "Créez et gérez vos factures en quelques clics"
+          },
+          {
+            title: "Suivi des dépenses",
+            description: "Contrôlez vos dépenses en temps réel"
+          },
+          {
+            title: "Gestion clients",
+            description: "Centralisez toutes vos informations clients"
+          },
+          {
+            title: "Rapports détaillés",
+            description: "Analysez vos performances avec des rapports précis"
+          }
+        ]
+      },
+      reviews: {
+        title: "Ce que disent nos utilisateurs",
+        items: [
+          {
+            name: "Sophie Martin",
+            role: "Directrice Financière",
+            comment: "GestionFlow a transformé notre gestion comptable. Simple et efficace!"
+          },
+          {
+            name: "Pierre Dubois",
+            role: "Entrepreneur",
+            comment: "Parfait pour gérer mes factures et suivre mes dépenses en temps réel."
+          },
+          {
+            name: "Marie Lambert",
+            role: "Consultante",
+            comment: "Interface intuitive et rapports détaillés. Je recommande vivement!"
+          }
+        ]
+      },
+      cta: {
+        title: "Prêt à commencer?",
+        subtitle: "Rejoignez des centaines d'entreprises qui font confiance à GestionFlow",
+        button: "Commencer gratuitement"
+      },
+      footer: {
+        description: "La solution complète pour gérer votre entreprise",
+        copyright: "© 2024 GestionFlow. Tous droits réservés."
+      }
     },
-    {
-      name: "Pierre Dubois",
-      role: "Entrepreneur",
-      comment: "Parfait pour gérer mes factures et suivre mes dépenses en temps réel.",
-      rating: 5,
-    },
-    {
-      name: "Marie Lambert",
-      role: "Consultante",
-      comment: "Interface intuitive et rapports détaillés. Je recommande vivement!",
-      rating: 5,
-    },
-  ];
+    EN: {
+      hero: {
+        title: "Simplify your business management",
+        subtitle: "Invoices, expenses, clients - everything in one place. Manage your business with simplicity and efficiency.",
+        signUp: "Sign up for free",
+        signIn: "Sign in"
+      },
+      features: {
+        title: "Key features",
+        items: [
+          {
+            title: "Invoice management",
+            description: "Create and manage your invoices in a few clicks"
+          },
+          {
+            title: "Expense tracking",
+            description: "Control your expenses in real time"
+          },
+          {
+            title: "Client management",
+            description: "Centralize all your client information"
+          },
+          {
+            title: "Detailed reports",
+            description: "Analyze your performance with accurate reports"
+          }
+        ]
+      },
+      reviews: {
+        title: "What our users say",
+        items: [
+          {
+            name: "Sophie Martin",
+            role: "Financial Director",
+            comment: "GestionFlow has transformed our accounting management. Simple and effective!"
+          },
+          {
+            name: "Pierre Dubois",
+            role: "Entrepreneur",
+            comment: "Perfect for managing my invoices and tracking my expenses in real time."
+          },
+          {
+            name: "Marie Lambert",
+            role: "Consultant",
+            comment: "Intuitive interface and detailed reports. I highly recommend it!"
+          }
+        ]
+      },
+      cta: {
+        title: "Ready to get started?",
+        subtitle: "Join hundreds of businesses that trust GestionFlow",
+        button: "Start for free"
+      },
+      footer: {
+        description: "The complete solution to manage your business",
+        copyright: "© 2024 GestionFlow. All rights reserved."
+      }
+    }
+  };
 
-  const features = [
-    {
-      icon: FileText,
-      title: "Gestion des factures",
-      description: "Créez et gérez vos factures en quelques clics",
-    },
-    {
-      icon: TrendingUp,
-      title: "Suivi des dépenses",
-      description: "Contrôlez vos dépenses en temps réel",
-    },
-    {
-      icon: Users,
-      title: "Gestion clients",
-      description: "Centralisez toutes vos informations clients",
-    },
-    {
-      icon: BarChart,
-      title: "Rapports détaillés",
-      description: "Analysez vos performances avec des rapports précis",
-    },
-  ];
+  const t = translations[language];
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,11 +161,10 @@ const Index = () => {
           <img src={logo} alt="GestionFlow" className="h-24" />
         </div>
         <h1 className="text-5xl font-bold text-foreground mb-6">
-          Simplifiez votre gestion d'entreprise
+          {t.hero.title}
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Factures, dépenses, clients - tout en un seul endroit. Gérez votre
-          entreprise avec simplicité et efficacité.
+          {t.hero.subtitle}
         </p>
         <div className="flex gap-4 justify-center">
           <Button
@@ -96,7 +172,7 @@ const Index = () => {
             size="lg"
             className="text-lg px-8 py-6"
           >
-            Sign up for free
+            {t.hero.signUp}
           </Button>
           <Button
             onClick={() => navigate("/auth")}
@@ -104,7 +180,7 @@ const Index = () => {
             size="lg"
             className="text-lg px-8 py-6"
           >
-            Sign in
+            {t.hero.signIn}
           </Button>
         </div>
       </section>
@@ -112,13 +188,16 @@ const Index = () => {
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-          Fonctionnalités principales
+          {t.features.title}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
+          {t.features.items.map((feature, index) => (
             <Card key={index} className="border-border">
               <CardContent className="pt-6">
-                <feature.icon className="h-12 w-12 text-primary mb-4" />
+                {index === 0 && <FileText className="h-12 w-12 text-primary mb-4" />}
+                {index === 1 && <TrendingUp className="h-12 w-12 text-primary mb-4" />}
+                {index === 2 && <Users className="h-12 w-12 text-primary mb-4" />}
+                {index === 3 && <BarChart className="h-12 w-12 text-primary mb-4" />}
                 <h3 className="text-xl font-semibold text-foreground mb-2">
                   {feature.title}
                 </h3>
@@ -133,14 +212,14 @@ const Index = () => {
       <section className="bg-muted py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-            Ce que disent nos utilisateurs
+            {t.reviews.title}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.map((review, index) => (
+            {t.reviews.items.map((review, index) => (
               <Card key={index} className="border-border">
                 <CardContent className="pt-6">
                   <div className="flex gap-1 mb-4">
-                    {[...Array(review.rating)].map((_, i) => (
+                    {[...Array(5)].map((_, i) => (
                       <Star key={i} className="h-5 w-5 fill-primary text-primary" />
                     ))}
                   </div>
@@ -159,17 +238,17 @@ const Index = () => {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-4xl font-bold text-foreground mb-6">
-          Prêt à commencer?
+          {t.cta.title}
         </h2>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Rejoignez des centaines d'entreprises qui font confiance à GestionFlow
+          {t.cta.subtitle}
         </p>
         <Button
           onClick={() => navigate("/auth")}
           size="lg"
           className="text-lg px-8 py-6"
         >
-          Commencer gratuitement
+          {t.cta.button}
         </Button>
       </section>
 
@@ -182,7 +261,7 @@ const Index = () => {
                 <img src={logo} alt="GestionFlow" className="h-16 brightness-0 invert" />
               </div>
               <p className="text-primary-foreground/80 mb-2">
-                La solution complète pour gérer votre entreprise
+                {t.footer.description}
               </p>
               <p className="text-primary-foreground/80">
                 info@gestionflow.net
@@ -190,7 +269,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-primary-foreground/80">
-            <p>&copy; 2024 GestionFlow. Tous droits réservés.</p>
+            <p>{t.footer.copyright}</p>
           </div>
         </div>
       </footer>
