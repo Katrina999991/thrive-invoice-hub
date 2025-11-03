@@ -828,9 +828,6 @@ const Companies = () => {
     contact_person: "",
     logo_url: "",
     default_due_days: 7,
-    invoice_prefix: "INV",
-    invoice_digits: 3,
-    invoice_start_number: 1,
     invoice_email_subject: "Invoice {invoice_number} from {company_name}",
     invoice_email_message: `Dear {client_name},
 
@@ -911,42 +908,6 @@ Best regards,
       // Get all companies except the one being edited
       const otherCompanies = companies.filter(c => !editingCompany || c.id !== editingCompany.id);
 
-      // Check if another company has the same prefix
-      const prefixConflict = otherCompanies.some(c => 
-        (c as any).invoice_prefix === newCompany.invoice_prefix
-      );
-
-      if (prefixConflict) {
-        toast({
-          title: t("companies.validation.error"),
-          description: t("companies.validation.prefixConflict"),
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      // Generate potential invoice numbers based on the new configuration
-      const maxCheck = 100; // Check first 100 potential numbers
-      const potentialNumbers: string[] = [];
-      for (let i = 0; i < maxCheck; i++) {
-        const num = (newCompany.invoice_start_number || 1) + i;
-        const formatted = `${newCompany.invoice_prefix}-${num.toString().padStart(newCompany.invoice_digits, '0')}`;
-        potentialNumbers.push(formatted);
-      }
-
-      // Check if any potential number already exists
-      const existingNumbers = new Set(existingInvoices?.map(inv => inv.invoice_number) || []);
-      const conflicts = potentialNumbers.filter(num => existingNumbers.has(num));
-
-      if (conflicts.length > 0) {
-        toast({
-          title: t("companies.validation.error"),
-          description: t("companies.validation.numberConflict").replace('{numbers}', conflicts.slice(0, 5).join(', ')),
-          variant: "destructive"
-        });
-        return false;
-      }
-
       return true;
     } catch (error) {
       console.error('Error validating invoice numbering:', error);
@@ -1014,9 +975,6 @@ Best regards,
       logo_url: logoUrl || null,
       taxes: taxes.length > 0 ? taxes : [],
       default_due_days: newCompany.default_due_days,
-      invoice_prefix: newCompany.invoice_prefix,
-      invoice_digits: newCompany.invoice_digits,
-      invoice_start_number: newCompany.invoice_start_number,
       invoice_email_subject: newCompany.invoice_email_subject,
       invoice_email_message: newCompany.invoice_email_message,
       overdue_email_subject: newCompany.overdue_email_subject,
@@ -1054,9 +1012,6 @@ Best regards,
       contact_person: "",
       logo_url: "",
       default_due_days: 7,
-      invoice_prefix: "INV",
-      invoice_digits: 3,
-      invoice_start_number: 1,
       invoice_email_subject: "Invoice {invoice_number} from {company_name}",
       invoice_email_message: `Dear {client_name},
 
@@ -1126,9 +1081,6 @@ Best regards,
       contact_person: company.contact_person || "",
       logo_url: company.logo_url || "",
       default_due_days: company.default_due_days || 7,
-      invoice_prefix: (company as any).invoice_prefix || "INV",
-      invoice_digits: (company as any).invoice_digits || 3,
-      invoice_start_number: (company as any).invoice_start_number || 1,
       invoice_email_subject: (company as any).invoice_email_subject || "Invoice {invoice_number} from {company_name}",
       invoice_email_message: (company as any).invoice_email_message || `Dear {client_name},
 
@@ -1408,48 +1360,6 @@ Best regards,
                   value={newCompany.default_due_days}
                   onChange={(e) => setNewCompany({...newCompany, default_due_days: parseInt(e.target.value) || 7})}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t("companies.invoiceSettings")} *</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <Label htmlFor="invoicePrefix" className="text-sm">{t("companies.invoicePrefix")} *</Label>
-                    <Input
-                      id="invoicePrefix"
-                      placeholder={t("companies.invoicePrefixPlaceholder")}
-                      value={newCompany.invoice_prefix}
-                      onChange={(e) => setNewCompany({...newCompany, invoice_prefix: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="invoiceDigits" className="text-sm">{t("companies.invoiceDigits")} *</Label>
-                    <Input
-                      id="invoiceDigits"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={newCompany.invoice_digits}
-                      onChange={(e) => setNewCompany({...newCompany, invoice_digits: Number(e.target.value)})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="invoiceStartNumber" className="text-sm">{t("companies.invoiceStart")} *</Label>
-                    <Input
-                      id="invoiceStartNumber"
-                      type="number"
-                      min="1"
-                      value={newCompany.invoice_start_number}
-                      onChange={(e) => setNewCompany({...newCompany, invoice_start_number: Number(e.target.value)})}
-                      required
-                    />
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Preview: {newCompany.invoice_prefix}-{String(newCompany.invoice_start_number).padStart(newCompany.invoice_digits, '0')}
-                </p>
               </div>
               
               <div className="space-y-2">

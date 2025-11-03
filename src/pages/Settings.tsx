@@ -80,6 +80,15 @@ export default function Settings() {
     invoice_footer_message_fr: ""
   });
   const [isSavingTemplates, setIsSavingTemplates] = useState(false);
+  
+  // Invoice numbering settings
+  const [selectedCompanyForNumbering, setSelectedCompanyForNumbering] = useState<string>("");
+  const [invoiceNumbering, setInvoiceNumbering] = useState({
+    invoice_prefix: "INV",
+    invoice_digits: 3,
+    invoice_start_number: 1
+  });
+  const [isSavingNumbering, setIsSavingNumbering] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
@@ -228,7 +237,24 @@ Cordialement,
     if (companies.length > 0 && !selectedCompanyId) {
       setSelectedCompanyId(companies[0].id);
     }
+    if (companies.length > 0 && !selectedCompanyForNumbering) {
+      setSelectedCompanyForNumbering(companies[0].id);
+    }
   }, [companies]);
+  
+  // Load invoice numbering settings when company is selected
+  useEffect(() => {
+    if (selectedCompanyForNumbering && companies.length > 0) {
+      const company = companies.find(c => c.id === selectedCompanyForNumbering);
+      if (company) {
+        setInvoiceNumbering({
+          invoice_prefix: (company as any).invoice_prefix || "INV",
+          invoice_digits: (company as any).invoice_digits || 3,
+          invoice_start_number: (company as any).invoice_start_number || 1
+        });
+      }
+    }
+  }, [selectedCompanyForNumbering, companies]);
 
   const handleThemeChange = (value: string) => {
     setTheme(value);
@@ -559,6 +585,33 @@ Cordialement,
       });
     } finally {
       setIsSavingTemplates(false);
+    }
+  };
+
+  const handleSaveInvoiceNumbering = async () => {
+    if (!selectedCompanyForNumbering) return;
+
+    setIsSavingNumbering(true);
+    try {
+      await updateCompany(selectedCompanyForNumbering, {
+        invoice_prefix: invoiceNumbering.invoice_prefix,
+        invoice_digits: invoiceNumbering.invoice_digits,
+        invoice_start_number: invoiceNumbering.invoice_start_number
+      });
+
+      toast({
+        title: language === "fr" ? "Paramètres sauvegardés" : "Settings saved",
+        description: language === "fr" ? "Les paramètres de numérotation des factures ont été mis à jour avec succès." : "Invoice numbering settings have been updated successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error updating invoice numbering:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingNumbering(false);
     }
   };
 
@@ -1059,6 +1112,93 @@ Cordialement,
                   </div>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
+              {language === "fr" ? "Numérotation des factures" : "Invoice Numbering"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" ? "Configurez les paramètres de numérotation des factures pour chaque entreprise" : "Configure invoice numbering settings for each company"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>{language === "fr" ? "Sélectionner l'entreprise" : "Select Company"}</Label>
+                <Select value={selectedCompanyForNumbering} onValueChange={setSelectedCompanyForNumbering}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === "fr" ? "Choisir une entreprise" : "Choose a company"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedCompanyForNumbering && (
+                <>
+                  <div className="grid grid-cols-3 gap-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="invoicePrefix">
+                        {language === "fr" ? "Préfixe" : "Prefix"} *
+                      </Label>
+                      <Input
+                        id="invoicePrefix"
+                        placeholder={language === "fr" ? "INV" : "INV"}
+                        value={invoiceNumbering.invoice_prefix}
+                        onChange={(e) => setInvoiceNumbering({...invoiceNumbering, invoice_prefix: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoiceDigits">
+                        {language === "fr" ? "Nombre de chiffres" : "Number of digits"} *
+                      </Label>
+                      <Input
+                        id="invoiceDigits"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={invoiceNumbering.invoice_digits}
+                        onChange={(e) => setInvoiceNumbering({...invoiceNumbering, invoice_digits: Number(e.target.value)})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invoiceStartNumber">
+                        {language === "fr" ? "Numéro de départ" : "Starting number"} *
+                      </Label>
+                      <Input
+                        id="invoiceStartNumber"
+                        type="number"
+                        min="1"
+                        value={invoiceNumbering.invoice_start_number}
+                        onChange={(e) => setInvoiceNumbering({...invoiceNumbering, invoice_start_number: Number(e.target.value)})}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="text-sm text-muted-foreground">
+                      {language === "fr" ? "Aperçu" : "Preview"}: {invoiceNumbering.invoice_prefix}-{String(invoiceNumbering.invoice_start_number).padStart(invoiceNumbering.invoice_digits, '0')}
+                    </p>
+                    <Button onClick={handleSaveInvoiceNumbering} disabled={isSavingNumbering}>
+                      {isSavingNumbering 
+                        ? (language === "fr" ? "Sauvegarde..." : "Saving...") 
+                        : (language === "fr" ? "Sauvegarder" : "Save")}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
