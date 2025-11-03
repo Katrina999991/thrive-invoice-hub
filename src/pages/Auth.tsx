@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Loader2, LogIn, UserPlus, Home } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
@@ -325,7 +325,15 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20">
+    <div className="min-h-screen flex items-end justify-center bg-background p-4 pb-20 relative">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 left-4"
+        onClick={() => navigate("/")}
+      >
+        <Home className="h-5 w-5" />
+      </Button>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
           <div className="mb-4">
