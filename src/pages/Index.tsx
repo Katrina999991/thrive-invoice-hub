@@ -267,7 +267,7 @@ const Index = () => {
             >
               <CarouselContent>
                 <CarouselItem>
-                  <div className="space-y-8">
+                  <div className="flex flex-col items-center justify-center min-h-[600px] space-y-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-bold text-foreground mb-4">
                         {t.dashboardPreview.title}
@@ -288,7 +288,7 @@ const Index = () => {
                   </div>
                 </CarouselItem>
                 <CarouselItem>
-                  <div className="space-y-8">
+                  <div className="flex flex-col items-center justify-center min-h-[600px] space-y-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-bold text-foreground mb-4">
                         {t.categoriesPreview.title}
@@ -309,7 +309,7 @@ const Index = () => {
                   </div>
                 </CarouselItem>
                 <CarouselItem>
-                  <div className="space-y-8">
+                  <div className="flex flex-col items-center justify-center min-h-[600px] space-y-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-bold text-foreground mb-4">
                         {t.invoicesPreview.title}
