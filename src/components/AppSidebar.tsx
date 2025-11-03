@@ -28,14 +28,18 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
+import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
+import { useTheme } from "next-themes";
 
 export function AppSidebar() {
   const { t } = useLanguage();
   const { user, username } = useAuth();
   const { state } = useSidebar();
+  const { theme } = useTheme();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+  const logo = theme === "dark" ? gestionflowLogoDark : gestionflowLogo;
 
   const mainItems = [
     { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -68,7 +72,7 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="p-4 border-b">
           <div className="flex flex-col items-center gap-1">
-            <img src={gestionflowLogo} alt="GestionFlow" className={`${isCollapsed ? "w-20 h-20" : "w-32 h-32"} object-contain`} />
+            <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-20 h-20" : "w-32 h-32"} object-contain`} />
             {!isCollapsed && (
               <h2 className="font-bold text-base text-center -mt-1">
                 {username || t("nav.title")}
