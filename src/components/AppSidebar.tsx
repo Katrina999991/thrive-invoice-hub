@@ -27,11 +27,13 @@ import {
 } from "@/components/ui/sidebar";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserColor } from "@/hooks/useUserColor";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 
 export function AppSidebar() {
   const { t } = useLanguage();
   const { user, username } = useAuth();
+  const { getColorClass } = useUserColor();
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -70,7 +72,7 @@ export function AppSidebar() {
           <div className="flex flex-col items-center gap-1">
             <img src={gestionflowLogo} alt="GestionFlow" className={`${isCollapsed ? "w-20 h-20" : "w-32 h-32"} object-contain`} />
             {!isCollapsed && (
-              <h2 className="font-bold text-base text-center -mt-1">
+              <h2 className={`font-bold text-base text-center -mt-1 ${getColorClass()}`}>
                 {username || t("nav.title")}
               </h2>
             )}

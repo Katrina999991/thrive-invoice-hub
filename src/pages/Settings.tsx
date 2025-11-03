@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useUserColor } from "@/hooks/useUserColor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ import { z } from "zod";
 export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const { userColor, updateUserColor } = useUserColor();
   const navigate = useNavigate();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
@@ -855,6 +857,67 @@ Cordialement,
                   </div>
                 </RadioGroup>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              {t("settings.userColor.title") || "Couleur du nom"}
+            </CardTitle>
+            <CardDescription>
+              {t("settings.userColor.description") || "Choisissez la couleur de votre nom d'utilisateur"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label className="text-sm font-medium mb-3 block">{t("settings.userColor.colorLabel") || "Couleur"}</Label>
+              <RadioGroup value={userColor} onValueChange={updateUserColor}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="blue" id="blue" />
+                  <Label htmlFor="blue" className="cursor-pointer flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-blue-600"></span>
+                    {t("settings.userColor.blue") || "Bleu"}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="green" id="green" />
+                  <Label htmlFor="green" className="cursor-pointer flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-green-600"></span>
+                    {t("settings.userColor.green") || "Vert"}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="purple" id="purple" />
+                  <Label htmlFor="purple" className="cursor-pointer flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-purple-600"></span>
+                    {t("settings.userColor.purple") || "Violet"}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="orange" id="orange" />
+                  <Label htmlFor="orange" className="cursor-pointer flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-orange-600"></span>
+                    {t("settings.userColor.orange") || "Orange"}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="red" id="red" />
+                  <Label htmlFor="red" className="cursor-pointer flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-red-600"></span>
+                    {t("settings.userColor.red") || "Rouge"}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="gray" id="gray" />
+                  <Label htmlFor="gray" className="cursor-pointer flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-gray-600"></span>
+                    {t("settings.userColor.gray") || "Gris"}
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
           </CardContent>
         </Card>
