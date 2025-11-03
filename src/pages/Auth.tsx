@@ -348,7 +348,7 @@ export default function Auth() {
               </div>
             </div>
             <div className="flex justify-center">
-              <img src={gestionflowLogo} alt="GestionFlow" className="h-24 w-auto" />
+              <img src={gestionflowLogo} alt="GestionFlow" className="h-32 w-auto" />
             </div>
           </div>
           <CardDescription className="text-center">
