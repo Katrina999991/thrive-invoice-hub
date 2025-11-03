@@ -156,8 +156,11 @@ const Index = () => {
               <div className="mb-4 flex justify-center">
                 <img src={logo} alt="GestionFlow" className="h-16 brightness-0 invert" />
               </div>
-              <p className="text-primary-foreground/80">
+              <p className="text-primary-foreground/80 mb-2">
                 La solution complète pour gérer votre entreprise
+              </p>
+              <p className="text-primary-foreground/80">
+                info@gestionflow.net
               </p>
             </div>
           </div>
