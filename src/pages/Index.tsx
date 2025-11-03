@@ -14,8 +14,8 @@ const Index = () => {
       hero: {
         title: "Simplifiez votre gestion d'entreprise",
         subtitle: "Factures, dépenses, clients - tout en un seul endroit. Gérez votre entreprise avec simplicité et efficacité.",
-        signUp: "Sign up for free",
-        signIn: "Sign in"
+        signUp: "Inscription gratuite",
+        signIn: "Se connecter"
       },
       features: {
         title: "Fonctionnalités principales",
