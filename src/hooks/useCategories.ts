@@ -56,37 +56,72 @@ export const useCategories = () => {
   const createDefaultCategories = async () => {
     if (!user) return;
 
-    // Get current language from localStorage
-    const language = localStorage.getItem("app-language") || "en";
-
-    const defaultCategories = language === "fr" ? [
-      { name: "Développement Web", description: "Services et produits de développement web", color: "#3b82f6", for_products: true, for_services: true, for_expenses: false },
-      { name: "Développement Mobile", description: "Développement d'applications mobiles", color: "#8b5cf6", for_products: true, for_services: true, for_expenses: false },
-      { name: "Logiciels", description: "Produits logiciels et licences", color: "#10b981", for_products: true, for_services: false, for_expenses: true },
-      { name: "Consultation", description: "Services de consultation", color: "#f59e0b", for_products: false, for_services: true, for_expenses: false },
-      { name: "Design", description: "Services de design", color: "#ec4899", for_products: true, for_services: true, for_expenses: false },
-      { name: "Marketing", description: "Marketing et publicité", color: "#ef4444", for_products: true, for_services: true, for_expenses: true },
-      { name: "Formation", description: "Formation et éducation", color: "#6366f1", for_products: false, for_services: true, for_expenses: true },
-      { name: "Support", description: "Support technique", color: "#06b6d4", for_products: false, for_services: true, for_expenses: false },
-      { name: "Bureau", description: "Fournitures et dépenses de bureau", color: "#6b7280", for_products: true, for_services: false, for_expenses: true },
-      { name: "Repas", description: "Repas et divertissement", color: "#f97316", for_products: false, for_services: false, for_expenses: true },
-      { name: "Voyage", description: "Frais de voyage", color: "#14b8a6", for_products: false, for_services: false, for_expenses: true },
-      { name: "Services publics", description: "Services publics et utilitaires", color: "#84cc16", for_products: false, for_services: false, for_expenses: true },
-      { name: "Autre", description: "Divers", color: "#a855f7", for_products: true, for_services: true, for_expenses: true },
-    ] : [
-      { name: "Web Development", description: "Web development services and products", color: "#3b82f6", for_products: true, for_services: true, for_expenses: false },
-      { name: "Mobile Development", description: "Mobile app development", color: "#8b5cf6", for_products: true, for_services: true, for_expenses: false },
-      { name: "Software", description: "Software products and licenses", color: "#10b981", for_products: true, for_services: false, for_expenses: true },
-      { name: "Consulting", description: "Consulting services", color: "#f59e0b", for_products: false, for_services: true, for_expenses: false },
-      { name: "Design", description: "Design services", color: "#ec4899", for_products: true, for_services: true, for_expenses: false },
-      { name: "Marketing", description: "Marketing and advertising", color: "#ef4444", for_products: true, for_services: true, for_expenses: true },
-      { name: "Training", description: "Training and education", color: "#6366f1", for_products: false, for_services: true, for_expenses: true },
-      { name: "Support", description: "Technical support", color: "#06b6d4", for_products: false, for_services: true, for_expenses: false },
-      { name: "Office", description: "Office supplies and expenses", color: "#6b7280", for_products: true, for_services: false, for_expenses: true },
-      { name: "Meals", description: "Meals and entertainment", color: "#f97316", for_products: false, for_services: false, for_expenses: true },
-      { name: "Travel", description: "Travel expenses", color: "#14b8a6", for_products: false, for_services: false, for_expenses: true },
-      { name: "Utilities", description: "Utilities and services", color: "#84cc16", for_products: false, for_services: false, for_expenses: true },
-      { name: "Other", description: "Other miscellaneous", color: "#a855f7", for_products: true, for_services: true, for_expenses: true },
+    const defaultCategories = [
+      { 
+        name: "Web Development", name_en: "Web Development", name_fr: "Développement Web",
+        description: "Web development services and products", description_en: "Web development services and products", description_fr: "Services et produits de développement web",
+        color: "#3b82f6", for_products: true, for_services: true, for_expenses: false 
+      },
+      { 
+        name: "Mobile Development", name_en: "Mobile Development", name_fr: "Développement Mobile",
+        description: "Mobile app development", description_en: "Mobile app development", description_fr: "Développement d'applications mobiles",
+        color: "#8b5cf6", for_products: true, for_services: true, for_expenses: false 
+      },
+      { 
+        name: "Software", name_en: "Software", name_fr: "Logiciels",
+        description: "Software products and licenses", description_en: "Software products and licenses", description_fr: "Produits logiciels et licences",
+        color: "#10b981", for_products: true, for_services: false, for_expenses: true 
+      },
+      { 
+        name: "Consulting", name_en: "Consulting", name_fr: "Consultation",
+        description: "Consulting services", description_en: "Consulting services", description_fr: "Services de consultation",
+        color: "#f59e0b", for_products: false, for_services: true, for_expenses: false 
+      },
+      { 
+        name: "Design", name_en: "Design", name_fr: "Design",
+        description: "Design services", description_en: "Design services", description_fr: "Services de design",
+        color: "#ec4899", for_products: true, for_services: true, for_expenses: false 
+      },
+      { 
+        name: "Marketing", name_en: "Marketing", name_fr: "Marketing",
+        description: "Marketing and advertising", description_en: "Marketing and advertising", description_fr: "Marketing et publicité",
+        color: "#ef4444", for_products: true, for_services: true, for_expenses: true 
+      },
+      { 
+        name: "Training", name_en: "Training", name_fr: "Formation",
+        description: "Training and education", description_en: "Training and education", description_fr: "Formation et éducation",
+        color: "#6366f1", for_products: false, for_services: true, for_expenses: true 
+      },
+      { 
+        name: "Support", name_en: "Support", name_fr: "Support",
+        description: "Technical support", description_en: "Technical support", description_fr: "Support technique",
+        color: "#06b6d4", for_products: false, for_services: true, for_expenses: false 
+      },
+      { 
+        name: "Office", name_en: "Office", name_fr: "Bureau",
+        description: "Office supplies and expenses", description_en: "Office supplies and expenses", description_fr: "Fournitures et dépenses de bureau",
+        color: "#6b7280", for_products: true, for_services: false, for_expenses: true 
+      },
+      { 
+        name: "Meals", name_en: "Meals", name_fr: "Repas",
+        description: "Meals and entertainment", description_en: "Meals and entertainment", description_fr: "Repas et divertissement",
+        color: "#f97316", for_products: false, for_services: false, for_expenses: true 
+      },
+      { 
+        name: "Travel", name_en: "Travel", name_fr: "Voyage",
+        description: "Travel expenses", description_en: "Travel expenses", description_fr: "Frais de voyage",
+        color: "#14b8a6", for_products: false, for_services: false, for_expenses: true 
+      },
+      { 
+        name: "Utilities", name_en: "Utilities", name_fr: "Services publics",
+        description: "Utilities and services", description_en: "Utilities and services", description_fr: "Services publics et utilitaires",
+        color: "#84cc16", for_products: false, for_services: false, for_expenses: true 
+      },
+      { 
+        name: "Other", name_en: "Other", name_fr: "Autre",
+        description: "Other miscellaneous", description_en: "Other miscellaneous", description_fr: "Divers",
+        color: "#a855f7", for_products: true, for_services: true, for_expenses: true 
+      },
     ];
 
     try {

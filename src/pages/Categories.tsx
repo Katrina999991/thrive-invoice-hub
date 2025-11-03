@@ -40,20 +40,40 @@ export default function Categories() {
   const [isSaving, setIsSaving] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
+    name_en: "",
+    name_fr: "",
+    description_en: "",
+    description_fr: "",
     color: "#3b82f6",
     for_products: true,
     for_services: true,
     for_expenses: true
   });
 
+  // Helper to get translated name
+  const getTranslatedName = (category: Category) => {
+    if (language === "fr") {
+      return category.name_fr || category.name;
+    }
+    return category.name_en || category.name;
+  };
+
+  // Helper to get translated description
+  const getTranslatedDescription = (category: Category) => {
+    if (language === "fr") {
+      return category.description_fr || category.description;
+    }
+    return category.description_en || category.description;
+  };
+
   const handleOpenDialog = (category?: Category) => {
     if (category) {
       setEditingCategory(category);
       setFormData({
-        name: category.name,
-        description: category.description || "",
+        name_en: category.name_en || category.name || "",
+        name_fr: category.name_fr || category.name || "",
+        description_en: category.description_en || category.description || "",
+        description_fr: category.description_fr || category.description || "",
         color: category.color || "#3b82f6",
         for_products: category.for_products ?? true,
         for_services: category.for_services ?? true,
@@ -62,8 +82,10 @@ export default function Categories() {
     } else {
       setEditingCategory(null);
       setFormData({
-        name: "",
-        description: "",
+        name_en: "",
+        name_fr: "",
+        description_en: "",
+        description_fr: "",
         color: "#3b82f6",
         for_products: true,
         for_services: true,
@@ -77,8 +99,10 @@ export default function Categories() {
     setIsDialogOpen(false);
     setEditingCategory(null);
     setFormData({
-      name: "",
-      description: "",
+      name_en: "",
+      name_fr: "",
+      description_en: "",
+      description_fr: "",
       color: "#3b82f6",
       for_products: true,
       for_services: true,
@@ -87,16 +111,23 @@ export default function Categories() {
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim()) {
+    if (!formData.name_en.trim() && !formData.name_fr.trim()) {
       return;
     }
 
     setIsSaving(true);
     try {
+      const dataToSave = {
+        ...formData,
+        // Keep legacy name and description fields for backward compatibility
+        name: formData.name_en || formData.name_fr,
+        description: formData.description_en || formData.description_fr
+      };
+
       if (editingCategory) {
-        await updateCategory(editingCategory.id, formData);
+        await updateCategory(editingCategory.id, dataToSave);
       } else {
-        await createCategory(formData);
+        await createCategory(dataToSave);
       }
       handleCloseDialog();
     } finally {
@@ -164,7 +195,7 @@ export default function Categories() {
                     className="w-4 h-4 rounded-full" 
                     style={{ backgroundColor: category.color || "#3b82f6" }}
                   />
-                  <CardTitle className="text-lg">{category.name}</CardTitle>
+                  <CardTitle className="text-lg">{getTranslatedName(category)}</CardTitle>
                 </div>
                 <div className="flex gap-1">
                   <Button
@@ -185,8 +216,8 @@ export default function Categories() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {category.description && (
-                <CardDescription>{category.description}</CardDescription>
+              {getTranslatedDescription(category) && (
+                <CardDescription>{getTranslatedDescription(category)}</CardDescription>
               )}
               <div className="flex gap-2 flex-wrap">
                 {category.for_products && (
@@ -247,29 +278,52 @@ export default function Categories() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">
-                {language === "fr" ? "Nom" : "Name"} *
+              <Label htmlFor="name_en">
+                {language === "fr" ? "Nom (Anglais)" : "Name (English)"} *
               </Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder={language === "fr" ? "Ex: Électronique" : "Ex: Electronics"}
+                id="name_en"
+                value={formData.name_en}
+                onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                placeholder="Ex: Electronics"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">
-                {language === "fr" ? "Description" : "Description"}
+              <Label htmlFor="name_fr">
+                {language === "fr" ? "Nom (Français)" : "Name (French)"} *
+              </Label>
+              <Input
+                id="name_fr"
+                value={formData.name_fr}
+                onChange={(e) => setFormData({ ...formData, name_fr: e.target.value })}
+                placeholder="Ex: Électronique"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description_en">
+                {language === "fr" ? "Description (Anglais)" : "Description (English)"}
               </Label>
               <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder={language === "fr" 
-                  ? "Description de la catégorie" 
-                  : "Category description"}
-                rows={3}
+                id="description_en"
+                value={formData.description_en}
+                onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
+                placeholder="Category description"
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description_fr">
+                {language === "fr" ? "Description (Français)" : "Description (French)"}
+              </Label>
+              <Textarea
+                id="description_fr"
+                value={formData.description_fr}
+                onChange={(e) => setFormData({ ...formData, description_fr: e.target.value })}
+                placeholder="Description de la catégorie"
+                rows={2}
               />
             </div>
 
@@ -356,7 +410,7 @@ export default function Categories() {
             <Button variant="outline" onClick={handleCloseDialog}>
               {language === "fr" ? "Annuler" : "Cancel"}
             </Button>
-            <Button onClick={handleSave} disabled={isSaving || !formData.name.trim()}>
+            <Button onClick={handleSave} disabled={isSaving || (!formData.name_en.trim() && !formData.name_fr.trim())}>
               {isSaving 
                 ? (language === "fr" ? "Sauvegarde..." : "Saving...") 
                 : (language === "fr" ? "Sauvegarder" : "Save")}

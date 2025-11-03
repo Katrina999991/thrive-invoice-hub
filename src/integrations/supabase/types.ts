@@ -19,11 +19,15 @@ export type Database = {
           color: string | null
           created_at: string
           description: string | null
+          description_en: string | null
+          description_fr: string | null
           for_expenses: boolean | null
           for_products: boolean | null
           for_services: boolean | null
           id: string
           name: string
+          name_en: string | null
+          name_fr: string | null
           updated_at: string
           user_id: string
         }
@@ -31,11 +35,15 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          description_en?: string | null
+          description_fr?: string | null
           for_expenses?: boolean | null
           for_products?: boolean | null
           for_services?: boolean | null
           id?: string
           name: string
+          name_en?: string | null
+          name_fr?: string | null
           updated_at?: string
           user_id: string
         }
@@ -43,11 +51,15 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          description_en?: string | null
+          description_fr?: string | null
           for_expenses?: boolean | null
           for_products?: boolean | null
           for_services?: boolean | null
           id?: string
           name?: string
+          name_en?: string | null
+          name_fr?: string | null
           updated_at?: string
           user_id?: string
         }
