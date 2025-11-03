@@ -68,6 +68,9 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
+        <div className="flex justify-center mb-8">
+          <img src={logo} alt="GestionFlow" className="h-24" />
+        </div>
         <h1 className="text-5xl font-bold text-foreground mb-6">
           Simplifiez votre gestion d'entreprise
         </h1>
