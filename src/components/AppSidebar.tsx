@@ -29,6 +29,7 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import gestionflowLogo from "@/assets/gestionflow-logo.png";
 
 export function AppSidebar() {
   const { t } = useLanguage();
@@ -94,11 +95,15 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarContent>
-        <div className="p-4">
-          <h2 className={`font-bold text-lg ${isCollapsed ? "hidden" : "block"}`}>
-            {username || t("nav.title")}
-          </h2>
-          {isCollapsed && <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-primary-foreground font-bold">{username ? username[0].toUpperCase() : "B"}</div>}
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-3">
+            <img src={gestionflowLogo} alt="GestionFlow" className={`${isCollapsed ? "w-8 h-8" : "w-10 h-10"} object-contain`} />
+            {!isCollapsed && (
+              <h2 className="font-bold text-lg">
+                {username || t("nav.title")}
+              </h2>
+            )}
+          </div>
         </div>
 
         <SidebarGroup>
