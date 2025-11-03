@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
-import dashboardPreview from "@/assets/dashboard-preview.png";
+import dashboardPreview from "@/assets/dashboard-preview-new.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const Index = () => {
