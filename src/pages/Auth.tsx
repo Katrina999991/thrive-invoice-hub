@@ -37,30 +37,24 @@ export default function Auth() {
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
   
-  const [darkMode, setDarkMode] = useState<string>(() => {
-    const savedMode = localStorage.getItem("app-dark-mode");
-    return savedMode || "light";
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    return document.documentElement.classList.contains("dark");
   });
   
   useEffect(() => {
-    const handleStorageChange = () => {
-      const newMode = localStorage.getItem("app-dark-mode") || "light";
-      setDarkMode(newMode);
-    };
-    
-    // Check immediately on mount
-    handleStorageChange();
-    
-    window.addEventListener("storage", handleStorageChange);
-    const interval = setInterval(handleStorageChange, 100);
-    
+    const root = document.documentElement;
+    const update = () => setIsDark(root.classList.contains("dark"));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("storage", update);
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
+      observer.disconnect();
+      window.removeEventListener("storage", update);
     };
   }, []);
   
-  const currentLogo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
+  const currentLogo = isDark ? gestionflowLogoDark : gestionflowLogo;
 
   console.log("Auth component render - searchParams:", Object.fromEntries(searchParams));
   console.log("Auth component render - user:", user);
