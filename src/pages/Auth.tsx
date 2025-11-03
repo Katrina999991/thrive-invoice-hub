@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -329,7 +329,10 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
           <div className="mb-4">
-            <div className="flex justify-end mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Voir la page d'accueil
+              </Link>
               <div className="flex gap-2">
                 <Button
                   variant={language === 'fr' ? 'default' : 'outline'}
