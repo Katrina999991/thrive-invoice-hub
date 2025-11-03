@@ -276,12 +276,14 @@ const Index = () => {
                         {t.dashboardPreview.subtitle}
                       </p>
                     </div>
-                    <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
-                      <img 
-                        src={currentDashboardPreview} 
-                        alt="Dashboard Preview" 
-                        className="w-full h-auto"
-                      />
+                    <div className="flex items-center justify-center">
+                      <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                        <img 
+                          src={currentDashboardPreview} 
+                          alt="Dashboard Preview" 
+                          className="w-full h-auto"
+                        />
+                      </div>
                     </div>
                   </div>
                 </CarouselItem>
@@ -295,12 +297,14 @@ const Index = () => {
                         {t.categoriesPreview.subtitle}
                       </p>
                     </div>
-                    <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
-                      <img 
-                        src={currentCategoriesPreview} 
-                        alt="Categories Preview" 
-                        className="w-full h-auto"
-                      />
+                    <div className="flex items-center justify-center">
+                      <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                        <img 
+                          src={currentCategoriesPreview} 
+                          alt="Categories Preview" 
+                          className="w-full h-auto"
+                        />
+                      </div>
                     </div>
                   </div>
                 </CarouselItem>
@@ -314,12 +318,14 @@ const Index = () => {
                         {t.invoicesPreview.subtitle}
                       </p>
                     </div>
-                    <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
-                      <img 
-                        src={currentInvoicesPreview} 
-                        alt="Invoices Preview" 
-                        className="w-full h-auto"
-                      />
+                    <div className="flex items-center justify-center">
+                      <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                        <img 
+                          src={currentInvoicesPreview} 
+                          alt="Invoices Preview" 
+                          className="w-full h-auto"
+                        />
+                      </div>
                     </div>
                   </div>
                 </CarouselItem>
