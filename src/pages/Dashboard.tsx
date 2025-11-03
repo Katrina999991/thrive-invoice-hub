@@ -126,28 +126,28 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid gap-2">
               <button 
-                onClick={() => navigate("/invoices")}
+                onClick={() => navigate("/dashboard/invoices")}
                 className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
               >
                 <FileText className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.createInvoice")}</span>
               </button>
               <button 
-                onClick={() => navigate("/clients")}
+                onClick={() => navigate("/dashboard/clients")}
                 className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
               >
                 <Users className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.addClient")}</span>
               </button>
               <button 
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/dashboard/products")}
                 className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
               >
                 <Package className="h-4 w-4" />
                 <span className="text-sm">{t("dashboard.addProduct")}</span>
               </button>
               <button 
-                onClick={() => navigate("/reports")}
+                onClick={() => navigate("/dashboard/reports")}
                 className="flex items-center justify-start space-x-2 p-2 rounded-md hover:bg-muted transition-colors"
               >
                 <TrendingUp className="h-4 w-4" />
