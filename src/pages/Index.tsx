@@ -2,6 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
 import dashboardPreview from "@/assets/dashboard-preview-new.jpg";
@@ -242,71 +249,73 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Dashboard Preview Section */}
+      {/* Screenshots Carousel Section */}
       <section className="bg-muted py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              {t.dashboardPreview.title}
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {t.dashboardPreview.subtitle}
-            </p>
-          </div>
           <div className="max-w-6xl mx-auto">
-            <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
-              <img 
-                src={currentDashboardPreview} 
-                alt="Dashboard Preview" 
-                className="w-full h-auto"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Preview Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              {t.categoriesPreview.title}
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {t.categoriesPreview.subtitle}
-            </p>
-          </div>
-          <div className="max-w-6xl mx-auto">
-            <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
-              <img 
-                src={currentCategoriesPreview} 
-                alt="Categories Preview" 
-                className="w-full h-auto"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Invoices Preview Section */}
-      <section className="bg-muted py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              {t.invoicesPreview.title}
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {t.invoicesPreview.subtitle}
-            </p>
-          </div>
-          <div className="max-w-6xl mx-auto">
-            <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
-              <img 
-                src={currentInvoicesPreview} 
-                alt="Invoices Preview" 
-                className="w-full h-auto"
-              />
-            </div>
+            <Carousel className="w-full">
+              <CarouselContent>
+                <CarouselItem>
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-3xl font-bold text-foreground mb-4">
+                        {t.dashboardPreview.title}
+                      </h2>
+                      <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        {t.dashboardPreview.subtitle}
+                      </p>
+                    </div>
+                    <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                      <img 
+                        src={currentDashboardPreview} 
+                        alt="Dashboard Preview" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  </div>
+                </CarouselItem>
+                <CarouselItem>
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-3xl font-bold text-foreground mb-4">
+                        {t.categoriesPreview.title}
+                      </h2>
+                      <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        {t.categoriesPreview.subtitle}
+                      </p>
+                    </div>
+                    <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                      <img 
+                        src={currentCategoriesPreview} 
+                        alt="Categories Preview" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  </div>
+                </CarouselItem>
+                <CarouselItem>
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-3xl font-bold text-foreground mb-4">
+                        {t.invoicesPreview.title}
+                      </h2>
+                      <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        {t.invoicesPreview.subtitle}
+                      </p>
+                    </div>
+                    <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+                      <img 
+                        src={currentInvoicesPreview} 
+                        alt="Invoices Preview" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+              <CarouselPrevious className="left-4" />
+              <CarouselNext className="right-4" />
+            </Carousel>
           </div>
         </div>
       </section>
