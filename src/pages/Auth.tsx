@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import gestionflowLogo from "@/assets/gestionflow-logo.png";
 
 export default function Auth() {
   const { t, language, setLanguage } = useLanguage();
@@ -327,6 +328,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
+          <div className="flex justify-center mb-4">
+            <img src={gestionflowLogo} alt="GestionFlow" className="h-24 w-auto" />
+          </div>
           <div className="flex justify-end">
             <div className="flex gap-2">
               <Button

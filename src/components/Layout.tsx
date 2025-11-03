@@ -1,4 +1,3 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
@@ -7,6 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import gestionflowLogo from "@/assets/gestionflow-logo.png";
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -28,7 +28,8 @@ export default function Layout() {
         <div className="flex-1 flex flex-col">
           <header className="h-14 flex items-center border-b bg-background px-4">
             <SidebarTrigger />
-            <div className="ml-4 flex-1">
+            <div className="ml-4 flex-1 flex items-center gap-3">
+              <img src={gestionflowLogo} alt="GestionFlow" className="h-8 w-auto" />
               <h1 className="font-semibold">{t("app.title")}</h1>
             </div>
             <div className="flex items-center gap-2">
