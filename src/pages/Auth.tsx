@@ -329,7 +329,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
           <div className="flex justify-center mb-4">
-            <img src={gestionflowLogo} alt="GestionFlow" className="h-24 w-auto" />
+            <img src={gestionflowLogo} alt="GestionFlow" className="h-40 w-auto" />
           </div>
           <div className="flex justify-end">
             <div className="flex gap-2">
