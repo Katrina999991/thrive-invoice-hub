@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Star, TrendingUp, FileText, Users, BarChart } from "lucide-react";
+import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
+import { useState } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [language, setLanguage] = useState<"FR" | "EN">("FR");
 
   const reviews = [
     {
@@ -53,6 +55,29 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Language Selector */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className="flex items-center gap-2 bg-background border border-border rounded-lg p-2">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <Button
+            variant={language === "FR" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setLanguage("FR")}
+            className="h-8 px-3"
+          >
+            FR
+          </Button>
+          <Button
+            variant={language === "EN" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setLanguage("EN")}
+            className="h-8 px-3"
+          >
+            EN
+          </Button>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="flex justify-center mb-8">
