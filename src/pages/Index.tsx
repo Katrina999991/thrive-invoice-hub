@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import dashboardPreview from "@/assets/dashboard-preview-new.jpg";
+import categoriesPreview from "@/assets/dashboard-preview-categories.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const Index = () => {
@@ -23,6 +24,10 @@ const Index = () => {
       dashboardPreview: {
         title: "Tableau de bord intuitif",
         subtitle: "Visualisez toutes vos données importantes en un coup d'œil. Statistiques en temps réel, activités récentes et actions rapides."
+      },
+      categoriesPreview: {
+        title: "Gestion des catégories",
+        subtitle: "Organisez vos produits, services et dépenses par catégories personnalisées pour une meilleure organisation."
       },
       features: {
         title: "Fonctionnalités principales",
@@ -85,6 +90,10 @@ const Index = () => {
       dashboardPreview: {
         title: "Intuitive dashboard",
         subtitle: "View all your important data at a glance. Real-time statistics, recent activities and quick actions."
+      },
+      categoriesPreview: {
+        title: "Category management",
+        subtitle: "Organize your products, services and expenses by custom categories for better organization."
       },
       features: {
         title: "Key features",
@@ -212,6 +221,29 @@ const Index = () => {
               <img 
                 src={dashboardPreview} 
                 alt="Dashboard Preview" 
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Preview Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              {t.categoriesPreview.title}
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              {t.categoriesPreview.subtitle}
+            </p>
+          </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="rounded-lg overflow-hidden shadow-2xl border border-border">
+              <img 
+                src={categoriesPreview} 
+                alt="Categories Preview" 
                 className="w-full h-auto"
               />
             </div>
