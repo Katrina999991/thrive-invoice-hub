@@ -144,8 +144,8 @@ export default function Categories() {
           </h1>
           <p className="text-muted-foreground mt-1">
             {language === "fr" 
-              ? "Gérez vos catégories de produits et services" 
-              : "Manage your product and service categories"}
+              ? "Gérez vos catégories de produits, services et dépenses." 
+              : "Manage your product, service and expense categories."}
           </p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
