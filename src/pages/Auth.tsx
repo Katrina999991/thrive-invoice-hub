@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +44,8 @@ export default function Auth() {
   // Handle redirects in useEffect, not during render
   useEffect(() => {
     if (user && !isPasswordRecoveryMode && !showUpdatePassword) {
-      console.log("Redirecting to /dashboard because user exists and not in recovery mode");
-      navigate("/dashboard");
+      console.log("Redirecting to / because user exists and not in recovery mode");
+      navigate("/");
     }
   }, [user, isPasswordRecoveryMode, showUpdatePassword, navigate]);
 
@@ -110,7 +110,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/dashboard");
+      navigate("/");
     }
     
     setIsLoading(false);
@@ -263,7 +263,7 @@ export default function Auth() {
       setConfirmPassword("");
       // Mark that user has logged in normally
       localStorage.setItem('has_logged_in_before', 'true');
-      navigate("/dashboard");
+      navigate("/");
     }
     
     setIsLoading(false);
@@ -329,10 +329,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3">
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Voir la page d'accueil
-              </Link>
+            <div className="flex justify-end mb-2">
               <div className="flex gap-2">
                 <Button
                   variant={language === 'fr' ? 'default' : 'outline'}

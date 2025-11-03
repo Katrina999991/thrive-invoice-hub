@@ -8,7 +8,6 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Companies from "./pages/Companies";
 import Clients from "./pages/Clients";
@@ -35,9 +34,8 @@ const App = () => {
           <LanguageProvider>
             <AuthProvider>
               <Routes>
-                <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={
+                <Route path="/" element={
                   <ProtectedRoute>
                     <Layout />
                   </ProtectedRoute>
