@@ -49,12 +49,31 @@ const Pricing = () => {
   }, [language]);
 
   const handleUpgrade = async (planType: string) => {
-    if (planType === 'free') {
-      toast.info(language === 'fr' ? 'Vous êtes déjà sur le plan gratuit' : 'You are already on the free plan');
+    const current = planLimits?.plan_type ?? 'free';
+
+    // If already on this plan
+    if (planType === current) {
+      toast.info(t.currentPlan);
       return;
     }
-    
-    await createCheckout(planType as 'premium' | 'pro', billingCycle);
+
+    const order = ['free', 'premium', 'pro'];
+    const currentIndex = order.indexOf(current);
+    const targetIndex = order.indexOf(planType as any);
+
+    // Upgrade (higher tier) -> go to Stripe Checkout
+    if (targetIndex > currentIndex) {
+      await createCheckout(planType as 'premium' | 'pro', billingCycle);
+      return;
+    }
+
+    // Downgrade (lower tier, including to Free) -> open Customer Portal
+    toast.info(
+      language === 'fr'
+        ? "Pour rétrograder ou annuler, nous allons ouvrir le portail client Stripe."
+        : "To downgrade or cancel, we will open the Stripe customer portal."
+    );
+    await openCustomerPortal();
   };
 
   const translations = {
@@ -345,7 +364,7 @@ const Pricing = () => {
                 <Button 
                   className="w-full" 
                   variant={isCurrent ? 'outline' : (isPro ? 'default' : 'secondary')}
-                  disabled={isCurrent || stripeLoading || plan.plan_type === 'free'}
+                  disabled={isCurrent || stripeLoading}
                   onClick={() => handleUpgrade(plan.plan_type)}
                 >
                   {getButtonText(plan.plan_type)}
