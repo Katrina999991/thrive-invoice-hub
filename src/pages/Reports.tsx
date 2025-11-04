@@ -17,6 +17,7 @@ import { useClients } from "@/hooks/useClients";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -36,6 +37,7 @@ import html2canvas from "html2canvas";
 
 const Reports = () => {
   const { t } = useLanguage();
+  const { planLimits } = useSubscription();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   
@@ -2283,15 +2285,15 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue={planLimits?.all_reports ? "overview" : "revenue"} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="overview" disabled={!planLimits?.all_reports}>{t("reports.tabs.overview")}</TabsTrigger>
           <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
-          <TabsTrigger value="products">{t("reports.tabs.products")}</TabsTrigger>
-          <TabsTrigger value="expenses">{t("reports.tabs.expenses")}</TabsTrigger>
-          <TabsTrigger value="clients">{t("reports.tabs.clients")}</TabsTrigger>
-          <TabsTrigger value="taxes">{t("reports.tabs.taxes")}</TabsTrigger>
-          <TabsTrigger value="invoices">{t("reports.tabs.invoices")}</TabsTrigger>
+          <TabsTrigger value="products" disabled={!planLimits?.all_reports}>{t("reports.tabs.products")}</TabsTrigger>
+          <TabsTrigger value="expenses" disabled={!planLimits?.all_reports}>{t("reports.tabs.expenses")}</TabsTrigger>
+          <TabsTrigger value="clients" disabled={!planLimits?.all_reports}>{t("reports.tabs.clients")}</TabsTrigger>
+          <TabsTrigger value="taxes" disabled={!planLimits?.all_reports}>{t("reports.tabs.taxes")}</TabsTrigger>
+          <TabsTrigger value="invoices" disabled={!planLimits?.all_reports}>{t("reports.tabs.invoices")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
