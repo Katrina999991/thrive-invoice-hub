@@ -14,15 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useSubscription } from "@/hooks/useSubscription";
 import { z } from "zod";
 
 
 const Clients = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const { clients, loading, createClient, updateClient, deleteClient } = useClients();
   const { companies } = useCompanies();
+  const { checkLimit } = useSubscription();
 
   const [newClient, setNewClient] = useState({
     name: "",
@@ -182,6 +184,23 @@ const Clients = () => {
     setEmailList(newList);
   };
 
+  const handleAddClientClick = async () => {
+    const { canAdd, current, limit } = await checkLimit('clients');
+    
+    if (!canAdd && limit !== null) {
+      toast({
+        title: language === "fr" ? "Limite atteinte" : "Limit reached",
+        description: language === "fr" 
+          ? `Vous avez atteint la limite de ${limit} clients pour votre plan. Veuillez mettre à niveau votre abonnement pour ajouter plus de clients.`
+          : `You have reached the limit of ${limit} clients for your plan. Please upgrade your subscription to add more clients.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsDialogOpen(true);
+  };
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -206,12 +225,10 @@ const Clients = () => {
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("clients.addButton")}
-            </Button>
-          </DialogTrigger>
+          <Button onClick={handleAddClientClick}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("clients.addButton")}
+          </Button>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingClient ? t("clients.dialog.edit") : t("clients.dialog.add")}</DialogTitle>
