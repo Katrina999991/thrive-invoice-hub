@@ -15,6 +15,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
 import { useClients } from "@/hooks/useClients";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useSubscription } from "@/hooks/useSubscription";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -26,6 +27,7 @@ const Expenses = () => {
   const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
   const { categories, loading: categoriesLoading } = useCategories();
   const { clients, loading: clientsLoading } = useClients();
+  const { isLimitReached } = useSubscription();
 
   // Helper to get translated category name
   const getCategoryName = (category: any) => {
@@ -59,6 +61,14 @@ const Expenses = () => {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
 
+  const handleAddExpenseClick = () => {
+    if (isLimitReached('expenses')) {
+      setShowLimitDialog(true);
+      return;
+    }
+    setIsDialogOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -86,25 +96,16 @@ const Expenses = () => {
       });
     } else {
       // Add new expense
-      try {
-        await createExpense({
-          description: newExpense.description,
-          amount: parseFloat(newExpense.amount) || 0,
-          category: newExpense.category,
-          client_id: newExpense.client_id || null,
-          expense_date: newExpense.expense_date,
-          notes: newExpense.notes || null,
-          vendor: newExpense.vendor || null,
-          status: newExpense.status
-        });
-      } catch (error: any) {
-        if (error.code === 'LIMIT_REACHED') {
-          setIsDialogOpen(false);
-          setShowLimitDialog(true);
-          return;
-        }
-        throw error;
-      }
+      await createExpense({
+        description: newExpense.description,
+        amount: parseFloat(newExpense.amount) || 0,
+        category: newExpense.category,
+        client_id: newExpense.client_id || null,
+        expense_date: newExpense.expense_date,
+        notes: newExpense.notes || null,
+        vendor: newExpense.vendor || null,
+        status: newExpense.status
+      });
     }
 
     resetForm();
@@ -189,13 +190,12 @@ const Expenses = () => {
             {t("expenses.subtitle")}
           </p>
         </div>
+        <Button onClick={handleAddExpenseClick}>
+          <Plus className="h-4 w-4 mr-2" />
+          {t("expenses.addButton")}
+        </Button>
+        
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("expenses.addButton")}
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>{editingExpense ? t("expenses.dialog.edit") : t("expenses.dialog.add")}</DialogTitle>
