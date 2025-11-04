@@ -41,6 +41,17 @@ const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   
+  // Check if a specific report tab is available based on plan
+  const isTabAvailable = (tab: string) => {
+    if (tab === 'overview' || tab === 'revenue') return true; // Always available
+    if (planLimits?.all_reports) return true; // Pro plan - all reports available
+    // Premium plan - specific tabs available except taxes
+    if (planLimits?.plan_type === 'premium') {
+      return ['products', 'expenses', 'clients', 'invoices'].includes(tab);
+    }
+    return false; // Free plan - only overview and revenue
+  };
+  
   // Refs pour capturer les graphiques
   const barChartRef = useRef<HTMLDivElement>(null);
   const lineChartRef = useRef<HTMLDivElement>(null);
@@ -2289,11 +2300,11 @@ const Reports = () => {
         <TabsList>
           <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
           <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
-          <TabsTrigger value="products" disabled={!planLimits?.all_reports}>{t("reports.tabs.products")}</TabsTrigger>
-          <TabsTrigger value="expenses" disabled={!planLimits?.all_reports}>{t("reports.tabs.expenses")}</TabsTrigger>
-          <TabsTrigger value="clients" disabled={!planLimits?.all_reports}>{t("reports.tabs.clients")}</TabsTrigger>
-          <TabsTrigger value="taxes" disabled={!planLimits?.all_reports}>{t("reports.tabs.taxes")}</TabsTrigger>
-          <TabsTrigger value="invoices" disabled={!planLimits?.all_reports}>{t("reports.tabs.invoices")}</TabsTrigger>
+          <TabsTrigger value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
+          <TabsTrigger value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
+          <TabsTrigger value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
+          <TabsTrigger value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
+          <TabsTrigger value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
