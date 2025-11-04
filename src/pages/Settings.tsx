@@ -1263,10 +1263,10 @@ Cordialement,
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              {language === "fr" ? "Modèles d'email" : "Email Templates"}
+              {language === "fr" ? "Personnalisation des messages" : "Message Personalization"}
             </CardTitle>
             <CardDescription>
-              {language === "fr" ? "Personnalisez les modèles d'email pour chaque entreprise" : "Customize email templates for each company"}
+              {language === "fr" ? "Personnalisez les messages d'email et les factures pour chaque entreprise" : "Customize email messages and invoices for each company"}
             </CardDescription>
           </CardHeader>
           <CardContent>
