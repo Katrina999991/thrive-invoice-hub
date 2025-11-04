@@ -2285,9 +2285,9 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs defaultValue={planLimits?.all_reports ? "overview" : "revenue"} className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview" disabled={!planLimits?.all_reports}>{t("reports.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
           <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
           <TabsTrigger value="products" disabled={!planLimits?.all_reports}>{t("reports.tabs.products")}</TabsTrigger>
           <TabsTrigger value="expenses" disabled={!planLimits?.all_reports}>{t("reports.tabs.expenses")}</TabsTrigger>
