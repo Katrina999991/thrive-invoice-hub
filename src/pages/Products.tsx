@@ -133,7 +133,7 @@ const Products = () => {
           category: "Products",
           expense_date: today,
           status: "unpaid"
-        });
+        }, true); // Skip limit check for automatic product expenses
       }
     }
 
