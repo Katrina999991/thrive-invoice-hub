@@ -886,16 +886,6 @@ Best regards,
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [canAddCompany, setCanAddCompany] = useState(true);
-
-  // Check company limit on mount and when companies change
-  useEffect(() => {
-    const checkCompanyLimit = async () => {
-      const limitCheck = await checkLimit('companies');
-      setCanAddCompany(limitCheck.canAdd);
-    };
-    checkCompanyLimit();
-  }, [companies]);
 
   const addTax = () => {
     setTaxes([...taxes, { name: "", percentage: 0 }]);
@@ -1175,7 +1165,7 @@ Best regards,
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button onClick={handleAddCompanyClick} disabled={!canAddCompany}>
+          <Button onClick={handleAddCompanyClick}>
             <Plus className="h-4 w-4 mr-2" />
             {t("companies.addButton")}
           </Button>
