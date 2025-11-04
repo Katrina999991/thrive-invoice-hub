@@ -2,9 +2,11 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { STRIPE_CONFIG, PlanType, BillingCycle } from "@/lib/stripeConfig";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useStripeCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const createCheckout = async (planType: PlanType, billingCycle: BillingCycle) => {
     try {
@@ -36,6 +38,10 @@ export const useStripeCheckout = () => {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) throw error;
+      
+      // Invalidate queries to refresh subscription data
+      queryClient.invalidateQueries({ queryKey: ['planLimits'] });
+      queryClient.invalidateQueries({ queryKey: ['currentSubscription'] });
       
       return data;
     } catch (error: any) {

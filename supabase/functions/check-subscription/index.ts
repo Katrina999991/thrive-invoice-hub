@@ -104,36 +104,40 @@ serve(async (req) => {
       planType = PRODUCT_MAP[productId] || "free";
       logStep("Determined plan type", { productId, planType });
 
-      // Update user subscription in database
-      const { error: updateError } = await supabaseClient
+      // Upsert user subscription in database
+      const { error: upsertError } = await supabaseClient
         .from("user_subscriptions")
-        .update({
+        .upsert({
+          user_id: user.id,
           plan_type: planType,
           expires_at: subscriptionEnd,
           updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+        }, {
+          onConflict: 'user_id'
+        });
 
-      if (updateError) {
-        logStep("Error updating subscription in database", { error: updateError.message });
+      if (upsertError) {
+        logStep("Error upserting subscription in database", { error: upsertError.message });
       } else {
-        logStep("Updated subscription in database");
+        logStep("Upserted subscription in database");
       }
     } else {
       logStep("No active subscription found, updating to free plan");
       
-      // Update user to free plan
-      const { error: updateError } = await supabaseClient
+      // Upsert user to free plan
+      const { error: upsertError } = await supabaseClient
         .from("user_subscriptions")
-        .update({
+        .upsert({
+          user_id: user.id,
           plan_type: "free",
           expires_at: null,
           updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+        }, {
+          onConflict: 'user_id'
+        });
 
-      if (updateError) {
-        logStep("Error updating to free plan", { error: updateError.message });
+      if (upsertError) {
+        logStep("Error upserting to free plan", { error: upsertError.message });
       }
     }
 
