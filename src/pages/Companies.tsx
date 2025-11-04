@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -779,7 +780,7 @@ const Companies = () => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompanies();
-  const { checkLimit } = useSubscription();
+  const { checkLimit, planLimits } = useSubscription();
   const navigate = useNavigate();
 
   // Helper function to format complete address
@@ -1447,29 +1448,39 @@ Best regards,
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {companies.map((company) => (
-          <Card key={company.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
-                    {company.logo_url ? (
-                      <img 
-                        src={company.logo_url} 
-                        alt={`${company.name} logo`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Building2 className="h-5 w-5 text-primary" />
-                    )}
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{company.name}</CardTitle>
-                    <CardDescription>{t("companies.companyLabel")}</CardDescription>
+        {companies.map((company, index) => {
+          const isOverLimit = planLimits && planLimits.max_companies !== null && index >= planLimits.max_companies;
+          
+          return (
+            <Card key={company.id} className={`hover:shadow-lg transition-shadow ${isOverLimit ? 'border-orange-500/50' : ''}`}>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                      {company.logo_url ? (
+                        <img 
+                          src={company.logo_url} 
+                          alt={`${company.name} logo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building2 className="h-5 w-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg">{company.name}</CardTitle>
+                        {isOverLimit && (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50">
+                            {language === "fr" ? "Hors limite" : "Over Limit"}
+                          </Badge>
+                        )}
+                      </div>
+                      <CardDescription>{t("companies.companyLabel")}</CardDescription>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardHeader>
+              </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 {formatAddress(company) && (
@@ -1569,7 +1580,8 @@ Best regards,
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Limit Reached Alert Dialog */}

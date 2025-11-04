@@ -26,7 +26,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { clients, loading, createClient, updateClient, deleteClient } = useClients();
   const { companies } = useCompanies();
-  const { checkLimit } = useSubscription();
+  const { checkLimit, planLimits } = useSubscription();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [limitMessage, setLimitMessage] = useState({ limit: 0 });
 
@@ -442,14 +442,22 @@ const Clients = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="font-medium">{client.name}</span>
-                    </div>
-                  </TableCell>
+              {filteredClients.map((client, index) => {
+                const isOverLimit = planLimits && planLimits.max_clients !== null && index >= planLimits.max_clients;
+                
+                return (
+                  <TableRow key={client.id} className={isOverLimit ? 'bg-orange-500/5' : ''}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="font-medium">{client.name}</span>
+                        {isOverLimit && (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
+                            {language === "fr" ? "Hors limite" : "Over Limit"}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                   <TableCell>
                     <div className="font-medium">{client.contact_person || "—"}</div>
                   </TableCell>
@@ -525,7 +533,8 @@ const Clients = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

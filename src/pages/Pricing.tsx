@@ -413,6 +413,54 @@ const Pricing = () => {
         </p>
       </div>
 
+      {/* Downgrade Policy Info */}
+      <Card className="mt-8 max-w-4xl mx-auto border-muted-foreground/20 bg-muted/20">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Crown className="h-5 w-5 text-primary" />
+            {language === 'fr' ? 'Politique de changement de plan' : 'Plan Downgrade Policy'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p>
+            {language === 'fr' 
+              ? "Si vous passez à un plan inférieur (par exemple de Pro à Premium), voici ce qui se passe :"
+              : "If you downgrade to a lower plan (e.g., from Pro to Premium), here's what happens:"}
+          </p>
+          <ul className="space-y-2 ml-4">
+            <li className="flex items-start gap-2">
+              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <span>
+                {language === 'fr'
+                  ? "Vous conservez toutes vos données existantes (entreprises, clients, factures, dépenses)"
+                  : "You keep all your existing data (companies, clients, invoices, expenses)"}
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <span>
+                {language === 'fr'
+                  ? "Vous pouvez consulter, modifier et supprimer toutes vos données"
+                  : "You can view, edit, and delete all your data"}
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <span>
+                {language === 'fr'
+                  ? "Cependant, vous ne pourrez pas créer de nouvelles entités si vous dépassez les limites du nouveau plan"
+                  : "However, you cannot create new entities if you exceed your new plan's limits"}
+              </span>
+            </li>
+          </ul>
+          <p className="pt-2 text-muted-foreground italic">
+            {language === 'fr'
+              ? "Exemple : Si vous avez 3 entreprises sur le plan Pro et que vous passez au plan Premium (limite : 1 entreprise), vous gardez vos 3 entreprises mais vous devrez en supprimer 2 avant de pouvoir en créer une nouvelle."
+              : "Example: If you have 3 companies on Pro plan and downgrade to Premium (limit: 1 company), you keep all 3 companies but must delete 2 before you can create a new one."}
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Upgrade Dialog */}
       <UpgradeDialog
         open={showUpgradeDialog}
