@@ -1069,11 +1069,16 @@ Best regards,
   };
 
   const handleAddCompanyClick = async () => {
+    console.log('[Companies] Checking company limit...');
     const limitCheck = await checkLimit('companies');
+    console.log('[Companies] Limit check result:', limitCheck);
+    
     if (!limitCheck.canAdd) {
+      console.log('[Companies] Limit reached, showing dialog');
       setShowLimitDialog(true);
       return;
     }
+    console.log('[Companies] Limit OK, opening dialog');
     setIsDialogOpen(true);
   };
 
