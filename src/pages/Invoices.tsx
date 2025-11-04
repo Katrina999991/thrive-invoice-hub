@@ -2297,7 +2297,13 @@ Best regards,
                       <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => downloadInvoicePDF(invoice)}
+                        disabled={!planLimits?.pdf_export}
+                        title={!planLimits?.pdf_export ? (language === 'fr' ? "Téléchargement PDF disponible avec un plan Premium ou Pro" : "PDF download available with Premium or Pro plan") : ""}
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
                       {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
