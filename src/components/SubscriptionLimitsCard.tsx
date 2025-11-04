@@ -94,7 +94,7 @@ export const SubscriptionLimitsCard = () => {
           {planLimits.max_invoices_per_month !== null && (
             <Progress 
               value={calculatePercentage(planLimits.invoices_used, planLimits.max_invoices_per_month)}
-              className={getProgressColor(calculatePercentage(planLimits.invoices_used, planLimits.max_invoices_per_month))}
+              indicatorClassName={getProgressColor(calculatePercentage(planLimits.invoices_used, planLimits.max_invoices_per_month))}
             />
           )}
         </div>
@@ -110,7 +110,7 @@ export const SubscriptionLimitsCard = () => {
           {planLimits.max_expenses_per_month !== null && (
             <Progress 
               value={calculatePercentage(planLimits.expenses_used, planLimits.max_expenses_per_month)}
-              className={getProgressColor(calculatePercentage(planLimits.expenses_used, planLimits.max_expenses_per_month))}
+              indicatorClassName={getProgressColor(calculatePercentage(planLimits.expenses_used, planLimits.max_expenses_per_month))}
             />
           )}
         </div>
