@@ -82,10 +82,25 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      productId = subscription.items.data[0].price.product as string;
+      // Safely convert Unix timestamp to ISO string
+      if (subscription.current_period_end) {
+        try {
+          const endDate = new Date(subscription.current_period_end * 1000);
+          if (!isNaN(endDate.getTime())) {
+            subscriptionEnd = endDate.toISOString();
+            logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+          } else {
+            logStep("Invalid date from subscription", { subscriptionId: subscription.id, timestamp: subscription.current_period_end });
+          }
+        } catch (error) {
+          logStep("Error converting date", { error: error.message, timestamp: subscription.current_period_end });
+        }
+      } else {
+        logStep("No end date in subscription", { subscriptionId: subscription.id });
+      }
+      
+      productId = subscription.items.data[0]?.price?.product as string;
       planType = PRODUCT_MAP[productId] || "free";
       logStep("Determined plan type", { productId, planType });
 
