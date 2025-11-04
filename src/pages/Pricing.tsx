@@ -222,14 +222,13 @@ const Pricing = () => {
   };
 
   const getButtonText = (planType: string) => {
-    if (planType === 'free') return t.currentPlan;
+    if (isCurrentPlan(planType)) return t.currentPlan;
     
     if (!planLimits) return t.choosePlan;
     
     const currentPlanIndex = ['free', 'premium', 'pro'].indexOf(planLimits.plan_type);
     const targetPlanIndex = ['free', 'premium', 'pro'].indexOf(planType);
     
-    if (currentPlanIndex === targetPlanIndex) return t.currentPlan;
     if (targetPlanIndex > currentPlanIndex) return t.upgrade;
     return t.downgrade;
   };
