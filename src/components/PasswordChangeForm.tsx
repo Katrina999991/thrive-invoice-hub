@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -80,9 +80,8 @@ export default function PasswordChangeForm() {
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="new-password">{t("password.new")}</Label>
-            <Input
+            <PasswordInput
               id="new-password"
-              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -92,9 +91,8 @@ export default function PasswordChangeForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm-password">{t("password.confirm")}</Label>
-            <Input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required

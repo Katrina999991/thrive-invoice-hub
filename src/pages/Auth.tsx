@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -427,9 +428,8 @@ export default function Auth() {
                   <Label htmlFor="signin-password">
                     {language === 'en' ? 'Password' : 'Mot de passe'}
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="signin-password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -513,9 +513,8 @@ export default function Auth() {
                   <Label htmlFor="signup-password">
                     {language === 'en' ? 'Password' : 'Mot de passe'}
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="signup-password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -757,9 +756,8 @@ export default function Auth() {
               <Label htmlFor="new-password">
                 {language === 'en' ? 'New Password' : 'Nouveau mot de passe'}
               </Label>
-              <Input
+              <PasswordInput
                 id="new-password"
-                type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -772,9 +770,8 @@ export default function Auth() {
               <Label htmlFor="confirm-password">
                 {language === 'en' ? 'Confirm Password' : 'Confirmer le mot de passe'}
               </Label>
-              <Input
+              <PasswordInput
                 id="confirm-password"
-                type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required

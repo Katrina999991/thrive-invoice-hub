@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
@@ -107,9 +107,8 @@ export default function PasswordChangeDialog() {
             <Label htmlFor="new-password">
               {language === 'en' ? 'New Password' : 'Nouveau mot de passe'}
             </Label>
-            <Input
+            <PasswordInput
               id="new-password"
-              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -121,9 +120,8 @@ export default function PasswordChangeDialog() {
             <Label htmlFor="confirm-password">
               {language === 'en' ? 'Confirm Password' : 'Confirmer le mot de passe'}
             </Label>
-            <Input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
