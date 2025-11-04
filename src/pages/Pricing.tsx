@@ -243,7 +243,7 @@ const Pricing = () => {
   const getButtonText = (planType: string) => {
     if (isCurrentPlan(planType)) return t.currentPlan;
     
-    if (!planLimits) return planType === 'free' ? t.currentPlan : t.choosePlan;
+    if (!planLimits) return t.choosePlan;
     
     const currentPlanIndex = ['free', 'premium', 'pro'].indexOf(planLimits.plan_type);
     const targetPlanIndex = ['free', 'premium', 'pro'].indexOf(planType);
@@ -253,8 +253,7 @@ const Pricing = () => {
   };
 
   const isCurrentPlan = (planType: string) => {
-    // If no planLimits, user is on free plan by default
-    if (!planLimits) return planType === 'free';
+    if (!planLimits) return false;
     return planLimits.plan_type === planType;
   };
 
