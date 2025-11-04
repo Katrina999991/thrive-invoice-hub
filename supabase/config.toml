@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.schedule-upgrade]
 verify_jwt = false
+
+[functions.upgrade-subscription]
+verify_jwt = false

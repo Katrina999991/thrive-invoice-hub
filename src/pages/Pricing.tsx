@@ -89,7 +89,8 @@ const Pricing = () => {
 
   const handleImmediateUpgrade = async () => {
     if (pendingUpgradePlan) {
-      await createCheckout(pendingUpgradePlan, billingCycle);
+      // Pass true as third parameter to indicate this is an upgrade with proration
+      await createCheckout(pendingUpgradePlan, billingCycle, true);
       setPendingUpgradePlan(null);
     }
   };

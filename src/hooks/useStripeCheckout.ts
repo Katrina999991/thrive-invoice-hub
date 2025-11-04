@@ -8,22 +8,47 @@ export const useStripeCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  const createCheckout = async (planType: PlanType, billingCycle: BillingCycle) => {
+  const createCheckout = async (planType: PlanType, billingCycle: BillingCycle, isUpgrade: boolean = false) => {
     try {
       setIsLoading(true);
       
       const priceId = STRIPE_CONFIG[planType][billingCycle].priceId;
       
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId },
-      });
+      // If it's an upgrade from an existing subscription, update it with proration
+      if (isUpgrade) {
+        const { data, error } = await supabase.functions.invoke('upgrade-subscription', {
+          body: { priceId },
+        });
 
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
+        if (error) throw error;
+        
+        if (data?.success) {
+          toast.success('Mise à niveau effectuée avec succès ! Vous avez accès aux fonctionnalités Pro.');
+          
+          // Refresh subscription data
+          queryClient.invalidateQueries({ queryKey: ['planLimits'] });
+          queryClient.invalidateQueries({ queryKey: ['currentSubscription'] });
+          
+          // Optionally open the invoice URL
+          if (data.invoiceUrl) {
+            window.open(data.invoiceUrl, '_blank');
+          }
+        } else {
+          throw new Error('Upgrade failed');
+        }
       } else {
-        throw new Error('No checkout URL returned');
+        // For new subscriptions, use checkout session
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+          body: { priceId },
+        });
+
+        if (error) throw error;
+        
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        } else {
+          throw new Error('No checkout URL returned');
+        }
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
