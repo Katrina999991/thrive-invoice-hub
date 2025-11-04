@@ -232,7 +232,7 @@ const Clients = () => {
             <AlertDialogCancel>
               {language === "fr" ? "Annuler" : "Cancel"}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate("/pricing")}>
+            <AlertDialogAction onClick={() => navigate("/dashboard/pricing")}>
               {language === "fr" ? "Voir les plans" : "View Plans"}
             </AlertDialogAction>
           </AlertDialogFooter>
