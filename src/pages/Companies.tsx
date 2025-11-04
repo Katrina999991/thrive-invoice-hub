@@ -13,6 +13,8 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 type Company = Tables<"companies">;
@@ -775,8 +777,10 @@ const getRegionsForCountry = (country: string) => {
 
 const Companies = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompanies();
+  const { checkLimit } = useSubscription();
+  const navigate = useNavigate();
 
   // Helper function to format complete address
   const formatAddress = (company: Company) => {
@@ -881,6 +885,7 @@ Best regards,
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const addTax = () => {
     setTaxes([...taxes, { name: "", percentage: 0 }]);
@@ -1063,6 +1068,15 @@ Best regards,
     setIsDialogOpen(false);
   };
 
+  const handleAddCompanyClick = async () => {
+    const limitCheck = await checkLimit('companies');
+    if (!limitCheck.canAdd) {
+      setShowLimitDialog(true);
+      return;
+    }
+    setIsDialogOpen(true);
+  };
+
   const handleEdit = (company: Company) => {
     setEditingCompany(company);
     setLogoFile(null);
@@ -1151,12 +1165,10 @@ Best regards,
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("companies.addButton")}
-            </Button>
-          </DialogTrigger>
+          <Button onClick={handleAddCompanyClick}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("companies.addButton")}
+          </Button>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCompany ? t("companies.dialog.edit") : t("companies.dialog.add")}</DialogTitle>
@@ -1554,6 +1566,30 @@ Best regards,
           </Card>
         ))}
       </div>
+
+      {/* Limit Reached Alert Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === "fr" ? "Limite atteinte" : "Limit Reached"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr" 
+                ? "Vous avez atteint la limite de compagnies pour votre plan actuel. Veuillez passer à un plan supérieur pour ajouter plus de compagnies."
+                : "You have reached the company limit for your current plan. Please upgrade to add more companies."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/dashboard/pricing")}>
+              {language === "fr" ? "Voir les tarifs" : "View Pricing"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
