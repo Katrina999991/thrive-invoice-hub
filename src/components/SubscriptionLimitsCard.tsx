@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Crown, TrendingUp, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const SubscriptionLimitsCard = () => {
   const { planLimits, currentSubscription, isLoading } = useSubscription();
   const { language } = useLanguage();
+  const navigate = useNavigate();
 
   if (isLoading || !planLimits) {
     return null;
@@ -139,7 +141,7 @@ export const SubscriptionLimitsCard = () => {
         </div>
 
         {planLimits.plan_type !== 'pro' && (
-          <Button className="w-full" variant="default">
+          <Button className="w-full" variant="default" onClick={() => navigate('/dashboard/pricing')}>
             {t.upgrade}
           </Button>
         )}

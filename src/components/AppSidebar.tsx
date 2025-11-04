@@ -10,7 +10,8 @@ import {
   Receipt,
   BarChart3,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Crown
 } from "lucide-react";
 
 import {
@@ -72,6 +73,7 @@ export function AppSidebar() {
   ];
 
   const settingsItems = [
+    { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown },
     { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings },
   ];
 

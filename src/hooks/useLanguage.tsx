@@ -28,6 +28,7 @@ const translations = {
     "nav.invoices": "Invoices",
     "nav.expenses": "Expenses",
     "nav.reports": "Reports",
+    "nav.pricing": "Pricing",
     "nav.settings": "Settings",
     
     // Dashboard
@@ -767,6 +768,7 @@ const translations = {
     "nav.invoices": "Factures",
     "nav.expenses": "Dépenses",
     "nav.reports": "Rapports",
+    "nav.pricing": "Tarification",
     "nav.settings": "Paramètres",
     
     // Dashboard
