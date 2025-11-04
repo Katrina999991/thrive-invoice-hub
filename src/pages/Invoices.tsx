@@ -18,6 +18,8 @@ import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import jsPDF from 'jspdf';
@@ -49,7 +51,8 @@ interface InvoiceItem {
 
 const Invoices = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterValue, setFilterValue] = useState("");
@@ -59,6 +62,10 @@ const Invoices = () => {
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
+  const { isLimitReached, planLimits } = useSubscription();
+
+  // Limit dialog state
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
@@ -1506,6 +1513,14 @@ Best regards,
     }
   };
 
+  const handleCreateInvoiceClick = () => {
+    if (isLimitReached('invoices')) {
+      setShowLimitDialog(true);
+    } else {
+      setIsDialogOpen(true);
+    }
+  };
+
   const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
 
   const paidAmount = invoices
@@ -1525,13 +1540,11 @@ Best regards,
             {t("invoices.subtitle")}
           </p>
         </div>
+        <Button onClick={handleCreateInvoiceClick}>
+          <Plus className="h-4 w-4 mr-2" />
+          {t("invoices.createButton")}
+        </Button>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("invoices.createButton")}
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingInvoice ? t("invoices.dialog.edit") : t("invoices.dialog.create")}</DialogTitle>
@@ -2502,6 +2515,31 @@ Best regards,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Limit Reached Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === "fr" ? "Limite atteinte" : "Limit Reached"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr" 
+                ? `Vous avez atteint la limite de ${planLimits?.max_invoices_per_month || 5} factures par mois pour votre plan gratuit. Passez à un plan supérieur pour créer plus de factures.`
+                : `You have reached the limit of ${planLimits?.max_invoices_per_month || 5} invoices per month for your free plan. Upgrade to a higher plan to create more invoices.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/dashboard/pricing")}>
+              {language === "fr" ? "Voir les plans" : "View Plans"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
