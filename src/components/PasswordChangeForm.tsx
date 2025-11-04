@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, KeyRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { validatePassword } from "@/lib/passwordValidation";
 
 export default function PasswordChangeForm() {
   const { t } = useLanguage();
@@ -17,16 +18,20 @@ export default function PasswordChangeForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const { updatePassword } = useAuth();
+  const { language } = useLanguage();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setPasswordErrors([]);
 
-    // Validation
-    if (newPassword.length < 6) {
-      setError(t("password.error.length"));
+    // Validate password
+    const validation = validatePassword(newPassword, language);
+    if (!validation.isValid) {
+      setPasswordErrors(validation.errors);
       setIsLoading(false);
       return;
     }
@@ -82,7 +87,7 @@ export default function PasswordChangeForm() {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               disabled={isLoading}
-              minLength={6}
+              minLength={8}
             />
           </div>
           <div className="space-y-2">
@@ -94,9 +99,20 @@ export default function PasswordChangeForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isLoading}
-              minLength={6}
+              minLength={8}
             />
           </div>
+          {passwordErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                <ul className="list-disc list-inside space-y-1">
+                  {passwordErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>

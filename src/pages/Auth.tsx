@@ -14,9 +14,11 @@ import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
+import { validatePassword } from "@/lib/passwordValidation";
 
 export default function Auth() {
   const { t, language, setLanguage } = useLanguage();
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -140,9 +142,18 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setPasswordErrors([]);
 
     if (!displayName.trim()) {
       setError("Display name is required");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate password
+    const validation = validatePassword(password, language);
+    if (!validation.isValid) {
+      setPasswordErrors(validation.errors);
       setIsLoading(false);
       return;
     }
@@ -250,15 +261,18 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setPasswordErrors([]);
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(language === 'en' ? "Passwords do not match" : "Les mots de passe ne correspondent pas");
       setIsLoading(false);
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters long");
+    // Validate password
+    const validation = validatePassword(newPassword, language);
+    if (!validation.isValid) {
+      setPasswordErrors(validation.errors);
       setIsLoading(false);
       return;
     }
@@ -506,9 +520,20 @@ export default function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    minLength={6}
+                    minLength={8}
                   />
                 </div>
+                {passwordErrors.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {passwordErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {error && (
                   <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
@@ -739,7 +764,7 @@ export default function Auth() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
                 placeholder={language === 'en' ? 'Enter your new password' : 'Entrez votre nouveau mot de passe'}
               />
             </div>
@@ -754,10 +779,21 @@ export default function Auth() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
                 placeholder={language === 'en' ? 'Confirm your new password' : 'Confirmez votre nouveau mot de passe'}
               />
             </div>
+            {passwordErrors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  <ul className="list-disc list-inside space-y-1">
+                    {passwordErrors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
