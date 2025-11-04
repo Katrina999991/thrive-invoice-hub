@@ -242,19 +242,20 @@ const Pricing = () => {
 
   const getButtonText = (planType: string) => {
     if (isCurrentPlan(planType)) return t.currentPlan;
-    
-    if (!planLimits) return t.choosePlan;
-    
+
+    if (!planLimits) return planType === 'free' && !hasActiveStripeSubscription ? t.currentPlan : t.choosePlan;
+
     const currentPlanIndex = ['free', 'premium', 'pro'].indexOf(planLimits.plan_type);
     const targetPlanIndex = ['free', 'premium', 'pro'].indexOf(planType);
-    
+
     if (targetPlanIndex > currentPlanIndex) return t.upgrade;
     return t.downgrade;
   };
 
   const isCurrentPlan = (planType: string) => {
-    if (!planLimits) return false;
-    return planLimits.plan_type === planType;
+    if (planLimits) return planLimits.plan_type === planType;
+    if (planType === 'free' && !hasActiveStripeSubscription) return true;
+    return false;
   };
 
   if (isLoading) {
