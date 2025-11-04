@@ -98,10 +98,22 @@ export default function PasswordChangeDialog() {
           </DialogTitle>
           <DialogDescription>
             {language === 'en' 
-              ? 'For security reasons, you must update your password. The new password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.' 
-              : 'Pour des raisons de sécurité, vous devez mettre à jour votre mot de passe. Le nouveau mot de passe doit contenir au moins 8 caractères incluant des majuscules, des minuscules, des chiffres et des caractères spéciaux.'}
+              ? 'For security reasons, you must update your password.' 
+              : 'Pour des raisons de sécurité, vous devez mettre à jour votre mot de passe.'}
           </DialogDescription>
         </DialogHeader>
+        <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+          <p className="text-sm font-medium">
+            {language === 'en' ? 'Password requirements:' : 'Exigences du mot de passe :'}
+          </p>
+          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+            <li>{language === 'en' ? 'At least 8 characters' : 'Au moins 8 caractères'}</li>
+            <li>{language === 'en' ? 'One uppercase letter' : 'Une lettre majuscule'}</li>
+            <li>{language === 'en' ? 'One lowercase letter' : 'Une lettre minuscule'}</li>
+            <li>{language === 'en' ? 'One number' : 'Un chiffre'}</li>
+            <li>{language === 'en' ? 'One special character (!@#$%^&*)' : 'Un caractère spécial (!@#$%^&*)'}</li>
+          </ul>
+        </div>
         <form onSubmit={handleUpdatePassword} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="new-password">

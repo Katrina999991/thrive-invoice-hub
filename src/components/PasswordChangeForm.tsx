@@ -75,6 +75,18 @@ export default function PasswordChangeForm() {
         <CardDescription>
           {t("password.description")}
         </CardDescription>
+        <div className="bg-muted/50 p-4 rounded-lg space-y-2 mt-4">
+          <p className="text-sm font-medium">
+            {language === 'en' ? 'Password requirements:' : 'Exigences du mot de passe :'}
+          </p>
+          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+            <li>{language === 'en' ? 'At least 8 characters' : 'Au moins 8 caractères'}</li>
+            <li>{language === 'en' ? 'One uppercase letter' : 'Une lettre majuscule'}</li>
+            <li>{language === 'en' ? 'One lowercase letter' : 'Une lettre minuscule'}</li>
+            <li>{language === 'en' ? 'One number' : 'Un chiffre'}</li>
+            <li>{language === 'en' ? 'One special character (!@#$%^&*)' : 'Un caractère spécial (!@#$%^&*)'}</li>
+          </ul>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handlePasswordChange} className="space-y-4">
