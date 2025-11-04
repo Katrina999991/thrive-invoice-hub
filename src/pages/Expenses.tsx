@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Expense = Tables<"expenses">;
 
 const Expenses = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
@@ -56,6 +57,7 @@ const Expenses = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,16 +86,25 @@ const Expenses = () => {
       });
     } else {
       // Add new expense
-      await createExpense({
-        description: newExpense.description,
-        amount: parseFloat(newExpense.amount) || 0,
-        category: newExpense.category,
-        client_id: newExpense.client_id || null,
-        expense_date: newExpense.expense_date,
-        notes: newExpense.notes || null,
-        vendor: newExpense.vendor || null,
-        status: newExpense.status
-      });
+      try {
+        await createExpense({
+          description: newExpense.description,
+          amount: parseFloat(newExpense.amount) || 0,
+          category: newExpense.category,
+          client_id: newExpense.client_id || null,
+          expense_date: newExpense.expense_date,
+          notes: newExpense.notes || null,
+          vendor: newExpense.vendor || null,
+          status: newExpense.status
+        });
+      } catch (error: any) {
+        if (error.code === 'LIMIT_REACHED') {
+          setIsDialogOpen(false);
+          setShowLimitDialog(true);
+          return;
+        }
+        throw error;
+      }
     }
 
     resetForm();
@@ -148,6 +159,29 @@ const Expenses = () => {
 
   return (
     <div className="space-y-6">
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === "fr" ? "Limite de dépenses atteinte" : "Expense Limit Reached"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr" 
+                ? "Vous avez atteint votre limite mensuelle de dépenses. Améliorez votre plan pour ajouter plus de dépenses."
+                : "You've reached your monthly expense limit. Upgrade your plan to add more expenses."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/pricing")}>
+              {language === "fr" ? "Voir les tarifs" : "View Pricing"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("expenses.title")}</h1>

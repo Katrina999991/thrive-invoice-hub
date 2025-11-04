@@ -82,8 +82,14 @@ export const useExpenses = () => {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating expense:", error);
+      
+      // Re-throw limit errors so they can be handled by the component
+      if (error.code === 'LIMIT_REACHED') {
+        throw error;
+      }
+      
       toast({
         title: "Error",
         description: "Failed to create expense",
