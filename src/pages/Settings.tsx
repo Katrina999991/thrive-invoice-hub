@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock } from "lucide-react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +41,7 @@ export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
+  const { canUseFeature } = useSubscription();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
@@ -902,17 +905,68 @@ Cordialement,
                     <RadioGroupItem value="classic" id="classic" />
                     <Label htmlFor="classic" className="cursor-pointer">{t("settings.invoice.classic")}</Label>
                   </div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="modern" id="modern" />
-                    <Label htmlFor="modern" className="cursor-pointer">{t("settings.invoice.modern")}</Label>
+                  <div className="flex items-center justify-between space-x-2 mb-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value="modern" 
+                        id="modern" 
+                        disabled={!canUseFeature('all_invoice_templates')}
+                      />
+                      <Label 
+                        htmlFor="modern" 
+                        className={!canUseFeature('all_invoice_templates') ? "opacity-50" : "cursor-pointer"}
+                      >
+                        {t("settings.invoice.modern")}
+                      </Label>
+                    </div>
+                    {!canUseFeature('all_invoice_templates') && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        {language === "fr" ? "Premium" : "Premium"}
+                      </Badge>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="professional" id="professional" />
-                    <Label htmlFor="professional" className="cursor-pointer">{t("settings.invoice.professional")}</Label>
+                  <div className="flex items-center justify-between space-x-2 mb-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value="professional" 
+                        id="professional" 
+                        disabled={!canUseFeature('all_invoice_templates')}
+                      />
+                      <Label 
+                        htmlFor="professional" 
+                        className={!canUseFeature('all_invoice_templates') ? "opacity-50" : "cursor-pointer"}
+                      >
+                        {t("settings.invoice.professional")}
+                      </Label>
+                    </div>
+                    {!canUseFeature('all_invoice_templates') && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        {language === "fr" ? "Premium" : "Premium"}
+                      </Badge>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="creative" id="creative" />
-                    <Label htmlFor="creative" className="cursor-pointer">{t("settings.invoice.creative")}</Label>
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value="creative" 
+                        id="creative" 
+                        disabled={!canUseFeature('all_invoice_templates')}
+                      />
+                      <Label 
+                        htmlFor="creative" 
+                        className={!canUseFeature('all_invoice_templates') ? "opacity-50" : "cursor-pointer"}
+                      >
+                        {t("settings.invoice.creative")}
+                      </Label>
+                    </div>
+                    {!canUseFeature('all_invoice_templates') && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        {language === "fr" ? "Premium" : "Premium"}
+                      </Badge>
+                    )}
                   </div>
                 </RadioGroup>
               </div>
