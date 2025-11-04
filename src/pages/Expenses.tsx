@@ -176,7 +176,7 @@ const Expenses = () => {
             <AlertDialogCancel>
               {language === "fr" ? "Annuler" : "Cancel"}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate("/pricing")}>
+            <AlertDialogAction onClick={() => navigate("/dashboard/pricing")}>
               {language === "fr" ? "Voir les tarifs" : "View Pricing"}
             </AlertDialogAction>
           </AlertDialogFooter>
