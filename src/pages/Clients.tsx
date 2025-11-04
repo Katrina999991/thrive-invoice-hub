@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,10 +22,13 @@ import { z } from "zod";
 const Clients = () => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const { clients, loading, createClient, updateClient, deleteClient } = useClients();
   const { companies } = useCompanies();
   const { checkLimit } = useSubscription();
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [limitMessage, setLimitMessage] = useState({ limit: 0 });
 
   const [newClient, setNewClient] = useState({
     name: "",
@@ -188,13 +192,8 @@ const Clients = () => {
     const { canAdd, current, limit } = await checkLimit('clients');
     
     if (!canAdd && limit !== null) {
-      toast({
-        title: language === "fr" ? "Limite atteinte" : "Limit reached",
-        description: language === "fr" 
-          ? `Vous avez atteint la limite de ${limit} clients pour votre plan. Veuillez mettre à niveau votre abonnement pour ajouter plus de clients.`
-          : `You have reached the limit of ${limit} clients for your plan. Please upgrade your subscription to add more clients.`,
-        variant: "destructive"
-      });
+      setLimitMessage({ limit });
+      setShowLimitDialog(true);
       return;
     }
     
@@ -217,6 +216,29 @@ const Clients = () => {
 
   return (
     <div className="space-y-6">
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === "fr" ? "Limite atteinte" : "Limit Reached"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr"
+                ? `Vous avez atteint la limite de ${limitMessage.limit} clients pour votre plan. Veuillez mettre à niveau votre abonnement pour ajouter plus de clients.`
+                : `You have reached the limit of ${limitMessage.limit} clients for your plan. Please upgrade your subscription to add more clients.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/pricing")}>
+              {language === "fr" ? "Voir les plans" : "View Plans"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
