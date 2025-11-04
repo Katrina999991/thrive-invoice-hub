@@ -45,9 +45,9 @@ const Reports = () => {
   const isTabAvailable = (tab: string) => {
     if (tab === 'overview' || tab === 'revenue') return true; // Always available
     if (planLimits?.all_reports) return true; // Pro plan - all reports available
-    // Premium plan - specific tabs available except taxes
+    // Premium plan - only taxes additional access
     if (planLimits?.plan_type === 'premium') {
-      return ['products', 'expenses', 'clients', 'invoices'].includes(tab);
+      return tab === 'taxes';
     }
     return false; // Free plan - only overview and revenue
   };
