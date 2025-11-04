@@ -41,7 +41,7 @@ export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
-  const { canUseFeature } = useSubscription();
+  const { canUseFeature, planLimits } = useSubscription();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
@@ -910,19 +910,19 @@ Cordialement,
                       <RadioGroupItem 
                         value="modern" 
                         id="modern" 
-                        disabled={!canUseFeature('all_invoice_templates')}
+                        disabled={planLimits?.plan_type === 'free'}
                       />
                       <Label 
                         htmlFor="modern" 
-                        className={!canUseFeature('all_invoice_templates') ? "opacity-50" : "cursor-pointer"}
+                        className={planLimits?.plan_type === 'free' ? "opacity-50" : "cursor-pointer"}
                       >
                         {t("settings.invoice.modern")}
                       </Label>
                     </div>
-                    {!canUseFeature('all_invoice_templates') && (
+                    {planLimits?.plan_type === 'free' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
                         <Lock className="h-3 w-3" />
-                        {language === "fr" ? "Premium" : "Premium"}
+                        Premium
                       </Badge>
                     )}
                   </div>
@@ -931,19 +931,19 @@ Cordialement,
                       <RadioGroupItem 
                         value="professional" 
                         id="professional" 
-                        disabled={!canUseFeature('all_invoice_templates')}
+                        disabled={planLimits?.plan_type !== 'pro'}
                       />
                       <Label 
                         htmlFor="professional" 
-                        className={!canUseFeature('all_invoice_templates') ? "opacity-50" : "cursor-pointer"}
+                        className={planLimits?.plan_type !== 'pro' ? "opacity-50" : "cursor-pointer"}
                       >
                         {t("settings.invoice.professional")}
                       </Label>
                     </div>
-                    {!canUseFeature('all_invoice_templates') && (
+                    {planLimits?.plan_type !== 'pro' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
                         <Lock className="h-3 w-3" />
-                        {language === "fr" ? "Premium" : "Premium"}
+                        Pro
                       </Badge>
                     )}
                   </div>
@@ -952,19 +952,19 @@ Cordialement,
                       <RadioGroupItem 
                         value="creative" 
                         id="creative" 
-                        disabled={!canUseFeature('all_invoice_templates')}
+                        disabled={planLimits?.plan_type !== 'pro'}
                       />
                       <Label 
                         htmlFor="creative" 
-                        className={!canUseFeature('all_invoice_templates') ? "opacity-50" : "cursor-pointer"}
+                        className={planLimits?.plan_type !== 'pro' ? "opacity-50" : "cursor-pointer"}
                       >
                         {t("settings.invoice.creative")}
                       </Label>
                     </div>
-                    {!canUseFeature('all_invoice_templates') && (
+                    {planLimits?.plan_type !== 'pro' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
                         <Lock className="h-3 w-3" />
-                        {language === "fr" ? "Premium" : "Premium"}
+                        Pro
                       </Badge>
                     )}
                   </div>
