@@ -69,9 +69,40 @@ export const useCompanies = () => {
     }
 
     try {
+      // Generate unique invoice prefix if not provided
+      let invoicePrefix = companyData.invoice_prefix;
+      
+      if (!invoicePrefix) {
+        // Generate prefix from company name (first 3 letters in uppercase)
+        const basePrefix = companyData.name
+          .replace(/[^a-zA-Z]/g, '') // Remove non-letters
+          .substring(0, 3)
+          .toUpperCase() || 'INV';
+
+        // Check if prefix already exists
+        const { data: existingCompanies } = await supabase
+          .from("companies")
+          .select("invoice_prefix")
+          .eq("user_id", user.id);
+
+        const existingPrefixes = existingCompanies?.map(c => c.invoice_prefix) || [];
+        
+        // Find unique prefix
+        invoicePrefix = basePrefix;
+        let counter = 1;
+        while (existingPrefixes.includes(invoicePrefix)) {
+          invoicePrefix = `${basePrefix}${counter}`;
+          counter++;
+        }
+      }
+
       const { data, error } = await supabase
         .from("companies")
-        .insert({ ...companyData, user_id: user.id })
+        .insert({ 
+          ...companyData, 
+          user_id: user.id,
+          invoice_prefix: invoicePrefix 
+        })
         .select()
         .single();
 
