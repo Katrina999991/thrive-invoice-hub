@@ -9,13 +9,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { toast } from "sonner";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 
 const Pricing = () => {
   const { availablePlans, currentSubscription, isLoading, planLimits } = useSubscription();
   const { language } = useLanguage();
-  const { createCheckout, checkSubscription, openCustomerPortal, isLoading: stripeLoading } = useStripeCheckout();
+  const { createCheckout, checkSubscription, openCustomerPortal, scheduleUpgrade, isLoading: stripeLoading } = useStripeCheckout();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [hasActiveStripeSubscription, setHasActiveStripeSubscription] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [pendingUpgradePlan, setPendingUpgradePlan] = useState<'premium' | 'pro' | null>(null);
 
   // Check subscription status on mount and periodically
   useEffect(() => {
@@ -61,8 +64,16 @@ const Pricing = () => {
     const currentIndex = order.indexOf(current);
     const targetIndex = order.indexOf(planType as any);
 
-    // Upgrade (higher tier) -> go to Stripe Checkout
+    // Upgrade (higher tier)
     if (targetIndex > currentIndex) {
+      // Special case: premium to pro - show dialog
+      if (current === 'premium' && planType === 'pro') {
+        setPendingUpgradePlan('pro');
+        setShowUpgradeDialog(true);
+        return;
+      }
+      
+      // Other upgrades - go directly to Stripe Checkout
       await createCheckout(planType as 'premium' | 'pro', billingCycle);
       return;
     }
@@ -74,6 +85,20 @@ const Pricing = () => {
         : "To downgrade or cancel, we will open the Stripe customer portal."
     );
     await openCustomerPortal();
+  };
+
+  const handleImmediateUpgrade = async () => {
+    if (pendingUpgradePlan) {
+      await createCheckout(pendingUpgradePlan, billingCycle);
+      setPendingUpgradePlan(null);
+    }
+  };
+
+  const handleScheduledUpgrade = async () => {
+    if (pendingUpgradePlan) {
+      await scheduleUpgrade(pendingUpgradePlan, billingCycle);
+      setPendingUpgradePlan(null);
+    }
   };
 
   const translations = {
@@ -386,6 +411,18 @@ const Pricing = () => {
             : 'Questions? Contact us at support@gestionflow.com'}
         </p>
       </div>
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        onImmediateUpgrade={handleImmediateUpgrade}
+        onScheduledUpgrade={handleScheduledUpgrade}
+        subscriptionEnd={currentSubscription?.expires_at ?? null}
+        language={language}
+        price={availablePlans?.find(p => p.plan_type === 'pro')?.[billingCycle === 'monthly' ? 'monthly_price' : 'yearly_price'] ?? 0}
+        billingCycle={billingCycle}
+      />
     </div>
   );
 };

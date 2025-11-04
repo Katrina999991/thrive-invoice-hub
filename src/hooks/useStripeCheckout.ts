@@ -71,10 +71,40 @@ export const useStripeCheckout = () => {
     }
   };
 
+  const scheduleUpgrade = async (planType: PlanType, billingCycle: BillingCycle) => {
+    try {
+      setIsLoading(true);
+      
+      const priceId = STRIPE_CONFIG[planType][billingCycle].priceId;
+      
+      const { data, error } = await supabase.functions.invoke('schedule-upgrade', {
+        body: { priceId },
+      });
+
+      if (error) throw error;
+      
+      toast.success(
+        billingCycle === 'monthly'
+          ? 'Mise à niveau planifiée avec succès ! Votre plan Pro sera activé à la fin de votre période actuelle.'
+          : 'Upgrade scheduled successfully! Your Pro plan will be activated at the end of your current period.'
+      );
+      
+      // Refresh subscription data
+      queryClient.invalidateQueries({ queryKey: ['planLimits'] });
+      queryClient.invalidateQueries({ queryKey: ['currentSubscription'] });
+    } catch (error: any) {
+      console.error('Schedule upgrade error:', error);
+      toast.error(error.message || 'Failed to schedule upgrade');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     createCheckout,
     checkSubscription,
     openCustomerPortal,
+    scheduleUpgrade,
     isLoading,
   };
 };
