@@ -101,8 +101,26 @@ export const useInvoices = () => {
     }
   };
 
-  const createInvoice = async (invoiceData: Omit<InvoiceInsert, "user_id">, items: Omit<InvoiceItemInsert, "invoice_id">[]) => {
+  const createInvoice = async (invoiceData: Omit<InvoiceInsert, "user_id">, items: Omit<InvoiceItemInsert, "invoice_id">[], skipLimitCheck = false) => {
     if (!user) return null;
+
+    // Check invoice limit if not skipping
+    if (!skipLimitCheck) {
+      const { data: limits, error: limitsError } = await supabase
+        .rpc('get_user_plan_limits', { user_uuid: user.id })
+        .single();
+
+      if (limitsError) {
+        console.error("Error checking limits:", limitsError);
+      } else if (limits) {
+        const { max_invoices_per_month, invoices_used } = limits;
+        if (max_invoices_per_month !== null && invoices_used >= max_invoices_per_month) {
+          const error: any = new Error('Monthly invoice limit reached');
+          error.code = 'LIMIT_REACHED';
+          throw error;
+        }
+      }
+    }
 
     try {
       // Ensure notes is null if empty string

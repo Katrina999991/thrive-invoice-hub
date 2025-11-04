@@ -38,8 +38,35 @@ export const useCompanies = () => {
     }
   };
 
-  const createCompany = async (companyData: Omit<CompanyInsert, "user_id">) => {
+  const createCompany = async (companyData: Omit<CompanyInsert, "user_id">, skipLimitCheck = false) => {
     if (!user) return null;
+
+    // Check company limit if not skipping
+    if (!skipLimitCheck) {
+      // Get current company count
+      const { count, error: countError } = await supabase
+        .from("companies")
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      if (countError) {
+        console.error("Error checking company count:", countError);
+      } else {
+        // Get plan limits
+        const { data: limits, error: limitsError } = await supabase
+          .rpc('get_user_plan_limits', { user_uuid: user.id })
+          .single();
+
+        if (!limitsError && limits) {
+          const { max_companies } = limits;
+          if (max_companies !== null && (count ?? 0) >= max_companies) {
+            const error: any = new Error('Company limit reached');
+            error.code = 'LIMIT_REACHED';
+            throw error;
+          }
+        }
+      }
+    }
 
     try {
       const { data, error } = await supabase

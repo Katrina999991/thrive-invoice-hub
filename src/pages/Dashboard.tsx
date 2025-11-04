@@ -4,6 +4,7 @@ import { Building2, Users, Package, FileText, DollarSign, TrendingUp } from "luc
 import { useDashboard } from "@/hooks/useDashboard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
+import { SubscriptionLimitsCard } from "@/components/SubscriptionLimitsCard";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -69,7 +70,9 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <SubscriptionLimitsCard />
+        
         <Card>
           <CardHeader>
             <CardTitle>{t("dashboard.recentActivity")}</CardTitle>

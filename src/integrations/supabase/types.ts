@@ -527,15 +527,142 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          all_invoice_templates: boolean
+          all_reports: boolean
+          category_management: boolean
+          created_at: string
+          custom_email_templates: boolean
+          description_en: string | null
+          description_fr: string | null
+          id: string
+          max_clients: number | null
+          max_companies: number | null
+          max_expenses_per_month: number | null
+          max_invoices_per_month: number | null
+          monthly_price: number
+          name_en: string
+          name_fr: string
+          pdf_export: boolean
+          plan_type: Database["public"]["Enums"]["subscription_plan"]
+          updated_at: string
+          yearly_price: number
+        }
+        Insert: {
+          all_invoice_templates?: boolean
+          all_reports?: boolean
+          category_management?: boolean
+          created_at?: string
+          custom_email_templates?: boolean
+          description_en?: string | null
+          description_fr?: string | null
+          id?: string
+          max_clients?: number | null
+          max_companies?: number | null
+          max_expenses_per_month?: number | null
+          max_invoices_per_month?: number | null
+          monthly_price?: number
+          name_en: string
+          name_fr: string
+          pdf_export?: boolean
+          plan_type: Database["public"]["Enums"]["subscription_plan"]
+          updated_at?: string
+          yearly_price?: number
+        }
+        Update: {
+          all_invoice_templates?: boolean
+          all_reports?: boolean
+          category_management?: boolean
+          created_at?: string
+          custom_email_templates?: boolean
+          description_en?: string | null
+          description_fr?: string | null
+          id?: string
+          max_clients?: number | null
+          max_companies?: number | null
+          max_expenses_per_month?: number | null
+          max_invoices_per_month?: number | null
+          monthly_price?: number
+          name_en?: string
+          name_fr?: string
+          pdf_export?: boolean
+          plan_type?: Database["public"]["Enums"]["subscription_plan"]
+          updated_at?: string
+          yearly_price?: number
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"] | null
+          created_at: string
+          expenses_this_month: number
+          expires_at: string | null
+          id: string
+          invoices_this_month: number
+          last_reset_date: string
+          plan_type: Database["public"]["Enums"]["subscription_plan"]
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"] | null
+          created_at?: string
+          expenses_this_month?: number
+          expires_at?: string | null
+          id?: string
+          invoices_this_month?: number
+          last_reset_date?: string
+          plan_type?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"] | null
+          created_at?: string
+          expenses_this_month?: number
+          expires_at?: string | null
+          id?: string
+          invoices_this_month?: number
+          last_reset_date?: string
+          plan_type?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
+      get_user_plan_limits: {
+        Args: { user_uuid: string }
+        Returns: {
+          all_invoice_templates: boolean
+          all_reports: boolean
+          category_management: boolean
+          custom_email_templates: boolean
+          expenses_used: number
+          invoices_used: number
+          max_clients: number
+          max_companies: number
+          max_expenses_per_month: number
+          max_invoices_per_month: number
+          pdf_export: boolean
+          plan_type: Database["public"]["Enums"]["subscription_plan"]
+        }[]
+      }
+      reset_monthly_usage: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      billing_cycle: "monthly" | "yearly"
+      subscription_plan: "free" | "premium" | "pro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -662,6 +789,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      billing_cycle: ["monthly", "yearly"],
+      subscription_plan: ["free", "premium", "pro"],
+    },
   },
 } as const

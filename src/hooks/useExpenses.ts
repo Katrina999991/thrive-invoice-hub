@@ -44,8 +44,26 @@ export const useExpenses = () => {
     }
   };
 
-  const createExpense = async (expenseData: Omit<ExpenseInsert, "user_id">) => {
+  const createExpense = async (expenseData: Omit<ExpenseInsert, "user_id">, skipLimitCheck = false) => {
     if (!user) return null;
+
+    // Check expense limit if not skipping
+    if (!skipLimitCheck) {
+      const { data: limits, error: limitsError } = await supabase
+        .rpc('get_user_plan_limits', { user_uuid: user.id })
+        .single();
+
+      if (limitsError) {
+        console.error("Error checking limits:", limitsError);
+      } else if (limits) {
+        const { max_expenses_per_month, expenses_used } = limits;
+        if (max_expenses_per_month !== null && expenses_used >= max_expenses_per_month) {
+          const error: any = new Error('Monthly expense limit reached');
+          error.code = 'LIMIT_REACHED';
+          throw error;
+        }
+      }
+    }
 
     try {
       const { data, error } = await supabase

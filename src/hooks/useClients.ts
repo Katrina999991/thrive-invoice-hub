@@ -47,8 +47,35 @@ export const useClients = () => {
     }
   };
 
-  const createClient = async (clientData: Omit<ClientInsert, "user_id">) => {
+  const createClient = async (clientData: Omit<ClientInsert, "user_id">, skipLimitCheck = false) => {
     if (!user) return null;
+
+    // Check client limit if not skipping
+    if (!skipLimitCheck) {
+      // Get current client count
+      const { count, error: countError } = await supabase
+        .from("clients")
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      if (countError) {
+        console.error("Error checking client count:", countError);
+      } else {
+        // Get plan limits
+        const { data: limits, error: limitsError } = await supabase
+          .rpc('get_user_plan_limits', { user_uuid: user.id })
+          .single();
+
+        if (!limitsError && limits) {
+          const { max_clients } = limits;
+          if (max_clients !== null && (count ?? 0) >= max_clients) {
+            const error: any = new Error('Client limit reached');
+            error.code = 'LIMIT_REACHED';
+            throw error;
+          }
+        }
+      }
+    }
 
     try {
       const { data, error } = await supabase
