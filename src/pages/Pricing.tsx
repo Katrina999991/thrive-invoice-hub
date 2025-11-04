@@ -3,15 +3,59 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Check, Crown, TrendingUp, Zap } from "lucide-react";
-import { useState } from "react";
+import { Check, Crown, TrendingUp, Zap, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { toast } from "sonner";
 
 const Pricing = () => {
-  const { availablePlans, currentSubscription, isLoading } = useSubscription();
+  const { availablePlans, currentSubscription, isLoading, planLimits } = useSubscription();
   const { language } = useLanguage();
+  const { createCheckout, checkSubscription, openCustomerPortal, isLoading: stripeLoading } = useStripeCheckout();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [hasActiveStripeSubscription, setHasActiveStripeSubscription] = useState(false);
+
+  // Check subscription status on mount and periodically
+  useEffect(() => {
+    const checkStatus = async () => {
+      const status = await checkSubscription();
+      if (status?.subscribed) {
+        setHasActiveStripeSubscription(true);
+      }
+    };
+    
+    checkStatus();
+    const interval = setInterval(checkStatus, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Check for successful subscription from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscription') === 'success') {
+      toast.success(
+        language === 'fr' 
+          ? 'Abonnement activé avec succès !' 
+          : 'Subscription activated successfully!'
+      );
+      // Remove the query parameter
+      window.history.replaceState({}, '', window.location.pathname);
+      // Refresh subscription status
+      checkSubscription();
+    }
+  }, [language]);
+
+  const handleUpgrade = async (planType: string) => {
+    if (planType === 'free') {
+      toast.info(language === 'fr' ? 'Vous êtes déjà sur le plan gratuit' : 'You are already on the free plan');
+      return;
+    }
+    
+    await createCheckout(planType as 'premium' | 'pro', billingCycle);
+  };
 
   const translations = {
     en: {
@@ -21,8 +65,10 @@ const Pricing = () => {
       yearly: "Yearly",
       saveWithYearly: "Save 17% with yearly billing",
       currentPlan: "Current Plan",
-      upgrade: "Upgrade",
+      upgrade: "Subscribe",
       downgrade: "Downgrade",
+      manageSubscription: "Manage Subscription",
+      choosePlan: "Choose Plan",
       perMonth: "/month",
       perYear: "/year",
       billedMonthly: "billed monthly",
@@ -57,8 +103,10 @@ const Pricing = () => {
       yearly: "Annuel",
       saveWithYearly: "Économisez 17% avec la facturation annuelle",
       currentPlan: "Plan actuel",
-      upgrade: "Améliorer",
+      upgrade: "S'abonner",
       downgrade: "Rétrograder",
+      manageSubscription: "Gérer l'abonnement",
+      choosePlan: "Choisir ce plan",
       perMonth: "/mois",
       perYear: "/an",
       billedMonthly: "facturé mensuellement",
@@ -174,9 +222,11 @@ const Pricing = () => {
   };
 
   const getButtonText = (planType: string) => {
-    if (!currentSubscription) return t.upgrade;
+    if (planType === 'free') return t.currentPlan;
     
-    const currentPlanIndex = ['free', 'premium', 'pro'].indexOf(currentSubscription.plan_type);
+    if (!planLimits) return t.choosePlan;
+    
+    const currentPlanIndex = ['free', 'premium', 'pro'].indexOf(planLimits.plan_type);
     const targetPlanIndex = ['free', 'premium', 'pro'].indexOf(planType);
     
     if (currentPlanIndex === targetPlanIndex) return t.currentPlan;
@@ -185,7 +235,7 @@ const Pricing = () => {
   };
 
   const isCurrentPlan = (planType: string) => {
-    return currentSubscription?.plan_type === planType;
+    return planLimits?.plan_type === planType;
   };
 
   if (isLoading) {
@@ -201,6 +251,17 @@ const Pricing = () => {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-2">{t.title}</h1>
         <p className="text-muted-foreground text-lg">{t.subtitle}</p>
+        {hasActiveStripeSubscription && (
+          <Button 
+            onClick={openCustomerPortal} 
+            variant="outline" 
+            className="mt-4"
+            disabled={stripeLoading}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            {t.manageSubscription}
+          </Button>
+        )}
       </div>
 
       {/* Billing Toggle */}
@@ -285,7 +346,8 @@ const Pricing = () => {
                 <Button 
                   className="w-full" 
                   variant={isCurrent ? 'outline' : (isPro ? 'default' : 'secondary')}
-                  disabled={isCurrent}
+                  disabled={isCurrent || stripeLoading || plan.plan_type === 'free'}
+                  onClick={() => handleUpgrade(plan.plan_type)}
                 >
                   {getButtonText(plan.plan_type)}
                 </Button>
