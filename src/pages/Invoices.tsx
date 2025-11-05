@@ -549,6 +549,10 @@ const Invoices = () => {
       // Find client and company information
       const client = clients.find(c => c.id === invoice.client_id);
       const company = companies.find(c => c.id === client?.company_id);
+      console.log("[PDF] Company for invoice:", company?.name, {
+        invoice_body_message_en: (company as any)?.invoice_body_message_en,
+        invoice_body_message_fr: (company as any)?.invoice_body_message_fr
+      });
       
       // Create new PDF document
       const doc = new jsPDF();
@@ -1135,6 +1139,7 @@ const Invoices = () => {
           : ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr);
         
         if (bodyMessage) {
+          console.log("[PDF] Body message used:", bodyMessage);
           doc.setFontSize(10);
           doc.setTextColor(80, 80, 80);
           doc.setFont('helvetica', 'normal');
