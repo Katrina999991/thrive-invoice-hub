@@ -676,7 +676,7 @@ const Invoices = () => {
         yPos += 5;
       }
       if (company.tax_id) {
-        doc.text(`Tax ID: ${company.tax_id}`, 20, yPos);
+        doc.text(`${company.tax_id}`, 20, yPos);
         yPos += 5;
       }
       }
