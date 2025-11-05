@@ -12,12 +12,12 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Map Stripe product IDs to plan types
+// Map Stripe product IDs to plan types (LIVE MODE)
 const PRODUCT_MAP: Record<string, string> = {
-  "prod_TMIGO91Sky7JR8": "premium",
-  "prod_TMIGEeTzhusHyr": "premium",
-  "prod_TMIGrFlCJKwKAp": "pro",
-  "prod_TMIHsMZwCbWgYC": "pro",
+  "prod_TMfovYgDRDg1To": "premium", // Premium monthly
+  "prod_TMfpBvWHzZG8d9": "premium", // Premium yearly
+  "prod_TMfqkVpmz307cM": "pro",     // Pro monthly
+  "prod_TMfrCqT8V9f97H": "pro",     // Pro yearly
 };
 
 serve(async (req) => {
