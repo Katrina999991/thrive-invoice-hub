@@ -61,6 +61,9 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
+      automatic_tax: {
+        enabled: true,
+      },
       success_url: `${origin}/dashboard?subscription=success`,
       cancel_url: `${origin}/dashboard/pricing?subscription=cancelled`,
     });
