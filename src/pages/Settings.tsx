@@ -79,6 +79,8 @@ export default function Settings() {
     payment_confirmation_email_subject_fr: "",
     payment_confirmation_email_message_en: "",
     payment_confirmation_email_message_fr: "",
+    invoice_body_message_en: "",
+    invoice_body_message_fr: "",
     invoice_footer_message_en: "",
     invoice_footer_message_fr: ""
   });
@@ -228,6 +230,8 @@ Merci pour votre paiement rapide!
 
 Cordialement,
 {company_name}`,
+          invoice_body_message_en: (company as any).invoice_body_message_en || '',
+          invoice_body_message_fr: (company as any).invoice_body_message_fr || '',
           invoice_footer_message_en: (company as any).invoice_footer_message_en || 'Thank you for your business!',
           invoice_footer_message_fr: (company as any).invoice_footer_message_fr || 'Merci pour votre confiance!'
         });
@@ -1499,6 +1503,35 @@ Cordialement,
                           value={emailTemplates.payment_confirmation_email_message_fr}
                           onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_fr: e.target.value})}
                           disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6 pt-4 border-t">
+                    <h4 className="font-medium">{language === "fr" ? "Message dans le corps de la facture" : "Invoice Body Message"}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {language === "fr" ? "Ce message apparaîtra après le tableau des produits/services dans la facture PDF" : "This message will appear after the products/services table in the PDF invoice"}
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_body_message_en">Message (English)</Label>
+                        <Textarea
+                          id="invoice_body_message_en"
+                          rows={3}
+                          value={emailTemplates.invoice_body_message_en}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_body_message_en: e.target.value})}
+                          placeholder="Additional message in invoice body..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice_body_message_fr">Message (Français)</Label>
+                        <Textarea
+                          id="invoice_body_message_fr"
+                          rows={3}
+                          value={emailTemplates.invoice_body_message_fr}
+                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_body_message_fr: e.target.value})}
+                          placeholder="Message additionnel dans le corps de la facture..."
                         />
                       </div>
                     </div>
