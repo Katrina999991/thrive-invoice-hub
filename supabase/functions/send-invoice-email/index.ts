@@ -225,6 +225,9 @@ const handler = async (req: Request): Promise<Response> => {
       emailMessage = emailMessage!.replace(new RegExp(placeholder, 'g'), value);
     });
 
+    // Convert line breaks to HTML breaks for email
+    emailMessage = emailMessage.replace(/\n/g, '<br>');
+
     // Define table headers based on language
     const translations = isFrench ? {
       invoice: 'FACTURE',
