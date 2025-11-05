@@ -1186,6 +1186,13 @@ const Invoices = () => {
           ? ((company as any).invoice_footer_message_fr || company.invoice_footer_message)
           : ((company as any).invoice_footer_message_en || company.invoice_footer_message);
         
+        // If footer equals body message, avoid duplicate rendering
+        const bodyMessageForCompare = client?.language === 'french'
+          ? ((company as any).invoice_body_message_fr || (company as any).invoice_body_message_en)
+          : ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr);
+        const shouldRenderFooter = !!footerMessage && footerMessage.trim().length > 0 &&
+          footerMessage.trim() !== (bodyMessageForCompare?.trim() || '');
+        
         // Check if we have enough space, otherwise add new page
         if (finalY > pageHeight - 40) {
           doc.addPage();
@@ -1199,11 +1206,13 @@ const Invoices = () => {
             doc.line(20, pageHeight - 25, 190, pageHeight - 25);
           }
           // Add footer message at bottom
-          doc.setFontSize(8);
-          doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                          invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                          invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-          doc.text(footerMessage, 20, pageHeight - 20);
+          if (shouldRenderFooter) {
+            doc.setFontSize(8);
+            doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                            invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                            invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
+            doc.text(footerMessage, 20, pageHeight - 20);
+          }
         } else {
           // Add decorative footer elements on last page
           if (invoiceTemplate === 'modern') {
@@ -1216,11 +1225,13 @@ const Invoices = () => {
           }
           
           // Add footer message at bottom of last page
-          doc.setFontSize(8);
-          doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                          invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                          invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-          doc.text(footerMessage, 20, pageHeight - 20);
+          if (shouldRenderFooter) {
+            doc.setFontSize(8);
+            doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
+                            invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
+                            invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
+            doc.text(footerMessage, 20, pageHeight - 20);
+          }
         }
       } else {
         // If no footer message, still add decorative footer and thank you text on last page
