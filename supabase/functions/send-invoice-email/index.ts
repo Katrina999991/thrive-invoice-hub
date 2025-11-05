@@ -908,13 +908,72 @@ const handler = async (req: Request): Promise<Response> => {
     // Convert PDF to base64
     const pdfBase64 = doc.output('datauristring').split(',')[1];
 
+    // Build rich HTML email
+    const formatCurrency = (v: number) => new Intl.NumberFormat(isFrench ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(v || 0);
+    const items: Array<any> = (invoice as any).invoice_items || [];
+    const itemRows = items.map((it) => `
+      <tr>
+        <td style="padding:8px 12px;border:1px solid #e5e7eb;">${it.description || ''}</td>
+        <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">${Number(it.quantity || 0)}</td>
+        <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;">${formatCurrency(Number(it.unit_price || 0))}</td>
+        <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;">${formatCurrency(Number(it.total || 0))}</td>
+      </tr>
+    `).join('');
+
+    const summaryRows = `
+      <tr>
+        <td colspan="3" style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;font-weight:600;">${isFrench ? 'Sous-total' : 'Subtotal'}:</td>
+        <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;">${formatCurrency(Number(invoice.subtotal || 0))}</td>
+      </tr>
+      ${Number(invoice.tax_amount || 0) > 0 ? `
+      <tr>
+        <td colspan="3" style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;">${isFrench ? 'Taxes' : 'Taxes'}:</td>
+        <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;">${formatCurrency(Number(invoice.tax_amount || 0))}</td>
+      </tr>` : ''}
+      <tr>
+        <td colspan="3" style="padding:12px;border:1px solid #e5e7eb;text-align:right;font-weight:700;">${isFrench ? 'Montant total' : 'Total'}:</td>
+        <td style="padding:12px;border:1px solid #e5e7eb;text-align:right;font-weight:700;">${formatCurrency(Number(invoice.total || 0))}</td>
+      </tr>`;
+
+    const emailHtml = `
+      <div style="background:#f6f9fc;padding:24px;font-family:Arial,Helvetica,sans-serif;">
+        <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #eaeaea;border-radius:8px;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:12px;padding:20px 24px;background:#fafafa;border-bottom:1px solid #eaeaea;">
+            ${company.logo_url ? `<img src="${company.logo_url}" alt="${company.name}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;" />` : ''}
+            <div>
+              <div style="font-size:22px;font-weight:700;color:#111827;">${company.name}</div>
+              <div style="font-size:14px;color:#6b7280;">${isFrench ? 'Facture' : 'Invoice'} ${invoice.invoice_number}</div>
+            </div>
+          </div>
+          <div style="padding:20px 24px;">
+            <div style="font-size:14px;line-height:1.7;color:#111827;">${emailMessage}</div>
+
+            <h3 style="margin:24px 0 8px;font-size:16px;color:#111827;">${isFrench ? 'Résumé de la facture' : 'Invoice Summary'}</h3>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;color:#111827;">
+              <thead>
+                <tr style="background:#f3f4f6;">
+                  <th style="text-align:left;padding:10px 12px;border:1px solid #e5e7eb;">${isFrench ? 'Description' : 'Description'}</th>
+                  <th style="text-align:center;padding:10px 12px;border:1px solid #e5e7eb;">${isFrench ? 'Qté' : 'Qty'}</th>
+                  <th style="text-align:right;padding:10px 12px;border:1px solid #e5e7eb;">${isFrench ? 'Prix unitaire' : 'Unit price'}</th>
+                  <th style="text-align:right;padding:10px 12px;border:1px solid #e5e7eb;">${isFrench ? 'Total' : 'Total'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemRows}
+                ${summaryRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+
     // Send email using Resend
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'onboarding@resend.dev',
       to: emailsToSend,
       cc: ccEmails && ccEmails.length > 0 ? ccEmails : undefined,
       subject: emailSubject,
-      html: emailMessage,
+      html: emailHtml,
       attachments: [
         {
           filename: `invoice-${invoice.invoice_number}.pdf`,
