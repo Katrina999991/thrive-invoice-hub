@@ -1122,7 +1122,7 @@ const Invoices = () => {
       }
       
       // Add invoice body message if available (appears after table)
-      if (company && ((company as any).invoice_body_message || (company as any).invoice_body_message_fr)) {
+      if (company && ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr)) {
         const hasNotes = !!invoice.notes;
         const hasTerms = !!invoice.terms;
         let offset = 20;
@@ -1131,8 +1131,8 @@ const Invoices = () => {
         
         const finalY = tableEndY + offset;
         const bodyMessage = client?.language === 'french'
-          ? ((company as any).invoice_body_message_fr || (company as any).invoice_body_message)
-          : ((company as any).invoice_body_message || (company as any).invoice_body_message_fr);
+          ? ((company as any).invoice_body_message_fr || (company as any).invoice_body_message_en)
+          : ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr);
         
         if (bodyMessage) {
           doc.setFontSize(10);
@@ -1146,7 +1146,7 @@ const Invoices = () => {
       // Add terms if available
       if (invoice.terms) {
         const hasNotes = !!invoice.notes;
-        const hasBodyMessage = !!(company && ((company as any).invoice_body_message || (company as any).invoice_body_message_fr));
+        const hasBodyMessage = !!(company && ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr));
         let offset = 20;
         if (hasNotes && hasBodyMessage) offset = 80;
         else if (hasNotes || hasBodyMessage) offset = 50;
@@ -1166,7 +1166,7 @@ const Invoices = () => {
       if (company?.invoice_footer_message) {
         const hasNotes = !!invoice.notes;
         const hasTerms = !!invoice.terms;
-        const hasBodyMessage = !!(company && ((company as any).invoice_body_message || (company as any).invoice_body_message_fr));
+        const hasBodyMessage = !!(company && ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr));
         let offset = 20;
         if (hasNotes && hasTerms && hasBodyMessage) offset = 100;
         else if ((hasNotes && hasTerms) || (hasNotes && hasBodyMessage) || (hasTerms && hasBodyMessage)) offset = 70;
