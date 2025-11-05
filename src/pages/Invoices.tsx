@@ -1184,7 +1184,7 @@ const Invoices = () => {
         // Use client language to determine which footer message to use
         const footerMessage = client?.language === 'french' 
           ? ((company as any).invoice_footer_message_fr || company.invoice_footer_message)
-          : company.invoice_footer_message;
+          : ((company as any).invoice_footer_message_en || company.invoice_footer_message);
         
         // Check if we have enough space, otherwise add new page
         if (finalY > pageHeight - 40) {
