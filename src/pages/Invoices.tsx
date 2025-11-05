@@ -1121,9 +1121,38 @@ const Invoices = () => {
         doc.text(splitNotes, 20, finalY + 10);
       }
       
+      // Add invoice body message if available (appears after table)
+      if (company && ((company as any).invoice_body_message || (company as any).invoice_body_message_fr)) {
+        const hasNotes = !!invoice.notes;
+        const hasTerms = !!invoice.terms;
+        let offset = 20;
+        if (hasNotes && hasTerms) offset = 60;
+        else if (hasNotes || hasTerms) offset = 40;
+        
+        const finalY = tableEndY + offset;
+        const bodyMessage = client?.language === 'french'
+          ? ((company as any).invoice_body_message_fr || (company as any).invoice_body_message)
+          : ((company as any).invoice_body_message || (company as any).invoice_body_message_fr);
+        
+        if (bodyMessage) {
+          doc.setFontSize(10);
+          doc.setTextColor(80, 80, 80);
+          doc.setFont('helvetica', 'normal');
+          const splitBody = doc.splitTextToSize(bodyMessage, 170);
+          doc.text(splitBody, 20, finalY);
+        }
+      }
+      
       // Add terms if available
       if (invoice.terms) {
-        const finalY = tableEndY + (invoice.notes ? 40 : 20);
+        const hasNotes = !!invoice.notes;
+        const hasBodyMessage = !!(company && ((company as any).invoice_body_message || (company as any).invoice_body_message_fr));
+        let offset = 20;
+        if (hasNotes && hasBodyMessage) offset = 80;
+        else if (hasNotes || hasBodyMessage) offset = 50;
+        else if (hasNotes) offset = 40;
+        
+        const finalY = tableEndY + offset;
         doc.setFontSize(12);
         doc.setTextColor(40, 40, 40);
         doc.text(`${translations.terms}:`, 20, finalY);
@@ -1137,9 +1166,11 @@ const Invoices = () => {
       if (company?.invoice_footer_message) {
         const hasNotes = !!invoice.notes;
         const hasTerms = !!invoice.terms;
+        const hasBodyMessage = !!(company && ((company as any).invoice_body_message || (company as any).invoice_body_message_fr));
         let offset = 20;
-        if (hasNotes && hasTerms) offset = 60;
-        else if (hasNotes || hasTerms) offset = 40;
+        if (hasNotes && hasTerms && hasBodyMessage) offset = 100;
+        else if ((hasNotes && hasTerms) || (hasNotes && hasBodyMessage) || (hasTerms && hasBodyMessage)) offset = 70;
+        else if (hasNotes || hasTerms || hasBodyMessage) offset = 50;
         
         const finalY = tableEndY + offset;
         const pageSize = doc.internal.pageSize;

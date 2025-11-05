@@ -877,7 +877,9 @@ Thank you for your prompt payment and continued business!
 Best regards,
 {company_name}`,
     invoice_footer_message: "Thank you for your business!",
-    invoice_footer_message_fr: "Merci pour votre confiance !"
+    invoice_footer_message_fr: "Merci pour votre confiance !",
+    invoice_body_message: "",
+    invoice_body_message_fr: ""
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
@@ -988,7 +990,9 @@ Best regards,
       payment_confirmation_email_subject: newCompany.payment_confirmation_email_subject,
       payment_confirmation_email_message: newCompany.payment_confirmation_email_message,
       invoice_footer_message: newCompany.invoice_footer_message,
-      invoice_footer_message_fr: newCompany.invoice_footer_message_fr
+      invoice_footer_message_fr: newCompany.invoice_footer_message_fr,
+      invoice_body_message: newCompany.invoice_body_message,
+      invoice_body_message_fr: newCompany.invoice_body_message_fr
     };
     
     if (editingCompany) {
@@ -1062,7 +1066,9 @@ Thank you for your prompt payment and continued business!
 Best regards,
 {company_name}`,
       invoice_footer_message: "Thank you for your business!",
-      invoice_footer_message_fr: "Merci pour votre confiance !"
+      invoice_footer_message_fr: "Merci pour votre confiance !",
+      invoice_body_message: "",
+      invoice_body_message_fr: ""
     });
     setTaxes([]);
     setEditingCompany(null);
@@ -1145,7 +1151,9 @@ Thank you for your prompt payment and continued business!
 Best regards,
 {company_name}`,
       invoice_footer_message: (company as any).invoice_footer_message || "Thank you for your business!",
-      invoice_footer_message_fr: (company as any).invoice_footer_message_fr || "Merci pour votre confiance !"
+      invoice_footer_message_fr: (company as any).invoice_footer_message_fr || "Merci pour votre confiance !",
+      invoice_body_message: (company as any).invoice_body_message || "",
+      invoice_body_message_fr: (company as any).invoice_body_message_fr || ""
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {

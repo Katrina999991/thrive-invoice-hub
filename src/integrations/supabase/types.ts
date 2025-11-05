@@ -132,6 +132,9 @@ export type Database = {
           default_due_days: number | null
           email: string | null
           id: string
+          invoice_body_message: string | null
+          invoice_body_message_en: string | null
+          invoice_body_message_fr: string | null
           invoice_digits: number | null
           invoice_email_message: string | null
           invoice_email_message_en: string | null
@@ -178,6 +181,9 @@ export type Database = {
           default_due_days?: number | null
           email?: string | null
           id?: string
+          invoice_body_message?: string | null
+          invoice_body_message_en?: string | null
+          invoice_body_message_fr?: string | null
           invoice_digits?: number | null
           invoice_email_message?: string | null
           invoice_email_message_en?: string | null
@@ -224,6 +230,9 @@ export type Database = {
           default_due_days?: number | null
           email?: string | null
           id?: string
+          invoice_body_message?: string | null
+          invoice_body_message_en?: string | null
+          invoice_body_message_fr?: string | null
           invoice_digits?: number | null
           invoice_email_message?: string | null
           invoice_email_message_en?: string | null
