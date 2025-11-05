@@ -86,6 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
             city,
             province_state,
             postal_code,
+            tax_id,
             taxes,
             invoice_email_subject_en,
             invoice_email_subject_fr,
