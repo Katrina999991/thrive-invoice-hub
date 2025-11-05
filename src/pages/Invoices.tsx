@@ -666,15 +666,19 @@ const Invoices = () => {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);
         
-        let yPos = headerHeight + 9;
-        if (company.street_address) {
-          doc.text(company.street_address, 20, yPos);
-          yPos += 5;
-        }
-        if (company.city && company.province_state) {
-          doc.text(`${company.city}, ${company.province_state} ${company.postal_code || ''}`, 20, yPos);
-          yPos += 5;
-        }
+      let yPos = headerHeight + 9;
+      if (company.street_address) {
+        doc.text(company.street_address, 20, yPos);
+        yPos += 5;
+      }
+      if (company.city && company.province_state) {
+        doc.text(`${company.city}, ${company.province_state} ${company.postal_code || ''}`, 20, yPos);
+        yPos += 5;
+      }
+      if (company.tax_id) {
+        doc.text(`Tax ID: ${company.tax_id}`, 20, yPos);
+        yPos += 5;
+      }
       }
       
       // Invoice Number and Date will be positioned at the same level as "Bill To" later

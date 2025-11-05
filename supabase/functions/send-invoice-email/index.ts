@@ -388,6 +388,10 @@ const handler = async (req: Request): Promise<Response> => {
         doc.text(`${company.city}, ${company.province_state} ${company.postal_code || ''}`, 20, yPos);
         yPos += 5;
       }
+      if (company.tax_id) {
+        doc.text(`Tax ID: ${company.tax_id}`, 20, yPos);
+        yPos += 5;
+      }
     }
     
     // Separator line after header (not for creative or modern template)
