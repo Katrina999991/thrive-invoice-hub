@@ -232,6 +232,8 @@ export const useInvoices = () => {
   };
 
   const deleteInvoice = async (id: string) => {
+    if (!user) return;
+
     try {
       const { error } = await supabase
         .from("invoices")
@@ -239,6 +241,26 @@ export const useInvoices = () => {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Decrement the invoice counter for this month
+      const { data: subscription } = await supabase
+        .from("user_subscriptions")
+        .select("invoices_this_month")
+        .eq("user_id", user.id)
+        .single();
+
+      if (subscription && subscription.invoices_this_month > 0) {
+        const { error: updateError } = await supabase
+          .from("user_subscriptions")
+          .update({
+            invoices_this_month: subscription.invoices_this_month - 1
+          })
+          .eq("user_id", user.id);
+
+        if (updateError) {
+          console.error("Error updating invoice counter:", updateError);
+        }
+      }
 
       await fetchInvoices();
       
