@@ -2842,7 +2842,7 @@ const Reports = () => {
                           <XAxis dataKey="period" />
                           <YAxis />
                           <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
-                          <Bar dataKey="revenue" fill="#22c55e" />
+                          <Bar dataKey="revenue" fill="#22c55e" minPointSize={5} />
                         </BarChart>
                       </div>
                     </CardContent>
