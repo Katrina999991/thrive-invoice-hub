@@ -31,6 +31,8 @@ type Invoice = Tables<"invoices"> & {
     name: string;
     contact_person: string;
     email: string;
+    address?: string;
+    notes?: string;
   };
   invoice_items?: Array<Tables<"invoice_items"> & {
     products?: {
