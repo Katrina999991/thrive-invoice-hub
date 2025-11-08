@@ -1831,9 +1831,10 @@ Best regards,
                     <Input
                       id="quantity"
                       type="number"
-                      min="1"
+                      min="0.01"
+                      step="0.01"
                       value={currentItem.quantity}
-                      onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
+                      onChange={(e) => setCurrentItem({...currentItem, quantity: parseFloat(e.target.value) || 1})}
                     />
                   </div>
                   <div className="col-span-2">
