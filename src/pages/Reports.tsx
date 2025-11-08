@@ -355,32 +355,34 @@ const Reports = () => {
       });
     }
     
-    // En mode mensuel, remplir les mois manquants avec des valeurs à 0
-    if (viewMode === 'monthly' && startDate && endDate) {
-      const allMonths: RevenueByPeriod[] = [];
-      const currentDate = new Date(startDate);
-      const end = new Date(endDate);
+    // En mode mensuel, remplir tous les mois manquants entre le début et la fin
+    if (viewMode === 'monthly' && data.length > 0) {
+      const parsePeriod = (p: string) => {
+        const [y, m] = p.split('-').map(Number);
+        return new Date(y, m - 1, 1);
+      };
       
-      // Créer une map des données existantes pour accès rapide
-      const dataMap = new Map(data.map(item => [item.period, item]));
+      // Déterminer bornes: utiliser la sélection si dispo, sinon min/max des données
+      const originalMonthly = realRevenueData.monthlyData; // déjà trié
+      const startBound = startDate
+        ? new Date(startDate.getFullYear(), startDate.getMonth(), 1)
+        : parsePeriod(originalMonthly[0].period);
+      const endBound = endDate
+        ? new Date(endDate.getFullYear(), endDate.getMonth(), 1)
+        : parsePeriod(originalMonthly[originalMonthly.length - 1].period);
       
-      while (currentDate <= end) {
-        const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-        
-        if (dataMap.has(monthKey)) {
-          allMonths.push(dataMap.get(monthKey)!);
-        } else {
-          allMonths.push({
-            period: monthKey,
-            revenue: 0,
-            invoiceCount: 0
-          });
-        }
-        
-        currentDate.setMonth(currentDate.getMonth() + 1);
+      const map = new Map(data.map(d => [d.period, d]));
+      const filled: RevenueByPeriod[] = [];
+      const cursor = new Date(startBound);
+      
+      while (cursor <= endBound) {
+        const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+        const entry = map.get(key) || { period: key, revenue: 0, invoiceCount: 0 };
+        filled.push(entry);
+        cursor.setMonth(cursor.getMonth() + 1);
       }
       
-      data = allMonths;
+      data = filled;
     }
     
     return data.map(item => {
