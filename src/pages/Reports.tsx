@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useReports } from "@/hooks/useReports";
+import { useReports, type RevenueByPeriod } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
 import { useSalesReport } from "@/hooks/useSalesReport";
 import { useProductProfit } from "@/hooks/useProductProfit";
@@ -353,6 +353,34 @@ const Reports = () => {
         const endYear = yearRangeEnd ? yearRangeEnd.getFullYear() : 9999;
         return year >= startYear && year <= endYear;
       });
+    }
+    
+    // En mode mensuel, remplir les mois manquants avec des valeurs à 0
+    if (viewMode === 'monthly' && startDate && endDate) {
+      const allMonths: RevenueByPeriod[] = [];
+      const currentDate = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Créer une map des données existantes pour accès rapide
+      const dataMap = new Map(data.map(item => [item.period, item]));
+      
+      while (currentDate <= end) {
+        const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (dataMap.has(monthKey)) {
+          allMonths.push(dataMap.get(monthKey)!);
+        } else {
+          allMonths.push({
+            period: monthKey,
+            revenue: 0,
+            invoiceCount: 0
+          });
+        }
+        
+        currentDate.setMonth(currentDate.getMonth() + 1);
+      }
+      
+      data = allMonths;
     }
     
     return data.map(item => {
