@@ -87,6 +87,9 @@ const Invoices = () => {
 
   // Raw input state to allow typing decimals like 0.5 without jumpy resets
   const [quantityInput, setQuantityInput] = useState<string>("1");
+  
+  // Track if we're editing an existing item
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
@@ -135,10 +138,22 @@ const Invoices = () => {
       product_taxes: productTaxes.length > 0 ? productTaxes : undefined
     };
 
-    setNewInvoice({
-      ...newInvoice,
-      items: [...newInvoice.items, newItem]
-    });
+    if (editingItemIndex !== null) {
+      // Update existing item
+      const updatedItems = [...newInvoice.items];
+      updatedItems[editingItemIndex] = newItem;
+      setNewInvoice({
+        ...newInvoice,
+        items: updatedItems
+      });
+      setEditingItemIndex(null);
+    } else {
+      // Add new item
+      setNewInvoice({
+        ...newInvoice,
+        items: [...newInvoice.items, newItem]
+      });
+    }
 
     // Auto-populate unit price with client's hourly rate for next item
     const selectedClient = clients.find(client => client.id === newInvoice.client_id);
@@ -152,6 +167,34 @@ const Invoices = () => {
       notes: ""
     });
     setQuantityInput("1");
+  };
+
+  const editItem = (index: number) => {
+    const item = newInvoice.items[index];
+    setCurrentItem({
+      description: item.description,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      product_id: item.product_id || "",
+      notes: item.notes || ""
+    });
+    setQuantityInput(item.quantity.toString());
+    setEditingItemIndex(index);
+  };
+
+  const cancelEditItem = () => {
+    const selectedClient = clients.find(client => client.id === newInvoice.client_id);
+    const defaultUnitPrice = selectedClient?.hourly_rate || 0;
+    
+    setCurrentItem({
+      description: "",
+      quantity: 1,
+      unit_price: defaultUnitPrice,
+      product_id: "",
+      notes: ""
+    });
+    setQuantityInput("1");
+    setEditingItemIndex(null);
   };
 
   const removeItem = (index: number) => {
@@ -455,6 +498,7 @@ const Invoices = () => {
     setQuantityInput("1");
     setIsDialogOpen(false);
     setEditingInvoice(null);
+    setEditingItemIndex(null);
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
@@ -500,6 +544,7 @@ const Invoices = () => {
       })) || []
     });
     setIsDialogOpen(true);
+    setEditingItemIndex(null);
   };
 
   const filteredInvoices = invoices.filter(invoice => {
@@ -1562,6 +1607,7 @@ Best regards,
     if (isLimitReached('invoices')) {
       setShowLimitDialog(true);
     } else {
+      setEditingItemIndex(null);
       setIsDialogOpen(true);
     }
   };
@@ -1872,11 +1918,25 @@ Best regards,
                       onChange={(e) => setCurrentItem({...currentItem, notes: e.target.value})}
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Button type="button" onClick={addItem} className="w-full">
-                      <Plus className="h-4 w-4 mr-1" />
-                      {t("invoices.addItemButton")}
+                  <div className="col-span-2 flex gap-2">
+                    <Button type="button" onClick={addItem} className="flex-1">
+                      {editingItemIndex !== null ? (
+                        <>
+                          <Edit className="h-4 w-4 mr-1" />
+                          {t("invoices.updateItem")}
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-1" />
+                          {t("invoices.addItemButton")}
+                        </>
+                      )}
                     </Button>
+                    {editingItemIndex !== null && (
+                      <Button type="button" variant="outline" onClick={cancelEditItem}>
+                        {t("invoices.cancel")}
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -1887,12 +1947,12 @@ Best regards,
                       <Table>
                          <TableHeader>
                            <TableRow>
-                             <TableHead>Description</TableHead>
-                             <TableHead>Notes</TableHead>
-                             <TableHead>Qty</TableHead>
-                             <TableHead>Unit Price</TableHead>
-                             <TableHead>Total</TableHead>
-                             <TableHead className="w-16"></TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead>Notes</TableHead>
+                              <TableHead>Qty</TableHead>
+                              <TableHead>Unit Price</TableHead>
+                              <TableHead>Total</TableHead>
+                              <TableHead className="w-24"></TableHead>
                            </TableRow>
                          </TableHeader>
                          <TableBody>
@@ -1904,16 +1964,26 @@ Best regards,
                                  <TableCell>{item.quantity}</TableCell>
                                  <TableCell>${item.unit_price.toFixed(2)}</TableCell>
                                  <TableCell>${item.total.toFixed(2)}</TableCell>
-                                 <TableCell>
-                                   <Button
-                                     type="button"
-                                     variant="outline"
-                                     size="sm"
-                                     onClick={() => removeItem(index)}
-                                   >
-                                     <Trash2 className="h-4 w-4" />
-                                   </Button>
-                                 </TableCell>
+                                  <TableCell>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => editItem(index)}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => removeItem(index)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
                                </TableRow>
                                 {item.product_taxes && item.product_taxes.length > 0 && (
                                   <TableRow key={`tax-${index}`} className="bg-muted/20">
@@ -2009,6 +2079,7 @@ Best regards,
                   });
                   setQuantityInput("1");
                   setEditingInvoice(null);
+                  setEditingItemIndex(null);
                   setIsDialogOpen(false);
                 }} className="flex-1">
                   {t("invoices.cancel")}
