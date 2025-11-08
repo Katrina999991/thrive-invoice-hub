@@ -78,6 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
           address,
           phone,
           language,
+          notes,
           company_id,
           companies (
             name,
@@ -492,6 +493,14 @@ const handler = async (req: Request): Promise<Response> => {
       if (client.address) {
         doc.text(client.address, leftMargin, nextY);
         nextY += 5;
+      }
+      if (client.notes) {
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        doc.text(client.notes, leftMargin, nextY);
+        nextY += 5;
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
       }
     }
     
