@@ -85,6 +85,9 @@ const Invoices = () => {
     notes: ""
   });
 
+  // Raw input state to allow typing decimals like 0.5 without jumpy resets
+  const [quantityInput, setQuantityInput] = useState<string>("1");
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
@@ -148,6 +151,7 @@ const Invoices = () => {
       product_id: "",
       notes: ""
     });
+    setQuantityInput("1");
   };
 
   const removeItem = (index: number) => {
@@ -448,6 +452,7 @@ const Invoices = () => {
       product_id: "",
       notes: ""
     });
+    setQuantityInput("1");
     setIsDialogOpen(false);
     setEditingInvoice(null);
   };
@@ -1830,11 +1835,20 @@ Best regards,
                     <Label htmlFor="quantity">{t("invoices.quantity")}</Label>
                     <Input
                       id="quantity"
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={currentItem.quantity}
-                      onChange={(e) => setCurrentItem({...currentItem, quantity: parseFloat(e.target.value) || 1})}
+                      type="text"
+                      inputMode="decimal"
+                      pattern="[0-9]*[.,]?[0-9]*"
+                      value={quantityInput}
+                      onChange={(e) => setQuantityInput(e.target.value)}
+                      onBlur={() => {
+                        const normalized = quantityInput.replace(',', '.').trim();
+                        const parsed = parseFloat(normalized);
+                        const safe = !isNaN(parsed) ? parsed : 1;
+                        const clamped = safe < 0.01 ? 0.01 : safe;
+                        setCurrentItem({ ...currentItem, quantity: clamped });
+                        setQuantityInput(clamped.toString());
+                      }}
+                      placeholder="1"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1993,6 +2007,7 @@ Best regards,
                     product_id: "",
                     notes: ""
                   });
+                  setQuantityInput("1");
                   setEditingInvoice(null);
                   setIsDialogOpen(false);
                 }} className="flex-1">
