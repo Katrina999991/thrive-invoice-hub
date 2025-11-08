@@ -767,11 +767,11 @@ const Invoices = () => {
         // Add background box for modern and creative templates
         if (invoiceTemplate === 'modern') {
           doc.setFillColor(245, 245, 245); // Light gray background
-          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
+          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0) + (client.notes ? 5 : 0);
           doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
         } else if (invoiceTemplate === 'creative') {
           // Add gray background with light colored border for creative template
-          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0);
+          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0) + (client.notes ? 5 : 0);
           
           // Fill with light gray
           doc.setFillColor(245, 245, 245);
@@ -845,6 +845,14 @@ const Invoices = () => {
         if (client.address) {
           doc.text(client.address, leftMargin, nextY);
           nextY += 5;
+        }
+        if (client.notes) {
+          doc.setFontSize(9);
+          doc.setTextColor(120, 120, 120);
+          doc.text(client.notes, leftMargin, nextY);
+          nextY += 5;
+          doc.setFontSize(10);
+          doc.setTextColor(60, 60, 60);
         }
       }
       

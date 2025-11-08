@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -39,6 +40,7 @@ const Clients = () => {
     address: "",
     language: "english",
     hourly_rate: 0,
+    notes: "",
     created_at: new Date().toISOString().split('T')[0]
   });
 
@@ -115,7 +117,8 @@ const Clients = () => {
         phone: newClient.phone,
         address: newClient.address,
         language: newClient.language,
-        hourly_rate: newClient.hourly_rate
+        hourly_rate: newClient.hourly_rate,
+        notes: newClient.notes
       });
     } else {
       await createClient({
@@ -127,6 +130,7 @@ const Clients = () => {
         address: newClient.address,
         language: newClient.language,
         hourly_rate: newClient.hourly_rate,
+        notes: newClient.notes,
         created_at: newClient.created_at
       });
     }
@@ -144,6 +148,7 @@ const Clients = () => {
       address: "",
       language: "english",
       hourly_rate: 0,
+      notes: "",
       created_at: new Date().toISOString().split('T')[0]
     });
     setEmailList([""]);
@@ -166,6 +171,7 @@ const Clients = () => {
       address: client.address || "",
       language: client.language || "english",
       hourly_rate: client.hourly_rate || 0,
+      notes: client.notes || "",
       created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     });
     setIsDialogOpen(true);
@@ -383,6 +389,16 @@ const Clients = () => {
                   placeholder={t("clients.hourlyPlaceholder")}
                   value={newClient.hourly_rate}
                   onChange={(e) => setNewClient({...newClient, hourly_rate: parseFloat(e.target.value) || 0})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">{t("clients.notes")}</Label>
+                <Textarea
+                  id="notes"
+                  placeholder={t("clients.notesPlaceholder")}
+                  value={newClient.notes}
+                  onChange={(e) => setNewClient({...newClient, notes: e.target.value})}
+                  rows={3}
                 />
               </div>
               <div className="space-y-2">
