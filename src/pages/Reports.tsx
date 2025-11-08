@@ -424,7 +424,7 @@ const Reports = () => {
         const barImgData = barCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Graphique en barres - Revenus par période', 20, yPosition);
+        doc.text('Évolution des revenus par mois', 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -450,7 +450,7 @@ const Reports = () => {
         const lineImgData = lineCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Graphique en ligne - Évolution des revenus', 20, yPosition);
+        doc.text('Évolution des revenus', 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
