@@ -1324,12 +1324,24 @@ Best regards,
                 <Label htmlFor="logo">{t("companies.logo")}</Label>
                 <div className="flex items-center space-x-4">
                   {newCompany.logo_url && (
-                    <div className="w-16 h-16 border rounded-lg overflow-hidden">
+                    <div className="relative w-16 h-16 border rounded-lg overflow-hidden group">
                       <img 
                         src={newCompany.logo_url} 
                         alt={t("companies.currentLogo")} 
                         className="w-full h-full object-cover"
                       />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-90 transition-opacity"
+                        onClick={() => {
+                          setNewCompany({...newCompany, logo_url: ""});
+                          setLogoFile(null);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   )}
                   <div className="flex-1">
