@@ -1584,6 +1584,9 @@ Best regards,
         description: `Invoice email sent to ${selectedEmails.length} recipient(s)`,
       });
       
+      // Update invoice status to sent
+      await updateInvoice(emailingInvoice.id, { status: 'sent' });
+      
       setIsEmailDialogOpen(false);
       setEmailingInvoice(null);
       setSelectedEmails([]);
