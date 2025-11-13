@@ -36,7 +36,7 @@ import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 
 const Reports = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { planLimits } = useSubscription();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
@@ -3925,6 +3925,78 @@ const Reports = () => {
                               </TableCell>
                             </TableRow>
                           ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Tableau détaillé de toutes les dépenses avec taxes */}
+                {expenseReportData.expenseDetails && expenseReportData.expenseDetails.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{language === "fr" ? "Détail de toutes les dépenses" : "All Expenses Detail"}</CardTitle>
+                      <CardDescription>
+                        {language === "fr" ? "Liste complète des dépenses avec leurs taxes" : "Complete list of expenses with their taxes"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
+                            <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
+                            <TableHead>{language === "fr" ? "Catégorie" : "Category"}</TableHead>
+                            <TableHead>{language === "fr" ? "Compagnie" : "Company"}</TableHead>
+                            <TableHead>{language === "fr" ? "Fournisseur" : "Vendor"}</TableHead>
+                            <TableHead className="text-right">{language === "fr" ? "Montant" : "Amount"}</TableHead>
+                            <TableHead className="text-right">{language === "fr" ? "Taxes" : "Taxes"}</TableHead>
+                            <TableHead className="text-right">{language === "fr" ? "Total" : "Total"}</TableHead>
+                            <TableHead>{language === "fr" ? "Statut" : "Status"}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {expenseReportData.expenseDetails.map((expense) => {
+                            const totalTaxes = expense.taxes?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
+                            const totalWithTaxes = expense.amount + totalTaxes;
+                            
+                            return (
+                              <TableRow key={expense.id}>
+                                <TableCell>{format(new Date(expense.expense_date), 'dd/MM/yyyy')}</TableCell>
+                                <TableCell className="font-medium">{expense.description}</TableCell>
+                                <TableCell>{expense.category}</TableCell>
+                                <TableCell>{expense.company_name || '-'}</TableCell>
+                                <TableCell>{expense.vendor || '-'}</TableCell>
+                                <TableCell className="text-right">
+                                  {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(expense.amount)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {expense.taxes && expense.taxes.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {expense.taxes.map((tax, idx) => (
+                                        <div key={idx} className="text-xs">
+                                          {tax.name} ({tax.percentage}%): {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(tax.amount || 0)}
+                                        </div>
+                                      ))}
+                                      <div className="font-semibold pt-1 border-t">
+                                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(totalTaxes)}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    '-'
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(totalWithTaxes)}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge className={expense.status === 'paid' ? 'bg-green-500' : 'bg-yellow-500'}>
+                                    {expense.status === 'paid' ? (language === "fr" ? 'Payé' : 'Paid') : (language === "fr" ? 'Non payé' : 'Unpaid')}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </CardContent>

@@ -15,12 +15,25 @@ export interface ExpenseByCompany {
   count: number;
 }
 
+export interface ExpenseDetail {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+  expense_date: string;
+  status: string;
+  company_name?: string;
+  vendor?: string;
+  taxes?: Array<{ name: string; percentage: number; amount?: number }>;
+}
+
 export interface ExpenseReportData {
   totalExpenses: number;
   totalPaidExpenses: number;
   totalUnpaidExpenses: number;
   expensesByCategory: ExpenseByCategory[];
   expensesByCompany: ExpenseByCompany[];
+  expenseDetails: ExpenseDetail[];
 }
 
 export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?: 'all' | 'company' | 'category', filterId?: string) => {
@@ -37,14 +50,18 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
       setError(null);
 
       // Build base query with date filters if specified
-      let query = supabase
+      let query: any = supabase
         .from('expenses')
         .select(`
+          id,
+          description,
           amount,
           category,
           expense_date,
           status,
           company_id,
+          vendor,
+          taxes,
           companies (
             name
           )
@@ -77,23 +94,27 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
           totalPaidExpenses: 0,
           totalUnpaidExpenses: 0,
           expensesByCategory: [],
-          expensesByCompany: []
+          expensesByCompany: [],
+          expenseDetails: []
         });
         return;
       }
 
+      // Cast to any to handle typing issues until Supabase types regenerate
+      const expensesData = expenses as any[];
+
       // Calculate totals
-      const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-      const totalPaidExpenses = expenses
+      const totalExpenses = expensesData.reduce((sum, expense) => sum + Number(expense.amount), 0);
+      const totalPaidExpenses = expensesData
         .filter(expense => expense.status === 'paid')
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
-      const totalUnpaidExpenses = expenses
+      const totalUnpaidExpenses = expensesData
         .filter(expense => expense.status === 'unpaid')
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
 
       // Group by category
       const categoryMap = new Map<string, { total_amount: number; count: number }>();
-      expenses.forEach(expense => {
+      expensesData.forEach(expense => {
         const category = expense.category || 'Uncategorized';
         const amount = Number(expense.amount);
 
@@ -110,10 +131,10 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
 
       // Group by company
       const companyMap = new Map<string, { company_name: string; total_amount: number; count: number }>();
-      expenses.forEach(expense => {
-        if ((expense as any).companies && (expense as any).company_id) {
-          const companyId = (expense as any).company_id;
-          const companyName = (expense as any).companies.name;
+      expensesData.forEach(expense => {
+        if (expense.companies && expense.company_id) {
+          const companyId = expense.company_id;
+          const companyName = expense.companies.name;
           const amount = Number(expense.amount);
 
           if (companyMap.has(companyId)) {
@@ -151,12 +172,26 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
         }))
         .sort((a, b) => b.total_amount - a.total_amount);
 
+      // Prepare expense details
+      const expenseDetails: ExpenseDetail[] = expensesData.map(expense => ({
+        id: expense.id,
+        description: expense.description,
+        amount: Number(expense.amount),
+        category: expense.category || 'Uncategorized',
+        expense_date: expense.expense_date,
+        status: expense.status,
+        company_name: expense.companies?.name,
+        vendor: expense.vendor,
+        taxes: expense.taxes || []
+      }));
+
       setReportData({
         totalExpenses,
         totalPaidExpenses,
         totalUnpaidExpenses,
         expensesByCategory,
-        expensesByCompany
+        expensesByCompany,
+        expenseDetails
       });
     } catch (err) {
       console.error('Error fetching expense report data:', err);
