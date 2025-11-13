@@ -3997,6 +3997,33 @@ const Reports = () => {
                               </TableRow>
                             );
                           })}
+                          {/* Total row */}
+                          <TableRow className="bg-muted/50 font-bold">
+                            <TableCell colSpan={5} className="text-right">
+                              {language === "fr" ? "TOTAL" : "TOTAL"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(
+                                expenseReportData.expenseDetails.reduce((sum, exp) => sum + exp.amount, 0)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(
+                                expenseReportData.expenseDetails.reduce((sum, exp) => 
+                                  sum + (exp.taxes?.reduce((taxSum, tax) => taxSum + (tax.amount || 0), 0) || 0), 0
+                                )
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(
+                                expenseReportData.expenseDetails.reduce((sum, exp) => {
+                                  const totalTaxes = exp.taxes?.reduce((taxSum, tax) => taxSum + (tax.amount || 0), 0) || 0;
+                                  return sum + exp.amount + totalTaxes;
+                                }, 0)
+                              )}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </CardContent>
