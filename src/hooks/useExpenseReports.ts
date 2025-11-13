@@ -44,13 +44,9 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
           category,
           expense_date,
           status,
-          client_id,
-          clients!inner (
-            name,
-            company_id,
-            companies!inner (
-              name
-            )
+          company_id,
+          companies (
+            name
           )
         `)
         .eq('user_id', user.id);
@@ -65,7 +61,7 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
 
       // Add additional filters
       if (filterType === 'company' && filterId) {
-        query = query.eq('clients.company_id', filterId);
+        query = query.eq('company_id', filterId);
       }
       if (filterType === 'category' && filterId) {
         query = query.eq('category', filterId);
@@ -115,9 +111,9 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
       // Group by company
       const companyMap = new Map<string, { company_name: string; total_amount: number; count: number }>();
       expenses.forEach(expense => {
-        if (expense.clients?.companies) {
-          const companyId = expense.clients.company_id;
-          const companyName = expense.clients.companies.name;
+        if ((expense as any).companies && (expense as any).company_id) {
+          const companyId = (expense as any).company_id;
+          const companyName = (expense as any).companies.name;
           const amount = Number(expense.amount);
 
           if (companyMap.has(companyId)) {
