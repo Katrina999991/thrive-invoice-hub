@@ -22,9 +22,8 @@ export const useExpenses = () => {
         .from("expenses")
         .select(`
           *,
-          clients (
-            name,
-            contact_person
+          companies (
+            name
           )
         `)
         .eq("user_id", user.id)
