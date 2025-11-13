@@ -4008,11 +4008,41 @@ const Reports = () => {
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(
-                                expenseReportData.expenseDetails.reduce((sum, exp) => 
-                                  sum + (exp.taxes?.reduce((taxSum, tax) => taxSum + (tax.amount || 0), 0) || 0), 0
-                                )
-                              )}
+                              <div className="space-y-1">
+                                {(() => {
+                                  // Group taxes by name
+                                  const taxTotals = new Map<string, { name: string; total: number }>();
+                                  
+                                  expenseReportData.expenseDetails.forEach(exp => {
+                                    exp.taxes?.forEach(tax => {
+                                      const existing = taxTotals.get(tax.name);
+                                      if (existing) {
+                                        existing.total += (tax.amount || 0);
+                                      } else {
+                                        taxTotals.set(tax.name, {
+                                          name: tax.name,
+                                          total: tax.amount || 0
+                                        });
+                                      }
+                                    });
+                                  });
+                                  
+                                  const totalAllTaxes = Array.from(taxTotals.values()).reduce((sum, tax) => sum + tax.total, 0);
+                                  
+                                  return (
+                                    <>
+                                      {Array.from(taxTotals.values()).map((tax, idx) => (
+                                        <div key={idx} className="text-sm">
+                                          {tax.name}: {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(tax.total)}
+                                        </div>
+                                      ))}
+                                      <div className="pt-1 border-t">
+                                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(totalAllTaxes)}
+                                      </div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
                             </TableCell>
                             <TableCell className="text-right">
                               {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(
