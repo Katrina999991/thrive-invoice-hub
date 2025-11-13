@@ -54,7 +54,8 @@ const Expenses = () => {
     company_id: "",
     notes: "",
     vendor: "",
-    status: "unpaid"
+    status: "unpaid",
+    taxes: [] as Array<{ name: string; percentage: number; amount?: number }>
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -92,7 +93,8 @@ const Expenses = () => {
         expense_date: newExpense.expense_date,
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
-        status: newExpense.status
+        status: newExpense.status,
+        taxes: newExpense.taxes as any
       });
     } else {
       // Add new expense
@@ -104,7 +106,8 @@ const Expenses = () => {
         expense_date: newExpense.expense_date,
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
-        status: newExpense.status
+        status: newExpense.status,
+        taxes: newExpense.taxes as any
       });
     }
 
@@ -120,7 +123,8 @@ const Expenses = () => {
       company_id: "",
       notes: "",
       vendor: "",
-      status: "unpaid"
+      status: "unpaid",
+      taxes: []
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
@@ -132,11 +136,12 @@ const Expenses = () => {
       description: expense.description,
       amount: expense.amount.toString(),
       category: expense.category,
-      company_id: expense.company_id || "",
+      company_id: (expense as any).company_id || "",
       expense_date: expense.expense_date,
       notes: expense.notes || "",
       vendor: expense.vendor || "",
-      status: expense.status
+      status: expense.status,
+      taxes: (expense as any).taxes || []
     });
     setIsDialogOpen(true);
   };
@@ -268,7 +273,19 @@ const Expenses = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company_id">{t("expenses.company")}</Label>
-                <Select value={newExpense.company_id} onValueChange={(value) => setNewExpense({...newExpense, company_id: value})}>
+                <Select 
+                  value={newExpense.company_id} 
+                  onValueChange={(value) => {
+                    const selectedCompany = companies.find(c => c.id === value);
+                    const companyTaxes = selectedCompany?.taxes as any[] || [];
+                    const initialTaxes = companyTaxes.map((tax: any) => ({
+                      name: tax.name,
+                      percentage: tax.percentage,
+                      amount: 0
+                    }));
+                    setNewExpense({...newExpense, company_id: value, taxes: initialTaxes});
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t("expenses.companyPlaceholder")} />
                   </SelectTrigger>
@@ -281,6 +298,35 @@ const Expenses = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* Dynamic tax fields based on selected company */}
+              {newExpense.company_id && newExpense.taxes.length > 0 && (
+                <div className="space-y-3 p-4 border rounded-md bg-muted/50">
+                  <Label className="text-sm font-semibold">{language === "fr" ? "Taxes" : "Taxes"}</Label>
+                  {newExpense.taxes.map((tax, index) => (
+                    <div key={index} className="space-y-2">
+                      <Label htmlFor={`tax-${index}`} className="text-sm">
+                        {tax.name} ({tax.percentage}%)
+                      </Label>
+                      <Input
+                        id={`tax-${index}`}
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={tax.amount || ""}
+                        onChange={(e) => {
+                          const updatedTaxes = [...newExpense.taxes];
+                          updatedTaxes[index] = {
+                            ...updatedTaxes[index],
+                            amount: parseFloat(e.target.value) || 0
+                          };
+                          setNewExpense({...newExpense, taxes: updatedTaxes});
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="vendor">{t("expenses.vendor")}</Label>
                 <Input
