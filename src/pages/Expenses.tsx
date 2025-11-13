@@ -16,6 +16,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -94,8 +95,8 @@ const Expenses = () => {
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
         status: newExpense.status,
-        taxes: newExpense.taxes as any
-      });
+        taxes: newExpense.taxes
+      } as any);
     } else {
       // Add new expense
       await createExpense({
@@ -107,8 +108,8 @@ const Expenses = () => {
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
         status: newExpense.status,
-        taxes: newExpense.taxes as any
-      });
+        taxes: newExpense.taxes
+      } as any);
     }
 
     resetForm();
@@ -201,14 +202,15 @@ const Expenses = () => {
         </Button>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{editingExpense ? t("expenses.dialog.edit") : t("expenses.dialog.add")}</DialogTitle>
               <DialogDescription>
                 {editingExpense ? t("expenses.dialog.editDesc") : t("expenses.dialog.addDesc")}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <ScrollArea className="max-h-[calc(90vh-150px)] pr-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="description">{t("expenses.description")} <span className="text-destructive">*</span></Label>
                 <Textarea
@@ -365,7 +367,8 @@ const Expenses = () => {
                   {editingExpense ? t("expenses.updateButton") : t("expenses.addExpense")}
                 </Button>
               </div>
-            </form>
+              </form>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
