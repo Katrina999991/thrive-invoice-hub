@@ -1533,6 +1533,62 @@ const Reports = () => {
           styles: { fontSize: 10 },
           headStyles: { fillColor: [59, 130, 246] },
         });
+        
+        yPosition = (doc as any).lastAutoTable.finalY + 20;
+      }
+      
+      // Detailed Expenses table with taxes
+      if (expenseReportData.expenseDetails.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 220) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.text('Detailed Expenses with Taxes', 20, yPosition);
+        yPosition += 10;
+        
+        const detailTableData = expenseReportData.expenseDetails.map(expense => {
+          const totalTaxes = expense.taxes?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
+          const totalWithTaxes = expense.amount + totalTaxes;
+          const taxesDetail = expense.taxes && expense.taxes.length > 0
+            ? expense.taxes.map(tax => `${tax.name} (${tax.percentage}%): $${(tax.amount || 0).toFixed(2)}`).join('; ')
+            : '-';
+          
+          return [
+            format(new Date(expense.expense_date), 'dd/MM/yyyy'),
+            expense.description,
+            expense.category,
+            expense.company_name || '-',
+            expense.vendor || '-',
+            '$' + expense.amount.toFixed(2),
+            taxesDetail,
+            '$' + totalTaxes.toFixed(2),
+            '$' + totalWithTaxes.toFixed(2),
+            expense.status === 'paid' ? 'Paid' : 'Unpaid'
+          ];
+        });
+        
+        autoTable(doc, {
+          head: [['Date', 'Description', 'Category', 'Company', 'Vendor', 'Amount', 'Tax Details', 'Total Taxes', 'Total', 'Status']],
+          body: detailTableData,
+          startY: yPosition,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [34, 197, 94] },
+          columnStyles: {
+            0: { cellWidth: 20 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 20 },
+            3: { cellWidth: 20 },
+            4: { cellWidth: 20 },
+            5: { cellWidth: 18 },
+            6: { cellWidth: 30 },
+            7: { cellWidth: 18 },
+            8: { cellWidth: 18 },
+            9: { cellWidth: 15 }
+          },
+        });
       }
       
     } catch (error) {
@@ -1622,6 +1678,38 @@ const Reports = () => {
       
       const companyWS = XLSX.utils.aoa_to_sheet(companyData);
       XLSX.utils.book_append_sheet(wb, companyWS, 'By Company');
+    }
+    
+    // Detailed Expenses with Taxes sheet
+    if (expenseReportData.expenseDetails.length > 0) {
+      const detailData = [
+        ['Detailed Expenses with Taxes'],
+        [''],
+        ['Date', 'Description', 'Category', 'Company', 'Vendor', 'Amount', 'Tax Details', 'Total Taxes', 'Total with Taxes', 'Status'],
+        ...expenseReportData.expenseDetails.map(expense => {
+          const totalTaxes = expense.taxes?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
+          const totalWithTaxes = expense.amount + totalTaxes;
+          const taxesDetail = expense.taxes && expense.taxes.length > 0
+            ? expense.taxes.map(tax => `${tax.name} (${tax.percentage}%): $${(tax.amount || 0).toFixed(2)}`).join('; ')
+            : '-';
+          
+          return [
+            format(new Date(expense.expense_date), 'dd/MM/yyyy'),
+            expense.description,
+            expense.category,
+            expense.company_name || '-',
+            expense.vendor || '-',
+            expense.amount,
+            taxesDetail,
+            totalTaxes,
+            totalWithTaxes,
+            expense.status === 'paid' ? 'Paid' : 'Unpaid'
+          ];
+        })
+      ];
+      
+      const detailWS = XLSX.utils.aoa_to_sheet(detailData);
+      XLSX.utils.book_append_sheet(wb, detailWS, 'Detailed Expenses');
     }
     
     const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
