@@ -1550,10 +1550,26 @@ const Reports = () => {
         yPosition += 10;
         
         const detailTableData = expenseReportData.expenseDetails.map(expense => {
-          const totalTaxes = expense.taxes?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
-          const totalWithTaxes = expense.amount + totalTaxes;
-          const taxesDetail = expense.taxes && expense.taxes.length > 0
-            ? expense.taxes.map(tax => `${tax.name} (${tax.percentage}%): $${(tax.amount || 0).toFixed(2)}`).join('; ')
+          const taxLines = (expense.taxes || []).map((tax: any) => {
+            let amount = 0;
+            if (typeof tax?.percentage === 'number') {
+              amount = Number(expense.amount) * Number(tax.percentage) / 100;
+            } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+              amount = Number(expense.amount) * Number(tax.value) / 100;
+            } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+              amount = Number(tax.value);
+            }
+            const label = typeof tax?.percentage === 'number'
+              ? `${tax.name} (${tax.percentage}%)`
+              : (tax?.type === 'percentage' && typeof tax?.value === 'number')
+                ? `${tax.name} (${tax.value}%)`
+                : `${tax.name}`;
+            return { label, amount };
+          });
+          const totalTaxes = taxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+          const totalWithTaxes = Number(expense.amount) + totalTaxes;
+          const taxesDetail = taxLines.length
+            ? taxLines.map((t: any) => `${t.label}: $${(t.amount || 0).toFixed(2)}`).join('; ')
             : '-';
           
           return [
@@ -1562,7 +1578,7 @@ const Reports = () => {
             expense.category,
             expense.company_name || '-',
             expense.vendor || '-',
-            '$' + expense.amount.toFixed(2),
+            '$' + Number(expense.amount).toFixed(2),
             taxesDetail,
             '$' + totalTaxes.toFixed(2),
             '$' + totalWithTaxes.toFixed(2),
@@ -1687,10 +1703,26 @@ const Reports = () => {
         [''],
         ['Date', 'Description', 'Category', 'Company', 'Vendor', 'Amount', 'Tax Details', 'Total Taxes', 'Total with Taxes', 'Status'],
         ...expenseReportData.expenseDetails.map(expense => {
-          const totalTaxes = expense.taxes?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
-          const totalWithTaxes = expense.amount + totalTaxes;
-          const taxesDetail = expense.taxes && expense.taxes.length > 0
-            ? expense.taxes.map(tax => `${tax.name} (${tax.percentage}%): $${(tax.amount || 0).toFixed(2)}`).join('; ')
+          const taxLines = (expense.taxes || []).map((tax: any) => {
+            let amount = 0;
+            if (typeof tax?.percentage === 'number') {
+              amount = Number(expense.amount) * Number(tax.percentage) / 100;
+            } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+              amount = Number(expense.amount) * Number(tax.value) / 100;
+            } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+              amount = Number(tax.value);
+            }
+            const label = typeof tax?.percentage === 'number'
+              ? `${tax.name} (${tax.percentage}%)`
+              : (tax?.type === 'percentage' && typeof tax?.value === 'number')
+                ? `${tax.name} (${tax.value}%)`
+                : `${tax.name}`;
+            return { label, amount };
+          });
+          const totalTaxes = taxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+          const totalWithTaxes = Number(expense.amount) + totalTaxes;
+          const taxesDetail = taxLines.length
+            ? taxLines.map((t: any) => `${t.label}: $${(t.amount || 0).toFixed(2)}`).join('; ')
             : '-';
           
           return [
@@ -1699,7 +1731,7 @@ const Reports = () => {
             expense.category,
             expense.company_name || '-',
             expense.vendor || '-',
-            expense.amount,
+            Number(expense.amount),
             taxesDetail,
             totalTaxes,
             totalWithTaxes,
