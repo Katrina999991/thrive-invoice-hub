@@ -1605,6 +1605,59 @@ const Reports = () => {
             9: { cellWidth: 15 }
           },
         });
+        
+        yPosition = (doc as any).lastAutoTable.finalY + 20;
+        
+        // Calculate tax totals by type
+        const taxTotalsByType: { [key: string]: number } = {};
+        expenseReportData.expenseDetails.forEach(expense => {
+          (expense.taxes || []).forEach((tax: any) => {
+            let amount = 0;
+            if (typeof tax?.percentage === 'number') {
+              amount = Number(expense.amount) * Number(tax.percentage) / 100;
+            } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+              amount = Number(expense.amount) * Number(tax.value) / 100;
+            } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+              amount = Number(tax.value);
+            }
+            const taxName = tax?.name || 'Unknown Tax';
+            taxTotalsByType[taxName] = (taxTotalsByType[taxName] || 0) + amount;
+          });
+        });
+        
+        // Add Tax Summary table
+        if (Object.keys(taxTotalsByType).length > 0) {
+          // Check if we need a new page
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(14);
+          doc.text('Tax Summary by Type', 20, yPosition);
+          yPosition += 10;
+          
+          const taxSummaryData = Object.entries(taxTotalsByType).map(([taxName, total]) => [
+            taxName,
+            '$' + total.toFixed(2)
+          ]);
+          
+          // Add total row
+          const grandTotalTaxes = Object.values(taxTotalsByType).reduce((sum, val) => sum + val, 0);
+          taxSummaryData.push(['Total Taxes', '$' + grandTotalTaxes.toFixed(2)]);
+          
+          autoTable(doc, {
+            head: [['Tax Type', 'Total Amount']],
+            body: taxSummaryData,
+            startY: yPosition,
+            styles: { fontSize: 10 },
+            headStyles: { fillColor: [168, 85, 247] },
+            columnStyles: {
+              0: { cellWidth: 100 },
+              1: { cellWidth: 60 }
+            },
+          });
+        }
       }
       
     } catch (error) {
@@ -1742,6 +1795,40 @@ const Reports = () => {
       
       const detailWS = XLSX.utils.aoa_to_sheet(detailData);
       XLSX.utils.book_append_sheet(wb, detailWS, 'Detailed Expenses');
+    }
+    
+    // Tax Summary by Type sheet
+    const taxTotalsByType: { [key: string]: number } = {};
+    expenseReportData.expenseDetails.forEach(expense => {
+      (expense.taxes || []).forEach((tax: any) => {
+        let amount = 0;
+        if (typeof tax?.percentage === 'number') {
+          amount = Number(expense.amount) * Number(tax.percentage) / 100;
+        } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+          amount = Number(expense.amount) * Number(tax.value) / 100;
+        } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+          amount = Number(tax.value);
+        }
+        const taxName = tax?.name || 'Unknown Tax';
+        taxTotalsByType[taxName] = (taxTotalsByType[taxName] || 0) + amount;
+      });
+    });
+    
+    if (Object.keys(taxTotalsByType).length > 0) {
+      const taxSummaryData = [
+        ['Tax Summary by Type'],
+        [''],
+        ['Tax Type', 'Total Amount'],
+        ...Object.entries(taxTotalsByType).map(([taxName, total]) => [
+          taxName,
+          total
+        ]),
+        [''],
+        ['Total Taxes', Object.values(taxTotalsByType).reduce((sum, val) => sum + val, 0)]
+      ];
+      
+      const taxSummaryWS = XLSX.utils.aoa_to_sheet(taxSummaryData);
+      XLSX.utils.book_append_sheet(wb, taxSummaryWS, 'Tax Summary');
     }
     
     const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
