@@ -1551,14 +1551,22 @@ const Reports = () => {
         
         const detailTableData = expenseReportData.expenseDetails.map(expense => {
           const taxLines = (expense.taxes || []).map((tax: any) => {
+            // Use the stored amount directly if it exists, otherwise calculate it
             let amount = 0;
-            if (typeof tax?.percentage === 'number') {
+            if (typeof tax?.amount === 'number') {
+              // Use the stored amount directly (user-entered value)
+              amount = Number(tax.amount);
+            } else if (typeof tax?.percentage === 'number') {
+              // Fallback: calculate from percentage if amount not stored
               amount = Number(expense.amount) * Number(tax.percentage) / 100;
             } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+              // Fallback: calculate from type/value format
               amount = Number(expense.amount) * Number(tax.value) / 100;
             } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+              // Fallback: use value if type is amount
               amount = Number(tax.value);
             }
+            
             const label = typeof tax?.percentage === 'number'
               ? `${tax.name} (${tax.percentage}%)`
               : (tax?.type === 'percentage' && typeof tax?.value === 'number')
@@ -1612,12 +1620,19 @@ const Reports = () => {
         const taxTotalsByType: { [key: string]: number } = {};
         expenseReportData.expenseDetails.forEach(expense => {
           (expense.taxes || []).forEach((tax: any) => {
+            // Use the stored amount directly if it exists, otherwise calculate it
             let amount = 0;
-            if (typeof tax?.percentage === 'number') {
+            if (typeof tax?.amount === 'number') {
+              // Use the stored amount directly (user-entered value)
+              amount = Number(tax.amount);
+            } else if (typeof tax?.percentage === 'number') {
+              // Fallback: calculate from percentage if amount not stored
               amount = Number(expense.amount) * Number(tax.percentage) / 100;
             } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+              // Fallback: calculate from type/value format
               amount = Number(expense.amount) * Number(tax.value) / 100;
             } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+              // Fallback: use value if type is amount
               amount = Number(tax.value);
             }
             const taxName = tax?.name || 'Unknown Tax';
@@ -1757,14 +1772,22 @@ const Reports = () => {
         ['Date', 'Description', 'Category', 'Company', 'Vendor', 'Amount', 'Tax Details', 'Total Taxes', 'Total with Taxes', 'Status'],
         ...expenseReportData.expenseDetails.map(expense => {
           const taxLines = (expense.taxes || []).map((tax: any) => {
+            // Use the stored amount directly if it exists, otherwise calculate it
             let amount = 0;
-            if (typeof tax?.percentage === 'number') {
+            if (typeof tax?.amount === 'number') {
+              // Use the stored amount directly (user-entered value)
+              amount = Number(tax.amount);
+            } else if (typeof tax?.percentage === 'number') {
+              // Fallback: calculate from percentage if amount not stored
               amount = Number(expense.amount) * Number(tax.percentage) / 100;
             } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+              // Fallback: calculate from type/value format
               amount = Number(expense.amount) * Number(tax.value) / 100;
             } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+              // Fallback: use value if type is amount
               amount = Number(tax.value);
             }
+            
             const label = typeof tax?.percentage === 'number'
               ? `${tax.name} (${tax.percentage}%)`
               : (tax?.type === 'percentage' && typeof tax?.value === 'number')
@@ -1801,12 +1824,19 @@ const Reports = () => {
     const taxTotalsByType: { [key: string]: number } = {};
     expenseReportData.expenseDetails.forEach(expense => {
       (expense.taxes || []).forEach((tax: any) => {
+        // Use the stored amount directly if it exists, otherwise calculate it
         let amount = 0;
-        if (typeof tax?.percentage === 'number') {
+        if (typeof tax?.amount === 'number') {
+          // Use the stored amount directly (user-entered value)
+          amount = Number(tax.amount);
+        } else if (typeof tax?.percentage === 'number') {
+          // Fallback: calculate from percentage if amount not stored
           amount = Number(expense.amount) * Number(tax.percentage) / 100;
         } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
+          // Fallback: calculate from type/value format
           amount = Number(expense.amount) * Number(tax.value) / 100;
         } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
+          // Fallback: use value if type is amount
           amount = Number(tax.value);
         }
         const taxName = tax?.name || 'Unknown Tax';
