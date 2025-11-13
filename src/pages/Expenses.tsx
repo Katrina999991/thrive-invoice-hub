@@ -13,7 +13,7 @@ import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink } from 
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
-import { useClients } from "@/hooks/useClients";
+import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import type { Tables } from "@/integrations/supabase/types";
@@ -26,7 +26,7 @@ const Expenses = () => {
   const { t, language } = useLanguage();
   const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
   const { categories, loading: categoriesLoading } = useCategories();
-  const { clients, loading: clientsLoading } = useClients();
+  const { companies, loading: companiesLoading } = useCompanies();
   const { isLimitReached } = useSubscription();
 
   // Helper to get translated category name
@@ -51,7 +51,7 @@ const Expenses = () => {
     amount: "",
     category: "",
     expense_date: "",
-    client_id: "",
+    company_id: "",
     notes: "",
     vendor: "",
     status: "unpaid"
@@ -88,7 +88,7 @@ const Expenses = () => {
         description: newExpense.description,
         amount: parseFloat(newExpense.amount) || 0,
         category: newExpense.category,
-        client_id: newExpense.client_id || null,
+        company_id: newExpense.company_id || null,
         expense_date: newExpense.expense_date,
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
@@ -100,7 +100,7 @@ const Expenses = () => {
         description: newExpense.description,
         amount: parseFloat(newExpense.amount) || 0,
         category: newExpense.category,
-        client_id: newExpense.client_id || null,
+        company_id: newExpense.company_id || null,
         expense_date: newExpense.expense_date,
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
@@ -117,7 +117,7 @@ const Expenses = () => {
       amount: "",
       category: "",
       expense_date: "",
-      client_id: "",
+      company_id: "",
       notes: "",
       vendor: "",
       status: "unpaid"
@@ -132,7 +132,7 @@ const Expenses = () => {
       description: expense.description,
       amount: expense.amount.toString(),
       category: expense.category,
-      client_id: expense.client_id || "",
+      company_id: expense.company_id || "",
       expense_date: expense.expense_date,
       notes: expense.notes || "",
       vendor: expense.vendor || "",
@@ -154,7 +154,7 @@ const Expenses = () => {
   const paidExpenses = expenses.filter(e => e.status === "paid").reduce((sum, expense) => sum + Number(expense.amount), 0);
   const unpaidExpenses = expenses.filter(e => e.status === "unpaid").reduce((sum, expense) => sum + Number(expense.amount), 0);
 
-  if (expensesLoading || clientsLoading) {
+  if (expensesLoading || companiesLoading) {
     return <div>{t("expenses.loading")}</div>;
   }
 
@@ -267,15 +267,15 @@ const Expenses = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client_id">{t("expenses.client")}</Label>
-                <Select value={newExpense.client_id} onValueChange={(value) => setNewExpense({...newExpense, client_id: value})}>
+                <Label htmlFor="company_id">{t("expenses.company")}</Label>
+                <Select value={newExpense.company_id} onValueChange={(value) => setNewExpense({...newExpense, company_id: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("expenses.clientPlaceholder")} />
+                    <SelectValue placeholder={t("expenses.companyPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
