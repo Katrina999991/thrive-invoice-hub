@@ -20,7 +20,8 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { invoiceId } = await req.json();
+    const body = await req.json();
+    const invoiceId = body.invoiceId || body.invoice_id;
     if (!invoiceId) throw new Error("invoiceId is required");
 
     const supabaseClient = createClient(
@@ -119,6 +120,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       url: paymentLink.url,
+      payment_link: paymentLink.url,
       paymentLinkId: paymentLink.id 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
