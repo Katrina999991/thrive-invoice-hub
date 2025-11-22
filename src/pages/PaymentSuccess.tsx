@@ -11,14 +11,14 @@ const PaymentSuccess = () => {
   const { language } = useLanguage();
   const invoiceId = searchParams.get("invoice");
 
-  useEffect(() => {
-    // Auto-redirect after 5 seconds
-    const timer = setTimeout(() => {
-      navigate("/dashboard/invoices");
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  const handleClose = () => {
+    // Close the window/tab if opened from payment link
+    window.close();
+    // If window.close() doesn't work (not opened by script), redirect to home
+    setTimeout(() => {
+      navigate("/");
+    }, 100);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
@@ -46,14 +46,14 @@ const PaymentSuccess = () => {
           )}
           <p className="text-sm text-muted-foreground">
             {language === "fr" 
-              ? "Vous serez redirigé vers vos factures dans quelques secondes..." 
-              : "You will be redirected to your invoices in a few seconds..."}
+              ? "Merci pour votre paiement. Vous pouvez fermer cette fenêtre." 
+              : "Thank you for your payment. You can close this window."}
           </p>
           <Button 
-            onClick={() => navigate("/dashboard/invoices")}
+            onClick={handleClose}
             className="w-full"
           >
-            {language === "fr" ? "Retour aux factures" : "Back to Invoices"}
+            {language === "fr" ? "Fermer" : "Close"}
           </Button>
         </CardContent>
       </Card>
