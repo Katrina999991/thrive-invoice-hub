@@ -1631,7 +1631,8 @@ Best regards,
   };
 
   const handleGeneratePaymentLink = async (invoice: Invoice) => {
-    if (!onboardingComplete) {
+    // In test mode, we allow payment links as long as a Stripe account exists
+    if (!stripeAccountId) {
       toast({
         title: language === "fr" ? "Stripe non configuré" : "Stripe not configured",
         description: language === "fr" 
