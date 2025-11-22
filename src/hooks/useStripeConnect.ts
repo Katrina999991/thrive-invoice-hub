@@ -14,7 +14,12 @@ export const useStripeConnect = () => {
 
   // Load Stripe account info
   const loadStripeAccount = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log("[useStripeConnect] No user ID available");
+      return;
+    }
+    
+    console.log("[useStripeConnect] Loading Stripe account for user:", user.id);
     
     try {
       const { data, error } = await supabase
@@ -24,6 +29,11 @@ export const useStripeConnect = () => {
         .single();
 
       if (error) throw error;
+      
+      console.log("[useStripeConnect] Profile data:", { 
+        stripe_account_id: data.stripe_account_id, 
+        stripe_onboarding_complete: data.stripe_onboarding_complete 
+      });
       
       setStripeAccountId(data.stripe_account_id);
       setOnboardingComplete(data.stripe_onboarding_complete || false);

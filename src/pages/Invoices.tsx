@@ -77,7 +77,7 @@ const Invoices = () => {
   // Load Stripe account info on mount
   useEffect(() => {
     loadStripeAccount();
-  }, []);
+  }, [loadStripeAccount]);
 
   // Limit dialog state
   const [showLimitDialog, setShowLimitDialog] = useState(false);
