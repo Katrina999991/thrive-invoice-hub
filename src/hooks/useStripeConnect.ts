@@ -27,6 +27,24 @@ export const useStripeConnect = () => {
       
       setStripeAccountId(data.stripe_account_id);
       setOnboardingComplete(data.stripe_onboarding_complete || false);
+
+      // If account exists but onboarding not complete, verify with Stripe
+      if (data.stripe_account_id && !data.stripe_onboarding_complete) {
+        try {
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-stripe-account");
+          if (!verifyError && verifyData?.onboardingComplete) {
+            setOnboardingComplete(true);
+            toast({
+              title: language === "fr" ? "Compte Stripe activé" : "Stripe account activated",
+              description: language === "fr" 
+                ? "Votre compte Stripe est maintenant actif" 
+                : "Your Stripe account is now active",
+            });
+          }
+        } catch (error) {
+          console.error("Error verifying Stripe account:", error);
+        }
+      }
     } catch (error) {
       console.error("Error loading Stripe account:", error);
     }
