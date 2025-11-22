@@ -68,6 +68,7 @@ const Invoices = () => {
   const { isLimitReached, planLimits } = useSubscription();
   const { 
     isLoading: isStripeLoading,
+    stripeAccountId,
     onboardingComplete,
     loadStripeAccount,
     createPaymentLink
@@ -2505,7 +2506,7 @@ Best regards,
                           <Send className="h-4 w-4" />
                         </Button>
                       )}
-                      {onboardingComplete && invoice.status !== "paid" && (
+                      {stripeAccountId && invoice.status !== "paid" && (
                         invoice.payment_link ? (
                           <Button 
                             variant="outline" 

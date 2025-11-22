@@ -46,8 +46,13 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (!profile?.stripe_account_id || !profile?.stripe_onboarding_complete) {
-      throw new Error("Stripe account not connected. Please complete onboarding first.");
+    if (!profile?.stripe_account_id) {
+      throw new Error("Stripe account not connected. Please start Stripe onboarding first.");
+    }
+
+    // Log a warning if onboarding is not complete (useful for test mode)
+    if (!profile?.stripe_onboarding_complete) {
+      logStep("WARNING: Onboarding not complete - may be test mode", { accountId: profile.stripe_account_id });
     }
 
     // Get invoice details
