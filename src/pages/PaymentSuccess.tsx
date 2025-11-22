@@ -12,12 +12,8 @@ const PaymentSuccess = () => {
   const invoiceId = searchParams.get("invoice");
 
   const handleClose = () => {
-    // Close the window/tab if opened from payment link
+    // Try to close the window/tab
     window.close();
-    // If window.close() doesn't work (not opened by script), redirect to home
-    setTimeout(() => {
-      navigate("/");
-    }, 100);
   };
 
   return (
