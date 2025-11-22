@@ -12,8 +12,9 @@ const PaymentSuccess = () => {
   const invoiceId = searchParams.get("invoice");
 
   const handleClose = () => {
-    // Try to close the window/tab
-    window.close();
+    if (window.history.length > 1) {
+      window.history.back();
+    }
   };
 
   return (
