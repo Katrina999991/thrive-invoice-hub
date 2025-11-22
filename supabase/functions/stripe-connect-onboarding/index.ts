@@ -49,6 +49,23 @@ serve(async (req) => {
 
     let accountId = profile?.stripe_account_id;
 
+    // Verify existing account is valid, or create new one
+    if (accountId) {
+      try {
+        // Try to retrieve the account to verify it exists
+        await stripe.accounts.retrieve(accountId);
+        logStep("Existing Stripe Connect account verified", { accountId });
+      } catch (error) {
+        // Account doesn't exist or is invalid - reset and create new
+        logStep("Existing account invalid, resetting", { oldAccountId: accountId, error: error.message });
+        accountId = null;
+        await supabaseClient
+          .from("profiles")
+          .update({ stripe_account_id: null, stripe_onboarding_complete: false })
+          .eq("user_id", user.id);
+      }
+    }
+
     // Create account if it doesn't exist
     if (!accountId) {
       const account = await stripe.accounts.create({
