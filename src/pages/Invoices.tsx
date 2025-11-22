@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2 } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -65,9 +66,21 @@ const Invoices = () => {
   const { companies } = useCompanies();
   const { products } = useProducts();
   const { isLimitReached, planLimits } = useSubscription();
+  const { 
+    isLoading: isStripeLoading,
+    onboardingComplete,
+    loadStripeAccount,
+    createPaymentLink
+  } = useStripeConnect();
+
+  // Load Stripe account info on mount
+  useEffect(() => {
+    loadStripeAccount();
+  }, []);
 
   // Limit dialog state
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
@@ -1616,6 +1629,36 @@ Best regards,
     }
   };
 
+  const handleGeneratePaymentLink = async (invoice: Invoice) => {
+    if (!onboardingComplete) {
+      toast({
+        title: language === "fr" ? "Stripe non configuré" : "Stripe not configured",
+        description: language === "fr" 
+          ? "Veuillez d'abord connecter votre compte Stripe dans les paramètres" 
+          : "Please connect your Stripe account in settings first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const paymentLink = await createPaymentLink(invoice.id);
+    if (paymentLink) {
+      await fetchInvoices(); // Refresh to get updated invoice with payment link
+    }
+  };
+
+  const copyPaymentLink = (link: string, invoiceNumber: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedLink(invoiceNumber);
+    toast({
+      title: language === "fr" ? "Lien copié" : "Link copied",
+      description: language === "fr" 
+        ? "Le lien de paiement a été copié dans le presse-papiers" 
+        : "Payment link has been copied to clipboard",
+    });
+    setTimeout(() => setCopiedLink(null), 2000);
+  };
+
   const handleCreateInvoiceClick = () => {
     if (isLimitReached('invoices')) {
       setShowLimitDialog(true);
@@ -2411,17 +2454,24 @@ Best regards,
                   </TableCell>
                   <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Select value={invoice.status} onValueChange={(value) => updateInvoice(invoice.id, { status: value })}>
-                      <SelectTrigger className="w-28 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
-                        <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
-                        <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                        <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {invoice.status === "paid" ? (
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                        <Check className="h-3 w-3 mr-1" />
+                        {t("invoices.statusPaid")}
+                      </Badge>
+                    ) : (
+                      <Select value={invoice.status} onValueChange={(value) => updateInvoice(invoice.id, { status: value })}>
+                        <SelectTrigger className="w-28 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                          <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                          <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                          <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </TableCell>
                   <TableCell>{invoice.issue_date}</TableCell>
                   <TableCell>{invoice.due_date}</TableCell>
@@ -2454,6 +2504,36 @@ Best regards,
                         >
                           <Send className="h-4 w-4" />
                         </Button>
+                      )}
+                      {onboardingComplete && invoice.status !== "paid" && (
+                        invoice.payment_link ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
+                            title={language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}
+                          >
+                            {copiedLink === invoice.invoice_number ? (
+                              <Check className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleGeneratePaymentLink(invoice)}
+                            disabled={isStripeLoading}
+                            title={language === "fr" ? "Générer un lien de paiement" : "Generate payment link"}
+                          >
+                            {isStripeLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ExternalLink className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )
                       )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
