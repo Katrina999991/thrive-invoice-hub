@@ -867,8 +867,8 @@ Cordialement,
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
                     {language === "fr" 
-                      ? "Stripe Connect vous permet de recevoir des paiements directement sur votre compte Stripe. Vos clients pourront payer leurs factures en ligne par carte bancaire." 
-                      : "Stripe Connect allows you to receive payments directly to your Stripe account. Your clients will be able to pay their invoices online by credit card."}
+                      ? "Stripe Connect vous permet de recevoir des paiements directement sur votre compte Stripe. Vos clients pourront payer leurs factures en ligne." 
+                      : "Stripe Connect allows you to receive payments directly to your Stripe account. Your clients will be able to pay their invoices online."}
                   </p>
                   <div className="space-y-2">
                     <p className="text-sm font-medium">
