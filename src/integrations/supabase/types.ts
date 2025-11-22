@@ -409,7 +409,10 @@ export type Database = {
           invoice_number: string
           issue_date: string
           notes: string | null
+          paid_at: string | null
+          payment_link: string | null
           status: string
+          stripe_payment_intent_id: string | null
           subtotal: number
           tax_amount: number
           tax_rate: number
@@ -426,7 +429,10 @@ export type Database = {
           invoice_number: string
           issue_date?: string
           notes?: string | null
+          paid_at?: string | null
+          payment_link?: string | null
           status?: string
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
@@ -443,7 +449,10 @@ export type Database = {
           invoice_number?: string
           issue_date?: string
           notes?: string | null
+          paid_at?: string | null
+          payment_link?: string | null
           status?: string
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
@@ -522,6 +531,8 @@ export type Database = {
           password_change_required: boolean
           phone_number: string | null
           recovery_email: string | null
+          stripe_account_id: string | null
+          stripe_onboarding_complete: boolean | null
           updated_at: string
           user_id: string
           username: string | null
@@ -534,6 +545,8 @@ export type Database = {
           password_change_required?: boolean
           phone_number?: string | null
           recovery_email?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -546,6 +559,8 @@ export type Database = {
           password_change_required?: boolean
           phone_number?: string | null
           recovery_email?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean | null
           updated_at?: string
           user_id?: string
           username?: string | null
