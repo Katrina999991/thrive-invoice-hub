@@ -1,7 +1,9 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2 } from "lucide-react";
+import { useStripeConnect } from "@/hooks/useStripeConnect";
+import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -62,6 +64,15 @@ export default function Settings() {
   const [recoveryEmailError, setRecoveryEmailError] = useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
   const [newPrimaryEmailError, setNewPrimaryEmailError] = useState<string>("");
+  
+  // Stripe Connect
+  const { 
+    isLoading: isStripeLoading,
+    stripeAccountId,
+    onboardingComplete,
+    loadStripeAccount,
+    startOnboarding
+  } = useStripeConnect();
   
   // Email templates
   const { companies, updateCompany } = useCompanies();
@@ -140,6 +151,7 @@ export default function Settings() {
     };
 
     loadUserProfile();
+    loadStripeAccount();
   }, [user]);
 
   // Load email templates when company is selected
@@ -811,6 +823,80 @@ Cordialement,
                     : "A secondary email for account recovery"}
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              {language === "fr" ? "Paiements Stripe" : "Stripe Payments"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" 
+                ? "Connectez votre compte Stripe pour recevoir des paiements en ligne" 
+                : "Connect your Stripe account to receive online payments"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {onboardingComplete ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="text-sm font-medium">
+                      {language === "fr" 
+                        ? "Compte Stripe connecté" 
+                        : "Stripe account connected"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "fr" 
+                      ? "Votre compte Stripe est configuré et prêt à recevoir des paiements. Vous pouvez maintenant générer des liens de paiement pour vos factures." 
+                      : "Your Stripe account is set up and ready to receive payments. You can now generate payment links for your invoices."}
+                  </p>
+                  {stripeAccountId && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {language === "fr" ? "ID du compte: " : "Account ID: "}
+                      {stripeAccountId}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {language === "fr" 
+                      ? "Stripe Connect vous permet de recevoir des paiements directement sur votre compte Stripe. Vos clients pourront payer leurs factures en ligne par carte bancaire." 
+                      : "Stripe Connect allows you to receive payments directly to your Stripe account. Your clients will be able to pay their invoices online by credit card."}
+                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">
+                      {language === "fr" ? "Fonctionnalités:" : "Features:"}
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                      <li>{language === "fr" ? "Paiements par carte bancaire" : "Credit card payments"}</li>
+                      <li>{language === "fr" ? "Liens de paiement sécurisés" : "Secure payment links"}</li>
+                      <li>{language === "fr" ? "Notifications automatiques" : "Automatic notifications"}</li>
+                      <li>{language === "fr" ? "Suivi des paiements en temps réel" : "Real-time payment tracking"}</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    onClick={startOnboarding}
+                    disabled={isStripeLoading}
+                    className="w-full"
+                  >
+                    {isStripeLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {language === "fr" ? "Chargement..." : "Loading..."}
+                      </>
+                    ) : (
+                      <>{language === "fr" ? "Connecter Stripe" : "Connect Stripe"}</>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
