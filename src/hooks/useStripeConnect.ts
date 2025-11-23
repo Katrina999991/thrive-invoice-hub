@@ -131,6 +131,36 @@ export const useStripeConnect = () => {
     }
   };
 
+  // Open Stripe Express dashboard
+  const openDashboard = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-dashboard-link");
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open dashboard in new tab
+        window.open(data.url, "_blank");
+        toast({
+          title: language === "fr" ? "Redirection vers Stripe" : "Redirecting to Stripe",
+          description: language === "fr" 
+            ? "Ouverture du dashboard Stripe dans un nouvel onglet" 
+            : "Opening Stripe dashboard in a new tab",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error opening Stripe dashboard:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
     stripeAccountId,
@@ -138,5 +168,6 @@ export const useStripeConnect = () => {
     loadStripeAccount,
     startOnboarding,
     createPaymentLink,
+    openDashboard,
   };
 };
