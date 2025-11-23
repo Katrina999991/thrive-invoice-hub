@@ -1941,13 +1941,18 @@ Best regards,
                       id="quantity"
                       type="text"
                       inputMode="decimal"
-                      pattern="[0-9]*[.,]?[0-9]*"
                       value={quantityInput}
-                      onChange={(e) => setQuantityInput(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow digits, dots, and commas
+                        if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
+                          setQuantityInput(value);
+                        }
+                      }}
                       onBlur={() => {
                         const normalized = quantityInput.replace(',', '.').trim();
                         const parsed = parseFloat(normalized);
-                        const safe = !isNaN(parsed) ? parsed : 1;
+                        const safe = !isNaN(parsed) && parsed > 0 ? parsed : 1;
                         const clamped = safe < 0.01 ? 0.01 : safe;
                         setCurrentItem({ ...currentItem, quantity: clamped });
                         setQuantityInput(clamped.toString());
