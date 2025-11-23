@@ -842,6 +842,15 @@ Cordialement,
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {planLimits?.plan_type === 'free' && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    {language === "fr" 
+                      ? "ℹ️ Plan Gratuit : Des frais de plateforme de 2% s'appliquent sur les paiements reçus via Stripe." 
+                      : "ℹ️ Free Plan: A 2% platform fee applies to payments received via Stripe."}
+                  </p>
+                </div>
+              )}
               {onboardingComplete ? (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 rounded-lg">
