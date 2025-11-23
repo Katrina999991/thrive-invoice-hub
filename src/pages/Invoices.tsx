@@ -103,6 +103,7 @@ const Invoices = () => {
 
   // Raw input state to allow typing decimals like 0.5 without jumpy resets
   const [quantityInput, setQuantityInput] = useState<string>("1");
+  const [unitPriceInput, setUnitPriceInput] = useState<string>("0");
   
   // Track if we're editing an existing item
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -183,6 +184,7 @@ const Invoices = () => {
       notes: ""
     });
     setQuantityInput("1");
+    setUnitPriceInput(defaultUnitPrice.toString());
   };
 
   const editItem = (index: number) => {
@@ -195,6 +197,7 @@ const Invoices = () => {
       notes: item.notes || ""
     });
     setQuantityInput(item.quantity.toString());
+    setUnitPriceInput(item.unit_price.toString());
     setEditingItemIndex(index);
   };
 
@@ -210,6 +213,7 @@ const Invoices = () => {
       notes: ""
     });
     setQuantityInput("1");
+    setUnitPriceInput(defaultUnitPrice.toString());
     setEditingItemIndex(null);
   };
 
@@ -1880,6 +1884,7 @@ Best regards,
                           description: "",
                           unit_price: 0
                         });
+                        setUnitPriceInput("0");
                         return;
                       }
 
@@ -1892,6 +1897,7 @@ Best regards,
                           description: selectedProduct.name,
                           unit_price: selectedProduct.price
                         });
+                        setUnitPriceInput(selectedProduct.price.toString());
                       }
                     }}
                   >
@@ -1961,12 +1967,19 @@ Best regards,
                     <Label htmlFor="unit_price">{t("invoices.unitPrice")}</Label>
                     <Input
                       id="unit_price"
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
                       placeholder="0.00"
-                      value={currentItem.unit_price}
-                      onChange={(e) => setCurrentItem({...currentItem, unit_price: parseFloat(e.target.value) || 0})}
+                      value={unitPriceInput}
+                      onChange={(e) => setUnitPriceInput(e.target.value)}
+                      onBlur={() => {
+                        const normalized = unitPriceInput.replace(',', '.').trim();
+                        const parsed = parseFloat(normalized);
+                        const safe = !isNaN(parsed) && parsed >= 0 ? parsed : 0;
+                        const fixed = Number.isFinite(safe) ? parseFloat(safe.toFixed(2)) : 0;
+                        setCurrentItem({ ...currentItem, unit_price: fixed });
+                        setUnitPriceInput(fixed.toFixed(2));
+                      }}
                     />
                   </div>
                   <div className="col-span-3">
