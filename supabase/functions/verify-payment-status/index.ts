@@ -64,22 +64,34 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Extract payment link ID from URL
-    const paymentLinkId = invoice.payment_link.split('/').pop();
-    logStep("Checking payment link", { paymentLinkId });
+    // Find payment link by URL since Stripe IDs are not stored in our database
+    logStep("Searching payment link by URL", { url: invoice.payment_link });
 
-    // Get payment link details
-    const paymentLink = await stripe.paymentLinks.retrieve(paymentLinkId, {
-      stripeAccount: profile.stripe_account_id,
-    });
+    const paymentLinks = await stripe.paymentLinks.list(
+      { limit: 100 },
+      { stripeAccount: profile.stripe_account_id }
+    );
+
+    const paymentLink = paymentLinks.data.find(
+      (link) => link.url === invoice.payment_link
+    );
+
+    if (!paymentLink) {
+      throw new Error("Stripe payment link not found for this invoice");
+    }
+
+    logStep("Payment link found", { paymentLinkId: paymentLink.id });
 
     // List checkout sessions for this payment link
-    const sessions = await stripe.checkout.sessions.list({
-      payment_link: paymentLinkId,
-      limit: 10,
-    }, {
-      stripeAccount: profile.stripe_account_id,
-    });
+    const sessions = await stripe.checkout.sessions.list(
+      {
+        payment_link: paymentLink.id,
+        limit: 10,
+      },
+      {
+        stripeAccount: profile.stripe_account_id,
+      }
+    );
 
     logStep("Sessions found", { count: sessions.data.length });
 
