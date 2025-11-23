@@ -30,22 +30,11 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
-    
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw userError;
-    const user = userData.user;
-    if (!user?.id) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id });
-
-    // Get invoice with payment link
+    // Get invoice with payment link and its owner
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
-      .select("payment_link, stripe_payment_intent_id, status")
+      .select("user_id, payment_link, stripe_payment_intent_id, status")
       .eq("id", invoiceId)
-      .eq("user_id", user.id)
       .single();
 
     if (invoiceError || !invoice) throw new Error("Invoice not found");
@@ -60,11 +49,11 @@ serve(async (req) => {
 
     logStep("Invoice fetched", { invoiceId, status: invoice.status });
 
-    // Get user's Stripe account
+    // Get Stripe account for invoice owner
     const { data: profile } = await supabaseClient
       .from("profiles")
       .select("stripe_account_id")
-      .eq("user_id", user.id)
+      .eq("user_id", invoice.user_id)
       .single();
 
     if (!profile?.stripe_account_id) {
