@@ -76,7 +76,7 @@ serve(async (req) => {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        business_type: "company",
+        business_type: "individual",
       });
       accountId = account.id;
       logStep("Created Stripe Connect account", { accountId });
