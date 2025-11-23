@@ -169,8 +169,8 @@ export const useStripeConnect = () => {
       if (error) throw error;
 
       if (data?.url) {
-        // Redirect to dashboard in current tab to avoid popup blockers
-        window.location.href = data.url;
+        // Open dashboard in new tab
+        window.open(data.url, "_blank");
       }
     } catch (error: any) {
       console.error("Error opening Stripe dashboard:", error);
