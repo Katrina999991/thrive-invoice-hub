@@ -892,7 +892,6 @@ Cordialement,
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                       <li>{language === "fr" ? "Cartes bancaires (Visa, Mastercard, Amex)" : "Credit cards (Visa, Mastercard, Amex)"}</li>
-                      <li>{language === "fr" ? "Apple Pay et Google Pay" : "Apple Pay and Google Pay"}</li>
                       <li>{language === "fr" ? "Liens de paiement sécurisés" : "Secure payment links"}</li>
                       <li>{language === "fr" ? "Notifications automatiques" : "Automatic notifications"}</li>
                       <li>{language === "fr" ? "Suivi des paiements en temps réel" : "Real-time payment tracking"}</li>
