@@ -1943,11 +1943,8 @@ Best regards,
                       inputMode="decimal"
                       value={quantityInput}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        // Allow digits, dots, and commas
-                        if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
-                          setQuantityInput(value);
-                        }
+                        // Allow free typing of numbers, dots, and commas
+                        setQuantityInput(e.target.value);
                       }}
                       onBlur={() => {
                         const normalized = quantityInput.replace(',', '.').trim();
