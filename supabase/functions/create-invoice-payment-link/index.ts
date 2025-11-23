@@ -81,6 +81,10 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "http://localhost:3000";
     const amountInCents = Math.round(invoice.total * 100);
 
+    if (amountInCents < 50) {
+      throw new Error("Le montant minimum pour un paiement Stripe est de 0,50 $ CAD. Augmentez le total de la facture avant de générer le lien de paiement.");
+    }
+
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
