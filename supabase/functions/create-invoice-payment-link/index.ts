@@ -106,6 +106,9 @@ serve(async (req) => {
         invoice_number: invoice.invoice_number,
       },
       application_fee_amount: 0,
+      automatic_payment_methods: {
+        enabled: true,
+      },
     }, {
       stripeAccount: profile.stripe_account_id,
     });
