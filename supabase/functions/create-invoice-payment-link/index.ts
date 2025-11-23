@@ -56,6 +56,16 @@ serve(async (req) => {
       logStep("WARNING: Onboarding not complete - may be test mode", { accountId: profile.stripe_account_id });
     }
 
+    // Get user's subscription plan
+    const { data: subscription } = await supabaseClient
+      .from("user_subscriptions")
+      .select("plan_type")
+      .eq("user_id", user.id)
+      .single();
+
+    const planType = subscription?.plan_type || 'free';
+    logStep("User plan", { planType });
+
     // Get invoice details
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
@@ -85,6 +95,13 @@ serve(async (req) => {
       throw new Error("Le montant minimum pour un paiement Stripe est de 0,50 $ CAD. Augmentez le total de la facture avant de générer le lien de paiement.");
     }
 
+    // Calculate application fee: 2% for free plan, 0% for premium/pro
+    let applicationFee = 0;
+    if (planType === 'free') {
+      applicationFee = Math.round(amountInCents * 0.02); // 2% commission
+      logStep("Application fee calculated", { planType, amountInCents, applicationFee });
+    }
+
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
@@ -108,8 +125,9 @@ serve(async (req) => {
       metadata: {
         invoice_id: invoiceId,
         invoice_number: invoice.invoice_number,
+        plan_type: planType,
       },
-      application_fee_amount: 0,
+      application_fee_amount: applicationFee,
     }, {
       stripeAccount: profile.stripe_account_id,
     });
