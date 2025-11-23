@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -2527,12 +2527,12 @@ Best regards,
                             size="sm" 
                             onClick={() => handleGeneratePaymentLink(invoice)}
                             disabled={isStripeLoading}
-                            title={language === "fr" ? "Générer un lien de paiement" : "Generate payment link"}
+                            title={language === "fr" ? "Générer un lien de paiement Stripe" : "Generate Stripe payment link"}
                           >
                             {isStripeLoading ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <ExternalLink className="h-4 w-4" />
+                              <CreditCard className="h-4 w-4" />
                             )}
                           </Button>
                         )
