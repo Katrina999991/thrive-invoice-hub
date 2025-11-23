@@ -140,14 +140,8 @@ export const useStripeConnect = () => {
       if (error) throw error;
 
       if (data?.url) {
-        // Open dashboard in new tab
-        window.open(data.url, "_blank");
-        toast({
-          title: language === "fr" ? "Redirection vers Stripe" : "Redirecting to Stripe",
-          description: language === "fr" 
-            ? "Ouverture du dashboard Stripe dans un nouvel onglet" 
-            : "Opening Stripe dashboard in a new tab",
-        });
+        // Redirect to dashboard in current tab to avoid popup blockers
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error("Error opening Stripe dashboard:", error);
