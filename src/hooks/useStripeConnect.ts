@@ -64,7 +64,17 @@ export const useStripeConnect = () => {
   const startOnboarding = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding");
+      // Get fresh session to ensure valid JWT token
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error(language === "fr" ? "Session expirée. Veuillez vous reconnecter." : "Session expired. Please sign in again.");
+      }
+
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
 
       if (error) throw error;
 
@@ -94,8 +104,17 @@ export const useStripeConnect = () => {
   const createPaymentLink = async (invoiceId: string) => {
     setIsLoading(true);
     try {
+      // Get fresh session to ensure valid JWT token
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error(language === "fr" ? "Session expirée. Veuillez vous reconnecter." : "Session expired. Please sign in again.");
+      }
+
       const { data, error } = await supabase.functions.invoke("create-invoice-payment-link", {
         body: { invoice_id: invoiceId },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
       });
 
       if (error) throw error;
@@ -135,7 +154,17 @@ export const useStripeConnect = () => {
   const openDashboard = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-dashboard-link");
+      // Get fresh session to ensure valid JWT token
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error(language === "fr" ? "Session expirée. Veuillez vous reconnecter." : "Session expired. Please sign in again.");
+      }
+
+      const { data, error } = await supabase.functions.invoke("stripe-dashboard-link", {
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
 
       if (error) throw error;
 
