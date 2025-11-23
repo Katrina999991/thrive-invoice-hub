@@ -231,6 +231,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Convert line breaks to HTML breaks for email
     emailMessage = emailMessage.replace(/\n/g, '<br>');
+    
+    // Convert URLs to clickable links
+    const urlPattern = /(https?:\/\/[^\s<]+)/g;
+    emailMessage = emailMessage.replace(urlPattern, '<a href="$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
 
     // Define table headers based on language
     const translations = isFrench ? {
