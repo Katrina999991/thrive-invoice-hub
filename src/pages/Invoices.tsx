@@ -2509,18 +2509,33 @@ Best regards,
                       )}
                       {stripeAccountId && invoice.status !== "paid" && (
                         invoice.payment_link ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
-                            title={language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}
-                          >
-                            {copiedLink === invoice.invoice_number ? (
-                              <Check className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
+                              title={language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}
+                            >
+                              {copiedLink === invoice.invoice_number ? (
+                                <Check className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleGeneratePaymentLink(invoice)}
+                              disabled={isStripeLoading}
+                              title={language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link"}
+                            >
+                              {isStripeLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <CreditCard className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </>
                         ) : (
                           <Button 
                             variant="outline" 
