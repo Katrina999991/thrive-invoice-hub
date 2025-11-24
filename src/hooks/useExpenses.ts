@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -13,6 +14,7 @@ export const useExpenses = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const fetchExpenses = async () => {
     if (!user) return;
@@ -75,6 +77,9 @@ export const useExpenses = () => {
 
       await fetchExpenses();
       
+      // Invalider le cache des limites pour mettre à jour le compteur
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      
       toast({
         title: "Success",
         description: "Expense created successfully"
@@ -133,6 +138,9 @@ export const useExpenses = () => {
       if (error) throw error;
 
       await fetchExpenses();
+      
+      // Invalider le cache des limites pour mettre à jour le compteur
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
       
       toast({
         title: "Success",
