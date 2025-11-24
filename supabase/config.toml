@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.create-invoice-payment-link]
 verify_jwt = false
+
+[functions.send-overdue-reminders]
+verify_jwt = false
