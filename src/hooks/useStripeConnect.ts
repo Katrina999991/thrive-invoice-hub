@@ -165,6 +165,12 @@ export const useStripeConnect = () => {
       if (data?.url) {
         // Open dashboard in new tab
         window.open(data.url, "_blank");
+        toast({
+          title: language === "fr" ? "Dashboard Stripe ouvert" : "Stripe dashboard opened",
+          description: language === "fr" 
+            ? "Consultez le nouvel onglet pour accéder à votre dashboard" 
+            : "Check the new tab to access your dashboard",
+        });
       }
     } catch (error: any) {
       console.error("Error opening Stripe dashboard:", error);
