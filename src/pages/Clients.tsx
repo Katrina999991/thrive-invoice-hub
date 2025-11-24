@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -41,7 +42,8 @@ const Clients = () => {
     language: "english",
     hourly_rate: 0,
     notes: "",
-    created_at: new Date().toISOString().split('T')[0]
+    created_at: new Date().toISOString().split('T')[0],
+    include_payment_link: false
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -118,7 +120,8 @@ const Clients = () => {
         address: newClient.address,
         language: newClient.language,
         hourly_rate: newClient.hourly_rate,
-        notes: newClient.notes
+        notes: newClient.notes,
+        include_payment_link: newClient.include_payment_link
       });
     } else {
       await createClient({
@@ -131,7 +134,8 @@ const Clients = () => {
         language: newClient.language,
         hourly_rate: newClient.hourly_rate,
         notes: newClient.notes,
-        created_at: newClient.created_at
+        created_at: newClient.created_at,
+        include_payment_link: newClient.include_payment_link
       });
     }
 
@@ -149,7 +153,8 @@ const Clients = () => {
       language: "english",
       hourly_rate: 0,
       notes: "",
-      created_at: new Date().toISOString().split('T')[0]
+      created_at: new Date().toISOString().split('T')[0],
+      include_payment_link: false
     });
     setEmailList([""]);
     setEditingClient(null);
@@ -172,7 +177,8 @@ const Clients = () => {
       language: client.language || "english",
       hourly_rate: client.hourly_rate || 0,
       notes: client.notes || "",
-      created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+      created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      include_payment_link: client.include_payment_link || false
     });
     setIsDialogOpen(true);
   };
@@ -409,6 +415,18 @@ const Clients = () => {
                   value={newClient.created_at}
                   onChange={(e) => setNewClient({...newClient, created_at: e.target.value})}
                 />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="include_payment_link"
+                  checked={newClient.include_payment_link}
+                  onCheckedChange={(checked) => setNewClient({...newClient, include_payment_link: !!checked})}
+                />
+                <Label htmlFor="include_payment_link" className="text-sm font-normal cursor-pointer">
+                  {language === "fr" 
+                    ? "Inclure automatiquement le lien de paiement dans les emails de facture" 
+                    : "Automatically include payment link in invoice emails"}
+                </Label>
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">

@@ -74,6 +74,7 @@ export type Database = {
           email: string | null
           hourly_rate: number | null
           id: string
+          include_payment_link: boolean | null
           language: string | null
           name: string
           notes: string | null
@@ -89,6 +90,7 @@ export type Database = {
           email?: string | null
           hourly_rate?: number | null
           id?: string
+          include_payment_link?: boolean | null
           language?: string | null
           name: string
           notes?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           email?: string | null
           hourly_rate?: number | null
           id?: string
+          include_payment_link?: boolean | null
           language?: string | null
           name?: string
           notes?: string | null
