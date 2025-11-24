@@ -5,6 +5,7 @@ import { Plus, Clock, FileText, Trash2 } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
+import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 const timeEntrySchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
   company_id: z.string().optional(),
+  service_id: z.string().optional(),
   description: z.string().min(1, "La description est requise"),
   hours: z.string().min(1, "Les heures sont requises"),
   hourly_rate: z.string().min(1, "Le taux horaire est requis"),
@@ -40,11 +42,13 @@ export default function TimeTracking() {
   const { timeEntries, loading, createTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled } = useTimeEntries();
   const { clients } = useClients();
   const { companies } = useCompanies();
+  const { products } = useProducts();
   const { createInvoice } = useInvoices();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
+  const [useCustomDescription, setUseCustomDescription] = useState(false);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -60,9 +64,12 @@ export default function TimeTracking() {
       hours: "",
       hourly_rate: "",
       description: "",
+      service_id: "",
       notes: "",
     },
   });
+
+  const services = products.filter(p => p.unit === "hour" || p.unit === "day");
 
   const onSubmit = async (data: TimeEntryFormData) => {
     await createTimeEntry({
@@ -75,13 +82,37 @@ export default function TimeTracking() {
       notes: data.notes || null,
     });
     setIsDialogOpen(false);
-    form.reset();
+    setUseCustomDescription(false);
+    form.reset({
+      date: format(new Date(), "yyyy-MM-dd"),
+      hours: "",
+      hourly_rate: "",
+      description: "",
+      service_id: "",
+      notes: "",
+    });
   };
 
   const handleClientChange = (clientId: string) => {
     const client = clients.find((c) => c.id === clientId);
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
+    }
+  };
+
+  const handleServiceChange = (serviceId: string) => {
+    if (serviceId === "custom") {
+      setUseCustomDescription(true);
+      form.setValue("description", "");
+    } else {
+      setUseCustomDescription(false);
+      const service = services.find((s) => s.id === serviceId);
+      if (service) {
+        form.setValue("description", service.name);
+        if (service.price) {
+          form.setValue("hourly_rate", service.price.toString());
+        }
+      }
     }
   };
 
@@ -315,17 +346,60 @@ export default function TimeTracking() {
 
               <FormField
                 control={form.control}
-                name="description"
+                name="service_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === "fr" ? "Description" : "Description"}</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder={language === "fr" ? "Développement frontend" : "Frontend development"} />
-                    </FormControl>
+                    <FormLabel>{language === "fr" ? "Service ou description" : "Service or description"}</FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleServiceChange(value);
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={language === "fr" ? "Choisir un service ou écrire" : "Choose service or write"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-background z-50">
+                        <SelectItem value="custom">
+                          {language === "fr" ? "✏️ Description personnalisée" : "✏️ Custom description"}
+                        </SelectItem>
+                        {services.length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                              {language === "fr" ? "Services disponibles" : "Available services"}
+                            </div>
+                            {services.map((service) => (
+                              <SelectItem key={service.id} value={service.id}>
+                                {service.name}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {useCustomDescription && (
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{language === "fr" ? "Description" : "Description"}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder={language === "fr" ? "Développement frontend" : "Frontend development"} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <div className="grid grid-cols-3 gap-4">
                 <FormField
@@ -386,7 +460,15 @@ export default function TimeTracking() {
               />
 
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    setUseCustomDescription(false);
+                    form.reset();
+                  }}
+                >
                   {language === "fr" ? "Annuler" : "Cancel"}
                 </Button>
                 <Button type="submit">
