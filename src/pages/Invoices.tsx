@@ -2471,24 +2471,34 @@ Best regards,
                   </TableCell>
                   <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    {invoice.status === "paid" ? (
-                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-                        <Check className="h-3 w-3 mr-1" />
-                        {t("invoices.statusPaid")}
-                      </Badge>
-                    ) : (
-                      <Select value={invoice.status} onValueChange={(value) => updateInvoice(invoice.id, { status: value })}>
-                        <SelectTrigger className="w-28 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
-                          <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
-                          <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                          <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
+                    <Select 
+                      value={invoice.status} 
+                      onValueChange={(value) => {
+                        // Si on enlève le statut "paid", on réinitialise aussi paid_at
+                        const updates: any = { status: value };
+                        if (invoice.status === "paid" && value !== "paid") {
+                          updates.paid_at = null;
+                        }
+                        updateInvoice(invoice.id, updates);
+                      }}
+                    >
+                      <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
+                        <SelectValue>
+                          {invoice.status === "paid" && (
+                            <div className="flex items-center">
+                              <Check className="h-3 w-3 mr-1" />
+                              {t("invoices.statusPaid")}
+                            </div>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                        <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                        <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                        <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>{invoice.issue_date}</TableCell>
                   <TableCell>{invoice.due_date}</TableCell>
