@@ -94,7 +94,7 @@ All colors MUST be HSL.
   }
 
   /* Theme variations */
-  [data-theme="classic"] {
+  [data-theme="default"] {
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     --accent: 217 91% 60%;
