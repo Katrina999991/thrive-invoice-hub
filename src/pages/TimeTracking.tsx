@@ -42,7 +42,7 @@ type TimeEntryFormData = z.infer<typeof timeEntrySchema>;
 export default function TimeTracking() {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const { timeEntries, loading, createTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled } = useTimeEntries();
+  const { timeEntries, loading, createTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -335,7 +335,11 @@ export default function TimeTracking() {
                     </TableCell>
                     <TableCell>
                       {entry.is_billed ? (
-                        <Badge variant="secondary">
+                        <Badge 
+                          variant="secondary"
+                          className="cursor-pointer hover:bg-secondary/80"
+                          onClick={() => markAsUnbilled(entry.id)}
+                        >
                           {language === "fr" ? "Facturé" : "Billed"}
                         </Badge>
                       ) : (
