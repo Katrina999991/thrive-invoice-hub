@@ -229,8 +229,28 @@ const Pricing = () => {
       features.push({ text: t.features.revenueReport, included: true });
       features.push({ 
         text: language === 'fr' 
-          ? '2% de frais sur paiements Stripe' 
-          : '2% fee on Stripe payments', 
+          ? '3% de frais sur paiements Stripe' 
+          : '3% fee on Stripe payments', 
+        included: true 
+      });
+    }
+    
+    // Premium plan fees
+    if (plan.plan_type === 'premium') {
+      features.push({ 
+        text: language === 'fr' 
+          ? '1,5% de frais sur paiements Stripe' 
+          : '1.5% fee on Stripe payments', 
+        included: true 
+      });
+    }
+    
+    // Pro plan fees
+    if (plan.plan_type === 'pro') {
+      features.push({ 
+        text: language === 'fr' 
+          ? '0,5% de frais sur paiements Stripe' 
+          : '0.5% fee on Stripe payments', 
         included: true 
       });
     }
@@ -432,12 +452,12 @@ const Pricing = () => {
         })}
       </div>
 
-      {/* Stripe Fee Info for Free Plan */}
+      {/* Stripe Fee Info */}
       <Alert className="mt-8 max-w-4xl mx-auto border-amber-200 bg-amber-50 dark:bg-amber-950/50">
         <AlertDescription className="text-sm">
           {language === 'fr' 
-            ? '💡 Plan Gratuit : Des frais de plateforme de 2% s\'appliquent sur les paiements reçus via Stripe. Les plans Premium et Pro n\'ont pas de frais de plateforme.' 
-            : '💡 Free Plan: A 2% platform fee applies to payments received via Stripe. Premium and Pro plans have no platform fees.'}
+            ? '💡 Frais de plateforme dégressifs sur les paiements Stripe : Gratuit 3% • Premium 1,5% • Pro 0,5%' 
+            : '💡 Tiered platform fees on Stripe payments: Free 3% • Premium 1.5% • Pro 0.5%'}
         </AlertDescription>
       </Alert>
 
