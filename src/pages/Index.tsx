@@ -20,6 +20,7 @@ import invoicesPreviewEn from "@/assets/dashboard-preview-invoices-en.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import Autoplay from "embla-carousel-autoplay";
+import { useSEO } from "@/hooks/useSEO";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -195,6 +196,52 @@ const Index = () => {
 
   const t = translations[currentLang];
 
+  // SEO Configuration with structured data
+  useSEO({
+    title: currentLang === "EN" 
+      ? "GestionFlow - Business Management Software | Invoices, Expenses & Clients"
+      : "GestionFlow - Logiciel de Gestion d'Entreprise | Factures, Dépenses & Clients",
+    description: currentLang === "EN"
+      ? "Complete business management solution. Create invoices, track expenses, manage clients and generate detailed reports. Simple, efficient and intuitive."
+      : "Solution complète de gestion d'entreprise. Créez des factures, suivez vos dépenses, gérez vos clients et générez des rapports détaillés. Simple, efficace et intuitif.",
+    keywords: currentLang === "EN"
+      ? "invoice management, expense tracking, client management, business reports, accounting software, invoice generator, expense management, business management software"
+      : "gestion de factures, suivi des dépenses, gestion clients, rapports d'entreprise, logiciel comptable, générateur de factures, gestion des dépenses, logiciel de gestion",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "GestionFlow",
+      "description": t.hero.subtitle,
+      "url": "https://gestionflow.lovable.app",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "ratingCount": "3",
+        "reviewCount": "3"
+      },
+      "review": t.reviews.items.map(review => ({
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": review.name
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "reviewBody": review.comment
+      }))
+    }
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Language Selector */}
@@ -223,7 +270,12 @@ const Index = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="flex justify-center mb-8">
-          <img src={currentLogo} alt="GestionFlow" className="h-24" />
+          <img 
+            src={currentLogo} 
+            alt={currentLang === "EN" ? "GestionFlow - Business Management Software" : "GestionFlow - Logiciel de Gestion d'Entreprise"} 
+            className="h-24"
+            loading="eager"
+          />
         </div>
         <h1 className="text-5xl font-bold text-foreground mb-6">
           {t.hero.title}
@@ -280,8 +332,13 @@ const Index = () => {
                       <div className="rounded-lg overflow-hidden shadow-md border border-border">
                         <img 
                           src={currentDashboardPreview} 
-                          alt="Dashboard Preview" 
+                          alt={currentLang === "EN" 
+                            ? "GestionFlow intuitive dashboard with real-time statistics and quick actions" 
+                            : "Tableau de bord intuitif GestionFlow avec statistiques en temps réel et actions rapides"} 
                           className="w-full h-auto"
+                          loading="lazy"
+                          width="1200"
+                          height="800"
                         />
                       </div>
                     </div>
@@ -301,8 +358,13 @@ const Index = () => {
                       <div className="rounded-lg overflow-hidden shadow-lg border border-border">
                         <img 
                           src={currentCategoriesPreview} 
-                          alt="Categories Preview" 
+                          alt={currentLang === "EN"
+                            ? "Category management for products, services and expenses in GestionFlow"
+                            : "Gestion des catégories pour produits, services et dépenses dans GestionFlow"} 
                           className="w-full h-auto"
+                          loading="lazy"
+                          width="1200"
+                          height="800"
                         />
                       </div>
                     </div>
@@ -322,8 +384,13 @@ const Index = () => {
                       <div className="rounded-lg overflow-hidden shadow-lg border border-border">
                         <img 
                           src={currentInvoicesPreview} 
-                          alt="Invoices Preview" 
+                          alt={currentLang === "EN"
+                            ? "Invoice management system with payment tracking and due dates in GestionFlow"
+                            : "Système de gestion des factures avec suivi des paiements et dates d'échéance dans GestionFlow"} 
                           className="w-full h-auto"
+                          loading="lazy"
+                          width="1200"
+                          height="800"
                         />
                       </div>
                     </div>
@@ -338,7 +405,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16" aria-label={t.features.title}>
         <h2 className="text-3xl font-bold text-center text-foreground mb-12">
           {t.features.title}
         </h2>
@@ -361,7 +428,7 @@ const Index = () => {
       </section>
 
       {/* Reviews Section */}
-      <section className="bg-muted py-16">
+      <section className="bg-muted py-16" aria-label={t.reviews.title}>
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-foreground mb-12">
             {t.reviews.title}
@@ -405,20 +472,27 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary text-primary-foreground py-8">
+      <footer className="bg-primary text-primary-foreground py-8" role="contentinfo">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center gap-6">
-            <div className="text-center">
+            <nav className="text-center" aria-label="Footer">
               <div className="mb-4 flex justify-center">
-                <img src={footerLogo} alt="GestionFlow" className="h-16" />
+                <img 
+                  src={footerLogo} 
+                  alt={currentLang === "EN" ? "GestionFlow logo" : "Logo GestionFlow"} 
+                  className="h-16"
+                  loading="lazy"
+                />
               </div>
               <p className="text-primary-foreground/80 mb-2">
                 {t.footer.description}
               </p>
               <p className="text-primary-foreground/80">
-                info@gestionflow.net
+                <a href="mailto:info@gestionflow.net" className="hover:underline">
+                  info@gestionflow.net
+                </a>
               </p>
-            </div>
+            </nav>
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-primary-foreground/80">
             <p>{t.footer.copyright}</p>
