@@ -69,7 +69,7 @@ export default function TimeTracking() {
     },
   });
 
-  const services = products.filter(p => p.unit === "hour" || p.unit === "day");
+  const services = products.filter(p => p.is_active);
 
   const onSubmit = async (data: TimeEntryFormData) => {
     await createTimeEntry({
