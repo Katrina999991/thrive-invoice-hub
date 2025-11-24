@@ -911,6 +911,56 @@ Cordialement,
                     </Button>
                   </div>
                 </div>
+              ) : stripeAccountId && !onboardingComplete ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded-lg">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      {language === "fr" 
+                        ? "Configuration Stripe incomplète" 
+                        : "Incomplete Stripe setup"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "fr" 
+                      ? "Vous avez commencé la configuration de votre compte Stripe mais ne l'avez pas terminée. Vous pouvez continuer ou annuler pour changer de compte." 
+                      : "You started setting up your Stripe account but didn't complete it. You can continue or cancel to change accounts."}
+                  </p>
+                  {stripeAccountId && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {language === "fr" ? "ID du compte: " : "Account ID: "}
+                      {stripeAccountId}
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={startOnboarding}
+                      disabled={isStripeLoading}
+                      className="flex-1"
+                    >
+                      {isStripeLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {language === "fr" ? "Chargement..." : "Loading..."}
+                        </>
+                      ) : (
+                        <>{language === "fr" ? "Continuer la configuration" : "Continue setup"}</>
+                      )}
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        const result = await resetStripeAccount();
+                        if (result.success) {
+                          await loadStripeAccount();
+                        }
+                      }}
+                      disabled={isStripeLoading}
+                      variant="outline"
+                    >
+                      {language === "fr" ? "Annuler et changer" : "Cancel and change"}
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
