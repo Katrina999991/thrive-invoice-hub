@@ -72,7 +72,8 @@ export default function Settings() {
     onboardingComplete,
     loadStripeAccount,
     startOnboarding,
-    openDashboard
+    openDashboard,
+    resetStripeAccount
   } = useStripeConnect();
   
   // Email templates
@@ -872,21 +873,43 @@ Cordialement,
                       {stripeAccountId}
                     </p>
                   )}
-                  <Button 
-                    onClick={openDashboard}
-                    disabled={isStripeLoading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {isStripeLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {language === "fr" ? "Chargement..." : "Loading..."}
-                      </>
-                    ) : (
-                      <>{language === "fr" ? "Accéder à mon dashboard Stripe" : "Access my Stripe dashboard"}</>
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={openDashboard}
+                      disabled={isStripeLoading}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      {isStripeLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {language === "fr" ? "Chargement..." : "Loading..."}
+                        </>
+                      ) : (
+                        <>{language === "fr" ? "Accéder à mon dashboard Stripe" : "Access my Stripe dashboard"}</>
+                      )}
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        const result = await resetStripeAccount();
+                        if (result.success) {
+                          await loadStripeAccount();
+                        }
+                      }}
+                      disabled={isStripeLoading}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      {isStripeLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {language === "fr" ? "Chargement..." : "Loading..."}
+                        </>
+                      ) : (
+                        <>{language === "fr" ? "Changer de compte" : "Change account"}</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">

@@ -184,6 +184,35 @@ export const useStripeConnect = () => {
     }
   };
 
+  const resetStripeAccount = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('reset-stripe-account');
+      
+      if (error) throw error;
+      
+      // Reset local state
+      setStripeAccountId(null);
+      setOnboardingComplete(false);
+      
+      toast({
+        title: "Compte Stripe réinitialisé",
+        description: "Vous pouvez maintenant connecter un nouveau compte Stripe",
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Error resetting Stripe account:", error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la réinitialisation du compte Stripe",
+        variant: "destructive",
+      });
+      return { success: false };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
     stripeAccountId,
@@ -192,5 +221,6 @@ export const useStripeConnect = () => {
     startOnboarding,
     createPaymentLink,
     openDashboard,
+    resetStripeAccount,
   };
 };
