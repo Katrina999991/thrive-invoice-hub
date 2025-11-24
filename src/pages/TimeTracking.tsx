@@ -8,6 +8,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
+import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ type TimeEntryFormData = z.infer<typeof timeEntrySchema>;
 
 export default function TimeTracking() {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const { timeEntries, loading, createTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled } = useTimeEntries();
   const { clients } = useClients();
   const { companies } = useCompanies();
@@ -159,10 +161,42 @@ export default function TimeTracking() {
   };
 
   const toggleSelection = (id: string) => {
-    setSelectedEntries((prev) =>
-      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
-    );
+    const entry = timeEntries.find(e => e.id === id);
+    if (!entry) return;
+
+    setSelectedEntries((prev) => {
+      // Si on désélectionne, on retire simplement
+      if (prev.includes(id)) {
+        return prev.filter((e) => e !== id);
+      }
+
+      // Si c'est la première sélection, on l'ajoute
+      if (prev.length === 0) {
+        return [id];
+      }
+
+      // Vérifier que le client est le même que les autres entrées sélectionnées
+      const firstSelectedEntry = timeEntries.find(e => e.id === prev[0]);
+      if (firstSelectedEntry && entry.client_id !== firstSelectedEntry.client_id) {
+        // Afficher un message d'erreur
+        toast({
+          title: language === "fr" ? "Client différent" : "Different client",
+          description: language === "fr" 
+            ? "Vous ne pouvez sélectionner que des heures du même client pour créer une facture."
+            : "You can only select hours from the same client to create an invoice.",
+          variant: "destructive"
+        });
+        return prev; // Ne pas ajouter l'entrée
+      }
+
+      return [...prev, id];
+    });
   };
+
+  // Obtenir le client sélectionné pour désactiver les autres
+  const selectedClientId = selectedEntries.length > 0 
+    ? timeEntries.find(e => e.id === selectedEntries[0])?.client_id 
+    : null;
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -232,6 +266,7 @@ export default function TimeTracking() {
                         <Checkbox
                           checked={selectedEntries.includes(entry.id)}
                           onCheckedChange={() => toggleSelection(entry.id)}
+                          disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
                         />
                       )}
                     </TableCell>
