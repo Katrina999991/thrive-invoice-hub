@@ -235,7 +235,13 @@ const Products = () => {
               <p className="text-xl font-bold text-green-600">
                 ${item.price}
                 {item.quantity === null && item.unit && (
-                  <span className="text-sm">/{item.unit === "hour" ? (language === "fr" ? "heure" : "hour") : (language === "fr" ? "jour" : "day")}</span>
+                  <span className="text-sm">
+                    /{item.unit === "hour" 
+                      ? (language === "fr" ? "heure" : "hour") 
+                      : item.unit === "day" 
+                        ? (language === "fr" ? "jour" : "day")
+                        : item.unit}
+                  </span>
                 )}
               </p>
             </div>
