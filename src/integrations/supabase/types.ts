@@ -79,6 +79,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          send_overdue_email_auto: boolean | null
           updated_at: string
           user_id: string
         }
@@ -95,6 +96,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          send_overdue_email_auto?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -111,6 +113,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          send_overdue_email_auto?: boolean | null
           updated_at?: string
           user_id?: string
         }
