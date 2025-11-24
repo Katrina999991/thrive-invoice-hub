@@ -100,12 +100,18 @@ serve(async (req) => {
       throw new Error("Le montant minimum pour un paiement Stripe est de 0,50 $ CAD. Augmentez le total de la facture avant de générer le lien de paiement.");
     }
 
-    // Calculate application fee: 2% for free plan, 0% for premium/pro
-    let applicationFee = 0;
+    // Calculate application fee based on plan: Free 3%, Premium 1.5%, Pro 0.5%
+    let applicationFeeRate = 0;
     if (planType === 'free') {
-      applicationFee = Math.round(amountInCents * 0.02); // 2% commission
-      logStep("Application fee calculated", { planType, amountInCents, applicationFee });
+      applicationFeeRate = 0.03; // 3% commission
+    } else if (planType === 'premium') {
+      applicationFeeRate = 0.015; // 1.5% commission
+    } else if (planType === 'pro') {
+      applicationFeeRate = 0.005; // 0.5% commission
     }
+    
+    const applicationFee = Math.round(amountInCents * applicationFeeRate);
+    logStep("Application fee calculated", { planType, applicationFeeRate, amountInCents, applicationFee });
 
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
