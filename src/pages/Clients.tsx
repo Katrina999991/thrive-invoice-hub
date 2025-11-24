@@ -43,7 +43,8 @@ const Clients = () => {
     hourly_rate: 0,
     notes: "",
     created_at: new Date().toISOString().split('T')[0],
-    include_payment_link: false
+    include_payment_link: false,
+    send_overdue_email_auto: false
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -121,7 +122,8 @@ const Clients = () => {
         language: newClient.language,
         hourly_rate: newClient.hourly_rate,
         notes: newClient.notes,
-        include_payment_link: newClient.include_payment_link
+        include_payment_link: newClient.include_payment_link,
+        send_overdue_email_auto: newClient.send_overdue_email_auto
       });
     } else {
       await createClient({
@@ -135,7 +137,8 @@ const Clients = () => {
         hourly_rate: newClient.hourly_rate,
         notes: newClient.notes,
         created_at: newClient.created_at,
-        include_payment_link: newClient.include_payment_link
+        include_payment_link: newClient.include_payment_link,
+        send_overdue_email_auto: newClient.send_overdue_email_auto
       });
     }
 
@@ -154,7 +157,8 @@ const Clients = () => {
       hourly_rate: 0,
       notes: "",
       created_at: new Date().toISOString().split('T')[0],
-      include_payment_link: false
+      include_payment_link: false,
+      send_overdue_email_auto: false
     });
     setEmailList([""]);
     setEditingClient(null);
@@ -178,7 +182,8 @@ const Clients = () => {
       hourly_rate: client.hourly_rate || 0,
       notes: client.notes || "",
       created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      include_payment_link: client.include_payment_link || false
+      include_payment_link: client.include_payment_link || false,
+      send_overdue_email_auto: client.send_overdue_email_auto || false
     });
     setIsDialogOpen(true);
   };
@@ -426,6 +431,18 @@ const Clients = () => {
                   {language === "fr" 
                     ? "Inclure automatiquement le lien de paiement dans les emails de facture" 
                     : "Automatically include payment link in invoice emails"}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="send_overdue_email_auto"
+                  checked={newClient.send_overdue_email_auto}
+                  onCheckedChange={(checked) => setNewClient({...newClient, send_overdue_email_auto: !!checked})}
+                />
+                <Label htmlFor="send_overdue_email_auto" className="text-sm font-normal cursor-pointer">
+                  {language === "fr" 
+                    ? "Envoyer automatiquement un email de rappel 1 jour après la date d'échéance" 
+                    : "Automatically send reminder email 1 day after due date"}
                 </Label>
               </div>
               <div className="flex gap-2">
