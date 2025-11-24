@@ -59,8 +59,8 @@ export const useInvoices = () => {
       
       if (data) {
         for (const invoice of data) {
-          // If invoice is not paid and has a due date that has passed
-          if (invoice.status !== 'paid' && invoice.status !== 'overdue' && invoice.due_date) {
+          // If invoice is not paid, not draft, and has a due date that has passed
+          if (invoice.status !== 'paid' && invoice.status !== 'overdue' && invoice.status !== 'draft' && invoice.due_date) {
             const dueDate = new Date(invoice.due_date);
             dueDate.setHours(0, 0, 0, 0);
             
