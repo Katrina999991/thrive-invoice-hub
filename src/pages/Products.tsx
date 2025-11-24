@@ -232,7 +232,12 @@ const Products = () => {
           <div className="space-y-1">
             <div>
               <p className="text-sm font-medium text-muted-foreground">{t("products.salePrice2")}</p>
-              <p className="text-xl font-bold text-green-600">${item.price}</p>
+              <p className="text-xl font-bold text-green-600">
+                ${item.price}
+                {item.quantity === null && item.unit && (
+                  <span className="text-sm">/{item.unit === "hour" ? (language === "fr" ? "heure" : "hour") : (language === "fr" ? "jour" : "day")}</span>
+                )}
+              </p>
             </div>
             {item.cost > 0 && (
               <div>
