@@ -633,6 +633,76 @@ export type Database = {
         }
         Relationships: []
       }
+      time_entries: {
+        Row: {
+          client_id: string | null
+          company_id: string | null
+          created_at: string
+          date: string
+          description: string
+          hourly_rate: number
+          hours: number
+          id: string
+          invoice_id: string | null
+          is_billed: boolean
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          hourly_rate?: number
+          hours?: number
+          id?: string
+          invoice_id?: string | null
+          is_billed?: boolean
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          hourly_rate?: number
+          hours?: number
+          id?: string
+          invoice_id?: string | null
+          is_billed?: boolean
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_subscriptions: {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"] | null

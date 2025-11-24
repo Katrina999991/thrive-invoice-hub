@@ -7,6 +7,7 @@ import {
   Tag,
   Package,
   FileText,
+  Clock,
   Receipt,
   BarChart3,
   Settings,
@@ -83,6 +84,7 @@ export function AppSidebar() {
     { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag, requiresFeature: "category_management" as const },
     { titleKey: "nav.products", url: "/dashboard/products", icon: Package, requiresFeature: null },
     { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText, requiresFeature: null },
+    { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null },
     { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null },
     { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3, requiresFeature: null },
   ];
