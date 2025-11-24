@@ -238,9 +238,14 @@ const handler = async (req: Request): Promise<Response> => {
     emailMessage = emailMessage.replace(urlPattern, '<a href="$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
     
     // Add payment link if client has the option enabled and invoice is not paid
-    if ((client as any).include_payment_link && invoice.status !== 'paid') {
+    console.log('Client include_payment_link:', client?.include_payment_link);
+    console.log('Invoice status:', invoice.status);
+    
+    if (client?.include_payment_link === true && invoice.status !== 'paid') {
       try {
         console.log('Creating payment link for invoice:', invoice.id);
+        
+        // Create payment link
         const { data: paymentLinkData, error: paymentLinkError } = await supabase.functions.invoke(
           'create-invoice-payment-link',
           {
@@ -251,16 +256,23 @@ const handler = async (req: Request): Promise<Response> => {
         if (paymentLinkError) {
           console.error('Error creating payment link:', paymentLinkError);
         } else if (paymentLinkData?.url) {
-          console.log('Payment link created:', paymentLinkData.url);
+          console.log('Payment link created successfully:', paymentLinkData.url);
+          
+          // Add payment link button to email
           const paymentLinkText = isFrench 
-            ? `<br><br><strong>Payer en ligne :</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Payer maintenant</a>`
-            : `<br><br><strong>Pay online:</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Pay Now</a>`;
+            ? `<br><br><div style="margin: 20px 0;"><strong>Payer en ligne :</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Payer maintenant</a></div>`
+            : `<br><br><div style="margin: 20px 0;"><strong>Pay online:</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Pay Now</a></div>`;
           
           emailMessage += paymentLinkText;
+          console.log('Payment link added to email message');
+        } else {
+          console.log('No payment link URL received');
         }
       } catch (error) {
         console.error('Exception creating payment link:', error);
       }
+    } else {
+      console.log('Payment link not added - include_payment_link:', client?.include_payment_link, 'status:', invoice.status);
     }
 
     // Define table headers based on language
