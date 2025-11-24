@@ -350,7 +350,8 @@ const Products = () => {
                   onValueChange={(value) => setNewItem({
                     ...newItem, 
                     type: value,
-                    quantity: value === "service" ? "" : newItem.quantity
+                    quantity: value === "service" ? "" : newItem.quantity,
+                    unit: value === "service" ? "hour" : "piece"
                   })}
                 >
                   <SelectTrigger>
@@ -478,6 +479,21 @@ const Products = () => {
                     </Select>
                   </div>
                 </>
+              )}
+              
+              {newItem.type === "service" && (
+                <div className="space-y-2">
+                  <Label htmlFor="service-unit">{t("products.unit")}</Label>
+                  <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("products.unitPlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hour">{t("products.unitHour")}</SelectItem>
+                      <SelectItem value="day">{t("products.unitDay")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
               
               <div className="space-y-2">
