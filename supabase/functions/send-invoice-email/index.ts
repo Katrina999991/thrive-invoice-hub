@@ -80,6 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
           language,
           notes,
           company_id,
+          include_payment_link,
           companies (
             name,
             logo_url,
@@ -235,6 +236,32 @@ const handler = async (req: Request): Promise<Response> => {
     // Convert URLs to clickable links
     const urlPattern = /(https?:\/\/[^\s<]+)/g;
     emailMessage = emailMessage.replace(urlPattern, '<a href="$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
+    
+    // Add payment link if client has the option enabled and invoice is not paid
+    if ((client as any).include_payment_link && invoice.status !== 'paid') {
+      try {
+        console.log('Creating payment link for invoice:', invoice.id);
+        const { data: paymentLinkData, error: paymentLinkError } = await supabase.functions.invoke(
+          'create-invoice-payment-link',
+          {
+            body: { invoiceId: invoice.id }
+          }
+        );
+        
+        if (paymentLinkError) {
+          console.error('Error creating payment link:', paymentLinkError);
+        } else if (paymentLinkData?.url) {
+          console.log('Payment link created:', paymentLinkData.url);
+          const paymentLinkText = isFrench 
+            ? `<br><br><strong>Payer en ligne :</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Payer maintenant</a>`
+            : `<br><br><strong>Pay online:</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Pay Now</a>`;
+          
+          emailMessage += paymentLinkText;
+        }
+      } catch (error) {
+        console.error('Exception creating payment link:', error);
+      }
+    }
 
     // Define table headers based on language
     const translations = isFrench ? {
