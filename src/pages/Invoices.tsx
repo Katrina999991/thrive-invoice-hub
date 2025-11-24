@@ -2483,14 +2483,7 @@ Best regards,
                       }}
                     >
                       <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
-                        <SelectValue>
-                          {invoice.status === "paid" && (
-                            <div className="flex items-center">
-                              <Check className="h-3 w-3 mr-1" />
-                              {t("invoices.statusPaid")}
-                            </div>
-                          )}
-                        </SelectValue>
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
