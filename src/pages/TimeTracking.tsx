@@ -126,6 +126,23 @@ export default function TimeTracking() {
       const entries = timeEntries.filter((e) => selectedEntries.includes(e.id));
       const clientId = entries[0].client_id;
       
+      // Get client to find company_id
+      const client = clients.find(c => c.id === clientId);
+      
+      // Get company to find default_due_days
+      let dueDays = 7; // Default value
+      if (client?.company_id) {
+        const company = companies.find(c => c.id === client.company_id);
+        if (company?.default_due_days) {
+          dueDays = company.default_due_days;
+        }
+      }
+      
+      // Calculate dates
+      const issueDate = new Date();
+      const dueDate = new Date(issueDate);
+      dueDate.setDate(dueDate.getDate() + dueDays);
+      
       const items = entries.map((entry) => ({
         description: entry.description,
         quantity: entry.hours,
@@ -140,6 +157,8 @@ export default function TimeTracking() {
         {
           client_id: clientId,
           invoice_number: "TEMP",
+          issue_date: issueDate.toISOString().split('T')[0],
+          due_date: dueDate.toISOString().split('T')[0],
           subtotal,
           total: subtotal,
           status: "draft",
