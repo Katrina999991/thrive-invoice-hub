@@ -394,7 +394,9 @@ const Products = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="price">
-                    {t("products.salePrice")} <span className="text-destructive">*</span>
+                    {newItem.type === "service" 
+                      ? (language === "fr" ? "Prix de l'heure" : "Hourly rate")
+                      : t("products.salePrice")} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="price"
