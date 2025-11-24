@@ -116,9 +116,9 @@ export function AppSidebar() {
         collapsible="icon"
       >
         <SidebarContent>
-          <div className="p-4 border-b">
-            <div className="flex flex-col items-center gap-1">
-              <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-20 h-20" : "w-32 h-32"} object-contain`} />
+          <div className="py-2 px-4 border-b">
+            <div className="flex flex-col items-center gap-0.5">
+              <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-24 h-24" : "w-40 h-40"} object-contain`} />
               {!isCollapsed && (
                 <h2 className="font-bold text-base text-center -mt-1">
                   {username || t("nav.title")}
