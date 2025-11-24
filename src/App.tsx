@@ -19,6 +19,7 @@ import Invoices from "./pages/Invoices";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import TimeTracking from "./pages/TimeTracking";
 import Pricing from "./pages/Pricing";
 import Auth from "./pages/Auth";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -53,6 +54,7 @@ const App = () => {
                   <Route path="categories" element={<Categories />} />
                   <Route path="products" element={<Products />} />
                   <Route path="invoices" element={<Invoices />} />
+                  <Route path="time-tracking" element={<TimeTracking />} />
                   <Route path="expenses" element={<Expenses />} />
                   <Route path="reports" element={<Reports />} />
                   <Route path="pricing" element={<Pricing />} />
