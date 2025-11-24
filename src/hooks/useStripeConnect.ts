@@ -79,14 +79,8 @@ export const useStripeConnect = () => {
       if (error) throw error;
 
       if (data?.url) {
-        // Open Stripe onboarding in new tab
-        window.open(data.url, "_blank");
-        toast({
-          title: language === "fr" ? "Redirection vers Stripe" : "Redirecting to Stripe",
-          description: language === "fr" 
-            ? "Complétez l'onboarding Stripe dans le nouvel onglet" 
-            : "Complete Stripe onboarding in the new tab",
-        });
+        // Redirect to Stripe onboarding in same window
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error("Error starting Stripe onboarding:", error);
