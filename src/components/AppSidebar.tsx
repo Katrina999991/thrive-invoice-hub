@@ -120,7 +120,7 @@ export function AppSidebar() {
             <div className="flex flex-col items-center gap-0.5">
               <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-24 h-24" : "w-40 h-40"} object-contain`} />
               {!isCollapsed && (
-                <h2 className="font-bold text-base text-center text-primary -mt-1">
+                <h2 className="font-bold text-base text-center text-accent -mt-1">
                   {username || t("nav.title")}
                 </h2>
               )}
