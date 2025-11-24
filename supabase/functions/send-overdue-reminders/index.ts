@@ -33,7 +33,7 @@ serve(async (req) => {
 
     // Find all invoices that are:
     // 1. Due exactly 1 day ago (due_date = yesterday)
-    // 2. Status is not 'paid'
+    // 2. Status is not 'paid' (draft, sent, or overdue)
     // 3. No reminder email has been sent yet (overdue_reminder_sent_at IS NULL)
     const { data: overdueInvoices, error: invoicesError } = await supabase
       .from("invoices")
@@ -58,7 +58,7 @@ serve(async (req) => {
           )
         )
       `)
-      .eq("status", "draft")
+      .in("status", ["draft", "sent", "overdue"])
       .lte("due_date", oneDayAgo.toISOString().split('T')[0])
       .gte("due_date", oneDayAgo.toISOString().split('T')[0])
       .is("overdue_reminder_sent_at", null);
