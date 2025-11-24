@@ -125,6 +125,24 @@ export const useTimeEntries = () => {
     }
   };
 
+  const markAsUnbilled = async (entryId: string) => {
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .update({ is_billed: false, invoice_id: null })
+        .eq("id", entryId);
+
+      if (error) throw error;
+      
+      toast.success("Entrée marquée comme non facturée");
+      await fetchTimeEntries();
+    } catch (error: any) {
+      console.error("Error marking as unbilled:", error);
+      toast.error("Erreur lors de la modification du statut");
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchTimeEntries();
   }, [user]);
@@ -137,6 +155,7 @@ export const useTimeEntries = () => {
     deleteTimeEntry,
     getUnbilledEntries,
     markAsBilled,
+    markAsUnbilled,
     refetch: fetchTimeEntries,
   };
 };
