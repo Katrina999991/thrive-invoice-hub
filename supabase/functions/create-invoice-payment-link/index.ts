@@ -30,21 +30,26 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    // Get user_id from invoice since this can be called internally
+    // First fetch the invoice to get the user_id
+    const { data: invoiceData, error: invoiceCheckError } = await supabaseClient
+      .from("invoices")
+      .select("user_id")
+      .eq("id", invoiceId)
+      .single();
     
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw userError;
-    const user = userData.user;
-    if (!user?.id) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id });
+    if (invoiceCheckError || !invoiceData) {
+      throw new Error("Invoice not found");
+    }
+    
+    const userId = invoiceData.user_id;
+    logStep("Processing for user", { userId });
 
     // Get user's Stripe account
     const { data: profile } = await supabaseClient
       .from("profiles")
       .select("stripe_account_id, stripe_onboarding_complete")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     if (!profile?.stripe_account_id) {
@@ -60,7 +65,7 @@ serve(async (req) => {
     const { data: subscription } = await supabaseClient
       .from("user_subscriptions")
       .select("plan_type")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     const planType = subscription?.plan_type || 'free';
@@ -77,7 +82,7 @@ serve(async (req) => {
         )
       `)
       .eq("id", invoiceId)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     if (invoiceError || !invoice) throw new Error("Invoice not found");

@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.verify-payment-status]
 verify_jwt = false
+
+[functions.create-invoice-payment-link]
+verify_jwt = false
