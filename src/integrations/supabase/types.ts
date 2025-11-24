@@ -415,6 +415,7 @@ export type Database = {
           invoice_number: string
           issue_date: string
           notes: string | null
+          overdue_reminder_sent_at: string | null
           paid_at: string | null
           payment_link: string | null
           status: string
@@ -435,6 +436,7 @@ export type Database = {
           invoice_number: string
           issue_date?: string
           notes?: string | null
+          overdue_reminder_sent_at?: string | null
           paid_at?: string | null
           payment_link?: string | null
           status?: string
@@ -455,6 +457,7 @@ export type Database = {
           invoice_number?: string
           issue_date?: string
           notes?: string | null
+          overdue_reminder_sent_at?: string | null
           paid_at?: string | null
           payment_link?: string | null
           status?: string
