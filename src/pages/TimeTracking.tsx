@@ -9,6 +9,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -129,14 +130,38 @@ export default function TimeTracking() {
       // Get client to find company_id
       const client = clients.find(c => c.id === clientId);
       
-      // Get company to find default_due_days
-      let dueDays = 7; // Default value
-      if (client?.company_id) {
-        const company = companies.find(c => c.id === client.company_id);
-        if (company?.default_due_days) {
-          dueDays = company.default_due_days;
-        }
+      if (!client?.company_id) {
+        toast({
+          title: language === "fr" ? "Erreur" : "Error",
+          description: language === "fr" 
+            ? "Le client doit être associé à une entreprise pour créer une facture."
+            : "The client must be associated with a company to create an invoice.",
+          variant: "destructive"
+        });
+        setIsCreatingInvoice(false);
+        return;
       }
+      
+      // Generate invoice number using the company's settings
+      const { data: invoiceNumber, error: numberError } = await supabase
+        .rpc('generate_invoice_number', { company_id: client.company_id });
+
+      if (numberError) {
+        console.error("Error generating invoice number:", numberError);
+        toast({
+          title: language === "fr" ? "Erreur" : "Error",
+          description: language === "fr" 
+            ? "Erreur lors de la génération du numéro de facture."
+            : "Error generating invoice number.",
+          variant: "destructive"
+        });
+        setIsCreatingInvoice(false);
+        return;
+      }
+      
+      // Get company to find default_due_days
+      const company = companies.find(c => c.id === client.company_id);
+      const dueDays = company?.default_due_days || 7;
       
       // Calculate dates
       const issueDate = new Date();
@@ -156,7 +181,7 @@ export default function TimeTracking() {
       const invoice = await createInvoice(
         {
           client_id: clientId,
-          invoice_number: "TEMP",
+          invoice_number: invoiceNumber,
           issue_date: issueDate.toISOString().split('T')[0],
           due_date: dueDate.toISOString().split('T')[0],
           subtotal,
@@ -174,6 +199,13 @@ export default function TimeTracking() {
       }
     } catch (error) {
       console.error("Error creating invoice:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: language === "fr" 
+          ? "Erreur lors de la création de la facture."
+          : "Error creating invoice.",
+        variant: "destructive"
+      });
     } finally {
       setIsCreatingInvoice(false);
     }
