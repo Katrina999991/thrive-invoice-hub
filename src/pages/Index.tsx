@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Star, TrendingUp, FileText, Users, BarChart, Globe } from "lucide-react";
+import { Star, TrendingUp, FileText, Users, BarChart, Globe, CreditCard, Clock } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -89,6 +89,14 @@ const Index = () => {
           {
             title: "Rapports détaillés",
             description: "Analysez vos performances avec des rapports précis"
+          },
+          {
+            title: "Paiements Stripe",
+            description: "Acceptez les paiements en ligne de façon sécurisée via Stripe"
+          },
+          {
+            title: "Suivi des heures",
+            description: "Enregistrez vos heures et créez des factures automatiquement"
           }
         ]
       },
@@ -159,6 +167,14 @@ const Index = () => {
           {
             title: "Detailed reports",
             description: "Analyze your performance with accurate reports"
+          },
+          {
+            title: "Stripe Payments",
+            description: "Accept secure online payments via Stripe integration"
+          },
+          {
+            title: "Time Tracking",
+            description: "Track your hours and create invoices automatically"
           }
         ]
       },
@@ -409,7 +425,7 @@ const Index = () => {
         <h2 className="text-3xl font-bold text-center text-foreground mb-12">
           {t.features.title}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {t.features.items.map((feature, index) => (
             <Card key={index} className="border-border">
               <CardContent className="pt-6">
@@ -417,6 +433,8 @@ const Index = () => {
                 {index === 1 && <TrendingUp className="h-12 w-12 text-primary mb-4" />}
                 {index === 2 && <Users className="h-12 w-12 text-primary mb-4" />}
                 {index === 3 && <BarChart className="h-12 w-12 text-primary mb-4" />}
+                {index === 4 && <CreditCard className="h-12 w-12 text-primary mb-4" />}
+                {index === 5 && <Clock className="h-12 w-12 text-primary mb-4" />}
                 <h3 className="text-xl font-semibold text-foreground mb-2">
                   {feature.title}
                 </h3>
