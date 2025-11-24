@@ -18,6 +18,7 @@ import dashboardPreviewEn from "@/assets/dashboard-preview-new-en.jpg";
 import categoriesPreviewEn from "@/assets/dashboard-preview-categories-en.jpg";
 import invoicesPreviewEn from "@/assets/dashboard-preview-invoices-en.jpg";
 import timeTrackingPreview from "@/assets/dashboard-preview-time-tracking.jpg";
+import reportsPreview from "@/assets/dashboard-preview-reports.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import Autoplay from "embla-carousel-autoplay";
@@ -75,6 +76,10 @@ const Index = () => {
       timeTrackingPreview: {
         title: "Suivi des heures",
         subtitle: "Enregistrez vos heures de travail par client et générez automatiquement des factures basées sur vos entrées de temps."
+      },
+      reportsPreview: {
+        title: "Rapports détaillés",
+        subtitle: "Analyses commerciales et indicateurs de performance. Visualisez vos revenus, clients actifs, produits et activité récente."
       },
       features: {
         title: "Fonctionnalités principales",
@@ -157,6 +162,10 @@ const Index = () => {
       timeTrackingPreview: {
         title: "Time tracking",
         subtitle: "Record your working hours by client and automatically generate invoices based on your time entries."
+      },
+      reportsPreview: {
+        title: "Detailed reports",
+        subtitle: "Business analytics and performance indicators. View your revenue, active clients, products and recent activity."
       },
       features: {
         title: "Key features",
@@ -438,6 +447,32 @@ const Index = () => {
                           alt={currentLang === "EN"
                             ? "Time tracking system with client hours and automatic invoice generation in GestionFlow"
                             : "Système de suivi des heures par client avec génération automatique de factures dans GestionFlow"} 
+                          className="w-full h-auto"
+                          loading="lazy"
+                          width="1200"
+                          height="800"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+                <CarouselItem>
+                  <div className="flex flex-col items-center justify-center min-h-[600px] space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-3xl font-bold text-foreground mb-4">
+                        {t.reportsPreview.title}
+                      </h2>
+                      <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        {t.reportsPreview.subtitle}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <div className="rounded-lg overflow-hidden shadow-lg border border-border">
+                        <img 
+                          src={reportsPreview} 
+                          alt={currentLang === "EN"
+                            ? "Business reports and analytics dashboard with revenue tracking and performance indicators in GestionFlow"
+                            : "Rapports d'entreprise et analyses avec suivi des revenus et indicateurs de performance dans GestionFlow"} 
                           className="w-full h-auto"
                           loading="lazy"
                           width="1200"
