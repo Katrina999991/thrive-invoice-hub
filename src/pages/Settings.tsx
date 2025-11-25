@@ -1805,8 +1805,8 @@ Cordialement,
               <div className="rounded-lg border bg-muted/30 p-4">
                 <p className="text-sm text-muted-foreground mb-3">
                   {language === "fr" 
-                    ? "La fonction de rappel automatique envoie des emails aux clients dont les factures sont en retard d'un jour. Pour qu'un email soit envoyé automatiquement, le client doit avoir l'option 'Envoyer email de rappel auto' activée." 
-                    : "The automatic reminder function sends emails to clients whose invoices are one day overdue. For an email to be sent automatically, the client must have the 'Send auto reminder email' option enabled."}
+                    ? "Envoyez manuellement les rappels pour toutes vos factures en retard qui n'ont pas encore reçu de rappel. Seuls les clients avec l'option 'Envoyer email de rappel auto' activée recevront un email. Chaque facture ne reçoit qu'un seul rappel automatique." 
+                    : "Manually send reminders for all your overdue invoices that haven't received a reminder yet. Only clients with the 'Send auto reminder email' option enabled will receive an email. Each invoice receives only one automatic reminder."}
                 </p>
                 <Button 
                   onClick={handleTestOverdueReminders} 
@@ -1816,12 +1816,12 @@ Cordialement,
                   {isTestingReminders ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {language === "fr" ? "Test en cours..." : "Testing..."}
+                      {language === "fr" ? "Envoi en cours..." : "Sending..."}
                     </>
                   ) : (
                     <>
                       <Bell className="mr-2 h-4 w-4" />
-                      {language === "fr" ? "Tester les rappels maintenant" : "Test reminders now"}
+                      {language === "fr" ? "Envoyer les rappels en attente" : "Send pending reminders"}
                     </>
                   )}
                 </Button>
