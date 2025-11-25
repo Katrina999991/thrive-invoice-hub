@@ -29,7 +29,7 @@ export const useTimeEntries = () => {
           companies (name)
         `)
         .eq("user_id", user.id)
-        .order("date", { ascending: false });
+        .order("date", { ascending: true });
 
       if (error) throw error;
       setTimeEntries(data || []);
