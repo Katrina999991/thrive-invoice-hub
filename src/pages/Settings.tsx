@@ -1796,8 +1796,8 @@ Cordialement,
             </CardTitle>
             <CardDescription>
               {language === "fr" 
-                ? "Envoyez les rappels pour les factures en retard. Les rappels automatiques sont envoyés quotidiennement à 9h00 UTC." 
-                : "Send reminders for overdue invoices. Automatic reminders are sent daily at 9:00 AM UTC."}
+                ? "Tous les clients avec des factures en retard recevront un email de rappel. Les rappels automatiques sont envoyés quotidiennement à 9h00 UTC." 
+                : "All clients with overdue invoices will receive a reminder email. Automatic reminders are sent daily at 9:00 AM UTC."}
             </CardDescription>
           </CardHeader>
           <CardContent>
