@@ -1826,16 +1826,6 @@ Cordialement,
                   )}
                 </Button>
               </div>
-              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 p-4">
-                <p className="text-sm font-medium mb-2">
-                  {language === "fr" ? "Configuration du cron job" : "Cron job configuration"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {language === "fr" 
-                    ? "Pour activer les rappels automatiques quotidiens, un cron job doit être configuré dans votre base de données Supabase. Consultez les logs de la fonction pour voir l'activité." 
-                    : "To enable daily automatic reminders, a cron job must be configured in your Supabase database. Check the function logs to see activity."}
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
