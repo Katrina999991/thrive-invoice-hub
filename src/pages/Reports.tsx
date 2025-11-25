@@ -427,19 +427,20 @@ const Reports = () => {
   const downloadChartsAsPDF = async () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
     doc.setFontSize(18);
-    doc.text('Graphiques des Revenus', pageWidth / 2, 20, { align: 'center' });
+    doc.text(getReportTranslation('revenueReport', language) + ' - ' + getReportTranslation('details', language), pageWidth / 2, 20, { align: 'center' });
     
     // Date range
     let dateRangeText = '';
     if (startDate && endDate) {
-      dateRangeText = `${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${format(startDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(endDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     } else if (startDate) {
-      dateRangeText = `À partir du ${format(startDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${getReportTranslation('since', language)} ${format(startDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     } else if (endDate) {
-      dateRangeText = `Jusqu'au ${format(endDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${getReportTranslation('until', language)} ${format(endDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     }
     
     if (dateRangeText) {
@@ -448,16 +449,16 @@ const Reports = () => {
     }
     
     // Filter info
-    let filterText = 'Toutes les données';
+    let filterText = getReportTranslation('allData', language);
     if (filterType === 'company' && selectedCompanyId) {
       const company = companies.find(c => c.id === selectedCompanyId);
-      filterText = `Compagnie: ${company?.name || 'Inconnue'}`;
+      filterText = `${getReportTranslation('company', language)}: ${company?.name || getReportTranslation('unknown', language)}`;
     } else if (filterType === 'client' && selectedClientId) {
       const client = clients.find(c => c.id === selectedClientId);
-      filterText = `Client: ${client?.name || 'Inconnu'}`;
+      filterText = `${getReportTranslation('client', language)}: ${client?.name || getReportTranslation('unknown', language)}`;
     }
     doc.setFontSize(11);
-    doc.text(`Filtre: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
+    doc.text(`${getReportTranslation('filter', language)}: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
     
     let yPosition = 60;
     
@@ -472,7 +473,7 @@ const Reports = () => {
         const barImgData = barCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Évolution des revenus par mois', 20, yPosition);
+        doc.text(getReportTranslation('revenueReport', language), 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -498,7 +499,7 @@ const Reports = () => {
         const lineImgData = lineCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Évolution des revenus', 20, yPosition);
+        doc.text(getReportTranslation('revenueReport', language), 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -508,9 +509,9 @@ const Reports = () => {
         yPosition += imgHeight + 20;
       }
     } catch (error) {
-      console.error('Erreur lors de la capture des graphiques:', error);
+      console.error('Error capturing charts:', error);
       doc.setFontSize(12);
-      doc.text('Erreur lors de la capture des graphiques', pageWidth / 2, yPosition, { align: 'center' });
+      doc.text(language === 'fr' ? 'Erreur lors de la capture des graphiques' : 'Error capturing charts', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 20;
     }
     
@@ -523,12 +524,12 @@ const Reports = () => {
       
       const tableData = chartData.map(item => [
         item.period,
-        new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(item.revenue),
+        new Intl.NumberFormat(language === 'fr' ? 'fr-FR' : 'en-US', { style: 'currency', currency: 'CAD' }).format(item.revenue),
         item.invoiceCount.toString()
       ]);
       
       autoTable(doc, {
-        head: [['Période', 'Revenus', 'Nb Factures']],
+        head: [[getReportTranslation('period', language), getReportTranslation('revenue', language), getReportTranslation('totalInvoices', language)]],
         body: tableData,
         startY: yPosition,
         theme: 'striped',
