@@ -332,14 +332,14 @@ const Reports = () => {
   const [reminderEndDate, setReminderEndDate] = useState<Date | undefined>();
   const [reminderClientId, setReminderClientId] = useState<string>('all');
   const [reminderType, setReminderType] = useState<'all' | 'manual' | 'automatic'>('all');
-  const [reminderStatus, setReminderStatus] = useState<'all' | 'sent' | 'failed'>('all');
+  const [reminderInvoiceStatus, setReminderInvoiceStatus] = useState<'all' | 'draft' | 'sent' | 'paid' | 'overdue'>('all');
 
   const { logs: reminderLogs, loading: remindersLoading } = useReminderLogs(
     reminderStartDate,
     reminderEndDate,
     reminderClientId === 'all' ? undefined : reminderClientId,
     reminderType,
-    reminderStatus
+    reminderInvoiceStatus
   );
 
   // Filtrer les clients par date de création
@@ -5347,7 +5347,7 @@ const Reports = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{language === "fr" ? "Type" : "Type"}</Label>
+                  <Label>{language === "fr" ? "Type de rappel" : "Reminder Type"}</Label>
                   <Select value={reminderType} onValueChange={(value: 'all' | 'manual' | 'automatic') => setReminderType(value)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -5360,15 +5360,17 @@ const Reports = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{language === "fr" ? "Statut" : "Status"}</Label>
-                  <Select value={reminderStatus} onValueChange={(value: 'all' | 'sent' | 'failed') => setReminderStatus(value)}>
+                  <Label>{language === "fr" ? "Statut de la facture" : "Invoice Status"}</Label>
+                  <Select value={reminderInvoiceStatus} onValueChange={(value: 'all' | 'draft' | 'sent' | 'paid' | 'overdue') => setReminderInvoiceStatus(value)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{language === "fr" ? "Tous" : "All"}</SelectItem>
-                      <SelectItem value="sent">{language === "fr" ? "Envoyé" : "Sent"}</SelectItem>
-                      <SelectItem value="failed">{language === "fr" ? "Échec" : "Failed"}</SelectItem>
+                      <SelectItem value="draft">{language === "fr" ? "Brouillon" : "Draft"}</SelectItem>
+                      <SelectItem value="sent">{language === "fr" ? "Envoyée" : "Sent"}</SelectItem>
+                      <SelectItem value="paid">{language === "fr" ? "Payée" : "Paid"}</SelectItem>
+                      <SelectItem value="overdue">{language === "fr" ? "En retard" : "Overdue"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
