@@ -36,6 +36,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
+import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 
 const Reports = () => {
   const { t, language } = useLanguage();
@@ -2396,58 +2397,52 @@ const Reports = () => {
 
   const exportInvoicesToPDF = () => {
     const doc = new jsPDF();
+    const tr = (key: string) => getReportTranslation(key, language);
     
     doc.setFontSize(18);
-    doc.text('Rapport des Factures', 14, 22);
+    doc.text(tr('invoicesReport'), 14, 22);
     
     doc.setFontSize(11);
-    doc.text(`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 32);
+    doc.text(`${tr('reportDate')}: ${format(new Date(), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS })}`, 14, 32);
     
     // Afficher les filtres
-    const statusLabels: Record<string, string> = {
-      all: 'Tous',
-      paid: 'Payé',
-      sent: 'Envoyé',
-      overdue: 'En retard',
-      draft: 'Brouillon'
-    };
     const filterText = invoiceStatusFilters.includes('all') 
-      ? 'Tous les statuts' 
-      : invoiceStatusFilters.map(s => statusLabels[s] || s).join(', ');
+      ? tr('allStatuses')
+      : invoiceStatusFilters.map(s => getStatusLabel(s, language)).join(', ');
     
     const companyName = invoiceCompanyFilter !== 'all' 
       ? companies.find(c => c.id === invoiceCompanyFilter)?.name || 'N/A'
-      : 'Toutes';
+      : tr('allCompanies');
     
     const clientName = invoiceClientFilter !== 'all'
       ? clients.find(c => c.id === invoiceClientFilter)?.name || 'N/A'
-      : 'Tous';
+      : tr('allClients');
     
     let yPos = 40;
-    doc.text(`Filtres: ${filterText}`, 14, yPos);
+    doc.text(`${tr('filters')}: ${filterText}`, 14, yPos);
     yPos += 8;
-    doc.text(`Compagnie: ${companyName}`, 14, yPos);
+    doc.text(`${tr('company')}: ${companyName}`, 14, yPos);
     yPos += 8;
-    doc.text(`Client: ${clientName}`, 14, yPos);
+    doc.text(`${tr('client')}: ${clientName}`, 14, yPos);
     yPos += 8;
-    doc.text(`Total: $${invoiceGrandTotal.toFixed(2)}`, 14, yPos);
+    doc.text(`${tr('total')}: $${invoiceGrandTotal.toFixed(2)}`, 14, yPos);
     
     // Préparer les données du tableau
     const tableData = filteredInvoicesByStatus.map(invoice => {
       const client = clients.find(c => c.id === invoice.client_id);
-      const statusText = statusLabels[invoice.status] || invoice.status;
+      const statusText = getStatusLabel(invoice.status, language);
       return [
         invoice.invoice_number,
         client?.name || 'N/A',
-        format(new Date(invoice.issue_date), 'dd/MM/yyyy'),
-        invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy') : 'N/A',
+        format(new Date(invoice.issue_date), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS }),
+        invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS }) : 'N/A',
         `$${Number(invoice.total).toFixed(2)}`,
         statusText
       ];
     });
     
     autoTable(doc, {
-      head: [['Numéro', 'Client', 'Date émission', 'Date échéance', 'Montant', 'Statut']],
+      head: [[tr('number'), tr('client'), tr('issueDate'), tr('dueDate'), tr('amount'), tr('status')]],
       body: tableData,
       startY: yPos + 8,
       styles: { fontSize: 9 },
@@ -2458,34 +2453,28 @@ const Reports = () => {
   };
 
   const exportInvoicesToExcel = () => {
-    const statusLabels: Record<string, string> = {
-      all: 'Tous',
-      paid: 'Payé',
-      sent: 'Envoyé',
-      overdue: 'En retard',
-      draft: 'Brouillon'
-    };
+    const tr = (key: string) => getReportTranslation(key, language);
     
     const filterText = invoiceStatusFilters.includes('all') 
-      ? 'Tous les statuts' 
-      : invoiceStatusFilters.map(s => statusLabels[s] || s).join(', ');
+      ? tr('allStatuses')
+      : invoiceStatusFilters.map(s => getStatusLabel(s, language)).join(', ');
     
     const companyName = invoiceCompanyFilter !== 'all' 
       ? companies.find(c => c.id === invoiceCompanyFilter)?.name || 'N/A'
-      : 'Toutes';
+      : tr('allCompanies');
     
     const clientName = invoiceClientFilter !== 'all'
       ? clients.find(c => c.id === invoiceClientFilter)?.name || 'N/A'
-      : 'Tous';
+      : tr('allClients');
     
     // Données de l'en-tête
     const headerData = [
-      ['Rapport des Factures'],
-      [`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`],
-      [`Filtres: ${filterText}`],
-      [`Compagnie: ${companyName}`],
-      [`Client: ${clientName}`],
-      [`Grand Total: $${invoiceGrandTotal.toFixed(2)}`],
+      [tr('invoicesReport')],
+      [`${tr('reportDate')}: ${format(new Date(), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS })}`],
+      [`${tr('filters')}: ${filterText}`],
+      [`${tr('company')}: ${companyName}`],
+      [`${tr('client')}: ${clientName}`],
+      [`${tr('grandTotal')}: $${invoiceGrandTotal.toFixed(2)}`],
       []
     ];
     
@@ -2493,12 +2482,12 @@ const Reports = () => {
     const invoiceData = filteredInvoicesByStatus.map(invoice => {
       const client = clients.find(c => c.id === invoice.client_id);
       return {
-        'Numéro': invoice.invoice_number,
-        'Client': client?.name || 'N/A',
-        'Date d\'émission': format(new Date(invoice.issue_date), 'dd/MM/yyyy'),
-        'Date d\'échéance': invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy') : 'N/A',
-        'Montant': Number(invoice.total).toFixed(2),
-        'Statut': statusLabels[invoice.status] || invoice.status
+        [tr('number')]: invoice.invoice_number,
+        [tr('client')]: client?.name || 'N/A',
+        [tr('issueDate')]: format(new Date(invoice.issue_date), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS }),
+        [tr('dueDate')]: invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS }) : 'N/A',
+        [tr('amount')]: Number(invoice.total).toFixed(2),
+        [tr('status')]: getStatusLabel(invoice.status, language)
       };
     });
     
@@ -2506,7 +2495,7 @@ const Reports = () => {
     const ws = XLSX.utils.aoa_to_sheet(headerData);
     XLSX.utils.sheet_add_json(ws, invoiceData, { origin: -1 });
     
-    XLSX.utils.book_append_sheet(wb, ws, 'Factures');
+    XLSX.utils.book_append_sheet(wb, ws, language === 'fr' ? 'Factures' : 'Invoices');
     XLSX.writeFile(wb, `rapport-factures-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
   };
 
