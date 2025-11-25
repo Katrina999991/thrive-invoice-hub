@@ -169,7 +169,7 @@ export default function TimeTracking() {
       dueDate.setDate(dueDate.getDate() + dueDays);
       
       const items = entries.map((entry) => ({
-        description: entry.description,
+        description: `${entry.description} - ${format(new Date(entry.date), "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`,
         quantity: entry.hours,
         unit_price: entry.hourly_rate,
         total: entry.hours * entry.hourly_rate,
