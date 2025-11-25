@@ -25,7 +25,8 @@ export const useReminderLogs = (
   startDate?: Date,
   endDate?: Date,
   clientId?: string,
-  reminderType?: "manual" | "automatic" | "all"
+  reminderType?: "manual" | "automatic" | "all",
+  status?: "sent" | "failed" | "all"
 ) => {
   const [logs, setLogs] = useState<ReminderLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,7 @@ export const useReminderLogs = (
     }
 
     fetchLogs();
-  }, [user, startDate, endDate, clientId, reminderType]);
+  }, [user, startDate, endDate, clientId, reminderType, status]);
 
   const fetchLogs = async () => {
     try {
@@ -77,6 +78,11 @@ export const useReminderLogs = (
       // Filter by reminder type
       if (reminderType && reminderType !== "all") {
         query = query.eq("reminder_type", reminderType);
+      }
+
+      // Filter by status
+      if (status && status !== "all") {
+        query = query.eq("status", status);
       }
 
       const { data, error } = await query;

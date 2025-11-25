@@ -332,12 +332,14 @@ const Reports = () => {
   const [reminderEndDate, setReminderEndDate] = useState<Date | undefined>();
   const [reminderClientId, setReminderClientId] = useState<string>('all');
   const [reminderType, setReminderType] = useState<'all' | 'manual' | 'automatic'>('all');
+  const [reminderStatus, setReminderStatus] = useState<'all' | 'sent' | 'failed'>('all');
 
   const { logs: reminderLogs, loading: remindersLoading } = useReminderLogs(
     reminderStartDate,
     reminderEndDate,
     reminderClientId === 'all' ? undefined : reminderClientId,
-    reminderType
+    reminderType,
+    reminderStatus
   );
 
   // Filtrer les clients par date de création
@@ -5354,6 +5356,19 @@ const Reports = () => {
                       <SelectItem value="all">{language === "fr" ? "Tous" : "All"}</SelectItem>
                       <SelectItem value="manual">{language === "fr" ? "Manuel" : "Manual"}</SelectItem>
                       <SelectItem value="automatic">{language === "fr" ? "Automatique" : "Automatic"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Statut" : "Status"}</Label>
+                  <Select value={reminderStatus} onValueChange={(value: 'all' | 'sent' | 'failed') => setReminderStatus(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{language === "fr" ? "Tous" : "All"}</SelectItem>
+                      <SelectItem value="sent">{language === "fr" ? "Envoyé" : "Sent"}</SelectItem>
+                      <SelectItem value="failed">{language === "fr" ? "Échec" : "Failed"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
