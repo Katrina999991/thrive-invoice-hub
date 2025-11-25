@@ -624,7 +624,7 @@ const Reports = () => {
     }
     
     // Generate filename
-    const filename = `revenue-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('revenueReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -771,7 +771,7 @@ const Reports = () => {
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
       : '';
-    const filename = `tax-report${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('taxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -879,7 +879,7 @@ const Reports = () => {
       headStyles: { fillColor: [66, 139, 202] },
     });
     
-    const filename = `inventory-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('inventoryReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -932,7 +932,7 @@ const Reports = () => {
     const productsWS = XLSX.utils.aoa_to_sheet(productsData);
     XLSX.utils.book_append_sheet(wb, productsWS, 'Product Details');
     
-    const filename = `inventory-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('inventoryReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
   
@@ -989,7 +989,7 @@ const Reports = () => {
     }
     
     // Generate filename and save
-    const filename = `revenue-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('revenueReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -1087,7 +1087,7 @@ const Reports = () => {
     });
     
     // Generate filename
-    const filename = `clients-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('clientsReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
   
@@ -1727,7 +1727,7 @@ const Reports = () => {
       }
     }
     
-    const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('expenseReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -1885,7 +1885,7 @@ const Reports = () => {
       XLSX.utils.book_append_sheet(wb, taxSummaryWS, 'Tax Summary');
     }
     
-    const filename = `expense-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('expenseReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -2024,7 +2024,7 @@ const Reports = () => {
       }
     }
     
-    const filename = `product-profit-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('productProfitReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -2072,7 +2072,7 @@ const Reports = () => {
       XLSX.utils.book_append_sheet(wb, productWS, getReportTranslation('details', language));
     }
     
-    const filename = `product-profit-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('productProfitReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -2270,7 +2270,7 @@ const Reports = () => {
       }
     }
     
-    const filename = `sales-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('salesReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -2323,7 +2323,7 @@ const Reports = () => {
     const salesWS = XLSX.utils.aoa_to_sheet(salesData_export);
     XLSX.utils.book_append_sheet(wb, salesWS, 'Sales Details');
     
-    const filename = `sales-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('salesReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
