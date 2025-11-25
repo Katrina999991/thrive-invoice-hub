@@ -909,32 +909,6 @@ const Invoices = () => {
               ''
             ]);
           }
-          
-          // Add product taxes if they exist for this item
-          if (item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0) {
-            item.product_taxes.forEach((tax: any) => {
-              // Support both old format and new format
-              const taxType = tax.type || 'percentage';
-              const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-              
-              let taxAmount = 0;
-              if (taxType === 'percentage') {
-                taxAmount = item.total * (taxValue / 100);
-              } else {
-                taxAmount = taxValue * item.quantity;
-              }
-              
-              const taxLabel = taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`;
-              const taxDetails = `${tax.name} (${taxLabel})`;
-              
-              tableData.push([
-                `  ${translations.tax}: ${taxDetails}`,
-                '',
-                '',
-                `$${taxAmount.toFixed(2)}`
-              ]);
-            });
-          }
         });
       } else {
         // If no items available, show totals only
@@ -2059,25 +2033,6 @@ Best regards,
                                     </div>
                                   </TableCell>
                                </TableRow>
-                                {item.product_taxes && item.product_taxes.length > 0 && (
-                                  <TableRow key={`tax-${index}`} className="bg-muted/20">
-                                    <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
-                                      {t("companies.taxes")}: {item.product_taxes.map((tax: any) => {
-                                        const taxType = tax.type || 'percentage';
-                                        const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-                                        return `${tax.name} ${taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`}`;
-                                      }).join(', ')}
-                                    </TableCell>
-                                    <TableCell className="text-sm">
-                                      ${item.product_taxes.reduce((sum: number, tax: any) => {
-                                        const taxType = tax.type || 'percentage';
-                                        const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-                                        return sum + (taxType === 'percentage' ? (item.total * taxValue / 100) : (taxValue * item.quantity));
-                                      }, 0).toFixed(2)}
-                                    </TableCell>
-                                    <TableCell></TableCell>
-                                  </TableRow>
-                                )}
                              </Fragment>
                            ))}
                            <TableRow>
@@ -2234,32 +2189,9 @@ Best regards,
                                  <TableCell className="text-right font-medium">${item.total.toFixed(2)}</TableCell>
                                </TableRow>
                                {item.notes && (
-                                 <TableRow key={`notes-${item.id}`} className="bg-muted/10">
-                                   <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
-                                     {t("invoices.itemNotes")}: {item.notes}
-                                   </TableCell>
-                                 </TableRow>
-                               )}
-                                {item.product_taxes && Array.isArray(item.product_taxes) && item.product_taxes.length > 0 && (
-                                  <TableRow key={`tax-${item.id}`} className="bg-muted/20">
-                                    <TableCell colSpan={3} className="text-sm text-muted-foreground pl-8">
-                                      {t("companies.taxes")}: {item.product_taxes.map((tax: any) => {
-                                        const taxType = tax.type || 'percentage';
-                                        const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-                                        return `${tax.name} ${taxType === 'percentage' ? `${taxValue}%` : `$${taxValue}`}`;
-                                      }).join(', ')}
-                                    </TableCell>
-                                    <TableCell className="text-right text-sm">
-                                      ${(() => {
-                                        const totalTax = item.product_taxes.reduce((sum: number, tax: any) => {
-                                          const taxType = tax.type || 'percentage';
-                                          const taxValue = tax.value !== undefined ? tax.value : tax.percentage;
-                                          const itemTotal = typeof item.total === 'number' ? item.total : Number(item.total);
-                                          const itemQty = typeof item.quantity === 'number' ? item.quantity : Number(item.quantity);
-                                          return sum + (taxType === 'percentage' ? (itemTotal * taxValue / 100) : (taxValue * itemQty));
-                                        }, 0) as number;
-                                        return totalTax.toFixed(2);
-                                      })()}
+                                  <TableRow key={`notes-${item.id}`} className="bg-muted/10">
+                                    <TableCell colSpan={4} className="text-sm text-muted-foreground pl-8">
+                                      {t("invoices.itemNotes")}: {item.notes}
                                     </TableCell>
                                   </TableRow>
                                 )}
