@@ -3148,7 +3148,7 @@ const Reports = () => {
                 <div className="flex justify-end mb-4">
                   <Button onClick={downloadChartsAsPDF} variant="outline" className="flex items-center gap-2">
                     <Download className="h-4 w-4" />
-                    Télécharger les graphiques (PDF)
+                    {t('reports.revenue.downloadCharts')}
                   </Button>
                 </div>
               )}
@@ -3158,7 +3158,7 @@ const Reports = () => {
                 <div className="space-y-4 mb-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Évolution des revenus par {viewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
+                      <CardTitle>{t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div ref={barChartRef}>
@@ -3175,7 +3175,7 @@ const Reports = () => {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Tendance des revenus</CardTitle>
+                      <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div ref={lineChartRef}>
