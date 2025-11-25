@@ -20,13 +20,16 @@ import invoicesPreviewEn from "@/assets/dashboard-preview-invoices-en.jpg";
 import timeTrackingPreview from "@/assets/dashboard-preview-time-tracking.jpg";
 import reportsPreview from "@/assets/dashboard-preview-reports.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import { useSEO } from "@/hooks/useSEO";
+import { Pause, Play } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
+  const autoplayPlugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
+  const [isPlaying, setIsPlaying] = useState(true);
   
   const [isDark, setIsDark] = useState<boolean>(() => {
     return document.documentElement.classList.contains("dark");
@@ -230,6 +233,17 @@ const Index = () => {
 
   const t = translations[currentLang];
 
+  const toggleAutoplay = () => {
+    const autoplay = autoplayPlugin.current;
+    if (isPlaying) {
+      autoplay.stop();
+      setIsPlaying(false);
+    } else {
+      autoplay.play();
+      setIsPlaying(true);
+    }
+  };
+
   // SEO Configuration with structured data
   useSEO({
     title: currentLang === "EN" 
@@ -339,15 +353,19 @@ const Index = () => {
       {/* Screenshots Carousel Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto bg-muted rounded-xl p-8">
+          <div className="max-w-6xl mx-auto bg-muted rounded-xl p-8 relative">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleAutoplay}
+              className="absolute top-4 right-4 z-10 h-10 w-10 rounded-full"
+              aria-label={isPlaying ? "Pause autoplay" : "Resume autoplay"}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
             <Carousel 
               className="w-full"
-              plugins={[
-                Autoplay({
-                  delay: 5000,
-                  stopOnInteraction: true,
-                }),
-              ]}
+              plugins={[autoplayPlugin.current]}
               opts={{
                 loop: true,
               }}
