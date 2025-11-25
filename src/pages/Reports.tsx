@@ -4673,19 +4673,19 @@ const Reports = () => {
             {/* Filtres pour le rapport de taxes */}
             <Card>
               <CardHeader>
-                <CardTitle>Filtres du rapport de taxes</CardTitle>
+                <CardTitle>{t("reports.taxes.filters")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Filtre par compagnie */}
                   <div className="space-y-2">
-                    <Label>Compagnie</Label>
+                    <Label>{t("reports.taxes.company")}</Label>
                     <Select value={taxSelectedCompany} onValueChange={setTaxSelectedCompany}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Toutes les compagnies" />
+                        <SelectValue placeholder={t("reports.taxes.allCompanies")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes les compagnies</SelectItem>
+                        <SelectItem value="all">{t("reports.taxes.allCompanies")}</SelectItem>
                         {companies.map(company => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name}
@@ -4697,29 +4697,29 @@ const Reports = () => {
 
                   {/* Filtre de période */}
                   <div className="space-y-2">
-                    <Label>Type de période</Label>
+                    <Label>{t("reports.taxes.periodType")}</Label>
                     <Select value={taxDateFilter} onValueChange={(value: 'custom' | 'month' | 'year') => setTaxDateFilter(value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="custom">Dates personnalisées</SelectItem>
-                        <SelectItem value="month">Par mois</SelectItem>
-                        <SelectItem value="year">Par année</SelectItem>
+                        <SelectItem value="custom">{t("reports.taxes.customDates")}</SelectItem>
+                        <SelectItem value="month">{t("reports.taxes.byMonth")}</SelectItem>
+                        <SelectItem value="year">{t("reports.taxes.byYear")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Mode d'affichage */}
                   <div className="space-y-2">
-                    <Label>Affichage</Label>
+                    <Label>{t("reports.taxes.display")}</Label>
                     <Select value={taxViewMode} onValueChange={(value: 'monthly' | 'yearly') => setTaxViewMode(value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="monthly">Mensuel</SelectItem>
-                        <SelectItem value="yearly">Annuel</SelectItem>
+                        <SelectItem value="monthly">{t("reports.taxes.monthly")}</SelectItem>
+                        <SelectItem value="yearly">{t("reports.taxes.yearly")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -4730,7 +4730,7 @@ const Reports = () => {
                   {taxDateFilter === 'custom' && (
                     <>
                       <div className="space-y-2">
-                        <Label>Date de début</Label>
+                        <Label>{t("reports.taxes.startDate")}</Label>
                         <Popover open={taxStartOpen} onOpenChange={setTaxStartOpen}>
                           <PopoverTrigger asChild>
                             <Button
@@ -4741,7 +4741,7 @@ const Reports = () => {
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {taxStartDate ? format(taxStartDate, "dd/MM/yyyy") : "Sélectionner"}
+                              {taxStartDate ? format(taxStartDate, "dd/MM/yyyy") : t("reports.taxes.select")}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
@@ -4759,7 +4759,7 @@ const Reports = () => {
                         </Popover>
                       </div>
                       <div className="space-y-2">
-                        <Label>Date de fin</Label>
+                        <Label>{t("reports.taxes.endDate")}</Label>
                         <Popover open={taxEndOpen} onOpenChange={setTaxEndOpen}>
                           <PopoverTrigger asChild>
                             <Button
@@ -4770,7 +4770,7 @@ const Reports = () => {
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {taxEndDate ? format(taxEndDate, "dd/MM/yyyy") : "Sélectionner"}
+                              {taxEndDate ? format(taxEndDate, "dd/MM/yyyy") : t("reports.taxes.select")}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
@@ -4792,7 +4792,7 @@ const Reports = () => {
                   
                   {taxDateFilter === 'month' && (
                     <div className="space-y-2">
-                      <Label>Mois</Label>
+                      <Label>{t("reports.taxes.month")}</Label>
                       <MonthYearPicker
                         selectedDate={taxSelectedMonth}
                         onDateChange={setTaxSelectedMonth}
@@ -4804,7 +4804,7 @@ const Reports = () => {
                   
                   {taxDateFilter === 'year' && (
                     <div className="space-y-2">
-                      <Label>Année</Label>
+                      <Label>{t("reports.taxes.year")}</Label>
                       <MonthYearPicker
                         selectedDate={taxSelectedYear}
                         onDateChange={setTaxSelectedYear}
@@ -4822,18 +4822,18 @@ const Reports = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Résumé des taxes</CardTitle>
+                    <CardTitle>{t("reports.taxes.taxSummary")}</CardTitle>
                     <CardDescription>
                       {taxSelectedCompany && taxSelectedCompany !== 'all'
-                        ? `Compagnie: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
-                        : 'Toutes les compagnies'
+                        ? `${t("reports.taxes.company")}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
+                        : t("reports.taxes.allCompanies")
                       }
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-2">Total général des taxes</p>
+                        <p className="text-sm text-muted-foreground mb-2">{t("reports.taxes.grandTotal")}</p>
                         <div className="text-3xl font-bold text-primary">
                           {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
                             style: 'currency', 
@@ -4843,14 +4843,14 @@ const Reports = () => {
                       </div>
                       
                       <div className="border-t pt-4">
-                        <h4 className="text-lg font-semibold mb-4">Total par type de taxe</h4>
+                        <h4 className="text-lg font-semibold mb-4">{t("reports.taxes.totalByType")}</h4>
                         <div className="space-y-3">
                           {taxData.taxSummary.map((tax, index) => (
                             <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                               <div>
                                 <span className="font-medium text-base">{tax.name}</span>
                                 <p className="text-sm text-muted-foreground">
-                                  {tax.invoiceCount} facture{tax.invoiceCount > 1 ? 's' : ''}
+                                  {tax.invoiceCount} {tax.invoiceCount > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
                                 </p>
                               </div>
                               <div className="text-right">
@@ -4875,7 +4875,7 @@ const Reports = () => {
                 {/* Graphique circulaire */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Répartition des taxes</CardTitle>
+                    <CardTitle>{t("reports.taxes.distribution")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <PieChart width={400} height={250}>
@@ -4899,7 +4899,7 @@ const Reports = () => {
                       <Tooltip 
                         formatter={(value: number) => [
                           value.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-                          'Montant'
+                          t("reports.taxes.amount")
                         ]}
                       />
                     </PieChart>
@@ -4912,7 +4912,7 @@ const Reports = () => {
             {taxData && taxData.totalTaxAmount > 0 && (taxViewMode === 'monthly' ? taxData.monthlyData.length > 0 : taxData.yearlyData.length > 0) && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Évolution des taxes par {taxViewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
+                  <CardTitle>{t("reports.taxes.evolutionBy")} {taxViewMode === 'monthly' ? t("reports.taxes.month").toLowerCase() : t("reports.taxes.year").toLowerCase()}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <BarChart 
@@ -4927,7 +4927,7 @@ const Reports = () => {
                     <Tooltip 
                       formatter={(value: number) => [
                         value.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-                        'Montant des taxes'
+                        t("reports.taxes.taxesAmount")
                       ]}
                     />
                     <Bar dataKey="totalTaxAmount" fill="#8884d8" />
@@ -4941,9 +4941,9 @@ const Reports = () => {
               <Card>
                 <CardContent className="flex justify-center items-center h-96">
                   <div className="text-center">
-                    <p className="text-lg font-medium">Aucune donnée de taxes</p>
+                    <p className="text-lg font-medium">{t("reports.taxes.noData")}</p>
                     <p className="text-muted-foreground">
-                      Aucune facture payée avec taxes trouvée pour cette période.
+                      {t("reports.taxes.noDataDesc")}
                     </p>
                   </div>
                 </CardContent>
@@ -4954,16 +4954,16 @@ const Reports = () => {
             {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Résumé des taxes collectées</CardTitle>
-                  <CardDescription>Vue d'ensemble des taxes par type</CardDescription>
+                  <CardTitle>{t("reports.taxes.summaryCollected")}</CardTitle>
+                  <CardDescription>{t("reports.taxes.summaryDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Type de taxe</TableHead>
-                        <TableHead>Montant total</TableHead>
-                        <TableHead>Nombre de factures</TableHead>
+                        <TableHead>{t("reports.taxes.taxType")}</TableHead>
+                        <TableHead>{t("reports.taxes.totalAmount")}</TableHead>
+                        <TableHead>{t("reports.taxes.invoiceCount")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -4989,16 +4989,16 @@ const Reports = () => {
             {taxData && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Détail des taxes par {taxViewMode === 'monthly' ? 'mois' : 'année'}</CardTitle>
+                  <CardTitle>{t("reports.taxes.detailBy")} {taxViewMode === 'monthly' ? t("reports.taxes.month").toLowerCase() : t("reports.taxes.year").toLowerCase()}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Période</TableHead>
-                        <TableHead>Total taxes</TableHead>
-                        <TableHead>Factures</TableHead>
-                        <TableHead>Détail par taxe</TableHead>
+                        <TableHead>{t("reports.taxes.period")}</TableHead>
+                        <TableHead>{t("reports.taxes.totalTaxes")}</TableHead>
+                        <TableHead>{t("reports.taxes.invoicesLabel")}</TableHead>
+                        <TableHead>{t("reports.taxes.detailByTax")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -5039,8 +5039,8 @@ const Reports = () => {
             {taxData && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Téléchargement</CardTitle>
-                  <CardDescription>Exporter le rapport de taxes</CardDescription>
+                  <CardTitle>{t("reports.taxes.download")}</CardTitle>
+                  <CardDescription>{t("reports.taxes.exportDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">
