@@ -74,10 +74,18 @@ serve(async (req) => {
       throw invoicesError;
     }
 
-    console.log(`Found ${overdueInvoices?.length || 0} overdue invoices to process`);
+      console.log(`Found ${overdueInvoices?.length || 0} overdue invoices to process`);
 
     let emailsSent = 0;
     let emailsSkipped = 0;
+    const reminderLogs: Array<{
+      invoice_id: string;
+      user_id: string;
+      client_id: string | null;
+      reminder_type: string;
+      status: string;
+      error_message: string | null;
+    }> = [];
 
     for (const invoice of overdueInvoices || []) {
       const client = invoice.clients;
@@ -189,9 +197,38 @@ Best regards,
           console.error(`Error updating invoice ${invoice.invoice_number}:`, updateError);
         } else {
           emailsSent++;
+          // Log successful reminder
+          reminderLogs.push({
+            invoice_id: invoice.id,
+            user_id: invoice.user_id,
+            client_id: client.id,
+            reminder_type: user_id ? "manual" : "automatic",
+            status: "sent",
+            error_message: null,
+          });
         }
       } catch (error) {
         console.error(`Exception sending email for invoice ${invoice.invoice_number}:`, error);
+        // Log failed reminder
+        reminderLogs.push({
+          invoice_id: invoice.id,
+          user_id: invoice.user_id,
+          client_id: client?.id || null,
+          reminder_type: user_id ? "manual" : "automatic",
+          status: "failed",
+          error_message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+
+    // Insert all reminder logs
+    if (reminderLogs.length > 0) {
+      const { error: logsError } = await supabase
+        .from("invoice_reminder_logs")
+        .insert(reminderLogs);
+
+      if (logsError) {
+        console.error("Error inserting reminder logs:", logsError);
       }
     }
 

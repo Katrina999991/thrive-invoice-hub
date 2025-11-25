@@ -406,6 +406,50 @@ export type Database = {
           },
         ]
       }
+      invoice_reminder_logs: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          invoice_id: string
+          reminder_type: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          invoice_id: string
+          reminder_type: string
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string
+          reminder_type?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_reminder_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           client_id: string | null
