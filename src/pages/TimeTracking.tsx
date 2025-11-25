@@ -349,6 +349,32 @@ export default function TimeTracking() {
     return true;
   });
 
+  // Obtenir les entrées non facturées filtrées
+  const unbilledFilteredEntries = filteredEntries.filter(entry => !entry.is_billed);
+
+  // Vérifier si toutes les entrées non facturées du même client sont sélectionnées
+  const allSameClientSelected = selectedClientId 
+    ? unbilledFilteredEntries.filter(e => e.client_id === selectedClientId).every(e => selectedEntries.includes(e.id))
+    : unbilledFilteredEntries.every(e => selectedEntries.includes(e.id));
+  
+  const someSelected = selectedEntries.length > 0 && !allSameClientSelected;
+
+  const handleSelectAll = () => {
+    if (unbilledFilteredEntries.length === 0) return;
+    
+    if (allSameClientSelected && selectedEntries.length > 0) {
+      // Tout désélectionner
+      setSelectedEntries([]);
+    } else {
+      // Sélectionner toutes les entrées non facturées du premier client ou toutes si aucune sélection
+      const firstClientId = selectedClientId || unbilledFilteredEntries[0]?.client_id;
+      const entriesToSelect = unbilledFilteredEntries
+        .filter(e => !firstClientId || e.client_id === firstClientId)
+        .map(e => e.id);
+      setSelectedEntries(entriesToSelect);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex justify-between items-center">
@@ -471,7 +497,16 @@ export default function TimeTracking() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allSameClientSelected && selectedEntries.length > 0}
+                      onCheckedChange={handleSelectAll}
+                      aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
+                      disabled={unbilledFilteredEntries.length === 0}
+                      className={someSelected ? "data-[state=checked]:bg-primary" : ""}
+                      {...(someSelected && { "data-state": "indeterminate" })}
+                    />
+                  </TableHead>
                   <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
                   <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
                   <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
