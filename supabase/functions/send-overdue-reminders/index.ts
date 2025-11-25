@@ -103,6 +103,11 @@ serve(async (req) => {
         continue;
       }
 
+      // Add delay to avoid rate limiting (500ms between emails)
+      if (emailsSent > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
       // Determine language
       const clientLanguage = client.language || "english";
       const isEnglish = clientLanguage === "english";
