@@ -3975,13 +3975,13 @@ const Reports = () => {
             {/* Filtres pour les dépenses */}
             <Card>
               <CardHeader>
-                <CardTitle>Filtres</CardTitle>
-                <CardDescription>Sélectionnez les critères pour filtrer les dépenses</CardDescription>
+                <CardTitle>{t("reports.expenses.filters")}</CardTitle>
+                <CardDescription>{t("reports.expenses.filtersCriteria")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
-                    <Label>Plage de dates</Label>
+                    <Label>{t("reports.expenses.dateRange")}</Label>
                     <DateRangePicker
                       startDate={expenseStartDate}
                       endDate={expenseEndDate}
@@ -3992,25 +3992,25 @@ const Reports = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Type de filtre</Label>
+                    <Label>{t("reports.expenses.filterType")}</Label>
                     <Select value={expenseFilterType} onValueChange={(value: 'all' | 'company' | 'category') => setExpenseFilterType(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le type de filtre" />
+                        <SelectValue placeholder={t("reports.expenses.selectFilterType")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes les dépenses</SelectItem>
-                        <SelectItem value="company">Par compagnie</SelectItem>
-                        <SelectItem value="category">Par catégorie</SelectItem>
+                        <SelectItem value="all">{t("reports.expenses.allExpenses")}</SelectItem>
+                        <SelectItem value="company">{t("reports.expenses.byCompanyFilter")}</SelectItem>
+                        <SelectItem value="category">{t("reports.expenses.byCategoryFilter")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {expenseFilterType === 'company' && (
                     <div className="space-y-2">
-                      <Label>Compagnie</Label>
+                      <Label>{t("reports.expenses.company")}</Label>
                       <Select value={expenseSelectedCompanyId} onValueChange={setExpenseSelectedCompanyId}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une compagnie" />
+                          <SelectValue placeholder={t("reports.expenses.selectCompany")} />
                         </SelectTrigger>
                         <SelectContent>
                           {companies?.map((company) => (
@@ -4025,10 +4025,10 @@ const Reports = () => {
 
                   {expenseFilterType === 'category' && (
                     <div className="space-y-2">
-                      <Label>Catégorie</Label>
+                      <Label>{t("reports.expenses.category")}</Label>
                       <Select value={expenseSelectedCategory} onValueChange={setExpenseSelectedCategory}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
+                          <SelectValue placeholder={t("reports.expenses.selectCategory")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Office">Bureau</SelectItem>
@@ -4050,7 +4050,7 @@ const Reports = () => {
             {expenseLoading ? (
               <Card>
                 <CardContent className="p-6">
-                  <div className="text-center">Loading expense data...</div>
+                  <div className="text-center">{t("reports.expenses.loading")}</div>
                 </CardContent>
               </Card>
             ) : expenseReportData ? (
@@ -4059,7 +4059,7 @@ const Reports = () => {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Dépenses</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.expenses.totalExpenses")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-red-600">
@@ -4069,7 +4069,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Dépenses Payées</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.expenses.paidExpenses")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
@@ -4079,7 +4079,7 @@ const Reports = () => {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Dépenses Impayées</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t("reports.expenses.unpaidExpenses")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-orange-600">
@@ -4116,7 +4116,7 @@ const Reports = () => {
                       </BarChart>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
-                        Aucune donnée de dépense disponible
+                        {t("reports.expenses.noData")}
                       </div>
                     )}
                   </CardContent>
@@ -4185,7 +4185,7 @@ const Reports = () => {
                       </Table>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
-                        No category data available
+                        {t("reports.expenses.noCategoryData")}
                       </div>
                     )}
                   </CardContent>
@@ -4231,24 +4231,24 @@ const Reports = () => {
                 {expenseReportData.expenseDetails && expenseReportData.expenseDetails.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>{language === "fr" ? "Détail de toutes les dépenses" : "All Expenses Detail"}</CardTitle>
+                      <CardTitle>{t("reports.expenses.allExpensesDetail")}</CardTitle>
                       <CardDescription>
-                        {language === "fr" ? "Liste complète des dépenses avec leurs taxes" : "Complete list of expenses with their taxes"}
+                        {t("reports.expenses.allExpensesDetailDesc")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
-                            <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
-                            <TableHead>{language === "fr" ? "Catégorie" : "Category"}</TableHead>
-                            <TableHead>{language === "fr" ? "Compagnie" : "Company"}</TableHead>
-                            <TableHead>{language === "fr" ? "Fournisseur" : "Vendor"}</TableHead>
-                            <TableHead className="text-right">{language === "fr" ? "Montant" : "Amount"}</TableHead>
-                            <TableHead className="text-right">{language === "fr" ? "Taxes" : "Taxes"}</TableHead>
-                            <TableHead className="text-right">{language === "fr" ? "Total" : "Total"}</TableHead>
-                            <TableHead>{language === "fr" ? "Statut" : "Status"}</TableHead>
+                            <TableHead>{t("reports.expenses.date")}</TableHead>
+                            <TableHead>{t("reports.expenses.descriptionField")}</TableHead>
+                            <TableHead>{t("reports.expenses.category")}</TableHead>
+                            <TableHead>{t("reports.expenses.company")}</TableHead>
+                            <TableHead>{t("reports.expenses.vendor")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.amount")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.taxes")}</TableHead>
+                            <TableHead className="text-right">{t("reports.expenses.total")}</TableHead>
+                            <TableHead>{t("reports.expenses.status")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -4287,7 +4287,7 @@ const Reports = () => {
                                 </TableCell>
                                 <TableCell>
                                   <Badge className={expense.status === 'paid' ? 'bg-green-500' : 'bg-yellow-500'}>
-                                    {expense.status === 'paid' ? (language === "fr" ? 'Payé' : 'Paid') : (language === "fr" ? 'Non payé' : 'Unpaid')}
+                                    {expense.status === 'paid' ? t("reports.expenses.paid") : t("reports.expenses.unpaid")}
                                   </Badge>
                                 </TableCell>
                               </TableRow>
