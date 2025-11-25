@@ -4372,8 +4372,8 @@ const Reports = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Rapport des clients</h2>
-                <p className="text-muted-foreground">Liste des clients par compagnie et statistiques</p>
+                <h2 className="text-2xl font-bold">{t("reports.clients.title")}</h2>
+                <p className="text-muted-foreground">{t("reports.clients.description")}</p>
               </div>
               
               <div className="flex space-x-2">
@@ -4391,13 +4391,13 @@ const Reports = () => {
             {/* Filtre par date de création */}
             <Card>
               <CardHeader>
-                <CardTitle>Filtres</CardTitle>
-                <CardDescription>Filtrer les clients par date de création</CardDescription>
+                <CardTitle>{t("reports.clients.filters")}</CardTitle>
+                <CardDescription>{t("reports.clients.filterDescription")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Date de création (du)</Label>
+                    <Label>{t("reports.clients.createdFromDate")}</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -4408,7 +4408,7 @@ const Reports = () => {
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {createdFromDate ? format(createdFromDate, "dd/MM/yyyy") : "Sélectionner une date"}
+                          {createdFromDate ? format(createdFromDate, "dd/MM/yyyy") : t("reports.clients.selectDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -4423,7 +4423,7 @@ const Reports = () => {
                     </Popover>
                   </div>
                   <div className="space-y-2">
-                    <Label>Date de création (au)</Label>
+                    <Label>{t("reports.clients.createdToDate")}</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -4434,7 +4434,7 @@ const Reports = () => {
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {createdToDate ? format(createdToDate, "dd/MM/yyyy") : "Sélectionner une date"}
+                          {createdToDate ? format(createdToDate, "dd/MM/yyyy") : t("reports.clients.selectDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -4459,7 +4459,7 @@ const Reports = () => {
                         setCreatedToDate(undefined);
                       }}
                     >
-                      Effacer les filtres
+                      {t("reports.clients.clearFilters")}
                     </Button>
                   </div>
                 )}
@@ -4472,8 +4472,8 @@ const Reports = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Tous les clients</CardTitle>
-                      <CardDescription>Liste complète de tous les clients</CardDescription>
+                      <CardTitle>{t("reports.clients.allClients")}</CardTitle>
+                      <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
                     </div>
                     <div className="flex space-x-2">
                       <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
@@ -4491,20 +4491,20 @@ const Reports = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nom du client</TableHead>
-                        <TableHead>Compagnie</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Téléphone</TableHead>
-                        <TableHead>Personne de contact</TableHead>
-                        <TableHead>Date de création</TableHead>
-                        <TableHead>Dernière facture</TableHead>
+                        <TableHead>{t("reports.clients.clientName")}</TableHead>
+                        <TableHead>{t("reports.clients.company")}</TableHead>
+                        <TableHead>{t("reports.clients.email")}</TableHead>
+                        <TableHead>{t("reports.clients.phone")}</TableHead>
+                        <TableHead>{t("reports.clients.contactPerson")}</TableHead>
+                        <TableHead>{t("reports.clients.creationDate")}</TableHead>
+                        <TableHead>{t("reports.clients.lastInvoice")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredClientsByDate.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell className="font-medium">{client.name}</TableCell>
-                          <TableCell>{client.companies?.name || 'Aucune compagnie'}</TableCell>
+                          <TableCell>{client.companies?.name || t("reports.clients.noCompany")}</TableCell>
                           <TableCell>{client.email || 'N/A'}</TableCell>
                           <TableCell>{client.phone || 'N/A'}</TableCell>
                           <TableCell>{client.contact_person || 'N/A'}</TableCell>
@@ -4514,7 +4514,7 @@ const Reports = () => {
                           <TableCell>
                             {getLastInvoiceDate(client.id) 
                               ? format(new Date(getLastInvoiceDate(client.id)!), 'dd/MM/yyyy')
-                              : 'Aucune facture'
+                              : t("reports.clients.noInvoice")
                             }
                           </TableCell>
                         </TableRow>
@@ -4522,7 +4522,7 @@ const Reports = () => {
                       {filteredClientsByDate.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center text-muted-foreground">
-                            Aucun client trouvé pour cette période
+                            {t("reports.clients.noClientsFound")}
                           </TableCell>
                         </TableRow>
                       )}
@@ -4534,8 +4534,8 @@ const Reports = () => {
               {/* Section: Clients par compagnie */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Clients par compagnie</CardTitle>
-                  <CardDescription>Répartition des clients selon leurs compagnies</CardDescription>
+                  <CardTitle>{t("reports.clients.clientsByCompany")}</CardTitle>
+                  <CardDescription>{t("reports.clients.clientsByCompanyDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -4548,7 +4548,7 @@ const Reports = () => {
                             <div>
                               <h3 className="font-semibold text-lg">{company.name}</h3>
                               <span className="text-sm text-muted-foreground">
-                                {companyClients.length} client{companyClients.length > 1 ? 's' : ''}
+                                {companyClients.length} {companyClients.length > 1 ? t("reports.clients.clientCountPlural") : t("reports.clients.clientCount")}
                               </span>
                             </div>
                             <div className="flex space-x-2">
@@ -4567,12 +4567,12 @@ const Reports = () => {
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Nom du client</TableHead>
-                                  <TableHead>Email</TableHead>
-                                  <TableHead>Téléphone</TableHead>
-                                  <TableHead>Personne de contact</TableHead>
-                                  <TableHead>Date de création</TableHead>
-                                  <TableHead>Dernière facture</TableHead>
+                                  <TableHead>{t("reports.clients.clientName")}</TableHead>
+                                  <TableHead>{t("reports.clients.email")}</TableHead>
+                                  <TableHead>{t("reports.clients.phone")}</TableHead>
+                                  <TableHead>{t("reports.clients.contactPerson")}</TableHead>
+                                  <TableHead>{t("reports.clients.creationDate")}</TableHead>
+                                  <TableHead>{t("reports.clients.lastInvoice")}</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -4588,7 +4588,7 @@ const Reports = () => {
                                     <TableCell>
                                       {getLastInvoiceDate(client.id) 
                                         ? format(new Date(getLastInvoiceDate(client.id)!), 'dd/MM/yyyy')
-                                        : 'Aucune facture'
+                                        : t("reports.clients.noInvoice")
                                       }
                                     </TableCell>
                                   </TableRow>
@@ -4596,7 +4596,7 @@ const Reports = () => {
                               </TableBody>
                             </Table>
                           ) : (
-                            <p className="text-muted-foreground text-sm">Aucun client associé à cette compagnie</p>
+                            <p className="text-muted-foreground text-sm">{t("reports.clients.noClientsForCompany")}</p>
                           )}
                         </div>
                       );
@@ -4610,9 +4610,9 @@ const Reports = () => {
                         <div className="border rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
                             <div>
-                              <h3 className="font-semibold text-lg">Clients sans compagnie assignée</h3>
+                              <h3 className="font-semibold text-lg">{t("reports.clients.clientsWithoutCompany")}</h3>
                               <span className="text-sm text-muted-foreground">
-                                {clientsWithoutCompany.length} client{clientsWithoutCompany.length > 1 ? 's' : ''}
+                                {clientsWithoutCompany.length} {clientsWithoutCompany.length > 1 ? t("reports.clients.clientCountPlural") : t("reports.clients.clientCount")}
                               </span>
                             </div>
                             <div className="flex space-x-2">
@@ -4630,12 +4630,12 @@ const Reports = () => {
                           <Table>
                             <TableHeader>
                             <TableRow>
-                              <TableHead>Nom du client</TableHead>
-                              <TableHead>Email</TableHead>
-                              <TableHead>Téléphone</TableHead>
-                              <TableHead>Personne de contact</TableHead>
-                              <TableHead>Date de création</TableHead>
-                              <TableHead>Dernière facture</TableHead>
+                              <TableHead>{t("reports.clients.clientName")}</TableHead>
+                              <TableHead>{t("reports.clients.email")}</TableHead>
+                              <TableHead>{t("reports.clients.phone")}</TableHead>
+                              <TableHead>{t("reports.clients.contactPerson")}</TableHead>
+                              <TableHead>{t("reports.clients.creationDate")}</TableHead>
+                              <TableHead>{t("reports.clients.lastInvoice")}</TableHead>
                             </TableRow>
                           </TableHeader>
                             <TableBody>
@@ -4651,7 +4651,7 @@ const Reports = () => {
                                   <TableCell>
                                     {getLastInvoiceDate(client.id) 
                                       ? format(new Date(getLastInvoiceDate(client.id)!), 'dd/MM/yyyy')
-                                      : 'Aucune facture'
+                                      : t("reports.clients.noInvoice")
                                     }
                                   </TableCell>
                                 </TableRow>
