@@ -69,19 +69,19 @@ export default function TimeTracking() {
       : "Track your working hours and create invoices",
   });
 
+  const services = products.filter(p => p.is_active && p.quantity === null);
+
   const form = useForm<TimeEntryFormData>({
     resolver: zodResolver(timeEntrySchema),
     defaultValues: {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
       hourly_rate: "",
-      description: "",
+      description: services[0]?.name || "",
       service_id: "",
       notes: "",
     },
   });
-
-  const services = products.filter(p => p.is_active && p.quantity === null);
 
   const onSubmit = async (data: TimeEntryFormData) => {
     if (editingEntry) {
@@ -112,7 +112,7 @@ export default function TimeTracking() {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
       hourly_rate: "",
-      description: "",
+      description: services[0]?.name || "",
       service_id: "",
       notes: "",
     });
@@ -141,7 +141,7 @@ export default function TimeTracking() {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
       hourly_rate: "",
-      description: "",
+      description: services[0]?.name || "",
       service_id: "",
       notes: "",
     });
