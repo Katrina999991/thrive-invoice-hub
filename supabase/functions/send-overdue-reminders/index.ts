@@ -21,7 +21,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const resend = new Resend(resendApiKey);
 
-    console.log("Starting overdue reminders check...");
+    // Optional: filter by user_id for testing
+    const { user_id } = await req.json().catch(() => ({}));
+    
+    console.log("Starting overdue reminders check...", user_id ? `for user ${user_id}` : "for all users");
 
     // Get current date
     const today = new Date();
@@ -35,7 +38,8 @@ serve(async (req) => {
     // 1. Due exactly 1 day ago (due_date = yesterday)
     // 2. Status is 'sent' or 'overdue' (not draft or paid)
     // 3. No reminder email has been sent yet (overdue_reminder_sent_at IS NULL)
-    const { data: overdueInvoices, error: invoicesError } = await supabase
+    // 4. Optionally filtered by user_id for testing
+    let query = supabase
       .from("invoices")
       .select(`
         *,
@@ -62,6 +66,13 @@ serve(async (req) => {
       .lte("due_date", oneDayAgo.toISOString().split('T')[0])
       .gte("due_date", oneDayAgo.toISOString().split('T')[0])
       .is("overdue_reminder_sent_at", null);
+    
+    // Filter by user_id if provided (for testing)
+    if (user_id) {
+      query = query.eq("user_id", user_id);
+    }
+    
+    const { data: overdueInvoices, error: invoicesError } = await query;
 
     if (invoicesError) {
       console.error("Error fetching overdue invoices:", invoicesError);
