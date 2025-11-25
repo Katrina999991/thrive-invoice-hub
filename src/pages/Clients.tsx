@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -498,17 +498,23 @@ const Clients = () => {
                 
                 return (
                   <TableRow key={client.id} className={isOverLimit ? 'bg-orange-500/5' : ''}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="font-medium">{client.name}</span>
-                        {isOverLimit && (
-                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
-                            {language === "fr" ? "Hors limite" : "Over Limit"}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
+                     <TableCell>
+                       <div className="flex items-center gap-2">
+                         <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                         <span className="font-medium">{client.name}</span>
+                         {client.send_overdue_email_auto && (
+                           <Badge variant="secondary" className="text-xs">
+                             <Bell className="h-3 w-3 mr-1" />
+                             {language === "fr" ? "Rappel auto" : "Auto reminder"}
+                           </Badge>
+                         )}
+                         {isOverLimit && (
+                           <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
+                             {language === "fr" ? "Hors limite" : "Over Limit"}
+                           </Badge>
+                         )}
+                       </div>
+                     </TableCell>
                   <TableCell>
                     <div className="font-medium">{client.contact_person || "—"}</div>
                   </TableCell>

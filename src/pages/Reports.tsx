@@ -18,6 +18,7 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useReminderLogs } from "@/hooks/useReminderLogs";
 import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -321,6 +322,19 @@ const Reports = () => {
   
   // États pour le rapport de factures
   const [invoiceStatusFilters, setInvoiceStatusFilters] = useState<string[]>(['all']);
+
+  // États pour le rapport de rappels
+  const [reminderStartDate, setReminderStartDate] = useState<Date | undefined>();
+  const [reminderEndDate, setReminderEndDate] = useState<Date | undefined>();
+  const [reminderClientId, setReminderClientId] = useState<string>('all');
+  const [reminderType, setReminderType] = useState<'all' | 'manual' | 'automatic'>('all');
+
+  const { logs: reminderLogs, loading: remindersLoading } = useReminderLogs(
+    reminderStartDate,
+    reminderEndDate,
+    reminderClientId === 'all' ? undefined : reminderClientId,
+    reminderType
+  );
 
   // Filtrer les clients par date de création
   const filteredClientsByDate = useMemo(() => {
@@ -2572,6 +2586,9 @@ const Reports = () => {
           <TabsTrigger value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
           <TabsTrigger value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
           <TabsTrigger value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
+          <TabsTrigger value="reminders" disabled={!isTabAvailable('reminders')}>
+            {language === "fr" ? "Rappels" : "Reminders"}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -5169,6 +5186,177 @@ const Reports = () => {
                   Excel
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reminders" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {language === "fr" ? "Filtres" : "Filters"}
+              </CardTitle>
+              <CardDescription>
+                {language === "fr" 
+                  ? "Filtrer les rappels par date, client et type" 
+                  : "Filter reminders by date, client and type"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Date de début" : "Start Date"}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !reminderStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {reminderStartDate ? format(reminderStartDate, "PPP") : (language === "fr" ? "Sélectionner" : "Pick a date")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={reminderStartDate}
+                        onSelect={setReminderStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Date de fin" : "End Date"}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !reminderEndDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {reminderEndDate ? format(reminderEndDate, "PPP") : (language === "fr" ? "Sélectionner" : "Pick a date")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={reminderEndDate}
+                        onSelect={setReminderEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Client" : "Client"}</Label>
+                  <Select value={reminderClientId} onValueChange={setReminderClientId}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{language === "fr" ? "Tous les clients" : "All clients"}</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Type" : "Type"}</Label>
+                  <Select value={reminderType} onValueChange={(value: 'all' | 'manual' | 'automatic') => setReminderType(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{language === "fr" ? "Tous" : "All"}</SelectItem>
+                      <SelectItem value="manual">{language === "fr" ? "Manuel" : "Manual"}</SelectItem>
+                      <SelectItem value="automatic">{language === "fr" ? "Automatique" : "Automatic"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {language === "fr" ? "Historique des rappels" : "Reminder History"}
+              </CardTitle>
+              <CardDescription>
+                {language === "fr" 
+                  ? `${reminderLogs.length} rappel(s) envoyé(s)` 
+                  : `${reminderLogs.length} reminder(s) sent`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {remindersLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{language === "fr" ? "Date d'envoi" : "Sent Date"}</TableHead>
+                      <TableHead>{language === "fr" ? "Facture" : "Invoice"}</TableHead>
+                      <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
+                      <TableHead>{language === "fr" ? "Montant" : "Amount"}</TableHead>
+                      <TableHead>{language === "fr" ? "Type" : "Type"}</TableHead>
+                      <TableHead>{language === "fr" ? "Statut" : "Status"}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reminderLogs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground">
+                          {language === "fr" ? "Aucun rappel envoyé" : "No reminders sent"}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      reminderLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell>
+                            {format(new Date(log.sent_at), "PPP", { locale: language === "fr" ? undefined : undefined })}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {log.invoices?.invoice_number || "—"}
+                          </TableCell>
+                          <TableCell>
+                            {log.invoices?.clients?.name || "—"}
+                          </TableCell>
+                          <TableCell>
+                            ${log.invoices?.total?.toFixed(2) || "0.00"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={log.reminder_type === "automatic" ? "default" : "secondary"}>
+                              {log.reminder_type === "automatic" 
+                                ? (language === "fr" ? "Automatique" : "Automatic")
+                                : (language === "fr" ? "Manuel" : "Manual")}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={log.status === "sent" ? "default" : "destructive"}>
+                              {log.status === "sent" 
+                                ? (language === "fr" ? "Envoyé" : "Sent")
+                                : (language === "fr" ? "Échec" : "Failed")}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
