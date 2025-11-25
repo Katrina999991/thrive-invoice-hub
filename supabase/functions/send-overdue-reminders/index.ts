@@ -29,13 +29,9 @@ serve(async (req) => {
     // Get current date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    // Get date for 1 day ago (invoices due yesterday)
-    const oneDayAgo = new Date(today);
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
     // Find all invoices that are:
-    // 1. Due exactly 1 day ago (due_date = yesterday)
+    // 1. Due date is in the past (overdue)
     // 2. Status is 'sent' or 'overdue' (not draft or paid)
     // 3. No reminder email has been sent yet (overdue_reminder_sent_at IS NULL)
     // 4. Optionally filtered by user_id for testing
@@ -63,8 +59,7 @@ serve(async (req) => {
         )
       `)
       .in("status", ["sent", "overdue"])
-      .lte("due_date", oneDayAgo.toISOString().split('T')[0])
-      .gte("due_date", oneDayAgo.toISOString().split('T')[0])
+      .lt("due_date", today.toISOString().split('T')[0])
       .is("overdue_reminder_sent_at", null);
     
     // Filter by user_id if provided (for testing)
