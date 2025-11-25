@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Clock, FileText, Trash2, Pencil, Filter } from "lucide-react";
@@ -77,11 +77,21 @@ export default function TimeTracking() {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
       hourly_rate: "",
-      description: services[0]?.name || "",
+      description: "",
       service_id: "",
       notes: "",
     },
   });
+
+  // Pré-remplir la description avec le premier service quand le dialog s'ouvre
+  useEffect(() => {
+    if (isDialogOpen && !editingEntry && services.length > 0 && !form.getValues("description")) {
+      form.setValue("description", services[0].name);
+      if (services[0].price) {
+        form.setValue("hourly_rate", services[0].price.toString());
+      }
+    }
+  }, [isDialogOpen, editingEntry, services, form]);
 
   const onSubmit = async (data: TimeEntryFormData) => {
     if (editingEntry) {
@@ -112,7 +122,7 @@ export default function TimeTracking() {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
       hourly_rate: "",
-      description: services[0]?.name || "",
+      description: "",
       service_id: "",
       notes: "",
     });
@@ -141,7 +151,7 @@ export default function TimeTracking() {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
       hourly_rate: "",
-      description: services[0]?.name || "",
+      description: "",
       service_id: "",
       notes: "",
     });
