@@ -379,9 +379,13 @@ export default function TimeTracking() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {format(new Date(entry.date), "d MMM yyyy", {
-                        locale: language === "fr" ? fr : undefined,
-                      })}
+                      {(() => {
+                        const [year, month, day] = entry.date.split('-').map(Number);
+                        const localDate = new Date(year, month - 1, day);
+                        return format(localDate, "d MMM yyyy", {
+                          locale: language === "fr" ? fr : undefined,
+                        });
+                      })()}
                     </TableCell>
                     <TableCell>{entry.clients?.name || "-"}</TableCell>
                     <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
