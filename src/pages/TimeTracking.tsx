@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2 } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -42,7 +42,7 @@ type TimeEntryFormData = z.infer<typeof timeEntrySchema>;
 export default function TimeTracking() {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const { timeEntries, loading, createTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries();
+  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -52,6 +52,7 @@ export default function TimeTracking() {
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [useCustomDescription, setUseCustomDescription] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<string | null>(null);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -75,16 +76,58 @@ export default function TimeTracking() {
   const services = products.filter(p => p.is_active && p.quantity === null);
 
   const onSubmit = async (data: TimeEntryFormData) => {
-    await createTimeEntry({
-      client_id: data.client_id,
-      company_id: data.company_id || null,
-      description: data.description,
-      hours: parseFloat(data.hours),
-      hourly_rate: parseFloat(data.hourly_rate),
-      date: data.date,
-      notes: data.notes || null,
-    });
+    if (editingEntry) {
+      await updateTimeEntry(editingEntry, {
+        client_id: data.client_id,
+        company_id: data.company_id || null,
+        description: data.description,
+        hours: parseFloat(data.hours),
+        hourly_rate: parseFloat(data.hourly_rate),
+        date: data.date,
+        notes: data.notes || null,
+      });
+    } else {
+      await createTimeEntry({
+        client_id: data.client_id,
+        company_id: data.company_id || null,
+        description: data.description,
+        hours: parseFloat(data.hours),
+        hourly_rate: parseFloat(data.hourly_rate),
+        date: data.date,
+        notes: data.notes || null,
+      });
+    }
     setIsDialogOpen(false);
+    setEditingEntry(null);
+    setUseCustomDescription(false);
+    form.reset({
+      date: format(new Date(), "yyyy-MM-dd"),
+      hours: "",
+      hourly_rate: "",
+      description: "",
+      service_id: "",
+      notes: "",
+    });
+  };
+
+  const handleEdit = (entry: typeof timeEntries[0]) => {
+    setEditingEntry(entry.id);
+    form.reset({
+      client_id: entry.client_id || "",
+      company_id: entry.company_id || "",
+      description: entry.description,
+      hours: entry.hours.toString(),
+      hourly_rate: entry.hourly_rate.toString(),
+      date: entry.date,
+      notes: entry.notes || "",
+      service_id: "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingEntry(null);
     setUseCustomDescription(false);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
@@ -364,13 +407,22 @@ export default function TimeTracking() {
                     </TableCell>
                     <TableCell>
                       {!entry.is_billed && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteTimeEntry(entry.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(entry)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteTimeEntry(entry.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -381,11 +433,14 @@ export default function TimeTracking() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {language === "fr" ? "Ajouter des heures" : "Add Hours"}
+              {editingEntry 
+                ? (language === "fr" ? "Modifier les heures" : "Edit Hours")
+                : (language === "fr" ? "Ajouter des heures" : "Add Hours")
+              }
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
