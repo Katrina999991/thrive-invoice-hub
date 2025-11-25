@@ -547,42 +547,43 @@ const Reports = () => {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
     doc.setFontSize(20);
-    doc.text('Revenue Report', pageWidth / 2, 20, { align: 'center' });
+    doc.text(getReportTranslation('revenueReport', language), pageWidth / 2, 20, { align: 'center' });
     
     // Date range
     let dateRangeText = '';
     if (startDate && endDate) {
-      dateRangeText = `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')}`;
+      dateRangeText = `${format(startDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(endDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     } else if (startDate) {
-      dateRangeText = `From ${format(startDate, 'MMM dd, yyyy')}`;
+      dateRangeText = `${getReportTranslation('since', language)} ${format(startDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     } else if (endDate) {
-      dateRangeText = `Until ${format(endDate, 'MMM dd, yyyy')}`;
+      dateRangeText = `${getReportTranslation('until', language)} ${format(endDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     }
     
     doc.setFontSize(12);
     doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
     
     // Filter info
-    let filterText = 'All Data';
+    let filterText = getReportTranslation('allData', language);
     if (filterType === 'company' && selectedCompanyId) {
       const company = companies.find(c => c.id === selectedCompanyId);
-      filterText = `Company: ${company?.name || 'Unknown'}`;
+      filterText = `${getReportTranslation('company', language)}: ${company?.name || getReportTranslation('unknown', language)}`;
     } else if (filterType === 'client' && selectedClientId) {
       const client = clients.find(c => c.id === selectedClientId);
-      filterText = `Client: ${client?.name || 'Unknown'}`;
+      filterText = `${getReportTranslation('client', language)}: ${client?.name || getReportTranslation('unknown', language)}`;
     }
-    doc.text(`Filter: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
+    doc.text(`${getReportTranslation('filter', language)}: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
     
     // Summary statistics
     doc.setFontSize(14);
-    doc.text('Summary', 20, 60);
+    doc.text(getReportTranslation('summary', language), 20, 60);
     doc.setFontSize(10);
-    doc.text(`Total Revenue: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue)}`, 20, 70);
-    doc.text(`Number of ${viewMode === 'monthly' ? 'Months' : 'Years'}: ${viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}`, 20, 80);
-    doc.text(`Average Revenue per ${viewMode === 'monthly' ? 'Month' : 'Year'}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue / Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length))}`, 20, 90);
+    doc.text(`${getReportTranslation('totalRevenue', language)}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue)}`, 20, 70);
+    doc.text(`${getReportTranslation(viewMode === 'monthly' ? 'numberOfMonths' : 'numberOfYears', language)}: ${viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}`, 20, 80);
+    doc.text(`${getReportTranslation(viewMode === 'monthly' ? 'averageRevenuePerMonth' : 'averageRevenuePerYear', language)}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue / Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length))}`, 20, 90);
     
     // Revenue by period table
     const tableData = chartData.map(item => [
@@ -594,7 +595,7 @@ const Reports = () => {
     
     let finalY = 110;
     autoTable(doc, {
-      head: [['Period', 'Revenue', 'Invoices', 'Avg per Invoice']],
+      head: [[getReportTranslation('period', language), getReportTranslation('revenue', language), getReportTranslation('totalInvoices', language), getReportTranslation('avgPerInvoice', language)]],
       body: tableData,
       startY: finalY,
       theme: 'striped',
@@ -633,19 +634,20 @@ const Reports = () => {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
     doc.setFontSize(20);
-    doc.text('Rapport des Taxes', pageWidth / 2, 20, { align: 'center' });
+    doc.text(getReportTranslation('taxReport', language), pageWidth / 2, 20, { align: 'center' });
     
     // Date generated
     doc.setFontSize(12);
-    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
     
     // Company filter
     if (taxSelectedCompany && taxSelectedCompany !== 'all') {
       const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
-      doc.text(`Compagnie: ${companyName}`, pageWidth / 2, 40, { align: 'center' });
+      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, 40, { align: 'center' });
     }
     
     // Date range
@@ -723,10 +725,11 @@ const Reports = () => {
     if (!taxData) return;
     
     const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Summary sheet
     const summaryData = [
-      ['Type de taxe', 'Montant', 'Nombre de factures'],
+      [getReportTranslation('taxName', language), getReportTranslation('amount', language), getReportTranslation('totalInvoices', language)],
       ...taxData.taxSummary.map(tax => [
         tax.name,
         tax.amount,
@@ -735,24 +738,24 @@ const Reports = () => {
     ];
     
     const summaryWs = XLSX.utils.aoa_to_sheet([
-      [`Rapport des Taxes - ${format(new Date(), 'dd/MM/yyyy')}`],
+      [`${getReportTranslation('taxReport', language)} - ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`],
       taxSelectedCompany && taxSelectedCompany !== 'all' 
-        ? [`Compagnie: ${companies.find(c => c.id === taxSelectedCompany)?.name}`]
-        : ['Toutes les compagnies'],
+        ? [`${getReportTranslation('company', language)}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`]
+        : [getReportTranslation('allCompanies', language)],
       taxEffectiveStart && taxEffectiveEnd 
-        ? [`Période: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`]
+        ? [`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd/MM/yyyy', { locale: dateLocale })}`]
         : [],
-      [`Total des taxes: ${taxData.totalTaxAmount}`],
+      [`${getReportTranslation('totalTax', language)}: ${taxData.totalTaxAmount}`],
       [],
       ...summaryData
     ].filter(row => row.length > 0));
     
-    XLSX.utils.book_append_sheet(wb, summaryWs, 'Résumé');
+    XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
     
     // Monthly/Yearly data sheet
     const periodData = taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData;
     const periodSheetData = [
-      ['Période', 'Total taxes', 'Nombre factures', 'Détail par taxe'],
+      [getReportTranslation('period', language), getReportTranslation('totalTax', language), getReportTranslation('totalInvoices', language), getReportTranslation('taxDetails', language)],
       ...periodData.map(period => [
         period.period,
         period.totalTaxAmount,
@@ -762,13 +765,13 @@ const Reports = () => {
     ];
     
     const periodWs = XLSX.utils.aoa_to_sheet(periodSheetData);
-    XLSX.utils.book_append_sheet(wb, periodWs, taxViewMode === 'monthly' ? 'Mensuel' : 'Annuel');
+    XLSX.utils.book_append_sheet(wb, periodWs, taxViewMode === 'monthly' ? getReportTranslation('month', language) : getReportTranslation('year', language));
     
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
       : '';
-    const filename = `rapport-taxes${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `tax-report${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -994,35 +997,36 @@ const Reports = () => {
   const exportClientsToPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
     doc.setFontSize(20);
-    doc.text('Rapport des Clients', pageWidth / 2, 20, { align: 'center' });
+    doc.text(getReportTranslation('clientsReport', language), pageWidth / 2, 20, { align: 'center' });
     
     // Date generated
     doc.setFontSize(12);
-    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Résumé', 20, 50);
+    doc.text(getReportTranslation('summary', language), 20, 50);
     doc.setFontSize(10);
-    doc.text(`Nombre total de clients: ${clients.length}`, 20, 60);
-    doc.text(`Nombre de compagnies: ${companies.length}`, 20, 70);
+    doc.text(`${getReportTranslation('numberOfClients', language)}: ${clients.length}`, 20, 60);
+    doc.text(`${getReportTranslation('numberOfCompanies', language)}: ${companies.length}`, 20, 70);
     
     let yPosition = 90;
     
     // All clients table
     const allClientsData = clients.map(client => [
       client.name,
-      client.companies?.name || 'Aucune compagnie',
+      client.companies?.name || getReportTranslation('withoutCompany', language),
       client.email || 'N/A',
       client.phone || 'N/A',
       client.contact_person || 'N/A'
     ]);
     
     autoTable(doc, {
-      head: [['Nom du client', 'Compagnie', 'Email', 'Téléphone', 'Contact']],
+      head: [[getReportTranslation('clientName', language), getReportTranslation('company', language), getReportTranslation('email', language), getReportTranslation('phone', language), getReportTranslation('contactPerson', language)]],
       body: allClientsData,
       startY: yPosition,
       theme: 'striped',
@@ -1043,7 +1047,7 @@ const Reports = () => {
     
     // Company breakdown
     doc.setFontSize(14);
-    doc.text('Répartition par compagnie', 20, yPosition);
+    doc.text(getReportTranslation('companyBreakdown', language), 20, yPosition);
     yPosition += 20;
     
     companies.forEach(company => {
@@ -1057,7 +1061,7 @@ const Reports = () => {
         }
         
         doc.setFontSize(12);
-        doc.text(`${company.name} (${companyClients.length} clients)`, 20, yPosition);
+        doc.text(`${company.name} (${companyClients.length} ${getReportTranslation('client', language).toLowerCase()}${companyClients.length > 1 ? 's' : ''})`, 20, yPosition);
         yPosition += 10;
         
         const companyClientsData = companyClients.map(client => [
@@ -1068,7 +1072,7 @@ const Reports = () => {
         ]);
         
         autoTable(doc, {
-          head: [['Nom du client', 'Email', 'Téléphone', 'Contact']],
+          head: [[getReportTranslation('clientName', language), getReportTranslation('email', language), getReportTranslation('phone', language), getReportTranslation('contactPerson', language)]],
           body: companyClientsData,
           startY: yPosition,
           theme: 'grid',
@@ -1083,7 +1087,7 @@ const Reports = () => {
     });
     
     // Generate filename
-    const filename = `rapport-clients-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `clients-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
   
@@ -1394,41 +1398,42 @@ const Reports = () => {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
     doc.setFontSize(20);
-    doc.text('Expense Report', pageWidth / 2, 20, { align: 'center' });
+    doc.text(getReportTranslation('expensesReport', language), pageWidth / 2, 20, { align: 'center' });
     
     // Date range
     doc.setFontSize(12);
-    let dateRangeText = 'Date generated: ' + format(new Date(), 'dd/MM/yyyy');
+    let dateRangeText = getReportTranslation('generatedOn', language) + ': ' + format(new Date(), 'dd/MM/yyyy', { locale: dateLocale });
     if (expenseStartDate && expenseEndDate) {
-      dateRangeText = `Period: ${format(expenseStartDate, 'dd/MM/yyyy')} - ${format(expenseEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${getReportTranslation('period', language)}: ${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     } else if (expenseStartDate) {
-      dateRangeText = `From: ${format(expenseStartDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${getReportTranslation('since', language)}: ${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     } else if (expenseEndDate) {
-      dateRangeText = `Until: ${format(expenseEndDate, 'dd/MM/yyyy')}`;
+      dateRangeText = `${getReportTranslation('until', language)}: ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
     }
     doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
     
     // Filter info
-    let filterText = 'All expenses';
+    let filterText = getReportTranslation('all', language);
     if (expenseFilterType === 'company' && expenseSelectedCompanyId) {
       const company = companies.find(c => c.id === expenseSelectedCompanyId);
-      filterText = `Company: ${company?.name || 'Unknown'}`;
+      filterText = `${getReportTranslation('company', language)}: ${company?.name || getReportTranslation('unknown', language)}`;
     } else if (expenseFilterType === 'category' && expenseSelectedCategory) {
-      filterText = `Category: ${expenseSelectedCategory}`;
+      filterText = `${getReportTranslation('category', language)}: ${expenseSelectedCategory}`;
     }
     doc.setFontSize(11);
-    doc.text(`Filter: ${filterText}`, pageWidth / 2, 45, { align: 'center' });
+    doc.text(`${getReportTranslation('filter', language)}: ${filterText}`, pageWidth / 2, 45, { align: 'center' });
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Summary', 20, 65);
+    doc.text(getReportTranslation('summary', language), 20, 65);
     doc.setFontSize(12);
-    doc.text(`Total Expenses: $${expenseReportData.totalExpenses.toFixed(2)}`, 20, 80);
-    doc.text(`Paid Expenses: $${expenseReportData.totalPaidExpenses.toFixed(2)}`, 20, 90);
-    doc.text(`Unpaid Expenses: $${expenseReportData.totalUnpaidExpenses.toFixed(2)}`, 20, 100);
+    doc.text(`${getReportTranslation('totalExpenses', language)}: $${expenseReportData.totalExpenses.toFixed(2)}`, 20, 80);
+    doc.text(`${getStatusLabel('paid', language)} ${getReportTranslation('expensesReport', language)}: $${expenseReportData.totalPaidExpenses.toFixed(2)}`, 20, 90);
+    doc.text(`${getStatusLabel('pending', language)} ${getReportTranslation('expensesReport', language)}: $${expenseReportData.totalUnpaidExpenses.toFixed(2)}`, 20, 100);
     
     let yPosition = 120;
     
@@ -1730,28 +1735,29 @@ const Reports = () => {
     if (!expenseReportData) return;
     
     const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Summary sheet
     const summaryData = [
-      ['Expense Report'],
+      [getReportTranslation('expensesReport', language)],
       [''],
-      ['Date generated:', format(new Date(), 'dd/MM/yyyy')],
-      ...(expenseStartDate && expenseEndDate ? [['Period:', `${format(expenseStartDate, 'dd/MM/yyyy')} - ${format(expenseEndDate, 'dd/MM/yyyy')}`]] : []),
+      [getReportTranslation('generatedOn', language), format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })],
+      ...(expenseStartDate && expenseEndDate ? [[getReportTranslation('period', language), `${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`]] : []),
       [''],
-      ['Total Expenses:', expenseReportData.totalExpenses],
-      ['Paid Expenses:', expenseReportData.totalPaidExpenses],
-      ['Unpaid Expenses:', expenseReportData.totalUnpaidExpenses],
+      [getReportTranslation('totalExpenses', language), expenseReportData.totalExpenses],
+      [`${getStatusLabel('paid', language)} ${getReportTranslation('expensesReport', language)}`, expenseReportData.totalPaidExpenses],
+      [`${getStatusLabel('pending', language)} ${getReportTranslation('expensesReport', language)}`, expenseReportData.totalUnpaidExpenses],
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    XLSX.utils.book_append_sheet(wb, summaryWS, getReportTranslation('summary', language));
     
     // Expenses by Category sheet
     if (expenseReportData.expensesByCategory.length > 0) {
       const categoryData = [
-        ['Expenses by Category'],
+        [getReportTranslation('expensesByCategory', language)],
         [''],
-        ['Category', 'Count', 'Total Amount', 'Average Amount'],
+        [getReportTranslation('category', language), getReportTranslation('totalInvoices', language), getReportTranslation('amount', language), getReportTranslation('avgPerInvoice', language)],
         ...expenseReportData.expensesByCategory.map(category => [
           category.category,
           category.count,
@@ -1761,15 +1767,15 @@ const Reports = () => {
       ];
       
       const categoryWS = XLSX.utils.aoa_to_sheet(categoryData);
-      XLSX.utils.book_append_sheet(wb, categoryWS, 'By Category');
+      XLSX.utils.book_append_sheet(wb, categoryWS, getReportTranslation('category', language));
     }
     
     // Expenses by Company sheet
     if (expenseReportData.expensesByCompany.length > 0) {
       const companyData = [
-        ['Expenses by Company'],
+        [getReportTranslation('expensesByCompany', language)],
         [''],
-        ['Company', 'Count', 'Total Amount', 'Average Amount'],
+        [getReportTranslation('company', language), getReportTranslation('totalInvoices', language), getReportTranslation('amount', language), getReportTranslation('avgPerInvoice', language)],
         ...expenseReportData.expensesByCompany.map(company => [
           company.company_name,
           company.count,
@@ -1779,7 +1785,7 @@ const Reports = () => {
       ];
       
       const companyWS = XLSX.utils.aoa_to_sheet(companyData);
-      XLSX.utils.book_append_sheet(wb, companyWS, 'By Company');
+      XLSX.utils.book_append_sheet(wb, companyWS, getReportTranslation('company', language));
     }
     
     // Detailed Expenses with Taxes sheet
@@ -1889,10 +1895,11 @@ const Reports = () => {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
     doc.setFontSize(20);
-    doc.text(t("reports.pdf.productProfitReport"), pageWidth / 2, 20, { align: 'center' });
+    doc.text(getReportTranslation('productProfitReport', language), pageWidth / 2, 20, { align: 'center' });
     
     // Date range
     doc.setFontSize(12);
@@ -2025,29 +2032,30 @@ const Reports = () => {
     if (!filteredProfitData) return;
     
     const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Summary sheet
     const summaryData = [
-      ['Product Profit Report'],
+      [getReportTranslation('productProfitReport', language)],
       [''],
-      ['Date generated:', format(new Date(), 'dd/MM/yyyy')],
-      ...(customStartDate && customEndDate ? [['Period:', `${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`]] : []),
+      [getReportTranslation('generatedOn', language), format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })],
+      ...(customStartDate && customEndDate ? [[getReportTranslation('period', language), `${format(customStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(customEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`]] : []),
       [''],
-      ['Total Profit:', filteredProfitData.totalProfit],
-      ['Total Revenue:', filteredProfitData.totalRevenue],
-      ['Total Cost:', filteredProfitData.totalCost],
-      ['Overall Margin (%):', filteredProfitData.overallMargin],
+      [getReportTranslation('profit', language), filteredProfitData.totalProfit],
+      [getReportTranslation('revenue', language), filteredProfitData.totalRevenue],
+      [getReportTranslation('totalCost', language), filteredProfitData.totalCost],
+      [getReportTranslation('overallMargin', language) + ' (%)', filteredProfitData.overallMargin],
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    XLSX.utils.book_append_sheet(wb, summaryWS, getReportTranslation('summary', language));
     
     // Product details sheet
     if (filteredProfitData.products.length > 0) {
       const productData = [
-        ['Product Profit Details'],
+        [getReportTranslation('productDetails', language)],
         [''],
-        ['Product', 'Qty Sold', 'Revenue', 'Cost', 'Profit', 'Margin %', 'Avg Sale Price', 'Avg Cost Price'],
+        [getReportTranslation('product', language), getReportTranslation('soldQuantity', language), getReportTranslation('revenue', language), getReportTranslation('cost', language), getReportTranslation('profit', language), getReportTranslation('margin', language) + ' (%)', getReportTranslation('avgSalePrice', language), getReportTranslation('avgCostPrice', language)],
         ...filteredProfitData.products.map(product => [
           product.product_name,
           product.total_quantity_sold,
@@ -2061,7 +2069,7 @@ const Reports = () => {
       ];
       
       const productWS = XLSX.utils.aoa_to_sheet(productData);
-      XLSX.utils.book_append_sheet(wb, productWS, 'Product Details');
+      XLSX.utils.book_append_sheet(wb, productWS, getReportTranslation('details', language));
     }
     
     const filename = `product-profit-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
@@ -2270,25 +2278,26 @@ const Reports = () => {
     if (!salesData) return;
     
     const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
     
     // Summary sheet
     const summaryData = [
-      ['Sales Report'],
+      [getReportTranslation('salesReport', language)],
       [''],
-      ['Date Range:', customStartDate && customEndDate ? `${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}` : 'All Time'],
+      [getReportTranslation('dateRange', language), customStartDate && customEndDate ? `${format(customStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(customEndDate, 'dd/MM/yyyy', { locale: dateLocale })}` : getReportTranslation('allPeriods', language)],
       [''],
-      ['Total Revenue:', salesData.totalRevenue],
-      ['Total Quantity Sold:', salesData.totalQuantitySold],
-      ['Number of Sales:', salesData.totalNumberOfSales],
-      ['Unique Products Sold:', salesData.uniqueProductsSold]
+      [getReportTranslation('totalRevenue', language), salesData.totalRevenue],
+      [getReportTranslation('soldQuantity', language), salesData.totalQuantitySold],
+      [getReportTranslation('totalInvoices', language), salesData.totalNumberOfSales],
+      [getReportTranslation('totalProducts', language), salesData.uniqueProductsSold]
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+    XLSX.utils.book_append_sheet(wb, summaryWS, getReportTranslation('summary', language));
     
     // Sales details sheet
     const salesData_export = [
-      ['Product/Service', 'Type', 'Quantity Sold', 'Revenue', 'Sales Count', 'Average Price', 'First Sale Date', 'Last Sale Date'],
+      [getReportTranslation('product', language), getReportTranslation('category', language), getReportTranslation('soldQuantity', language), getReportTranslation('revenue', language), getReportTranslation('totalInvoices', language), getReportTranslation('avgSalePrice', language), getReportTranslation('date', language), getReportTranslation('date', language)],
       ...salesData.products.map(product => [
         product.product_name,
         'Product',
