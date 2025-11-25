@@ -21,6 +21,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useReminderLogs } from "@/hooks/useReminderLogs";
 import { useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5326,7 +5327,7 @@ const Reports = () => {
                       reminderLogs.map((log) => (
                         <TableRow key={log.id}>
                           <TableCell>
-                            {format(new Date(log.sent_at), "PPP", { locale: language === "fr" ? undefined : undefined })}
+                            {format(new Date(log.sent_at), "PPP", { locale: language === "fr" ? fr : enUS })}
                           </TableCell>
                           <TableCell className="font-medium">
                             {log.invoices?.invoice_number || "—"}
