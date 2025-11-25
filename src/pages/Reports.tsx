@@ -4978,119 +4978,55 @@ const Reports = () => {
 
             {/* Résumé des taxes */}
             {taxData && taxData.totalTaxAmount > 0 && (
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("reports.taxes.taxSummary")}</CardTitle>
-                    <CardDescription>
-                      {taxSelectedCompany && taxSelectedCompany !== 'all'
-                        ? `${t("reports.taxes.company")}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
-                        : t("reports.taxes.allCompanies")
-                      }
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">{t("reports.taxes.grandTotal")}</p>
-                        <div className="text-3xl font-bold text-primary">
-                          {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
-                            style: 'currency', 
-                            currency: 'CAD' 
-                          })}
-                        </div>
-                      </div>
-                      
-                      <div className="border-t pt-4">
-                        <h4 className="text-lg font-semibold mb-4">{t("reports.taxes.totalByType")}</h4>
-                        <div className="space-y-3">
-                          {taxData.taxSummary.map((tax, index) => (
-                            <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                              <div>
-                                <span className="font-medium text-base">{tax.name}</span>
-                                <p className="text-sm text-muted-foreground">
-                                  {tax.invoiceCount} {tax.invoiceCount > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-xl font-semibold">
-                                  {tax.amount.toLocaleString('fr-FR', { 
-                                    style: 'currency', 
-                                    currency: 'CAD' 
-                                  })}
-                                </span>
-                                <p className="text-sm text-muted-foreground">
-                                  {((tax.amount / taxData.totalTaxAmount) * 100).toFixed(1)}%
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Graphique circulaire */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("reports.taxes.distribution")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <PieChart width={400} height={250}>
-                      <Pie
-                        data={taxData.taxSummary || []}
-                        dataKey="amount"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {(taxData.taxSummary || []).map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={`hsl(${index * 45}, 70%, 60%)`} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value: number) => [
-                          value.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-                          t("reports.taxes.amount")
-                        ]}
-                      />
-                    </PieChart>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Graphique des taxes par période */}
-            {taxData && taxData.totalTaxAmount > 0 && (taxViewMode === 'monthly' ? taxData.monthlyData.length > 0 : taxData.yearlyData.length > 0) && (
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("reports.taxes.evolutionBy")} {taxViewMode === 'monthly' ? t("reports.taxes.month").toLowerCase() : t("reports.taxes.year").toLowerCase()}</CardTitle>
+                  <CardTitle>{t("reports.taxes.taxSummary")}</CardTitle>
+                  <CardDescription>
+                    {taxSelectedCompany && taxSelectedCompany !== 'all'
+                      ? `${t("reports.taxes.company")}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
+                      : t("reports.taxes.allCompanies")
+                    }
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <BarChart 
-                    width={800} 
-                    height={400}
-                    data={taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData}
-                    key={`${taxViewMode}-${taxData.monthlyData.length}-${taxData.yearlyData.length}`}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value: number) => [
-                        value.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-                        t("reports.taxes.taxesAmount")
-                      ]}
-                    />
-                    <Bar dataKey="totalTaxAmount" fill="#8884d8" />
-                  </BarChart>
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">{t("reports.taxes.grandTotal")}</p>
+                      <div className="text-3xl font-bold text-primary">
+                        {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
+                          style: 'currency', 
+                          currency: 'CAD' 
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <h4 className="text-lg font-semibold mb-4">{t("reports.taxes.totalByType")}</h4>
+                      <div className="space-y-3">
+                        {taxData.taxSummary.map((tax, index) => (
+                          <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                            <div>
+                              <span className="font-medium text-base">{tax.name}</span>
+                              <p className="text-sm text-muted-foreground">
+                                {tax.invoiceCount} {tax.invoiceCount > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xl font-semibold">
+                                {tax.amount.toLocaleString('fr-FR', { 
+                                  style: 'currency', 
+                                  currency: 'CAD' 
+                                })}
+                              </span>
+                              <p className="text-sm text-muted-foreground">
+                                {((tax.amount / taxData.totalTaxAmount) * 100).toFixed(1)}%
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
