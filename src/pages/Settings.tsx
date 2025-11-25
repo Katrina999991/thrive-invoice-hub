@@ -1805,8 +1805,8 @@ Cordialement,
               <div className="rounded-lg border bg-muted/30 p-4">
                 <p className="text-sm text-muted-foreground mb-3">
                   {language === "fr" 
-                    ? "Envoyez manuellement les rappels pour toutes vos factures en retard qui n'ont pas encore reçu de rappel. Seuls les clients avec l'option 'Envoyer email de rappel auto' activée recevront un email. Chaque facture ne reçoit qu'un seul rappel automatique." 
-                    : "Manually send reminders for all your overdue invoices that haven't received a reminder yet. Only clients with the 'Send auto reminder email' option enabled will receive an email. Each invoice receives only one automatic reminder."}
+                    ? "Envoyez manuellement les rappels pour toutes vos factures en retard qui n'ont pas encore reçu de rappel. Tous les clients avec une facture en retard recevront un email. Chaque facture ne reçoit qu'un seul rappel automatique." 
+                    : "Manually send reminders for all your overdue invoices that haven't received a reminder yet. All clients with an overdue invoice will receive an email. Each invoice receives only one automatic reminder."}
                 </p>
                 <Button 
                   onClick={handleTestOverdueReminders} 
