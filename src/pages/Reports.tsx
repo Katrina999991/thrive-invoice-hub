@@ -536,7 +536,7 @@ const Reports = () => {
       });
     }
     
-    const filename = `graphiques-revenus-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('revenueChartsFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -717,7 +717,7 @@ const Reports = () => {
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
       : '';
-    const filename = `rapport-taxes${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${getReportTranslation('taxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
   };
 
@@ -1174,7 +1174,7 @@ const Reports = () => {
     }
     
     // Generate filename and save
-    const filename = `rapport-clients-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const filename = `${getReportTranslation('clientsReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
