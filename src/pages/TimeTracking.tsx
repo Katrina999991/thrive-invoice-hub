@@ -83,15 +83,19 @@ export default function TimeTracking() {
     },
   });
 
-  // Pré-remplir la description avec le premier service quand le dialog s'ouvre
-  useEffect(() => {
-    if (isDialogOpen && !editingEntry && services.length > 0 && !form.getValues("description")) {
-      form.setValue("description", services[0].name);
-      if (services[0].price) {
-        form.setValue("hourly_rate", services[0].price.toString());
-      }
+  // Fonction pour ouvrir le dialog et pré-remplir avec le premier service
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+    // Pré-remplir avec le premier service
+    if (services.length > 0) {
+      setTimeout(() => {
+        form.setValue("description", services[0].name);
+        if (services[0].price) {
+          form.setValue("hourly_rate", services[0].price.toString());
+        }
+      }, 0);
     }
-  }, [isDialogOpen, editingEntry, services, form]);
+  };
 
   const onSubmit = async (data: TimeEntryFormData) => {
     if (editingEntry) {
@@ -405,7 +409,7 @@ export default function TimeTracking() {
               {language === "fr" ? "Créer une facture" : "Create Invoice"} ({selectedEntries.length})
             </Button>
           )}
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={handleOpenDialog}>
             <Plus className="mr-2 h-4 w-4" />
             {language === "fr" ? "Ajouter des heures" : "Add Hours"}
           </Button>
