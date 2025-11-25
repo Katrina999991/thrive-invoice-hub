@@ -136,6 +136,16 @@ export const reportTranslations = {
     clientName: 'Client Name',
     contactPerson: 'Contact Person',
     none: 'None',
+    
+    // Filename parts
+    revenueReportFile: 'revenue-report',
+    taxReportFile: 'tax-report',
+    clientsReportFile: 'clients-report',
+    inventoryReportFile: 'inventory-report',
+    expenseReportFile: 'expense-report',
+    productProfitReportFile: 'product-profit-report',
+    salesReportFile: 'sales-report',
+    invoicesReportFile: 'invoices-report',
   },
   fr: {
     // Common
@@ -273,6 +283,16 @@ export const reportTranslations = {
     clientName: 'Nom du client',
     contactPerson: 'Personne contact',
     none: 'Aucune',
+    
+    // Filename parts
+    revenueReportFile: 'rapport-revenus',
+    taxReportFile: 'rapport-taxes',
+    clientsReportFile: 'rapport-clients',
+    inventoryReportFile: 'rapport-inventaire',
+    expenseReportFile: 'rapport-depenses',
+    productProfitReportFile: 'rapport-profit-produits',
+    salesReportFile: 'rapport-ventes',
+    invoicesReportFile: 'rapport-factures',
   }
 } as const;
 
