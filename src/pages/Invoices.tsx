@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -2497,89 +2498,149 @@ Best regards,
                   <TableCell>{invoice.due_date}</TableCell>
                   <TableCell>{(invoice as any).invoice_items?.length || 0}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setViewingInvoice(invoice);
-                        setIsViewDialogOpen(true);
-                      }}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => downloadInvoicePDF(invoice)}
-                        disabled={!planLimits?.pdf_export}
-                        title={!planLimits?.pdf_export ? (language === 'fr' ? "Téléchargement PDF disponible avec un plan Premium ou Pro" : "PDF download available with Premium or Pro plan") : ""}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openEmailDialog(invoice)}
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {stripeAccountId && invoice.status !== "paid" && (
-                        invoice.payment_link ? (
-                          <>
+                    <TooltipProvider>
+                      <div className="flex justify-end space-x-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="sm" onClick={() => {
+                              setViewingInvoice(invoice);
+                              setIsViewDialogOpen(true);
+                            }}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{language === 'fr' ? 'Voir la facture' : 'View invoice'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{language === 'fr' ? 'Modifier la facture' : 'Edit invoice'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
-                              title={language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}
+                              onClick={() => downloadInvoicePDF(invoice)}
+                              disabled={!planLimits?.pdf_export}
                             >
-                              {copiedLink === invoice.invoice_number ? (
-                                <Check className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
-                              )}
+                              <Download className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleGeneratePaymentLink(invoice)}
-                              disabled={isStripeLoading}
-                              title={language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link"}
-                            >
-                              {isStripeLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <CreditCard className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleGeneratePaymentLink(invoice)}
-                            disabled={isStripeLoading}
-                            title={language === "fr" ? "Générer un lien de paiement Stripe" : "Generate Stripe payment link"}
-                          >
-                            {isStripeLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <CreditCard className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )
-                      )}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{!planLimits?.pdf_export 
+                              ? (language === 'fr' ? 'Téléchargement PDF disponible avec un plan Premium ou Pro' : 'PDF download available with Premium or Pro plan')
+                              : (language === 'fr' ? 'Télécharger en PDF' : 'Download PDF')
+                            }</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => openEmailDialog(invoice)}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{language === 'fr' ? 'Envoyer par email' : 'Send email'}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                        {stripeAccountId && invoice.status !== "paid" && (
+                          invoice.payment_link ? (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
+                                  >
+                                    {copiedLink === invoice.invoice_number ? (
+                                      <Check className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <Copy className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleGeneratePaymentLink(invoice)}
+                                    disabled={isStripeLoading}
+                                  >
+                                    {isStripeLoading ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <CreditCard className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleGeneratePaymentLink(invoice)}
+                                  disabled={isStripeLoading}
+                                >
+                                  {isStripeLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <CreditCard className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === "fr" ? "Générer un lien de paiement Stripe" : "Generate Stripe payment link"}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )
+                        )}
+                        <AlertDialog>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{language === 'fr' ? 'Supprimer la facture' : 'Delete invoice'}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
@@ -2597,8 +2658,9 @@ Best regards,
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                        </AlertDialog>
+                      </div>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
               ))}
