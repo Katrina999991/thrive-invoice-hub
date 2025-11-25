@@ -323,6 +323,8 @@ const Reports = () => {
   
   // États pour le rapport de factures
   const [invoiceStatusFilters, setInvoiceStatusFilters] = useState<string[]>(['all']);
+  const [invoiceCompanyFilter, setInvoiceCompanyFilter] = useState<string>('all');
+  const [invoiceClientFilter, setInvoiceClientFilter] = useState<string>('all');
 
   // États pour le rapport de rappels
   const [reminderStartDate, setReminderStartDate] = useState<Date | undefined>();
@@ -2343,14 +2345,28 @@ const Reports = () => {
   const filteredInvoicesByStatus = useMemo(() => {
     if (!invoices) return [];
     
-    // Si "all" est sélectionné, afficher toutes les factures
-    if (invoiceStatusFilters.includes('all')) {
-      return invoices;
+    let filtered = invoices;
+    
+    // Filtrer par statut
+    if (!invoiceStatusFilters.includes('all')) {
+      filtered = filtered.filter(inv => invoiceStatusFilters.includes(inv.status));
     }
     
-    // Sinon, filtrer selon les statuts sélectionnés
-    return invoices.filter(inv => invoiceStatusFilters.includes(inv.status));
-  }, [invoices, invoiceStatusFilters]);
+    // Filtrer par compagnie
+    if (invoiceCompanyFilter !== 'all') {
+      filtered = filtered.filter(inv => {
+        const client = clients.find(c => c.id === inv.client_id);
+        return client?.company_id === invoiceCompanyFilter;
+      });
+    }
+    
+    // Filtrer par client
+    if (invoiceClientFilter !== 'all') {
+      filtered = filtered.filter(inv => inv.client_id === invoiceClientFilter);
+    }
+    
+    return filtered;
+  }, [invoices, invoiceStatusFilters, invoiceCompanyFilter, invoiceClientFilter, clients]);
 
   // Calculer le grand total
   const invoiceGrandTotal = useMemo(() => {
@@ -5021,97 +5037,135 @@ const Reports = () => {
         <TabsContent value="invoices" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Liste des factures</CardTitle>
-                  <CardDescription>
-                    {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Grand Total</div>
-                    <div className="text-2xl font-bold">${invoiceGrandTotal.toFixed(2)}</div>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Liste des factures</CardTitle>
+                    <CardDescription>
+                      {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
+                    </CardDescription>
                   </div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-48">
-                        Filtrer par statut ({invoiceStatusFilters.includes('all') ? 'Tous' : invoiceStatusFilters.length})
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56">
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-sm">Statuts</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="status-all"
-                              checked={invoiceStatusFilters.includes('all')}
-                              onCheckedChange={() => handleStatusToggle('all')}
-                            />
-                            <label
-                              htmlFor="status-all"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Tous les statuts
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="status-draft"
-                              checked={invoiceStatusFilters.includes('draft')}
-                              onCheckedChange={() => handleStatusToggle('draft')}
-                            />
-                            <label
-                              htmlFor="status-draft"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Brouillon
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="status-sent"
-                              checked={invoiceStatusFilters.includes('sent')}
-                              onCheckedChange={() => handleStatusToggle('sent')}
-                            />
-                            <label
-                              htmlFor="status-sent"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Envoyé
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="status-paid"
-                              checked={invoiceStatusFilters.includes('paid')}
-                              onCheckedChange={() => handleStatusToggle('paid')}
-                            />
-                            <label
-                              htmlFor="status-paid"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Payé
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="status-overdue"
-                              checked={invoiceStatusFilters.includes('overdue')}
-                              onCheckedChange={() => handleStatusToggle('overdue')}
-                            />
-                            <label
-                              htmlFor="status-overdue"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              En retard
-                            </label>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-sm text-muted-foreground">Grand Total</div>
+                      <div className="text-2xl font-bold">${invoiceGrandTotal.toFixed(2)}</div>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-48">
+                          Filtrer par statut ({invoiceStatusFilters.includes('all') ? 'Tous' : invoiceStatusFilters.length})
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56">
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-sm">Statuts</h4>
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="status-all"
+                                checked={invoiceStatusFilters.includes('all')}
+                                onCheckedChange={() => handleStatusToggle('all')}
+                              />
+                              <label
+                                htmlFor="status-all"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                Tous les statuts
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="status-draft"
+                                checked={invoiceStatusFilters.includes('draft')}
+                                onCheckedChange={() => handleStatusToggle('draft')}
+                              />
+                              <label
+                                htmlFor="status-draft"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                Brouillon
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="status-sent"
+                                checked={invoiceStatusFilters.includes('sent')}
+                                onCheckedChange={() => handleStatusToggle('sent')}
+                              />
+                              <label
+                                htmlFor="status-sent"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                Envoyé
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="status-paid"
+                                checked={invoiceStatusFilters.includes('paid')}
+                                onCheckedChange={() => handleStatusToggle('paid')}
+                              />
+                              <label
+                                htmlFor="status-paid"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                Payé
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="status-overdue"
+                                checked={invoiceStatusFilters.includes('overdue')}
+                                onCheckedChange={() => handleStatusToggle('overdue')}
+                              />
+                              <label
+                                htmlFor="status-overdue"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                En retard
+                              </label>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="invoice-company-filter">Filtrer par compagnie</Label>
+                    <Select value={invoiceCompanyFilter} onValueChange={setInvoiceCompanyFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Toutes les compagnies" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Toutes les compagnies</SelectItem>
+                        {companies.map(company => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="invoice-client-filter">Filtrer par client</Label>
+                    <Select value={invoiceClientFilter} onValueChange={setInvoiceClientFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tous les clients" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous les clients</SelectItem>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </CardHeader>
