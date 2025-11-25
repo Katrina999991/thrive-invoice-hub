@@ -561,19 +561,28 @@ export default function TimeTracking() {
                       ${(entry.hours * entry.hourly_rate).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      {entry.is_billed ? (
-                        <Badge 
-                          variant="secondary"
-                          className="cursor-pointer hover:bg-secondary/80"
-                          onClick={() => markAsUnbilled(entry.id)}
-                        >
-                          {language === "fr" ? "Facturé" : "Billed"}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          {language === "fr" ? "Non facturé" : "Unbilled"}
-                        </Badge>
-                      )}
+                      <Select
+                        value={entry.is_billed ? "billed" : "unbilled"}
+                        onValueChange={async (value) => {
+                          if (value === "billed" && !entry.is_billed) {
+                            await updateTimeEntry(entry.id, { is_billed: true });
+                          } else if (value === "unbilled" && entry.is_billed) {
+                            await markAsUnbilled(entry.id);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="unbilled">
+                            {language === "fr" ? "Non facturé" : "Unbilled"}
+                          </SelectItem>
+                          <SelectItem value="billed">
+                            {language === "fr" ? "Facturé" : "Billed"}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       {!entry.is_billed && (
