@@ -1735,6 +1735,138 @@ const Reports = () => {
     doc.save(filename);
   };
 
+  const exportExpenseCategoryChartToPDF = async () => {
+    if (!expenseReportData || expenseReportData.expensesByCategory.length === 0) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text(t("reports.expenses.byCategory"), pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    doc.setFontSize(12);
+    let dateRangeText = getReportTranslation('generatedOn', language) + ': ' + format(new Date(), 'dd/MM/yyyy', { locale: dateLocale });
+    if (expenseStartDate && expenseEndDate) {
+      dateRangeText = `${getReportTranslation('period', language)}: ${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
+    }
+    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
+    
+    let yPosition = 50;
+    
+    try {
+      // Capture Category Chart
+      if (expenseCategoryChartRef.current) {
+        const categoryCanvas = await html2canvas(expenseCategoryChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true
+        });
+        const categoryImgData = categoryCanvas.toDataURL('image/png');
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (categoryCanvas.height * imgWidth) / categoryCanvas.width;
+        
+        doc.addImage(categoryImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+      
+      // Add data table
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      const categoryTableData = expenseReportData.expensesByCategory.map(category => [
+        category.category,
+        category.count.toString(),
+        '$' + category.total_amount.toFixed(2),
+        '$' + (category.total_amount / category.count).toFixed(2)
+      ]);
+      
+      autoTable(doc, {
+        head: [[t("reports.expenses.category"), t("reports.expenses.count"), t("reports.expenses.totalAmount"), t("reports.expenses.averageAmount")]],
+        body: categoryTableData,
+        startY: yPosition,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [239, 68, 68] },
+      });
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+    }
+    
+    const filename = `${t("reports.expenses.byCategory")}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
+  const exportExpenseCompanyChartToPDF = async () => {
+    if (!expenseReportData || expenseReportData.expensesByCompany.length === 0) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text(t("reports.expenses.byCompany"), pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    doc.setFontSize(12);
+    let dateRangeText = getReportTranslation('generatedOn', language) + ': ' + format(new Date(), 'dd/MM/yyyy', { locale: dateLocale });
+    if (expenseStartDate && expenseEndDate) {
+      dateRangeText = `${getReportTranslation('period', language)}: ${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
+    }
+    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
+    
+    let yPosition = 50;
+    
+    try {
+      // Capture Company Chart
+      if (expenseCompanyChartRef.current) {
+        const companyCanvas = await html2canvas(expenseCompanyChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true
+        });
+        const companyImgData = companyCanvas.toDataURL('image/png');
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (companyCanvas.height * imgWidth) / companyCanvas.width;
+        
+        doc.addImage(companyImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 20;
+      }
+      
+      // Add data table
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      const companyTableData = expenseReportData.expensesByCompany.map(company => [
+        company.company_name,
+        company.count.toString(),
+        '$' + company.total_amount.toFixed(2),
+        '$' + (company.total_amount / company.count).toFixed(2)
+      ]);
+      
+      autoTable(doc, {
+        head: [[t("reports.expenses.company"), t("reports.expenses.count"), t("reports.expenses.totalAmount"), t("reports.expenses.averageAmount")]],
+        body: companyTableData,
+        startY: yPosition,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [59, 130, 246] },
+      });
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+    }
+    
+    const filename = `${t("reports.expenses.byCompany")}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+  };
+
   const exportExpensesToExcel = () => {
     if (!expenseReportData) return;
     
@@ -4094,8 +4226,21 @@ const Reports = () => {
                 {/* Graphique des dépenses par catégorie */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("reports.expenses.byCategory")}</CardTitle>
-                    <CardDescription>{t("reports.expenses.byCategoryDesc")}</CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>{t("reports.expenses.byCategory")}</CardTitle>
+                        <CardDescription>{t("reports.expenses.byCategoryDesc")}</CardDescription>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportExpenseCategoryChartToPDF}
+                        disabled={expenseReportData.expensesByCategory.length === 0}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        PDF
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
@@ -4128,8 +4273,20 @@ const Reports = () => {
                 {expenseReportData.expensesByCompany.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>{t("reports.expenses.byCompany")}</CardTitle>
-                      <CardDescription>{t("reports.expenses.byCompanyDesc")}</CardDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>{t("reports.expenses.byCompany")}</CardTitle>
+                          <CardDescription>{t("reports.expenses.byCompanyDesc")}</CardDescription>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={exportExpenseCompanyChartToPDF}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          PDF
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent ref={expenseCompanyChartRef}>
                       <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
