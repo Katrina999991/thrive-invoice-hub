@@ -214,14 +214,20 @@ export default function TimeTracking() {
       // Get company taxes
       const companyTaxes = (company?.taxes as any[]) || [];
       
-      const items = entries.map((entry) => ({
-        description: `${entry.description} - ${format(new Date(entry.date), "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`,
-        quantity: entry.hours,
-        unit_price: entry.hourly_rate,
-        total: entry.hours * entry.hourly_rate,
-        notes: entry.notes || null,
-        product_taxes: companyTaxes.length > 0 ? companyTaxes : null,
-      }));
+      const items = entries.map((entry) => {
+        // Parse date without timezone issues
+        const [year, month, day] = entry.date.split('-').map(Number);
+        const localDate = new Date(year, month - 1, day);
+        
+        return {
+          description: `${entry.description} - ${format(localDate, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`,
+          quantity: entry.hours,
+          unit_price: entry.hourly_rate,
+          total: entry.hours * entry.hourly_rate,
+          notes: entry.notes || null,
+          product_taxes: companyTaxes.length > 0 ? companyTaxes : null,
+        };
+      });
 
       const subtotal = items.reduce((sum, item) => sum + item.total, 0);
       
