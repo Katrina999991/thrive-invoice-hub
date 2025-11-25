@@ -473,7 +473,8 @@ const Reports = () => {
         const barImgData = barCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text(getReportTranslation('revenueReport', language), 20, yPosition);
+        const barChartTitle = `${t('reports.revenue.revenueEvolution')} ${viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}`;
+        doc.text(barChartTitle, 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -499,7 +500,7 @@ const Reports = () => {
         const lineImgData = lineCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text(getReportTranslation('revenueReport', language), 20, yPosition);
+        doc.text(t('reports.revenue.revenueTrend'), 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
