@@ -159,7 +159,7 @@ export default function TimeTracking() {
         return;
       }
       
-      // Get company to find default_due_days
+      // Get company to find default_due_days and taxes
       const company = companies.find(c => c.id === client.company_id);
       const dueDays = company?.default_due_days || 7;
       
@@ -168,15 +168,27 @@ export default function TimeTracking() {
       const dueDate = new Date(issueDate);
       dueDate.setDate(dueDate.getDate() + dueDays);
       
+      // Get company taxes
+      const companyTaxes = (company?.taxes as any[]) || [];
+      
       const items = entries.map((entry) => ({
         description: `${entry.description} - ${format(new Date(entry.date), "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`,
         quantity: entry.hours,
         unit_price: entry.hourly_rate,
         total: entry.hours * entry.hourly_rate,
         notes: entry.notes || null,
+        product_taxes: companyTaxes.length > 0 ? companyTaxes : null,
       }));
 
       const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+      
+      // Calculate total tax rate from company taxes
+      const totalTaxRate = companyTaxes.reduce((sum: number, tax: any) => {
+        return sum + (tax.percentage || 0);
+      }, 0);
+      
+      const taxAmount = (subtotal * totalTaxRate) / 100;
+      const total = subtotal + taxAmount;
 
       const invoice = await createInvoice(
         {
@@ -185,7 +197,9 @@ export default function TimeTracking() {
           issue_date: issueDate.toISOString().split('T')[0],
           due_date: dueDate.toISOString().split('T')[0],
           subtotal,
-          total: subtotal,
+          tax_rate: totalTaxRate,
+          tax_amount: taxAmount,
+          total: total,
           status: "draft",
         },
         items,
