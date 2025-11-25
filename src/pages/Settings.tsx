@@ -1796,8 +1796,8 @@ Cordialement,
             </CardTitle>
             <CardDescription>
               {language === "fr" 
-                ? "Configurez les rappels automatiques pour les factures en retard" 
-                : "Configure automatic reminders for overdue invoices"}
+                ? "Envoyez les rappels pour les factures en retard" 
+                : "Send reminders for overdue invoices"}
             </CardDescription>
           </CardHeader>
           <CardContent>
