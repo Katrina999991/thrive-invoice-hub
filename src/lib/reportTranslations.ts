@@ -146,6 +146,7 @@ export const reportTranslations = {
     productProfitReportFile: 'product-profit-report',
     salesReportFile: 'sales-report',
     invoicesReportFile: 'invoices-report',
+    revenueChartsFile: 'revenue-charts',
   },
   fr: {
     // Common
@@ -293,6 +294,7 @@ export const reportTranslations = {
     productProfitReportFile: 'rapport-profit-produits',
     salesReportFile: 'rapport-ventes',
     invoicesReportFile: 'rapport-factures',
+    revenueChartsFile: 'graphiques-revenus',
   }
 } as const;
 
