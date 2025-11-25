@@ -2414,8 +2414,23 @@ const Reports = () => {
     const filterText = invoiceStatusFilters.includes('all') 
       ? 'Tous les statuts' 
       : invoiceStatusFilters.map(s => statusLabels[s] || s).join(', ');
-    doc.text(`Filtres: ${filterText}`, 14, 40);
-    doc.text(`Total: $${invoiceGrandTotal.toFixed(2)}`, 14, 48);
+    
+    const companyName = invoiceCompanyFilter !== 'all' 
+      ? companies.find(c => c.id === invoiceCompanyFilter)?.name || 'N/A'
+      : 'Toutes';
+    
+    const clientName = invoiceClientFilter !== 'all'
+      ? clients.find(c => c.id === invoiceClientFilter)?.name || 'N/A'
+      : 'Tous';
+    
+    let yPos = 40;
+    doc.text(`Filtres: ${filterText}`, 14, yPos);
+    yPos += 8;
+    doc.text(`Compagnie: ${companyName}`, 14, yPos);
+    yPos += 8;
+    doc.text(`Client: ${clientName}`, 14, yPos);
+    yPos += 8;
+    doc.text(`Total: $${invoiceGrandTotal.toFixed(2)}`, 14, yPos);
     
     // Préparer les données du tableau
     const tableData = filteredInvoicesByStatus.map(invoice => {
@@ -2434,7 +2449,7 @@ const Reports = () => {
     autoTable(doc, {
       head: [['Numéro', 'Client', 'Date émission', 'Date échéance', 'Montant', 'Statut']],
       body: tableData,
-      startY: 56,
+      startY: yPos + 8,
       styles: { fontSize: 9 },
       headStyles: { fillColor: [66, 139, 202] }
     });
@@ -2455,11 +2470,21 @@ const Reports = () => {
       ? 'Tous les statuts' 
       : invoiceStatusFilters.map(s => statusLabels[s] || s).join(', ');
     
+    const companyName = invoiceCompanyFilter !== 'all' 
+      ? companies.find(c => c.id === invoiceCompanyFilter)?.name || 'N/A'
+      : 'Toutes';
+    
+    const clientName = invoiceClientFilter !== 'all'
+      ? clients.find(c => c.id === invoiceClientFilter)?.name || 'N/A'
+      : 'Tous';
+    
     // Données de l'en-tête
     const headerData = [
       ['Rapport des Factures'],
       [`Date du rapport: ${format(new Date(), 'dd/MM/yyyy')}`],
       [`Filtres: ${filterText}`],
+      [`Compagnie: ${companyName}`],
+      [`Client: ${clientName}`],
       [`Grand Total: $${invoiceGrandTotal.toFixed(2)}`],
       []
     ];
