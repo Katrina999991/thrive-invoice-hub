@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -25,6 +25,11 @@ import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 
 const timeEntrySchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
@@ -53,6 +58,8 @@ export default function TimeTracking() {
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [useCustomDescription, setUseCustomDescription] = useState(false);
   const [editingEntry, setEditingEntry] = useState<string | null>(null);
+  const [filterClient, setFilterClient] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -312,6 +319,35 @@ export default function TimeTracking() {
     ? timeEntries.find(e => e.id === selectedEntries[0])?.client_id 
     : null;
 
+  // Filtrer les entrées
+  const filteredEntries = timeEntries.filter((entry) => {
+    // Filtre par client
+    if (filterClient !== "all" && entry.client_id !== filterClient) {
+      return false;
+    }
+    
+    // Filtre par date
+    if (dateRange?.from) {
+      const entryDate = new Date(entry.date);
+      const fromDate = new Date(dateRange.from);
+      fromDate.setHours(0, 0, 0, 0);
+      
+      if (entryDate < fromDate) {
+        return false;
+      }
+      
+      if (dateRange.to) {
+        const toDate = new Date(dateRange.to);
+        toDate.setHours(23, 59, 59, 999);
+        if (entryDate > toDate) {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  });
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex justify-between items-center">
@@ -345,13 +381,80 @@ export default function TimeTracking() {
             <Clock className="h-5 w-5" />
             {language === "fr" ? "Heures enregistrées" : "Recorded Hours"}
           </CardTitle>
+          <div className="flex gap-4 mt-4">
+            <div className="flex-1">
+              <Select value={filterClient} onValueChange={setFilterClient}>
+                <SelectTrigger>
+                  <SelectValue placeholder={language === "fr" ? "Tous les clients" : "All clients"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {language === "fr" ? "Tous les clients" : "All clients"}
+                  </SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })} -{" "}
+                        {format(dateRange.to, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}
+                      </>
+                    ) : (
+                      format(dateRange.from, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })
+                    )
+                  ) : (
+                    <span>{language === "fr" ? "Sélectionner une période" : "Pick a date range"}</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            {(filterClient !== "all" || dateRange) && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setFilterClient("all");
+                  setDateRange(undefined);
+                }}
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                {language === "fr" ? "Réinitialiser" : "Reset"}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
               {language === "fr" ? "Chargement..." : "Loading..."}
             </div>
-          ) : timeEntries.length === 0 ? (
+          ) : filteredEntries.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {language === "fr"
                 ? "Aucune heure enregistrée"
@@ -373,7 +476,7 @@ export default function TimeTracking() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {timeEntries.map((entry) => (
+                {filteredEntries.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell>
                       {!entry.is_billed && (
