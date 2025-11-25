@@ -60,6 +60,7 @@ export default function TimeTracking() {
   const [editingEntry, setEditingEntry] = useState<string | null>(null);
   const [filterClient, setFilterClient] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -399,7 +400,7 @@ export default function TimeTracking() {
                 </SelectContent>
               </Select>
             </div>
-            <Popover>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -429,7 +430,13 @@ export default function TimeTracking() {
                   mode="range"
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
-                  onSelect={setDateRange}
+                  onSelect={(range) => {
+                    setDateRange(range);
+                    // Fermer le popover si les deux dates sont sélectionnées
+                    if (range?.from && range?.to) {
+                      setIsDatePickerOpen(false);
+                    }
+                  }}
                   numberOfMonths={2}
                   className={cn("p-3 pointer-events-auto")}
                 />
