@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2 } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell } from "lucide-react";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
@@ -98,6 +98,7 @@ export default function Settings() {
     invoice_footer_message_fr: ""
   });
   const [isSavingTemplates, setIsSavingTemplates] = useState(false);
+  const [isTestingReminders, setIsTestingReminders] = useState(false);
   
   // Invoice numbering settings
   const [selectedCompanyForNumbering, setSelectedCompanyForNumbering] = useState<string>("");
@@ -699,6 +700,33 @@ Cordialement,
   };
 
   const colors = getColorClasses();
+
+  const handleTestOverdueReminders = async () => {
+    setIsTestingReminders(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-overdue-reminders');
+      
+      if (error) throw error;
+      
+      const result = data as { success: boolean; emailsSent: number; emailsSkipped: number; totalProcessed: number };
+      
+      toast({
+        title: language === "fr" ? "Test terminé" : "Test completed",
+        description: language === "fr" 
+          ? `${result.emailsSent} email(s) envoyé(s), ${result.emailsSkipped} ignoré(s), ${result.totalProcessed} facture(s) traitée(s)`
+          : `${result.emailsSent} email(s) sent, ${result.emailsSkipped} skipped, ${result.totalProcessed} invoice(s) processed`,
+      });
+    } catch (error: any) {
+      console.error("Error testing overdue reminders:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestingReminders(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -1754,6 +1782,58 @@ Cordialement,
                   </div>
                 </>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              {language === "fr" ? "Rappels de paiement automatiques" : "Automatic Payment Reminders"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" 
+                ? "Testez et configurez les rappels automatiques pour les factures en retard" 
+                : "Test and configure automatic reminders for overdue invoices"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {language === "fr" 
+                    ? "La fonction de rappel automatique envoie des emails aux clients dont les factures sont en retard d'un jour. Pour qu'un email soit envoyé automatiquement, le client doit avoir l'option 'Envoyer email de rappel auto' activée." 
+                    : "The automatic reminder function sends emails to clients whose invoices are one day overdue. For an email to be sent automatically, the client must have the 'Send auto reminder email' option enabled."}
+                </p>
+                <Button 
+                  onClick={handleTestOverdueReminders} 
+                  disabled={isTestingReminders}
+                  className="w-full"
+                >
+                  {isTestingReminders ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {language === "fr" ? "Test en cours..." : "Testing..."}
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="mr-2 h-4 w-4" />
+                      {language === "fr" ? "Tester les rappels maintenant" : "Test reminders now"}
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 p-4">
+                <p className="text-sm font-medium mb-2">
+                  {language === "fr" ? "Configuration du cron job" : "Cron job configuration"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {language === "fr" 
+                    ? "Pour activer les rappels automatiques quotidiens, un cron job doit être configuré dans votre base de données Supabase. Consultez les logs de la fonction pour voir l'activité." 
+                    : "To enable daily automatic reminders, a cron job must be configured in your Supabase database. Check the function logs to see activity."}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
