@@ -86,9 +86,10 @@ export default function TimeTracking() {
   // Fonction pour ouvrir le dialog et pré-remplir avec le premier service
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
-    // Pré-remplir avec le premier service
+    // Pré-sélectionner le premier service
     if (services.length > 0) {
       setTimeout(() => {
+        form.setValue("service_id", services[0].id);
         form.setValue("description", services[0].name);
         if (services[0].price) {
           form.setValue("hourly_rate", services[0].price.toString());
