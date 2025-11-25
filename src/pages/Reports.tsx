@@ -5065,25 +5065,25 @@ const Reports = () => {
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Liste des factures</CardTitle>
+                    <CardTitle>{t("reports.invoices.listTitle")}</CardTitle>
                     <CardDescription>
-                      {filteredInvoicesByStatus.length} facture{filteredInvoicesByStatus.length > 1 ? 's' : ''} trouvée{filteredInvoicesByStatus.length > 1 ? 's' : ''}
+                      {t("reports.invoices.listDesc", { count: filteredInvoicesByStatus.length })}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <div className="text-sm text-muted-foreground">Grand Total</div>
+                      <div className="text-sm text-muted-foreground">{t("reports.invoices.grandTotal")}</div>
                       <div className="text-2xl font-bold">${invoiceGrandTotal.toFixed(2)}</div>
                     </div>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-48">
-                          Filtrer par statut ({invoiceStatusFilters.includes('all') ? 'Tous' : invoiceStatusFilters.length})
+                          {t("reports.invoices.filterByStatus", { count: invoiceStatusFilters.includes('all') ? t("reports.invoices.allStatuses") : invoiceStatusFilters.length })}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-56">
                         <div className="space-y-3">
-                          <h4 className="font-medium text-sm">Statuts</h4>
+                          <h4 className="font-medium text-sm">{t("reports.invoices.statuses")}</h4>
                           <div className="space-y-2">
                             <div className="flex items-center space-x-2">
                               <Checkbox
@@ -5095,7 +5095,7 @@ const Reports = () => {
                                 htmlFor="status-all"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
-                                Tous les statuts
+                                {t("reports.invoices.allStatuses")} {t("reports.invoices.statuses").toLowerCase()}
                               </label>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -5108,7 +5108,7 @@ const Reports = () => {
                                 htmlFor="status-draft"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
-                                Brouillon
+                                {t("reports.invoices.draft")}
                               </label>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -5121,7 +5121,7 @@ const Reports = () => {
                                 htmlFor="status-sent"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
-                                Envoyé
+                                {t("reports.invoices.sent")}
                               </label>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -5134,7 +5134,7 @@ const Reports = () => {
                                 htmlFor="status-paid"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
-                                Payé
+                                {t("reports.invoices.paid")}
                               </label>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -5147,7 +5147,7 @@ const Reports = () => {
                                 htmlFor="status-overdue"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
-                                En retard
+                                {t("reports.invoices.overdue")}
                               </label>
                             </div>
                           </div>
@@ -5159,13 +5159,13 @@ const Reports = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="invoice-company-filter">Filtrer par compagnie</Label>
+                    <Label htmlFor="invoice-company-filter">{t("reports.invoices.filterByCompany")}</Label>
                     <Select value={invoiceCompanyFilter} onValueChange={setInvoiceCompanyFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Toutes les compagnies" />
+                        <SelectValue placeholder={t("reports.invoices.allCompanies")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes les compagnies</SelectItem>
+                        <SelectItem value="all">{t("reports.invoices.allCompanies")}</SelectItem>
                         {companies.map(company => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name}
@@ -5176,13 +5176,13 @@ const Reports = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="invoice-client-filter">Filtrer par client</Label>
+                    <Label htmlFor="invoice-client-filter">{t("reports.invoices.filterByClient")}</Label>
                     <Select value={invoiceClientFilter} onValueChange={setInvoiceClientFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Tous les clients" />
+                        <SelectValue placeholder={t("reports.invoices.allClients")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Tous les clients</SelectItem>
+                        <SelectItem value="all">{t("reports.invoices.allClients")}</SelectItem>
                         {clients.map(client => (
                           <SelectItem key={client.id} value={client.id}>
                             {client.name}
@@ -5198,19 +5198,19 @@ const Reports = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Numéro</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Date d'émission</TableHead>
-                    <TableHead>Date d'échéance</TableHead>
-                    <TableHead>Montant</TableHead>
-                    <TableHead>Statut</TableHead>
+                    <TableHead>{t("reports.invoices.number")}</TableHead>
+                    <TableHead>{t("reports.invoices.client")}</TableHead>
+                    <TableHead>{t("reports.invoices.issueDate")}</TableHead>
+                    <TableHead>{t("reports.invoices.dueDate")}</TableHead>
+                    <TableHead>{t("reports.invoices.amount")}</TableHead>
+                    <TableHead>{t("reports.invoices.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredInvoicesByStatus.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        Aucune facture trouvée
+                        {t("reports.invoices.noInvoicesFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -5222,12 +5222,6 @@ const Reports = () => {
                         overdue: 'bg-red-100 text-red-800',
                         draft: 'bg-gray-100 text-gray-800'
                       };
-                      const statusLabels: Record<string, string> = {
-                        paid: 'Payé',
-                        sent: 'Envoyé',
-                        overdue: 'En retard',
-                        draft: 'Brouillon'
-                      };
                       
                       return (
                         <TableRow key={invoice.id}>
@@ -5238,7 +5232,7 @@ const Reports = () => {
                           <TableCell>${Number(invoice.total).toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge className={statusColors[invoice.status] || 'bg-gray-100 text-gray-800'}>
-                              {statusLabels[invoice.status] || invoice.status}
+                              {t(`reports.invoices.${invoice.status}`) || invoice.status}
                             </Badge>
                           </TableCell>
                         </TableRow>
@@ -5252,8 +5246,8 @@ const Reports = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Téléchargement</CardTitle>
-              <CardDescription>Exporter le rapport des factures</CardDescription>
+              <CardTitle>{t("reports.invoices.download")}</CardTitle>
+              <CardDescription>{t("reports.invoices.exportDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-2">
