@@ -704,7 +704,9 @@ Cordialement,
   const handleTestOverdueReminders = async () => {
     setIsTestingReminders(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-overdue-reminders');
+      const { data, error } = await supabase.functions.invoke('send-overdue-reminders', {
+        body: { user_id: user?.id }
+      });
       
       if (error) throw error;
       
