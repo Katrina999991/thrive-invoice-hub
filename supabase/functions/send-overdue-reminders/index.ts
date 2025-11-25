@@ -82,13 +82,6 @@ serve(async (req) => {
     for (const invoice of overdueInvoices || []) {
       const client = invoice.clients;
       
-      // Skip if client doesn't have auto-send enabled
-      if (!client?.send_overdue_email_auto) {
-        console.log(`Skipping invoice ${invoice.invoice_number}: auto-send disabled for client ${client?.name}`);
-        emailsSkipped++;
-        continue;
-      }
-
       // Skip if client has no email
       if (!client?.email) {
         console.log(`Skipping invoice ${invoice.invoice_number}: client ${client?.name} has no email`);
