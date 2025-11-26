@@ -694,37 +694,6 @@ const Reports = () => {
       
       yPosition = (doc as any).lastAutoTable.finalY + 20;
     }
-    
-    // Monthly/Yearly breakdown
-    if (yPosition + 50 > doc.internal.pageSize.height) {
-      doc.addPage();
-      yPosition = 20;
-    }
-    
-    doc.setFontSize(14);
-    doc.text(`Évolution ${taxViewMode === 'monthly' ? 'mensuelle' : 'annuelle'}`, 20, yPosition);
-    yPosition += 20;
-    
-    const periodData = taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData;
-    const periodTableData = periodData.map(period => [
-      period.period,
-      period.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-      period.invoiceCount.toString(),
-      period.taxBreakdown.map(tax => `${tax.name}: ${tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`).join(', ')
-    ]);
-    
-    autoTable(doc, {
-      head: [['Période', 'Total taxes', 'Factures', 'Détail par taxe']],
-      body: periodTableData,
-      startY: yPosition,
-      theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] },
-      styles: { fontSize: 8 },
-      columnStyles: {
-        3: { cellWidth: 'wrap' }
-      }
-    });
-    
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
@@ -772,22 +741,6 @@ const Reports = () => {
     ].filter(row => row.length > 0));
     
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
-    
-    // Monthly/Yearly data sheet
-    const periodData = taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData;
-    const periodSheetData = [
-      [getReportTranslation('period', language), getReportTranslation('totalTax', language), getReportTranslation('totalInvoices', language), getReportTranslation('taxDetails', language)],
-      ...periodData.map(period => [
-        period.period,
-        period.totalTaxAmount,
-        period.invoiceCount,
-        period.taxBreakdown.map(tax => `${tax.name}: ${tax.amount}`).join(', ')
-      ])
-    ];
-    
-    const periodWs = XLSX.utils.aoa_to_sheet(periodSheetData);
-    XLSX.utils.book_append_sheet(wb, periodWs, taxViewMode === 'monthly' ? getReportTranslation('month', language) : getReportTranslation('year', language));
-    
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
