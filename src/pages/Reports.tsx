@@ -2997,7 +2997,7 @@ const Reports = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("reports.revenue.yearlyRevenue")}</CardTitle>
-                    <CardDescription>Select a specific year to view revenue data or a year range</CardDescription>
+                    <CardDescription>{getReportTranslation('selectYearToView', language)}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-4">
