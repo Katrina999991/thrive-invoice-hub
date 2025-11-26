@@ -3136,7 +3136,7 @@ const Reports = () => {
                     setSelectedMonth(undefined);
                   }}
                 >
-                  Clear Month
+                  {getReportTranslation('clearMonth', language)}
                 </Button>
               </div>
             )}
