@@ -656,16 +656,16 @@ const Reports = () => {
     
     // Date range
     if (taxEffectiveStart && taxEffectiveEnd) {
-      doc.text(`Période: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, 50, { align: 'center' });
+      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, 50, { align: 'center' });
     }
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Résumé des taxes', 20, 70);
+    doc.text(getReportTranslation('taxSummary', language), 20, 70);
     doc.setFontSize(10);
-    doc.text(`Montant net à remettre: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
-    doc.text(`Taxes des revenus: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 88);
-    doc.text(`Taxes des dépenses: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 96);
+    doc.text(`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
+    doc.text(`${getReportTranslation('revenueTaxes', language)}: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 88);
+    doc.text(`${getReportTranslation('expenseTaxes', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 96);
     
     let yPosition = 110;
     
@@ -680,10 +680,10 @@ const Reports = () => {
       
       autoTable(doc, {
         head: [[
-          'Type de taxe', 
-          'Taxes revenus',
-          'Taxes dépenses',
-          'Net à remettre'
+          getReportTranslation('taxType', language), 
+          getReportTranslation('revenueTaxes', language),
+          getReportTranslation('expenseTaxes', language),
+          getReportTranslation('netPayable', language)
         ]],
         body: taxSummaryData,
         startY: yPosition,
@@ -712,9 +712,9 @@ const Reports = () => {
     const summaryData = [
       [
         getReportTranslation('taxName', language), 
-        language === 'fr' ? 'Taxes revenus' : 'Revenue Taxes',
-        language === 'fr' ? 'Taxes dépenses' : 'Expense Taxes',
-        language === 'fr' ? 'Net à remettre' : 'Net Payable'
+        getReportTranslation('revenueTaxes', language),
+        getReportTranslation('expenseTaxes', language),
+        getReportTranslation('netPayable', language)
       ],
       ...taxData.taxSummary.map(tax => [
         tax.name,
@@ -733,9 +733,9 @@ const Reports = () => {
         ? [`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd/MM/yyyy', { locale: dateLocale })}`]
         : [],
       [`${getReportTranslation('totalTax', language)}: ${taxData.totalTaxAmount}`],
-      [`${language === 'fr' ? 'Taxes des revenus' : 'Revenue Taxes'}: ${taxData.totalInvoiceTaxAmount}`],
-      [`${language === 'fr' ? 'Taxes des dépenses' : 'Expense Taxes'}: ${taxData.totalExpenseTaxAmount}`],
-      [`${language === 'fr' ? 'Net à remettre (Revenus - Dépenses)' : 'Net Payable (Revenue - Expenses)'}: ${taxData.totalTaxAmount}`],
+      [`${getReportTranslation('revenueTaxes', language)}: ${taxData.totalInvoiceTaxAmount}`],
+      [`${getReportTranslation('expenseTaxes', language)}: ${taxData.totalExpenseTaxAmount}`],
+      [`${getReportTranslation('netPayable', language)} (${getReportTranslation('revenueTaxes', language)} - ${getReportTranslation('expenseTaxes', language)}): ${taxData.totalTaxAmount}`],
       [],
       ...summaryData
     ].filter(row => row.length > 0));
