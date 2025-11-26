@@ -673,17 +673,17 @@ const Reports = () => {
     if (taxData.taxSummary.length > 0) {
       const taxSummaryData = taxData.taxSummary.map(tax => [
         tax.name,
-        tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-        tax.invoiceCount.toString(),
-        (tax.expenseCount || 0).toString()
+        tax.invoiceAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+        tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+        tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
       ]);
       
       autoTable(doc, {
         head: [[
           'Type de taxe', 
-          'Montant', 
-          'Nombre de factures',
-          'Nombre de dépenses'
+          'Taxes revenus',
+          'Taxes dépenses',
+          'Total'
         ]],
         body: taxSummaryData,
         startY: yPosition,
@@ -743,15 +743,15 @@ const Reports = () => {
     const summaryData = [
       [
         getReportTranslation('taxName', language), 
-        getReportTranslation('amount', language), 
-        getReportTranslation('totalInvoices', language),
-        language === 'fr' ? 'Nombre de dépenses' : 'Expense Count'
+        language === 'fr' ? 'Taxes revenus' : 'Revenue Taxes',
+        language === 'fr' ? 'Taxes dépenses' : 'Expense Taxes',
+        getReportTranslation('amount', language)
       ],
       ...taxData.taxSummary.map(tax => [
         tax.name,
-        tax.amount,
-        tax.invoiceCount,
-        tax.expenseCount || 0
+        tax.invoiceAmount,
+        tax.expenseAmount,
+        tax.amount
       ])
     ];
     
@@ -5045,26 +5045,45 @@ const Reports = () => {
                       <h4 className="text-lg font-semibold mb-4">{t("reports.taxes.totalByType")}</h4>
                       <div className="space-y-3">
                         {taxData.taxSummary.map((tax, index) => (
-                          <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                            <div>
+                          <div key={index} className="p-4 bg-muted/50 rounded-lg">
+                            <div className="flex justify-between items-start mb-3">
                               <span className="font-medium text-base">{tax.name}</span>
-                              <p className="text-sm text-muted-foreground">
-                                {tax.invoiceCount} {tax.invoiceCount > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
-                                {tax.expenseCount && tax.expenseCount > 0 && (
-                                  <> • {tax.expenseCount} {tax.expenseCount > 1 ? language === 'fr' ? 'dépenses' : 'expenses' : language === 'fr' ? 'dépense' : 'expense'}</>
-                                )}
-                              </p>
-                            </div>
-                            <div className="text-right">
                               <span className="text-xl font-semibold">
                                 {tax.amount.toLocaleString('fr-FR', { 
                                   style: 'currency', 
                                   currency: 'CAD' 
                                 })}
                               </span>
-                              <p className="text-sm text-muted-foreground">
-                                {((tax.amount / taxData.totalTaxAmount) * 100).toFixed(1)}%
-                              </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="flex flex-col p-2 bg-green-50 dark:bg-green-950/30 rounded">
+                                <span className="text-muted-foreground mb-1">
+                                  {language === 'fr' ? 'Revenus' : 'Revenue'}
+                                </span>
+                                <span className="font-semibold text-green-600 dark:text-green-400">
+                                  {tax.invoiceAmount.toLocaleString('fr-FR', { 
+                                    style: 'currency', 
+                                    currency: 'CAD' 
+                                  })}
+                                </span>
+                                <span className="text-xs text-muted-foreground mt-1">
+                                  {tax.invoiceCount || 0} {(tax.invoiceCount || 0) > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
+                                </span>
+                              </div>
+                              <div className="flex flex-col p-2 bg-orange-50 dark:bg-orange-950/30 rounded">
+                                <span className="text-muted-foreground mb-1">
+                                  {language === 'fr' ? 'Dépenses' : 'Expenses'}
+                                </span>
+                                <span className="font-semibold text-orange-600 dark:text-orange-400">
+                                  {tax.expenseAmount.toLocaleString('fr-FR', { 
+                                    style: 'currency', 
+                                    currency: 'CAD' 
+                                  })}
+                                </span>
+                                <span className="text-xs text-muted-foreground mt-1">
+                                  {tax.expenseCount || 0} {(tax.expenseCount || 0) > 1 ? (language === 'fr' ? 'dépenses' : 'expenses') : (language === 'fr' ? 'dépense' : 'expense')}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -5101,23 +5120,39 @@ const Reports = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t("reports.taxes.taxType")}</TableHead>
-                        <TableHead>{t("reports.taxes.totalAmount")}</TableHead>
-                        <TableHead>{t("reports.taxes.invoiceCount")}</TableHead>
-                        <TableHead>{language === 'fr' ? 'Nombre de dépenses' : 'Expense Count'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Taxes revenus' : 'Revenue Taxes'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Taxes dépenses' : 'Expense Taxes'}</TableHead>
+                        <TableHead className="text-right">{t("reports.taxes.totalAmount")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {taxData.taxSummary.map((tax, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{tax.name}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-right text-green-600 dark:text-green-400">
+                            {tax.invoiceAmount.toLocaleString('fr-FR', { 
+                              style: 'currency', 
+                              currency: 'CAD' 
+                            })}
+                            <div className="text-xs text-muted-foreground">
+                              {tax.invoiceCount || 0} {(tax.invoiceCount || 0) > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right text-orange-600 dark:text-orange-400">
+                            {tax.expenseAmount.toLocaleString('fr-FR', { 
+                              style: 'currency', 
+                              currency: 'CAD' 
+                            })}
+                            <div className="text-xs text-muted-foreground">
+                              {tax.expenseCount || 0} {(tax.expenseCount || 0) > 1 ? (language === 'fr' ? 'dépenses' : 'expenses') : (language === 'fr' ? 'dépense' : 'expense')}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
                             {tax.amount.toLocaleString('fr-FR', { 
                               style: 'currency', 
                               currency: 'CAD' 
                             })}
                           </TableCell>
-                          <TableCell>{tax.invoiceCount}</TableCell>
-                          <TableCell>{tax.expenseCount || 0}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
