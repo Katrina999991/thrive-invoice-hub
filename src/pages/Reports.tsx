@@ -5172,56 +5172,6 @@ const Reports = () => {
               </Card>
             )}
 
-            {/* Tableau détaillé des taxes par période */}
-            {taxData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("reports.taxes.detailBy")} {taxViewMode === 'monthly' ? t("reports.taxes.month").toLowerCase() : t("reports.taxes.year").toLowerCase()}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("reports.taxes.period")}</TableHead>
-                        <TableHead>{t("reports.taxes.totalTaxes")}</TableHead>
-                        <TableHead>{t("reports.taxes.invoicesLabel")}</TableHead>
-                        <TableHead>{t("reports.taxes.detailByTax")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(taxViewMode === 'monthly' ? taxData.monthlyData : taxData.yearlyData).map((period) => (
-                        <TableRow key={period.period}>
-                          <TableCell className="font-medium">{period.period}</TableCell>
-                          <TableCell>
-                            {period.totalTaxAmount.toLocaleString('fr-FR', { 
-                              style: 'currency', 
-                              currency: 'CAD' 
-                            })}
-                          </TableCell>
-                          <TableCell>{period.invoiceCount}</TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              {period.taxBreakdown.map((tax, index) => (
-                                <div key={index} className="flex justify-between text-sm">
-                                  <span className="text-muted-foreground">{tax.name}:</span>
-                                  <span>
-                                    {tax.amount.toLocaleString('fr-FR', { 
-                                      style: 'currency', 
-                                      currency: 'CAD' 
-                                    })}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Export buttons */}
             {taxData && (
               <Card>
