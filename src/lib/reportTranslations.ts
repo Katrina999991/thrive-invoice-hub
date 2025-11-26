@@ -68,9 +68,14 @@ export const reportTranslations = {
     
     // Table headers - Taxes
     taxName: 'Tax Name',
+    taxType: 'Tax Type',
     rate: 'Rate',
     taxableAmount: 'Taxable Amount',
     taxAmount: 'Tax Amount',
+    taxSummary: 'Tax Summary',
+    netPayable: 'Net Payable',
+    revenueTaxes: 'Revenue Taxes',
+    expenseTaxes: 'Expense Taxes',
     
     // Table headers - Sales
     soldQuantity: 'Sold Quantity',
@@ -216,9 +221,14 @@ export const reportTranslations = {
     
     // Table headers - Taxes
     taxName: 'Nom de la taxe',
+    taxType: 'Type de taxe',
     rate: 'Taux',
     taxableAmount: 'Montant taxable',
     taxAmount: 'Montant de la taxe',
+    taxSummary: 'Résumé des taxes',
+    netPayable: 'Montant net à remettre',
+    revenueTaxes: 'Taxes des revenus',
+    expenseTaxes: 'Taxes des dépenses',
     
     // Table headers - Sales
     soldQuantity: 'Quantité vendue',
