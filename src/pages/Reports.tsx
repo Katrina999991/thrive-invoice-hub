@@ -663,7 +663,7 @@ const Reports = () => {
     doc.setFontSize(14);
     doc.text('Résumé des taxes', 20, 70);
     doc.setFontSize(10);
-    doc.text(`Total des taxes: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
+    doc.text(`Montant net à remettre: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
     doc.text(`Taxes des revenus: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 88);
     doc.text(`Taxes des dépenses: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 96);
     
@@ -675,7 +675,7 @@ const Reports = () => {
         tax.name,
         tax.invoiceAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
         tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-        tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
+        tax.netAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
       ]);
       
       autoTable(doc, {
@@ -683,7 +683,7 @@ const Reports = () => {
           'Type de taxe', 
           'Taxes revenus',
           'Taxes dépenses',
-          'Total'
+          'Net à remettre'
         ]],
         body: taxSummaryData,
         startY: yPosition,
@@ -745,13 +745,13 @@ const Reports = () => {
         getReportTranslation('taxName', language), 
         language === 'fr' ? 'Taxes revenus' : 'Revenue Taxes',
         language === 'fr' ? 'Taxes dépenses' : 'Expense Taxes',
-        getReportTranslation('amount', language)
+        language === 'fr' ? 'Net à remettre' : 'Net Payable'
       ],
       ...taxData.taxSummary.map(tax => [
         tax.name,
         tax.invoiceAmount,
         tax.expenseAmount,
-        tax.amount
+        tax.netAmount
       ])
     ];
     
@@ -766,6 +766,7 @@ const Reports = () => {
       [`${getReportTranslation('totalTax', language)}: ${taxData.totalTaxAmount}`],
       [`${language === 'fr' ? 'Taxes des revenus' : 'Revenue Taxes'}: ${taxData.totalInvoiceTaxAmount}`],
       [`${language === 'fr' ? 'Taxes des dépenses' : 'Expense Taxes'}: ${taxData.totalExpenseTaxAmount}`],
+      [`${language === 'fr' ? 'Net à remettre (Revenus - Dépenses)' : 'Net Payable (Revenue - Expenses)'}: ${taxData.totalTaxAmount}`],
       [],
       ...summaryData
     ].filter(row => row.length > 0));
@@ -5007,13 +5008,18 @@ const Reports = () => {
                 <CardContent>
                   <div className="space-y-6">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-2">{t("reports.taxes.grandTotal")}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
+                      </p>
                       <div className="text-3xl font-bold text-primary">
                         {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
                           style: 'currency', 
                           currency: 'CAD' 
                         })}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {language === 'fr' ? '(Taxes revenus - Taxes dépenses)' : '(Revenue taxes - Expense taxes)'}
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
@@ -5048,12 +5054,17 @@ const Reports = () => {
                           <div key={index} className="p-4 bg-muted/50 rounded-lg">
                             <div className="flex justify-between items-start mb-3">
                               <span className="font-medium text-base">{tax.name}</span>
-                              <span className="text-xl font-semibold">
-                                {tax.amount.toLocaleString('fr-FR', { 
-                                  style: 'currency', 
-                                  currency: 'CAD' 
-                                })}
-                              </span>
+                              <div className="text-right">
+                                <div className="text-sm text-muted-foreground mb-1">
+                                  {language === 'fr' ? 'Net à remettre' : 'Net Payable'}
+                                </div>
+                                <span className="text-xl font-semibold">
+                                  {tax.netAmount.toLocaleString('fr-FR', { 
+                                    style: 'currency', 
+                                    currency: 'CAD' 
+                                  })}
+                                </span>
+                              </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3 text-sm">
                               <div className="flex flex-col p-2 bg-green-50 dark:bg-green-950/30 rounded">
@@ -5122,7 +5133,7 @@ const Reports = () => {
                         <TableHead>{t("reports.taxes.taxType")}</TableHead>
                         <TableHead className="text-right">{language === 'fr' ? 'Taxes revenus' : 'Revenue Taxes'}</TableHead>
                         <TableHead className="text-right">{language === 'fr' ? 'Taxes dépenses' : 'Expense Taxes'}</TableHead>
-                        <TableHead className="text-right">{t("reports.taxes.totalAmount")}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Net à remettre' : 'Net Payable'}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -5148,7 +5159,7 @@ const Reports = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
-                            {tax.amount.toLocaleString('fr-FR', { 
+                            {tax.netAmount.toLocaleString('fr-FR', { 
                               style: 'currency', 
                               currency: 'CAD' 
                             })}
