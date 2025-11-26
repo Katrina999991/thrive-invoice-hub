@@ -807,7 +807,7 @@ const Reports = () => {
         const chartImgData = chartCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        doc.text('Stock Levels Chart', 20, yPosition);
+        doc.text(getReportTranslation('stockLevelsChart', language), 20, yPosition);
         yPosition += 10;
         
         const imgWidth = pageWidth - 40;
@@ -2866,7 +2866,7 @@ const Reports = () => {
                           setSelectedClientId('');
                         }}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select filter" />
+                            <SelectValue placeholder={getReportTranslation('selectFilter', language)} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">{t("reports.revenue.all")}</SelectItem>
@@ -2943,7 +2943,7 @@ const Reports = () => {
                           setSelectedClientId('');
                         }}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select filter" />
+                            <SelectValue placeholder={getReportTranslation('selectFilter', language)} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">{t("reports.revenue.all")}</SelectItem>
@@ -3064,7 +3064,7 @@ const Reports = () => {
                           setSelectedClientId('');
                         }}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select filter" />
+                            <SelectValue placeholder={getReportTranslation('selectFilter', language)} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">{t("reports.revenue.all")}</SelectItem>
@@ -3126,7 +3126,7 @@ const Reports = () => {
                     setCustomEndDate(undefined);
                   }}
                 >
-                  Clear Custom Range
+                  {getReportTranslation('clearCustomRange', language)}
                 </Button>
               </div>
             )}
@@ -3156,7 +3156,7 @@ const Reports = () => {
                     setYearRangeEnd(undefined);
                   }}
                 >
-                  Clear Year Selection
+                  {getReportTranslation('clearYearSelection', language)}
                 </Button>
               </div>
             )}
@@ -5386,7 +5386,7 @@ const Reports = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {reminderStartDate ? format(reminderStartDate, "PPP") : (language === "fr" ? "Sélectionner" : "Pick a date")}
+                        {reminderStartDate ? format(reminderStartDate, "PPP") : getReportTranslation('pickADate', language)}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -5411,7 +5411,7 @@ const Reports = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {reminderEndDate ? format(reminderEndDate, "PPP") : (language === "fr" ? "Sélectionner" : "Pick a date")}
+                        {reminderEndDate ? format(reminderEndDate, "PPP") : getReportTranslation('pickADate', language)}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
