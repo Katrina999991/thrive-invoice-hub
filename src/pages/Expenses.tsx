@@ -55,7 +55,7 @@ const Expenses = () => {
     company_id: "",
     notes: "",
     vendor: "",
-    status: "unpaid",
+    status: "paid",
     taxes: [] as Array<{ name: string; percentage: number; amount?: number }>
   });
 
@@ -124,7 +124,7 @@ const Expenses = () => {
       company_id: "",
       notes: "",
       vendor: "",
-      status: "unpaid",
+      status: "paid",
       taxes: []
     });
     setEditingExpense(null);
@@ -340,7 +340,7 @@ const Expenses = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status">{t("expenses.status")}</Label>
-                <Select value={newExpense.status || "unpaid"} onValueChange={(value) => setNewExpense({...newExpense, status: value})}>
+                <Select value={newExpense.status || "paid"} onValueChange={(value) => setNewExpense({...newExpense, status: value})}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("expenses.statusPlaceholder")} />
                   </SelectTrigger>
