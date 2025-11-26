@@ -1,5 +1,6 @@
 import * as React from "react"
 import { format } from "date-fns"
+import { fr, enUS } from "date-fns/locale"
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -23,6 +24,7 @@ interface MonthYearPickerProps {
   mode: 'month' | 'year'
   className?: string
   t?: (key: string) => string
+  language?: string
 }
 
 export function MonthYearPicker({
@@ -30,13 +32,28 @@ export function MonthYearPicker({
   onDateChange,
   mode,
   className,
-  t = (key: string) => key
+  t = (key: string) => key,
+  language = 'en'
 }: MonthYearPickerProps) {
   const [open, setOpen] = React.useState(false)
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i)
+  const locale = language === 'fr' ? fr : enUS
   
-  const months = [
+  const months = language === 'fr' ? [
+    { value: 0, label: 'Janvier' },
+    { value: 1, label: 'Février' },
+    { value: 2, label: 'Mars' },
+    { value: 3, label: 'Avril' },
+    { value: 4, label: 'Mai' },
+    { value: 5, label: 'Juin' },
+    { value: 6, label: 'Juillet' },
+    { value: 7, label: 'Août' },
+    { value: 8, label: 'Septembre' },
+    { value: 9, label: 'Octobre' },
+    { value: 10, label: 'Novembre' },
+    { value: 11, label: 'Décembre' },
+  ] : [
     { value: 0, label: 'January' },
     { value: 1, label: 'February' },
     { value: 2, label: 'March' },
@@ -86,9 +103,9 @@ export function MonthYearPicker({
     }
     
     if (mode === 'month') {
-      return format(selectedDate, 'MMMM yyyy')
+      return format(selectedDate, 'MMMM yyyy', { locale })
     } else {
-      return format(selectedDate, 'yyyy')
+      return format(selectedDate, 'yyyy', { locale })
     }
   }
 
