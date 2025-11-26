@@ -5,7 +5,9 @@ import { useAuth } from './useAuth';
 export interface TaxBreakdown {
   name: string;
   amount: number;
-  invoiceCount: number;
+  invoiceAmount: number;
+  expenseAmount: number;
+  invoiceCount?: number;
   expenseCount?: number;
 }
 
@@ -142,9 +144,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
       const totalTaxAmount = (invoices || []).reduce((sum, invoice) => sum + Number(invoice.tax_amount), 0);
       console.log('Tax Reports - Total tax amount from invoices:', totalTaxAmount);
       
-      const monthlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, { amount: number; invoiceCount: number; expenseCount: number }>; count: number; invoiceIds: Set<string>; expenseIds: Set<string> }>();
-      const yearlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, { amount: number; invoiceCount: number; expenseCount: number }>; count: number; invoiceIds: Set<string>; expenseIds: Set<string> }>();
-      const taxSummaryMap = new Map<string, { amount: number; invoiceCount: number; expenseCount: number }>();
+      const monthlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, { amount: number; invoiceAmount: number; expenseAmount: number; invoiceCount: number; expenseCount: number }>; count: number; invoiceIds: Set<string>; expenseIds: Set<string> }>();
+      const yearlyMap = new Map<string, { totalTax: number; taxBreakdown: Map<string, { amount: number; invoiceAmount: number; expenseAmount: number; invoiceCount: number; expenseCount: number }>; count: number; invoiceIds: Set<string>; expenseIds: Set<string> }>();
+      const taxSummaryMap = new Map<string, { amount: number; invoiceAmount: number; expenseAmount: number; invoiceCount: number; expenseCount: number }>();
 
       (invoices || []).forEach(invoice => {
         const date = new Date(invoice.issue_date);
@@ -167,8 +169,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             const proportionalAmount = Number(totalRate) > 0 ? (taxAmount * taxPercentage) / Number(totalRate) : 0;
             
             // Ajouter au résumé global
-            const summaryEntry = taxSummaryMap.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+            const summaryEntry = taxSummaryMap.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
             summaryEntry.amount += proportionalAmount;
+            summaryEntry.invoiceAmount += proportionalAmount;
             summaryEntry.invoiceCount++;
             taxSummaryMap.set(taxName, summaryEntry);
             
@@ -178,8 +181,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             }
             const monthData = monthlyMap.get(monthKey)!;
             monthData.totalTax += proportionalAmount;
-            const monthTaxEntry = monthData.taxBreakdown.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+            const monthTaxEntry = monthData.taxBreakdown.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
             monthTaxEntry.amount += proportionalAmount;
+            monthTaxEntry.invoiceAmount += proportionalAmount;
             monthTaxEntry.invoiceCount++;
             monthData.taxBreakdown.set(taxName, monthTaxEntry);
             
@@ -195,8 +199,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             }
             const yearData = yearlyMap.get(yearKey)!;
             yearData.totalTax += proportionalAmount;
-            const yearTaxEntry = yearData.taxBreakdown.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+            const yearTaxEntry = yearData.taxBreakdown.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
             yearTaxEntry.amount += proportionalAmount;
+            yearTaxEntry.invoiceAmount += proportionalAmount;
             yearTaxEntry.invoiceCount++;
             yearData.taxBreakdown.set(taxName, yearTaxEntry);
             
@@ -211,8 +216,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           const taxName = `Taxe (${taxRate}%)`;
           
           // Ajouter au résumé global
-          const summaryEntry = taxSummaryMap.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+          const summaryEntry = taxSummaryMap.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
           summaryEntry.amount += taxAmount;
+          summaryEntry.invoiceAmount += taxAmount;
           summaryEntry.invoiceCount++;
           taxSummaryMap.set(taxName, summaryEntry);
           
@@ -222,8 +228,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           }
           const monthData = monthlyMap.get(monthKey)!;
           monthData.totalTax += taxAmount;
-          const monthTaxEntry = monthData.taxBreakdown.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+          const monthTaxEntry = monthData.taxBreakdown.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
           monthTaxEntry.amount += taxAmount;
+          monthTaxEntry.invoiceAmount += taxAmount;
           monthTaxEntry.invoiceCount++;
           monthData.taxBreakdown.set(taxName, monthTaxEntry);
           
@@ -239,8 +246,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           }
           const yearData = yearlyMap.get(yearKey)!;
           yearData.totalTax += taxAmount;
-          const yearTaxEntry = yearData.taxBreakdown.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+          const yearTaxEntry = yearData.taxBreakdown.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
           yearTaxEntry.amount += taxAmount;
+          yearTaxEntry.invoiceAmount += taxAmount;
           yearTaxEntry.invoiceCount++;
           yearData.taxBreakdown.set(taxName, yearTaxEntry);
           
@@ -268,8 +276,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             expenseTaxTotal += taxAmount;
 
             // Ajouter au résumé global
-            const summaryEntry = taxSummaryMap.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+            const summaryEntry = taxSummaryMap.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
             summaryEntry.amount += taxAmount;
+            summaryEntry.expenseAmount += taxAmount;
             summaryEntry.expenseCount++;
             taxSummaryMap.set(taxName, summaryEntry);
 
@@ -279,8 +288,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             }
             const monthData = monthlyMap.get(monthKey)!;
             monthData.totalTax += taxAmount;
-            const monthTaxEntry = monthData.taxBreakdown.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+            const monthTaxEntry = monthData.taxBreakdown.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
             monthTaxEntry.amount += taxAmount;
+            monthTaxEntry.expenseAmount += taxAmount;
             monthTaxEntry.expenseCount++;
             monthData.taxBreakdown.set(taxName, monthTaxEntry);
 
@@ -296,8 +306,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             }
             const yearData = yearlyMap.get(yearKey)!;
             yearData.totalTax += taxAmount;
-            const yearTaxEntry = yearData.taxBreakdown.get(taxName) || { amount: 0, invoiceCount: 0, expenseCount: 0 };
+            const yearTaxEntry = yearData.taxBreakdown.get(taxName) || { amount: 0, invoiceAmount: 0, expenseAmount: 0, invoiceCount: 0, expenseCount: 0 };
             yearTaxEntry.amount += taxAmount;
+            yearTaxEntry.expenseAmount += taxAmount;
             yearTaxEntry.expenseCount++;
             yearData.taxBreakdown.set(taxName, yearTaxEntry);
 
@@ -320,6 +331,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           taxBreakdown: Array.from(data.taxBreakdown.entries()).map(([name, entry]) => ({
             name,
             amount: entry.amount,
+            invoiceAmount: entry.invoiceAmount,
+            expenseAmount: entry.expenseAmount,
             invoiceCount: entry.invoiceCount,
             expenseCount: entry.expenseCount
           })),
@@ -337,6 +350,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           taxBreakdown: Array.from(data.taxBreakdown.entries()).map(([name, entry]) => ({
             name,
             amount: entry.amount,
+            invoiceAmount: entry.invoiceAmount,
+            expenseAmount: entry.expenseAmount,
             invoiceCount: entry.invoiceCount,
             expenseCount: entry.expenseCount
           })),
@@ -350,6 +365,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
         .map(([name, entry]) => ({
           name,
           amount: entry.amount,
+          invoiceAmount: entry.invoiceAmount,
+          expenseAmount: entry.expenseAmount,
           invoiceCount: entry.invoiceCount,
           expenseCount: entry.expenseCount
         }))
