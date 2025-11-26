@@ -672,11 +672,17 @@ const Reports = () => {
       const taxSummaryData = taxData.taxSummary.map(tax => [
         tax.name,
         tax.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-        tax.invoiceCount.toString()
+        tax.invoiceCount.toString(),
+        (tax.expenseCount || 0).toString()
       ]);
       
       autoTable(doc, {
-        head: [['Type de taxe', 'Montant', 'Nombre de factures']],
+        head: [[
+          'Type de taxe', 
+          'Montant', 
+          'Nombre de factures',
+          'Nombre de dépenses'
+        ]],
         body: taxSummaryData,
         startY: yPosition,
         theme: 'striped',
@@ -733,11 +739,17 @@ const Reports = () => {
     
     // Summary sheet
     const summaryData = [
-      [getReportTranslation('taxName', language), getReportTranslation('amount', language), getReportTranslation('totalInvoices', language)],
+      [
+        getReportTranslation('taxName', language), 
+        getReportTranslation('amount', language), 
+        getReportTranslation('totalInvoices', language),
+        language === 'fr' ? 'Nombre de dépenses' : 'Expense Count'
+      ],
       ...taxData.taxSummary.map(tax => [
         tax.name,
         tax.amount,
-        tax.invoiceCount
+        tax.invoiceCount,
+        tax.expenseCount || 0
       ])
     ];
     
@@ -5009,6 +5021,9 @@ const Reports = () => {
                               <span className="font-medium text-base">{tax.name}</span>
                               <p className="text-sm text-muted-foreground">
                                 {tax.invoiceCount} {tax.invoiceCount > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
+                                {tax.expenseCount && tax.expenseCount > 0 && (
+                                  <> • {tax.expenseCount} {tax.expenseCount > 1 ? language === 'fr' ? 'dépenses' : 'expenses' : language === 'fr' ? 'dépense' : 'expense'}</>
+                                )}
                               </p>
                             </div>
                             <div className="text-right">
@@ -5059,6 +5074,7 @@ const Reports = () => {
                         <TableHead>{t("reports.taxes.taxType")}</TableHead>
                         <TableHead>{t("reports.taxes.totalAmount")}</TableHead>
                         <TableHead>{t("reports.taxes.invoiceCount")}</TableHead>
+                        <TableHead>{language === 'fr' ? 'Nombre de dépenses' : 'Expense Count'}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -5072,6 +5088,7 @@ const Reports = () => {
                             })}
                           </TableCell>
                           <TableCell>{tax.invoiceCount}</TableCell>
+                          <TableCell>{tax.expenseCount || 0}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
