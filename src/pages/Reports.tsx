@@ -2920,7 +2920,7 @@ const Reports = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("reports.revenue.monthlyRevenue")}</CardTitle>
-                    <CardDescription>Select a specific month to view revenue data</CardDescription>
+                    <CardDescription>{getReportTranslation('selectMonthToView', language)}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <MonthYearPicker
