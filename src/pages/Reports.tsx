@@ -2931,6 +2931,7 @@ const Reports = () => {
                       }}
                       mode="month"
                       t={t}
+                      language={language}
                     />
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -3013,6 +3014,7 @@ const Reports = () => {
                           }}
                           mode="year"
                           t={t}
+                          language={language}
                         />
                       </div>
                       
@@ -3031,6 +3033,7 @@ const Reports = () => {
                               }}
                               mode="year"
                               t={t}
+                              language={language}
                             />
                           </div>
                           <div className="space-y-2">
@@ -3045,6 +3048,7 @@ const Reports = () => {
                               }}
                               mode="year"
                               t={t}
+                              language={language}
                             />
                           </div>
                         </div>
@@ -4927,6 +4931,7 @@ const Reports = () => {
                         onDateChange={setTaxSelectedMonth}
                         mode="month"
                         t={t}
+                        language={language}
                       />
                     </div>
                   )}
@@ -4939,6 +4944,7 @@ const Reports = () => {
                         onDateChange={setTaxSelectedYear}
                         mode="year"
                         t={t}
+                        language={language}
                       />
                     </div>
                   )}
