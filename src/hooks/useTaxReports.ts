@@ -7,6 +7,7 @@ export interface TaxBreakdown {
   amount: number;
   invoiceAmount: number;
   expenseAmount: number;
+  netAmount: number;
   invoiceCount?: number;
   expenseCount?: number;
 }
@@ -333,6 +334,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             amount: entry.amount,
             invoiceAmount: entry.invoiceAmount,
             expenseAmount: entry.expenseAmount,
+            netAmount: entry.invoiceAmount - entry.expenseAmount,
             invoiceCount: entry.invoiceCount,
             expenseCount: entry.expenseCount
           })),
@@ -352,6 +354,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
             amount: entry.amount,
             invoiceAmount: entry.invoiceAmount,
             expenseAmount: entry.expenseAmount,
+            netAmount: entry.invoiceAmount - entry.expenseAmount,
             invoiceCount: entry.invoiceCount,
             expenseCount: entry.expenseCount
           })),
@@ -367,6 +370,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
           amount: entry.amount,
           invoiceAmount: entry.invoiceAmount,
           expenseAmount: entry.expenseAmount,
+          netAmount: entry.invoiceAmount - entry.expenseAmount,
           invoiceCount: entry.invoiceCount,
           expenseCount: entry.expenseCount
         }))
@@ -388,7 +392,7 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
       });
 
       setTaxData({
-        totalTaxAmount: totalTaxAmount + expenseTaxTotal,
+        totalTaxAmount: totalTaxAmount - expenseTaxTotal,
         totalInvoiceTaxAmount: totalTaxAmount,
         totalExpenseTaxAmount: expenseTaxTotal,
         monthlyData,
