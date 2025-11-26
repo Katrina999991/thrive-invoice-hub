@@ -18,6 +18,8 @@ export interface TaxByPeriod {
 
 export interface TaxReportData {
   totalTaxAmount: number;
+  totalInvoiceTaxAmount: number;
+  totalExpenseTaxAmount: number;
   monthlyData: TaxByPeriod[];
   yearlyData: TaxByPeriod[];
   taxSummary: TaxBreakdown[];
@@ -35,6 +37,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
     if (!startDate && !endDate) {
       setTaxData({
         totalTaxAmount: 0,
+        totalInvoiceTaxAmount: 0,
+        totalExpenseTaxAmount: 0,
         monthlyData: [],
         yearlyData: [],
         taxSummary: []
@@ -126,6 +130,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
       if (!invoices && !expenses) {
         setTaxData({
           totalTaxAmount: 0,
+          totalInvoiceTaxAmount: 0,
+          totalExpenseTaxAmount: 0,
           monthlyData: [],
           yearlyData: [],
           taxSummary: []
@@ -366,6 +372,8 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
 
       setTaxData({
         totalTaxAmount: totalTaxAmount + expenseTaxTotal,
+        totalInvoiceTaxAmount: totalTaxAmount,
+        totalExpenseTaxAmount: expenseTaxTotal,
         monthlyData,
         yearlyData,
         taxSummary

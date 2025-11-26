@@ -664,8 +664,10 @@ const Reports = () => {
     doc.text('Résumé des taxes', 20, 70);
     doc.setFontSize(10);
     doc.text(`Total des taxes: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
+    doc.text(`Taxes des revenus: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 88);
+    doc.text(`Taxes des dépenses: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 96);
     
-    let yPosition = 100;
+    let yPosition = 110;
     
     // Tax breakdown table
     if (taxData.taxSummary.length > 0) {
@@ -762,6 +764,8 @@ const Reports = () => {
         ? [`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd/MM/yyyy', { locale: dateLocale })}`]
         : [],
       [`${getReportTranslation('totalTax', language)}: ${taxData.totalTaxAmount}`],
+      [`${language === 'fr' ? 'Taxes des revenus' : 'Revenue Taxes'}: ${taxData.totalInvoiceTaxAmount}`],
+      [`${language === 'fr' ? 'Taxes des dépenses' : 'Expense Taxes'}: ${taxData.totalExpenseTaxAmount}`],
       [],
       ...summaryData
     ].filter(row => row.length > 0));
@@ -5009,6 +5013,31 @@ const Reports = () => {
                           style: 'currency', 
                           currency: 'CAD' 
                         })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                      <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {language === 'fr' ? 'Taxes des revenus' : 'Revenue Taxes'}
+                        </p>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { 
+                            style: 'currency', 
+                            currency: 'CAD' 
+                          })}
+                        </div>
+                      </div>
+                      <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {language === 'fr' ? 'Taxes des dépenses' : 'Expense Taxes'}
+                        </p>
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                          {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { 
+                            style: 'currency', 
+                            currency: 'CAD' 
+                          })}
+                        </div>
                       </div>
                     </div>
                     
