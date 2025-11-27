@@ -23,7 +23,7 @@ export interface SalesReportSummary {
   services: SalesReportData[];
 }
 
-export const useSalesReport = (startDate?: Date, endDate?: Date) => {
+export const useSalesReport = (startDate?: Date, endDate?: Date, companyId?: string) => {
   const [salesData, setSalesData] = useState<SalesReportSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +56,17 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
             issue_date
           ),
           products!inner (
-            name
+            name,
+            company_id
           )
         `)
         .eq('invoices.user_id', user.id)
         .eq('invoices.status', 'paid');
+
+      // Add company filter if specified
+      if (companyId) {
+        query = query.eq('products.company_id', companyId);
+      }
 
       // Add date filters if specified
       if (startDate) {
@@ -210,7 +216,7 @@ export const useSalesReport = (startDate?: Date, endDate?: Date) => {
 
   useEffect(() => {
     fetchSalesData();
-  }, [user, startDate, endDate]);
+  }, [user, startDate, endDate, companyId]);
 
   return {
     salesData,
