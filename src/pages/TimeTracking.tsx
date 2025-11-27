@@ -11,6 +11,16 @@ import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -86,6 +96,7 @@ export default function TimeTracking() {
     { id: crypto.randomUUID(), start_time: "", end_time: "" }
   ]);
   const [baseHours, setBaseHours] = useState<number>(0);
+  const [showInvoiceConfirm, setShowInvoiceConfirm] = useState(false);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -524,7 +535,7 @@ export default function TimeTracking() {
         </div>
         <div className="flex gap-2">
           {selectedEntries.length > 0 && (
-            <Button onClick={handleCreateInvoice} disabled={isCreatingInvoice}>
+            <Button onClick={() => setShowInvoiceConfirm(true)} disabled={isCreatingInvoice}>
               <FileText className="mr-2 h-4 w-4" />
               {language === "fr" ? "Créer une facture" : "Create Invoice"} ({selectedEntries.length})
             </Button>
@@ -1049,6 +1060,33 @@ export default function TimeTracking() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showInvoiceConfirm} onOpenChange={setShowInvoiceConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Créer une facture' : 'Create Invoice'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' 
+                ? `Voulez-vous créer une facture avec ${selectedEntries.length} entrée(s) sélectionnée(s) ?`
+                : `Do you want to create an invoice with ${selectedEntries.length} selected entry(ies)?`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowInvoiceConfirm(false);
+              handleCreateInvoice();
+            }}>
+              {language === 'fr' ? 'Confirmer' : 'Confirm'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
