@@ -753,7 +753,27 @@ const Reports = () => {
 
   // Export functions for products
   const exportProductsToPDF = async () => {
-    if (!products || products.length === 0) return;
+    // Filter products based on company if selected
+    let productsToExport = products || [];
+    
+    if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
+      const companyInvoices = invoices.filter((invoice: any) => 
+        invoice.clients?.company_id === productSelectedCompanyId && invoice.status === 'paid'
+      );
+      
+      const soldProductIds = new Set<string>();
+      companyInvoices.forEach((invoice: any) => {
+        invoice.invoice_items?.forEach((item: any) => {
+          if (item.product_id) {
+            soldProductIds.add(item.product_id);
+          }
+        });
+      });
+      
+      productsToExport = products.filter(p => soldProductIds.has(p.id));
+    }
+    
+    if (!productsToExport || productsToExport.length === 0) return;
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -785,10 +805,10 @@ const Reports = () => {
     }
     
     // Summary
-    const totalProducts = products.length;
-    const activeProducts = products.filter(p => p.is_active).length;
-    const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
-    const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
+    const totalProducts = productsToExport.length;
+    const activeProducts = productsToExport.filter(p => p.is_active).length;
+    const lowStockProducts = productsToExport.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
+    const totalInventoryValue = productsToExport.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
     doc.text(`${t("reports.pdf.reportDate")}: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 55);
     doc.text(`${t("reports.pdf.totalProducts")}: ${totalProducts}`, 20, 65);
@@ -800,7 +820,7 @@ const Reports = () => {
     
     try {
       // Capture Stock Chart
-      if (stockChartRef.current && products.length > 0) {
+      if (stockChartRef.current && productsToExport.length > 0) {
         const chartCanvas = await html2canvas(stockChartRef.current, {
           backgroundColor: '#ffffff',
           scale: 1,
@@ -829,7 +849,7 @@ const Reports = () => {
     }
     
     // Products table
-    const tableData = products.map(product => {
+    const tableData = productsToExport.map(product => {
       const margin = product.price && product.cost ? 
         ((product.price - product.cost) / product.price * 100).toFixed(1) + '%' : '0.0%';
       const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
@@ -860,15 +880,35 @@ const Reports = () => {
   };
 
   const exportProductsToExcel = () => {
-    if (!products || products.length === 0) return;
+    // Filter products based on company if selected
+    let productsToExport = products || [];
+    
+    if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
+      const companyInvoices = invoices.filter((invoice: any) => 
+        invoice.clients?.company_id === productSelectedCompanyId && invoice.status === 'paid'
+      );
+      
+      const soldProductIds = new Set<string>();
+      companyInvoices.forEach((invoice: any) => {
+        invoice.invoice_items?.forEach((item: any) => {
+          if (item.product_id) {
+            soldProductIds.add(item.product_id);
+          }
+        });
+      });
+      
+      productsToExport = products.filter(p => soldProductIds.has(p.id));
+    }
+    
+    if (!productsToExport || productsToExport.length === 0) return;
     
     const wb = XLSX.utils.book_new();
     
     // Summary sheet
-    const totalProducts = products.length;
-    const activeProducts = products.filter(p => p.is_active).length;
-    const lowStockProducts = products.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
-    const totalInventoryValue = products.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
+    const totalProducts = productsToExport.length;
+    const activeProducts = productsToExport.filter(p => p.is_active).length;
+    const lowStockProducts = productsToExport.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
+    const totalInventoryValue = productsToExport.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
     
     const summaryData = [
       ['Inventory Report'],
@@ -886,7 +926,7 @@ const Reports = () => {
     // Products detail sheet
     const productsData = [
       ['Name', 'SKU', 'Category', 'Quantity', 'Cost', 'Price', 'Margin (%)', 'Stock Value', 'Status'],
-      ...products.map(product => {
+      ...productsToExport.map(product => {
         const margin = product.price && product.cost ? 
           ((product.price - product.cost) / product.price * 100).toFixed(1) : '0.0';
         const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
