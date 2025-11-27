@@ -5388,7 +5388,7 @@ const Reports = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {reminderStartDate ? format(reminderStartDate, "PPP") : getReportTranslation('pickADate', language)}
+                        {reminderStartDate ? format(reminderStartDate, "PPP", { locale: language === "fr" ? fr : enUS }) : getReportTranslation('pickADate', language)}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -5417,7 +5417,7 @@ const Reports = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {reminderEndDate ? format(reminderEndDate, "PPP") : getReportTranslation('pickADate', language)}
+                        {reminderEndDate ? format(reminderEndDate, "PPP", { locale: language === "fr" ? fr : enUS }) : getReportTranslation('pickADate', language)}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
