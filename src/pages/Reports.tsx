@@ -279,6 +279,37 @@ const Reports = () => {
       products: filteredProducts
     };
   }, [profitData, products, productFilterType, productSelectedCompanyId, invoices]);
+
+  // Filter sales data by company if specified
+  const filteredSalesData = useMemo(() => {
+    if (!salesData) return null;
+    
+    // If no company filter, return all data
+    if (productFilterType === 'all' || !productSelectedCompanyId) {
+      return salesData;
+    }
+    
+    // Filter products and services by company
+    const companyProducts = allProducts?.filter(p => p.company_id === productSelectedCompanyId) || [];
+    const companyProductIds = new Set(companyProducts.map(p => p.id));
+    
+    const filteredProducts = salesData.products.filter(p => companyProductIds.has(p.product_id));
+    const filteredServices = salesData.services.filter(s => companyProductIds.has(s.product_id));
+    
+    const totalRevenue = [...filteredProducts, ...filteredServices].reduce((sum, item) => sum + item.total_revenue, 0);
+    const totalQuantitySold = [...filteredProducts, ...filteredServices].reduce((sum, item) => sum + item.total_quantity_sold, 0);
+    const totalNumberOfSales = [...filteredProducts, ...filteredServices].reduce((sum, item) => sum + item.number_of_sales, 0);
+    
+    return {
+      totalRevenue,
+      totalQuantitySold,
+      totalNumberOfSales,
+      uniqueProductsSold: filteredProducts.length,
+      uniqueServicesSold: filteredServices.length,
+      products: filteredProducts,
+      services: filteredServices
+    };
+  }, [salesData, productFilterType, productSelectedCompanyId, allProducts]);
   
   // États pour le rapport de taxes
   const [taxDateFilter, setTaxDateFilter] = useState<'custom' | 'month' | 'year'>('custom');
@@ -3882,29 +3913,13 @@ const Reports = () => {
           </div>
 
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("reports.products.dateFilters")}</CardTitle>
-                <CardDescription>{t("reports.products.selectPeriodSales")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <DateRangePicker
-                  startDate={customStartDate}
-                  endDate={customEndDate}
-                  onStartDateChange={setCustomStartDate}
-                  onEndDateChange={setCustomEndDate}
-                  t={t}
-                />
-              </CardContent>
-            </Card>
-
             {salesLoading ? (
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center">{t("reports.products.loadingSales")}</div>
                 </CardContent>
               </Card>
-            ) : salesData ? (
+            ) : filteredSalesData ? (
               <div className="space-y-4">
                 {/* Sales Summary Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -3914,7 +3929,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(salesData.totalRevenue)}
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(filteredSalesData.totalRevenue)}
                       </div>
                     </CardContent>
                   </Card>
@@ -3924,7 +3939,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {salesData.totalQuantitySold.toLocaleString()}
+                        {filteredSalesData.totalQuantitySold.toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
@@ -3934,7 +3949,7 @@ const Reports = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {salesData.totalNumberOfSales.toLocaleString()}
+                        {filteredSalesData.totalNumberOfSales.toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
@@ -3961,14 +3976,14 @@ const Reports = () => {
                 </div>
 
                 {/* Products Chart */}
-                {salesData.products.length > 0 && (
+                {filteredSalesData.products.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle>{t("reports.products.revenueByProduct")}</CardTitle>
                       <CardDescription>{t("reports.products.revenueByProductDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent ref={salesProductChartRef}>
-                      <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
+                      <BarChart width={600} height={400} data={filteredSalesData.products.slice(0, 10)}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="product_name" 
@@ -3991,14 +4006,14 @@ const Reports = () => {
                 )}
 
                 {/* Services Chart */}
-                {salesData.services.length > 0 && (
+                {filteredSalesData.services.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle>{t("reports.products.revenueByService")}</CardTitle>
                       <CardDescription>{t("reports.products.revenueByServiceDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent ref={salesServiceChartRef}>
-                      <BarChart width={600} height={400} data={salesData.services.slice(0, 10)}>
+                      <BarChart width={600} height={400} data={filteredSalesData.services.slice(0, 10)}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="product_name" 
@@ -4041,7 +4056,7 @@ const Reports = () => {
                       </TableHeader>
                       <TableBody>
                         {/* Products */}
-                        {salesData.products.map((product) => (
+                        {filteredSalesData.products.map((product) => (
                           <TableRow key={product.product_id}>
                             <TableCell className="font-medium">{product.product_name} <span className="text-xs text-muted-foreground">({t("reports.products.productLabel")})</span></TableCell>
                             <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
@@ -4061,7 +4076,7 @@ const Reports = () => {
                           </TableRow>
                         ))}
                         {/* Services */}
-                        {salesData.services.map((service) => (
+                        {filteredSalesData.services.map((service) => (
                           <TableRow key={service.product_id}>
                             <TableCell className="font-medium">{service.product_name} <span className="text-xs text-muted-foreground">({t("reports.products.serviceLabel")})</span></TableCell>
                             <TableCell className="text-right">{service.total_quantity_sold}</TableCell>
