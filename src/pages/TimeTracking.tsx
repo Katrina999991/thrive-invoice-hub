@@ -958,11 +958,26 @@ export default function TimeTracking() {
                   ))}
 
                   <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="text-sm">
+                    <div className="text-sm flex-1">
                       {baseHours > 0 && (
-                        <div className="text-muted-foreground mb-1">
-                          {language === "fr" ? "Heures existantes: " : "Existing hours: "}
-                          <span className="font-medium text-foreground">{baseHours.toFixed(2)}h</span>
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2">
+                          <span>
+                            {language === "fr" ? "Heures existantes: " : "Existing hours: "}
+                            <span className="font-medium text-foreground">{baseHours.toFixed(2)}h</span>
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => {
+                              setBaseHours(0);
+                              form.setValue("hours", calculateTotalHours());
+                            }}
+                            title={language === "fr" ? "Réinitialiser les heures existantes" : "Reset existing hours"}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
                         </div>
                       )}
                       <div className={baseHours > 0 ? "text-foreground font-semibold" : "text-muted-foreground"}>
