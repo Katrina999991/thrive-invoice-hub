@@ -149,7 +149,10 @@ export default function TimeTracking() {
   };
 
   const removeTimeRange = (id: string) => {
-    setTimeRanges(timeRanges.filter(range => range.id !== id));
+    // Garder au moins une plage horaire
+    if (timeRanges.length > 1) {
+      setTimeRanges(timeRanges.filter(range => range.id !== id));
+    }
   };
 
   const updateTimeRange = (id: string, field: 'start_time' | 'end_time', value: string) => {
@@ -942,14 +945,16 @@ export default function TimeTracking() {
                           />
                         </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeTimeRange(range.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      {timeRanges.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeTimeRange(range.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   ))}
 
