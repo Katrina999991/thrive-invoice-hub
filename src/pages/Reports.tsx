@@ -134,6 +134,10 @@ const Reports = () => {
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
   const [productSelectedCompanyId, setProductSelectedCompanyId] = useState<string>('');
   
+  // États pour les filtres de la section Inventory
+  const [inventoryFilterType, setInventoryFilterType] = useState<'all' | 'company'>('all');
+  const [inventorySelectedCompanyId, setInventorySelectedCompanyId] = useState<string>('');
+  
   // États pour les filtres de la section Expenses
   const [expenseFilterType, setExpenseFilterType] = useState<'all' | 'company' | 'category'>('all');
   const [expenseSelectedCompanyId, setExpenseSelectedCompanyId] = useState<string>('');
@@ -164,6 +168,15 @@ const Reports = () => {
       return !isService;
     }) || [];
   }, [allProducts]);
+
+  // Filter products for inventory report by company
+  const filteredInventoryProducts = useMemo(() => {
+    if (inventoryFilterType === 'all' || !inventorySelectedCompanyId) {
+      return products;
+    }
+    
+    return products.filter(product => product.company_id === inventorySelectedCompanyId);
+  }, [products, inventoryFilterType, inventorySelectedCompanyId]);
 
   // Filter profit data to show only physical products and optionally by company
   const filteredProfitData = useMemo(() => {
@@ -756,32 +769,12 @@ const Reports = () => {
   // Export functions for products
   const exportProductsToPDF = async () => {
     console.log('exportProductsToPDF called', { 
-      products: products?.length, 
-      allProducts: allProducts?.length,
-      productFilterType, 
-      productSelectedCompanyId 
+      filteredInventoryProducts: filteredInventoryProducts?.length,
+      inventoryFilterType, 
+      inventorySelectedCompanyId 
     });
     
-    // Filter products based on company if selected
-    let productsToExport = products || [];
-    
-    if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
-      const companyInvoices = invoices.filter((invoice: any) => 
-        invoice.clients?.company_id === productSelectedCompanyId && invoice.status === 'paid'
-      );
-      
-      const soldProductIds = new Set<string>();
-      companyInvoices.forEach((invoice: any) => {
-        invoice.invoice_items?.forEach((item: any) => {
-          if (item.product_id) {
-            soldProductIds.add(item.product_id);
-          }
-        });
-      });
-      
-      productsToExport = products.filter(p => soldProductIds.has(p.id));
-      console.log('Filtered by company:', { productsToExport: productsToExport.length });
-    }
+    const productsToExport = filteredInventoryProducts || [];
     
     if (!productsToExport || productsToExport.length === 0) {
       console.warn('No products to export');
@@ -809,8 +802,8 @@ const Reports = () => {
     doc.text(filterText, pageWidth / 2, 30, { align: 'center' });
     
     // Company filter
-    if (productFilterType === 'company' && productSelectedCompanyId) {
-      const company = companies?.find(c => c.id === productSelectedCompanyId);
+    if (inventoryFilterType === 'company' && inventorySelectedCompanyId) {
+      const company = companies?.find(c => c.id === inventorySelectedCompanyId);
       if (company) {
         doc.text(`${t("reports.pdf.company")}: ${company.name}`, pageWidth / 2, 38, { align: 'center' });
       }
@@ -895,32 +888,12 @@ const Reports = () => {
 
   const exportProductsToExcel = () => {
     console.log('exportProductsToExcel called', { 
-      products: products?.length, 
-      allProducts: allProducts?.length,
-      productFilterType, 
-      productSelectedCompanyId 
+      filteredInventoryProducts: filteredInventoryProducts?.length,
+      inventoryFilterType, 
+      inventorySelectedCompanyId 
     });
     
-    // Filter products based on company if selected
-    let productsToExport = products || [];
-    
-    if (productFilterType === 'company' && productSelectedCompanyId && invoices) {
-      const companyInvoices = invoices.filter((invoice: any) => 
-        invoice.clients?.company_id === productSelectedCompanyId && invoice.status === 'paid'
-      );
-      
-      const soldProductIds = new Set<string>();
-      companyInvoices.forEach((invoice: any) => {
-        invoice.invoice_items?.forEach((item: any) => {
-          if (item.product_id) {
-            soldProductIds.add(item.product_id);
-          }
-        });
-      });
-      
-      productsToExport = products.filter(p => soldProductIds.has(p.id));
-      console.log('Filtered by company:', { productsToExport: productsToExport.length });
-    }
+    const productsToExport = filteredInventoryProducts || [];
     
     if (!productsToExport || productsToExport.length === 0) {
       console.warn('No products to export');
@@ -3730,6 +3703,54 @@ const Reports = () => {
             </div>
           </div>
 
+          {/* Inventory Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("reports.products.companyFilter")}</CardTitle>
+              <CardDescription>{t("reports.products.companyFilterDesc")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>{t("reports.products.filterType")}</Label>
+                  <Select value={inventoryFilterType} onValueChange={(value: 'all' | 'company') => {
+                    setInventoryFilterType(value);
+                    setInventorySelectedCompanyId('');
+                  }}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder={t("reports.products.selectFilterType")} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border shadow-lg z-50">
+                      <SelectItem value="all">{t("reports.products.allCompanies")}</SelectItem>
+                      <SelectItem value="company">{t("reports.products.byCompany")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {inventoryFilterType === 'company' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="inventory-company-select">{t("reports.products.company")}</Label>
+                    <Select 
+                      value={inventorySelectedCompanyId} 
+                      onValueChange={setInventorySelectedCompanyId}
+                    >
+                      <SelectTrigger id="inventory-company-select" className="bg-background">
+                        <SelectValue placeholder={t("reports.products.selectCompany")} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border border-border shadow-lg z-50">
+                        {companies?.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -3737,7 +3758,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium">{t("reports.products.totalProducts")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{products?.length || 0}</div>
+                <div className="text-2xl font-bold">{filteredInventoryProducts?.length || 0}</div>
                 <p className="text-xs text-muted-foreground">{t("reports.products.productsInInventory")}</p>
               </CardContent>
             </Card>
@@ -3748,7 +3769,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {products?.filter(p => p.is_active).length || 0}
+                  {filteredInventoryProducts?.filter(p => p.is_active).length || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("reports.products.activeProductsCount")}</p>
               </CardContent>
@@ -3760,7 +3781,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">
-                  {products?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
+                  {filteredInventoryProducts?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("reports.products.productsOutOfStock")}</p>
               </CardContent>
@@ -3772,7 +3793,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${products?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0).toFixed(2) || "0.00"}
+                  ${filteredInventoryProducts?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0).toFixed(2) || "0.00"}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("reports.products.totalInventoryValueDesc")}</p>
               </CardContent>
@@ -3786,12 +3807,12 @@ const Reports = () => {
               <CardDescription>{t("reports.products.stockLevelsDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
-              {products && products.length > 0 ? (
+              {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
                 <div className="w-full overflow-x-auto" ref={stockChartRef}>
                   <BarChart 
                     width={800} 
                     height={400}
-                    data={products.map(p => ({
+                    data={filteredInventoryProducts.map(p => ({
                       name: p.name,
                       quantity: p.quantity || 0,
                       cost: p.cost || 0,
@@ -3836,7 +3857,7 @@ const Reports = () => {
               <CardDescription>{t("reports.products.inventoryDetailsDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
-              {products && products.length > 0 ? (
+              {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -3852,7 +3873,7 @@ const Reports = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => {
+                    {filteredInventoryProducts.map((product) => {
                       const margin = product.price && product.cost ? 
                         ((product.price - product.cost) / product.price * 100).toFixed(1) : "0.0";
                       const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
