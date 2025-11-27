@@ -149,9 +149,7 @@ export default function TimeTracking() {
   };
 
   const removeTimeRange = (id: string) => {
-    if (timeRanges.length > 1) {
-      setTimeRanges(timeRanges.filter(range => range.id !== id));
-    }
+    setTimeRanges(timeRanges.filter(range => range.id !== id));
   };
 
   const updateTimeRange = (id: string, field: 'start_time' | 'end_time', value: string) => {
@@ -944,40 +942,23 @@ export default function TimeTracking() {
                           />
                         </div>
                       </div>
-                      {timeRanges.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeTimeRange(range.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeTimeRange(range.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
 
                   <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="text-sm flex-1">
+                    <div className="text-sm">
                       {baseHours > 0 && (
-                        <div className="text-muted-foreground mb-1 flex items-center gap-2">
-                          <span>
-                            {language === "fr" ? "Heures existantes: " : "Existing hours: "}
-                            <span className="font-medium text-foreground">{baseHours.toFixed(2)}h</span>
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => {
-                              setBaseHours(0);
-                              form.setValue("hours", calculateTotalHours());
-                            }}
-                            title={language === "fr" ? "Réinitialiser les heures existantes" : "Reset existing hours"}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
+                        <div className="text-muted-foreground mb-1">
+                          {language === "fr" ? "Heures existantes: " : "Existing hours: "}
+                          <span className="font-medium text-foreground">{baseHours.toFixed(2)}h</span>
                         </div>
                       )}
                       <div className={baseHours > 0 ? "text-foreground font-semibold" : "text-muted-foreground"}>
