@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Download, FileSpreadsheet, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
@@ -37,14 +38,13 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
-import { useToast } from "@/hooks/use-toast";
 
 const Reports = () => {
   const { t, language } = useLanguage();
   const { planLimits } = useSubscription();
-  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
+  const [showNoProductsDialog, setShowNoProductsDialog] = useState(false);
   
   // Check if a specific report tab is available based on plan
   const isTabAvailable = (tab: string) => {
@@ -785,13 +785,7 @@ const Reports = () => {
     
     if (!productsToExport || productsToExport.length === 0) {
       console.warn('No products to export');
-      toast({
-        title: language === 'fr' ? "Aucun produit à exporter" : "No products to export",
-        description: language === 'fr' 
-          ? "Il n'y a aucun produit physique disponible pour ce rapport. Les services sont exclus du rapport d'inventaire."
-          : "There are no physical products available for this report. Services are excluded from the inventory report.",
-        variant: "destructive",
-      });
+      setShowNoProductsDialog(true);
       return;
     }
     
@@ -930,13 +924,7 @@ const Reports = () => {
     
     if (!productsToExport || productsToExport.length === 0) {
       console.warn('No products to export');
-      toast({
-        title: language === 'fr' ? "Aucun produit à exporter" : "No products to export",
-        description: language === 'fr' 
-          ? "Il n'y a aucun produit physique disponible pour ce rapport. Les services sont exclus du rapport d'inventaire."
-          : "There are no physical products available for this report. Services are excluded from the inventory report.",
-        variant: "destructive",
-      });
+      setShowNoProductsDialog(true);
       return;
     }
     
@@ -5634,6 +5622,25 @@ const Reports = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Dialog pour aucun produit à exporter */}
+      <AlertDialog open={showNoProductsDialog} onOpenChange={setShowNoProductsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? "Aucun produit à exporter" : "No products to export"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' 
+                ? "Il n'y a aucun produit physique disponible pour ce rapport. Les services (comme les heures de consultation ou de design) sont exclus du rapport d'inventaire."
+                : "There are no physical products available for this report. Services (such as consultation or design hours) are excluded from the inventory report."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
