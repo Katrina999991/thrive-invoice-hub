@@ -37,10 +37,12 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
+import { useToast } from "@/hooks/use-toast";
 
 const Reports = () => {
   const { t, language } = useLanguage();
   const { planLimits } = useSubscription();
+  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   
@@ -783,7 +785,13 @@ const Reports = () => {
     
     if (!productsToExport || productsToExport.length === 0) {
       console.warn('No products to export');
-      alert(t("reports.products.noProductsToExport") || "Aucun produit physique à exporter. Les services sont exclus de ce rapport.");
+      toast({
+        title: language === 'fr' ? "Aucun produit à exporter" : "No products to export",
+        description: language === 'fr' 
+          ? "Il n'y a aucun produit physique disponible pour ce rapport. Les services sont exclus du rapport d'inventaire."
+          : "There are no physical products available for this report. Services are excluded from the inventory report.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -922,7 +930,13 @@ const Reports = () => {
     
     if (!productsToExport || productsToExport.length === 0) {
       console.warn('No products to export');
-      alert(t("reports.products.noProductsToExport") || "Aucun produit physique à exporter. Les services sont exclus de ce rapport.");
+      toast({
+        title: language === 'fr' ? "Aucun produit à exporter" : "No products to export",
+        description: language === 'fr' 
+          ? "Il n'y a aucun produit physique disponible pour ce rapport. Les services sont exclus du rapport d'inventaire."
+          : "There are no physical products available for this report. Services are excluded from the inventory report.",
+        variant: "destructive",
+      });
       return;
     }
     
