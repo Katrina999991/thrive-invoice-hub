@@ -753,6 +753,13 @@ const Reports = () => {
 
   // Export functions for products
   const exportProductsToPDF = async () => {
+    console.log('exportProductsToPDF called', { 
+      products: products?.length, 
+      allProducts: allProducts?.length,
+      productFilterType, 
+      productSelectedCompanyId 
+    });
+    
     // Filter products based on company if selected
     let productsToExport = products || [];
     
@@ -771,9 +778,14 @@ const Reports = () => {
       });
       
       productsToExport = products.filter(p => soldProductIds.has(p.id));
+      console.log('Filtered by company:', { productsToExport: productsToExport.length });
     }
     
-    if (!productsToExport || productsToExport.length === 0) return;
+    if (!productsToExport || productsToExport.length === 0) {
+      console.warn('No products to export');
+      alert(t("reports.products.noProductsToExport") || "Aucun produit physique à exporter. Les services sont exclus de ce rapport.");
+      return;
+    }
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -880,6 +892,13 @@ const Reports = () => {
   };
 
   const exportProductsToExcel = () => {
+    console.log('exportProductsToExcel called', { 
+      products: products?.length, 
+      allProducts: allProducts?.length,
+      productFilterType, 
+      productSelectedCompanyId 
+    });
+    
     // Filter products based on company if selected
     let productsToExport = products || [];
     
@@ -898,9 +917,14 @@ const Reports = () => {
       });
       
       productsToExport = products.filter(p => soldProductIds.has(p.id));
+      console.log('Filtered by company:', { productsToExport: productsToExport.length });
     }
     
-    if (!productsToExport || productsToExport.length === 0) return;
+    if (!productsToExport || productsToExport.length === 0) {
+      console.warn('No products to export');
+      alert(t("reports.products.noProductsToExport") || "Aucun produit physique à exporter. Les services sont exclus de ce rapport.");
+      return;
+    }
     
     const wb = XLSX.utils.book_new();
     
