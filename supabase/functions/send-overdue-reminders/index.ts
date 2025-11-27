@@ -97,6 +97,13 @@ serve(async (req) => {
         continue;
       }
 
+      // Skip if client has not opted in to automatic overdue emails
+      if (!client.send_overdue_email_auto) {
+        console.log(`Skipping invoice ${invoice.invoice_number}: client ${client.name} has not enabled automatic overdue emails`);
+        emailsSkipped++;
+        continue;
+      }
+
       const company = client.companies;
       if (!company) {
         console.log(`Skipping invoice ${invoice.invoice_number}: no company found`);
