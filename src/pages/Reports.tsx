@@ -333,6 +333,8 @@ const Reports = () => {
   const [reminderClientId, setReminderClientId] = useState<string>('all');
   const [reminderType, setReminderType] = useState<'all' | 'manual' | 'automatic'>('all');
   const [reminderInvoiceStatus, setReminderInvoiceStatus] = useState<'all' | 'draft' | 'sent' | 'paid' | 'overdue'>('all');
+  const [reminderStartOpen, setReminderStartOpen] = useState(false);
+  const [reminderEndOpen, setReminderEndOpen] = useState(false);
 
   const { logs: reminderLogs, loading: remindersLoading } = useReminderLogs(
     reminderStartDate,
@@ -5376,7 +5378,7 @@ const Reports = () => {
               <div className="grid gap-4 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>{language === "fr" ? "Date de début" : "Start Date"}</Label>
-                  <Popover>
+                  <Popover open={reminderStartOpen} onOpenChange={setReminderStartOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant={"outline"}
@@ -5393,15 +5395,19 @@ const Reports = () => {
                       <Calendar
                         mode="single"
                         selected={reminderStartDate}
-                        onSelect={setReminderStartDate}
+                        onSelect={(date) => {
+                          setReminderStartDate(date);
+                          setReminderStartOpen(false);
+                        }}
                         initialFocus
+                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label>{language === "fr" ? "Date de fin" : "End Date"}</Label>
-                  <Popover>
+                  <Popover open={reminderEndOpen} onOpenChange={setReminderEndOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant={"outline"}
@@ -5418,8 +5424,12 @@ const Reports = () => {
                       <Calendar
                         mode="single"
                         selected={reminderEndDate}
-                        onSelect={setReminderEndDate}
+                        onSelect={(date) => {
+                          setReminderEndDate(date);
+                          setReminderEndOpen(false);
+                        }}
                         initialFocus
+                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
