@@ -46,13 +46,13 @@ const Reports = () => {
   
   // Check if a specific report tab is available based on plan
   const isTabAvailable = (tab: string) => {
-    if (tab === 'overview' || tab === 'revenue') return true; // Always available
+    if (tab === 'overview' || tab === 'revenue' || tab === 'reminders') return true; // Always available
     if (planLimits?.all_reports) return true; // Pro plan - all reports available
     // Premium plan - only taxes additional access
     if (planLimits?.plan_type === 'premium') {
       return tab === 'taxes';
     }
-    return false; // Free plan - only overview and revenue
+    return false; // Free plan - only overview, revenue and reminders
   };
   
   // Refs pour capturer les graphiques
