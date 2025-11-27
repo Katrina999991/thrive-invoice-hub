@@ -4,9 +4,16 @@ import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
+type TimeEntryRange = {
+  id: string;
+  start_time: string;
+  end_time: string;
+};
+
 type TimeEntry = Tables<"time_entries"> & {
   clients?: { name: string; hourly_rate: number | null } | null;
   companies?: { name: string } | null;
+  time_entry_ranges?: TimeEntryRange[];
 };
 type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id">;
 type TimeEntryUpdate = TablesUpdate<"time_entries">;
@@ -26,7 +33,8 @@ export const useTimeEntries = () => {
         .select(`
           *,
           clients (name, hourly_rate),
-          companies (name)
+          companies (name),
+          time_entry_ranges (id, start_time, end_time)
         `)
         .eq("user_id", user.id)
         .order("date", { ascending: true });
@@ -41,7 +49,10 @@ export const useTimeEntries = () => {
     }
   };
 
-  const createTimeEntry = async (timeEntryData: TimeEntryInsert) => {
+  const createTimeEntry = async (
+    timeEntryData: TimeEntryInsert,
+    ranges?: { start_time: string; end_time: string }[]
+  ) => {
     if (!user) {
       toast.error("Vous devez être connecté");
       return null;
@@ -59,6 +70,25 @@ export const useTimeEntries = () => {
 
       if (error) throw error;
 
+      // Insérer les plages horaires si fournies
+      if (ranges && ranges.length > 0 && data) {
+        const rangeInserts = ranges
+          .filter(r => r.start_time && r.end_time)
+          .map(range => ({
+            time_entry_id: data.id,
+            start_time: range.start_time,
+            end_time: range.end_time,
+          }));
+
+        if (rangeInserts.length > 0) {
+          const { error: rangeError } = await supabase
+            .from("time_entry_ranges")
+            .insert(rangeInserts);
+
+          if (rangeError) throw rangeError;
+        }
+      }
+
       toast.success("Heures enregistrées avec succès");
       await fetchTimeEntries();
       return data;
@@ -69,7 +99,11 @@ export const useTimeEntries = () => {
     }
   };
 
-  const updateTimeEntry = async (id: string, updates: TimeEntryUpdate) => {
+  const updateTimeEntry = async (
+    id: string,
+    updates: TimeEntryUpdate,
+    ranges?: { id?: string; start_time: string; end_time: string }[]
+  ) => {
     try {
       const { error } = await supabase
         .from("time_entries")
@@ -77,6 +111,34 @@ export const useTimeEntries = () => {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Gérer les plages horaires si fournies
+      if (ranges) {
+        // Supprimer toutes les plages existantes
+        const { error: deleteError } = await supabase
+          .from("time_entry_ranges")
+          .delete()
+          .eq("time_entry_id", id);
+
+        if (deleteError) throw deleteError;
+
+        // Insérer les nouvelles plages
+        const rangeInserts = ranges
+          .filter(r => r.start_time && r.end_time)
+          .map(range => ({
+            time_entry_id: id,
+            start_time: range.start_time,
+            end_time: range.end_time,
+          }));
+
+        if (rangeInserts.length > 0) {
+          const { error: insertError } = await supabase
+            .from("time_entry_ranges")
+            .insert(rangeInserts);
+
+          if (insertError) throw insertError;
+        }
+      }
 
       toast.success("Heures modifiées avec succès");
       await fetchTimeEntries();

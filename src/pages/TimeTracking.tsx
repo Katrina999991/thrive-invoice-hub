@@ -180,26 +180,38 @@ export default function TimeTracking() {
     // Les heures sont déjà calculées dans le champ hours
     const hours = data.hours;
     
+    // Préparer les plages horaires si en mode time range
+    const ranges = useTimeRange 
+      ? timeRanges.filter(r => r.start_time && r.end_time)
+      : undefined;
+    
     if (editingEntry) {
-      await updateTimeEntry(editingEntry, {
-        client_id: data.client_id,
-        company_id: data.company_id || null,
-        description: data.description,
-        hours: parseFloat(hours || "0"),
-        hourly_rate: parseFloat(data.hourly_rate),
-        date: data.date,
-        notes: data.notes || null,
-      });
+      await updateTimeEntry(
+        editingEntry,
+        {
+          client_id: data.client_id,
+          company_id: data.company_id || null,
+          description: data.description,
+          hours: parseFloat(hours || "0"),
+          hourly_rate: parseFloat(data.hourly_rate),
+          date: data.date,
+          notes: data.notes || null,
+        },
+        ranges
+      );
     } else {
-      await createTimeEntry({
-        client_id: data.client_id,
-        company_id: data.company_id || null,
-        description: data.description,
-        hours: parseFloat(hours || "0"),
-        hourly_rate: parseFloat(data.hourly_rate),
-        date: data.date,
-        notes: data.notes || null,
-      });
+      await createTimeEntry(
+        {
+          client_id: data.client_id,
+          company_id: data.company_id || null,
+          description: data.description,
+          hours: parseFloat(hours || "0"),
+          hourly_rate: parseFloat(data.hourly_rate),
+          date: data.date,
+          notes: data.notes || null,
+        },
+        ranges
+      );
     }
     setIsDialogOpen(false);
     setEditingEntry(null);
@@ -221,7 +233,22 @@ export default function TimeTracking() {
 
   const handleEdit = (entry: typeof timeEntries[0]) => {
     setEditingEntry(entry.id);
-    setBaseHours(entry.hours); // Sauvegarder les heures existantes
+    
+    // Si l'entrée a des plages horaires, les charger
+    if (entry.time_entry_ranges && entry.time_entry_ranges.length > 0) {
+      setUseTimeRange(true);
+      setTimeRanges(entry.time_entry_ranges.map(r => ({
+        id: r.id,
+        start_time: r.start_time,
+        end_time: r.end_time
+      })));
+      setBaseHours(0);
+    } else {
+      // Sinon, utiliser les heures totales
+      setBaseHours(entry.hours);
+      setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
+    }
+    
     form.reset({
       client_id: entry.client_id || "",
       company_id: entry.company_id || "",

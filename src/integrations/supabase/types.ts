@@ -767,6 +767,41 @@ export type Database = {
           },
         ]
       }
+      time_entry_ranges: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          time_entry_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          start_time: string
+          time_entry_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          time_entry_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_ranges_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_subscriptions: {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"] | null
