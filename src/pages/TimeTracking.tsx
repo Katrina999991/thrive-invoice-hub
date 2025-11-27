@@ -85,6 +85,7 @@ export default function TimeTracking() {
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
     { id: crypto.randomUUID(), start_time: "", end_time: "" }
   ]);
+  const [baseHours, setBaseHours] = useState<number>(0);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -130,7 +131,9 @@ export default function TimeTracking() {
       totalMinutes += endInMinutes - startInMinutes;
     }
     
-    return (totalMinutes / 60).toFixed(2);
+    // Ajouter les heures de base (heures déjà enregistrées)
+    const totalHours = (totalMinutes / 60) + baseHours;
+    return totalHours.toFixed(2);
   };
 
   // Mettre à jour les heures calculées
@@ -201,6 +204,7 @@ export default function TimeTracking() {
     setEditingEntry(null);
     setUseCustomDescription(false);
     setUseTimeRange(false);
+    setBaseHours(0);
     setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
@@ -216,6 +220,7 @@ export default function TimeTracking() {
 
   const handleEdit = (entry: typeof timeEntries[0]) => {
     setEditingEntry(entry.id);
+    setBaseHours(entry.hours); // Sauvegarder les heures existantes
     form.reset({
       client_id: entry.client_id || "",
       company_id: entry.company_id || "",
@@ -234,6 +239,7 @@ export default function TimeTracking() {
     setEditingEntry(null);
     setUseCustomDescription(false);
     setUseTimeRange(false);
+    setBaseHours(0);
     setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
@@ -845,9 +851,14 @@ export default function TimeTracking() {
                   onCheckedChange={(checked) => {
                     setUseTimeRange(checked);
                     if (checked) {
-                      form.setValue("hours", "");
+                      // Si on a déjà des heures (mode édition), les garder comme base
+                      const currentHours = parseFloat(form.getValues("hours") || "0");
+                      if (currentHours > 0 && editingEntry) {
+                        setBaseHours(currentHours);
+                      }
                       setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
                     } else {
+                      setBaseHours(0);
                       form.setValue("start_time", "");
                       form.setValue("end_time", "");
                     }
@@ -947,9 +958,17 @@ export default function TimeTracking() {
                   ))}
 
                   <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="text-sm text-muted-foreground">
-                      {language === "fr" ? "Total des heures: " : "Total hours: "}
-                      <span className="font-medium text-foreground">{calculateTotalHours()}h</span>
+                    <div className="text-sm">
+                      {baseHours > 0 && (
+                        <div className="text-muted-foreground mb-1">
+                          {language === "fr" ? "Heures existantes: " : "Existing hours: "}
+                          <span className="font-medium text-foreground">{baseHours.toFixed(2)}h</span>
+                        </div>
+                      )}
+                      <div className={baseHours > 0 ? "text-foreground font-semibold" : "text-muted-foreground"}>
+                        {language === "fr" ? "Total des heures: " : "Total hours: "}
+                        <span className="font-medium text-foreground">{calculateTotalHours()}h</span>
+                      </div>
                     </div>
                     
                     <FormField
