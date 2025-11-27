@@ -20,7 +20,13 @@ export const useProducts = () => {
     try {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          companies:company_id (
+            id,
+            name
+          )
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 

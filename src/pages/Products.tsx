@@ -17,6 +17,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCompanies } from "@/hooks/useCompanies";
 
 
 
@@ -27,6 +28,7 @@ const Products = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const { categories, loading: categoriesLoading } = useCategories();
   const { createExpense } = useExpenses();
+  const { companies, loading: companiesLoading } = useCompanies();
 
   // Helper to get translated category name
   const getCategoryName = (category: any) => {
@@ -53,7 +55,8 @@ const Products = () => {
     cost: "",
     category: "",
     quantity: "",
-    unit: "piece"
+    unit: "piece",
+    company_id: ""
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, type: 'percentage' | 'amount', value: number}>>([]);
@@ -113,7 +116,8 @@ const Products = () => {
       category: newItem.category,
       quantity: newItem.type === "service" ? null : (parseInt(newItem.quantity) || 0),
       unit: newItem.unit,
-      taxes: taxes.length > 0 ? taxes : []
+      taxes: taxes.length > 0 ? taxes : [],
+      company_id: newItem.company_id || null
     };
     
     if (editingProduct) {
@@ -149,7 +153,8 @@ const Products = () => {
       cost: "",
       category: "",
       quantity: "",
-      unit: "piece"
+      unit: "piece",
+      company_id: ""
     });
     setTaxes([]);
     setEditingProduct(null);
@@ -166,7 +171,8 @@ const Products = () => {
       cost: product.cost?.toString() || "",
       category: product.category || "",
       quantity: product.quantity?.toString() || "",
-      unit: product.unit || "piece"
+      unit: product.unit || "piece",
+      company_id: product.company_id || ""
     });
     // Handle taxes - parse JSON if it exists and migrate old format
     if (product.taxes && Array.isArray(product.taxes)) {
@@ -225,9 +231,19 @@ const Products = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{t("products.category")}</p>
-            <p className="font-medium">{getTranslatedCategoryName(item.category) || "—"}</p>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">{t("products.category")}</p>
+              <p className="font-medium">{getTranslatedCategoryName(item.category) || "—"}</p>
+            </div>
+            {item.companies && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {language === "fr" ? "Compagnie" : "Company"}
+                </p>
+                <p className="font-medium">{item.companies.name}</p>
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <div>
@@ -416,6 +432,34 @@ const Products = () => {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="company">
+                  {language === "fr" ? "Compagnie" : "Company"}
+                </Label>
+                <Select value={newItem.company_id} onValueChange={(value) => setNewItem({...newItem, company_id: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === "fr" ? "Sélectionner une compagnie (optionnel)" : "Select a company (optional)"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        {language === "fr" ? "Aucune compagnie. " : "No companies. "}
+                        <Link to="/companies" className="text-primary hover:underline inline-flex items-center gap-1">
+                          {language === "fr" ? "Créer une compagnie" : "Create a company"}
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    ) : (
+                      companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="category">
                   {t("products.category")} <span className="text-destructive">*</span>
