@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -58,6 +58,12 @@ const timeEntrySchema = z.object({
 
 type TimeEntryFormData = z.infer<typeof timeEntrySchema>;
 
+type TimeRange = {
+  id: string;
+  start_time: string;
+  end_time: string;
+};
+
 export default function TimeTracking() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -76,6 +82,9 @@ export default function TimeTracking() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [useTimeRange, setUseTimeRange] = useState(false);
+  const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
+    { id: crypto.randomUUID(), start_time: "", end_time: "" }
+  ]);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -100,25 +109,52 @@ export default function TimeTracking() {
     },
   });
 
-  // Calculer les heures automatiquement quand start_time et end_time changent
-  const calculateHours = (startTime: string, endTime: string) => {
-    if (!startTime || !endTime) return;
+  // Calculer les heures à partir de plusieurs plages horaires
+  const calculateTotalHours = () => {
+    let totalMinutes = 0;
     
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
-    
-    const startInMinutes = startHour * 60 + startMinute;
-    let endInMinutes = endHour * 60 + endMinute;
-    
-    // Si l'heure de fin est avant l'heure de début, on suppose que c'est le lendemain
-    if (endInMinutes < startInMinutes) {
-      endInMinutes += 24 * 60;
+    for (const range of timeRanges) {
+      if (!range.start_time || !range.end_time) continue;
+      
+      const [startHour, startMinute] = range.start_time.split(':').map(Number);
+      const [endHour, endMinute] = range.end_time.split(':').map(Number);
+      
+      const startInMinutes = startHour * 60 + startMinute;
+      let endInMinutes = endHour * 60 + endMinute;
+      
+      // Si l'heure de fin est avant l'heure de début, on suppose que c'est le lendemain
+      if (endInMinutes < startInMinutes) {
+        endInMinutes += 24 * 60;
+      }
+      
+      totalMinutes += endInMinutes - startInMinutes;
     }
     
-    const diffInMinutes = endInMinutes - startInMinutes;
-    const hours = (diffInMinutes / 60).toFixed(2);
-    
-    form.setValue("hours", hours);
+    return (totalMinutes / 60).toFixed(2);
+  };
+
+  // Mettre à jour les heures calculées
+  useEffect(() => {
+    if (useTimeRange) {
+      const total = calculateTotalHours();
+      form.setValue("hours", total);
+    }
+  }, [timeRanges, useTimeRange]);
+
+  const addTimeRange = () => {
+    setTimeRanges([...timeRanges, { id: crypto.randomUUID(), start_time: "", end_time: "" }]);
+  };
+
+  const removeTimeRange = (id: string) => {
+    if (timeRanges.length > 1) {
+      setTimeRanges(timeRanges.filter(range => range.id !== id));
+    }
+  };
+
+  const updateTimeRange = (id: string, field: 'start_time' | 'end_time', value: string) => {
+    setTimeRanges(timeRanges.map(range => 
+      range.id === id ? { ...range, [field]: value } : range
+    ));
   };
 
   // Fonction pour ouvrir le dialog et pré-remplir avec le premier service
@@ -137,22 +173,8 @@ export default function TimeTracking() {
   };
 
   const onSubmit = async (data: TimeEntryFormData) => {
-    // Calculer les heures si on utilise le mode time range
-    let hours = data.hours;
-    if (useTimeRange && data.start_time && data.end_time) {
-      const [startHour, startMinute] = data.start_time.split(':').map(Number);
-      const [endHour, endMinute] = data.end_time.split(':').map(Number);
-      
-      const startInMinutes = startHour * 60 + startMinute;
-      let endInMinutes = endHour * 60 + endMinute;
-      
-      if (endInMinutes < startInMinutes) {
-        endInMinutes += 24 * 60;
-      }
-      
-      const diffInMinutes = endInMinutes - startInMinutes;
-      hours = (diffInMinutes / 60).toFixed(2);
-    }
+    // Les heures sont déjà calculées dans le champ hours
+    const hours = data.hours;
     
     if (editingEntry) {
       await updateTimeEntry(editingEntry, {
@@ -179,6 +201,7 @@ export default function TimeTracking() {
     setEditingEntry(null);
     setUseCustomDescription(false);
     setUseTimeRange(false);
+    setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
@@ -211,6 +234,7 @@ export default function TimeTracking() {
     setEditingEntry(null);
     setUseCustomDescription(false);
     setUseTimeRange(false);
+    setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
@@ -822,6 +846,7 @@ export default function TimeTracking() {
                     setUseTimeRange(checked);
                     if (checked) {
                       form.setValue("hours", "");
+                      setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
                     } else {
                       form.setValue("start_time", "");
                       form.setValue("end_time", "");
@@ -866,75 +891,80 @@ export default function TimeTracking() {
                   />
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="start_time"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{language === "fr" ? "Heure de début" : "Start Time"}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="time" 
-                            {...field} 
-                            onChange={(e) => {
-                              field.onChange(e);
-                              const endTime = form.getValues("end_time");
-                              if (endTime) {
-                                calculateHours(e.target.value, endTime);
-                              }
-                            }}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <FormLabel>{language === "fr" ? "Plages horaires" : "Time Ranges"}</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addTimeRange}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      {language === "fr" ? "Ajouter" : "Add"}
+                    </Button>
+                  </div>
+                  
+                  {timeRanges.map((range, index) => (
+                    <div key={range.id} className="flex gap-2 items-end">
+                      <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div>
+                          {index === 0 && (
+                            <Label className="text-sm mb-1">
+                              {language === "fr" ? "Début" : "Start"}
+                            </Label>
+                          )}
+                          <Input
+                            type="time"
+                            value={range.start_time}
+                            onChange={(e) => updateTimeRange(range.id, 'start_time', e.target.value)}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="end_time"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{language === "fr" ? "Heure de fin" : "End Time"}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="time" 
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              const startTime = form.getValues("start_time");
-                              if (startTime) {
-                                calculateHours(startTime, e.target.value);
-                              }
-                            }}
+                        </div>
+                        <div>
+                          {index === 0 && (
+                            <Label className="text-sm mb-1">
+                              {language === "fr" ? "Fin" : "End"}
+                            </Label>
+                          )}
+                          <Input
+                            type="time"
+                            value={range.end_time}
+                            onChange={(e) => updateTimeRange(range.id, 'end_time', e.target.value)}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        </div>
+                      </div>
+                      {timeRanges.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeTimeRange(range.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
 
-                  <FormField
-                    control={form.control}
-                    name="hourly_rate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{language === "fr" ? "Taux horaire ($)" : "Hourly Rate ($)"}</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" {...field} placeholder="75" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              {useTimeRange && form.watch("start_time") && form.watch("end_time") && (
-                <div className="text-sm text-muted-foreground">
-                  {language === "fr" ? "Heures calculées: " : "Calculated hours: "}
-                  <span className="font-medium">{form.watch("hours") || "0"}h</span>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      {language === "fr" ? "Total des heures: " : "Total hours: "}
+                      <span className="font-medium text-foreground">{calculateTotalHours()}h</span>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="hourly_rate"
+                      render={({ field }) => (
+                        <FormItem className="flex-none w-32">
+                          <FormLabel className="text-xs">{language === "fr" ? "Taux ($)" : "Rate ($)"}</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" {...field} placeholder="75" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
