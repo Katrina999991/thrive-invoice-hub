@@ -30,16 +30,30 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const timeEntrySchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
   company_id: z.string().optional(),
   service_id: z.string().optional(),
   description: z.string().min(1, "La description est requise"),
-  hours: z.string().min(1, "Les heures sont requises"),
+  hours: z.string().optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
   hourly_rate: z.string().min(1, "Le taux horaire est requis"),
   date: z.string().min(1, "La date est requise"),
   notes: z.string().optional(),
+}).refine((data) => {
+  // Si on a start_time et end_time, c'est valide
+  if (data.start_time && data.end_time) {
+    return true;
+  }
+  // Sinon, on doit avoir hours
+  return data.hours && data.hours.length > 0;
+}, {
+  message: "Veuillez renseigner soit les heures, soit l'heure de début et de fin",
+  path: ["hours"],
 });
 
 type TimeEntryFormData = z.infer<typeof timeEntrySchema>;
@@ -61,6 +75,7 @@ export default function TimeTracking() {
   const [filterClient, setFilterClient] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [useTimeRange, setUseTimeRange] = useState(false);
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -76,12 +91,35 @@ export default function TimeTracking() {
     defaultValues: {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
+      start_time: "",
+      end_time: "",
       hourly_rate: "",
       description: "",
       service_id: "",
       notes: "",
     },
   });
+
+  // Calculer les heures automatiquement quand start_time et end_time changent
+  const calculateHours = (startTime: string, endTime: string) => {
+    if (!startTime || !endTime) return;
+    
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const startInMinutes = startHour * 60 + startMinute;
+    let endInMinutes = endHour * 60 + endMinute;
+    
+    // Si l'heure de fin est avant l'heure de début, on suppose que c'est le lendemain
+    if (endInMinutes < startInMinutes) {
+      endInMinutes += 24 * 60;
+    }
+    
+    const diffInMinutes = endInMinutes - startInMinutes;
+    const hours = (diffInMinutes / 60).toFixed(2);
+    
+    form.setValue("hours", hours);
+  };
 
   // Fonction pour ouvrir le dialog et pré-remplir avec le premier service
   const handleOpenDialog = () => {
@@ -99,12 +137,29 @@ export default function TimeTracking() {
   };
 
   const onSubmit = async (data: TimeEntryFormData) => {
+    // Calculer les heures si on utilise le mode time range
+    let hours = data.hours;
+    if (useTimeRange && data.start_time && data.end_time) {
+      const [startHour, startMinute] = data.start_time.split(':').map(Number);
+      const [endHour, endMinute] = data.end_time.split(':').map(Number);
+      
+      const startInMinutes = startHour * 60 + startMinute;
+      let endInMinutes = endHour * 60 + endMinute;
+      
+      if (endInMinutes < startInMinutes) {
+        endInMinutes += 24 * 60;
+      }
+      
+      const diffInMinutes = endInMinutes - startInMinutes;
+      hours = (diffInMinutes / 60).toFixed(2);
+    }
+    
     if (editingEntry) {
       await updateTimeEntry(editingEntry, {
         client_id: data.client_id,
         company_id: data.company_id || null,
         description: data.description,
-        hours: parseFloat(data.hours),
+        hours: parseFloat(hours || "0"),
         hourly_rate: parseFloat(data.hourly_rate),
         date: data.date,
         notes: data.notes || null,
@@ -114,7 +169,7 @@ export default function TimeTracking() {
         client_id: data.client_id,
         company_id: data.company_id || null,
         description: data.description,
-        hours: parseFloat(data.hours),
+        hours: parseFloat(hours || "0"),
         hourly_rate: parseFloat(data.hourly_rate),
         date: data.date,
         notes: data.notes || null,
@@ -123,9 +178,12 @@ export default function TimeTracking() {
     setIsDialogOpen(false);
     setEditingEntry(null);
     setUseCustomDescription(false);
+    setUseTimeRange(false);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
+      start_time: "",
+      end_time: "",
       hourly_rate: "",
       description: "",
       service_id: "",
@@ -152,9 +210,12 @@ export default function TimeTracking() {
     setIsDialogOpen(false);
     setEditingEntry(null);
     setUseCustomDescription(false);
+    setUseTimeRange(false);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
       hours: "",
+      start_time: "",
+      end_time: "",
       hourly_rate: "",
       description: "",
       service_id: "",
@@ -739,49 +800,143 @@ export default function TimeTracking() {
                 />
               )}
 
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{language === "fr" ? "Date" : "Date"}</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === "fr" ? "Date" : "Date"}</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="hours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{language === "fr" ? "Heures" : "Hours"}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.25" {...field} placeholder="8" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div className="flex items-center space-x-2 py-2">
+                <Switch
+                  id="time-range-mode"
+                  checked={useTimeRange}
+                  onCheckedChange={(checked) => {
+                    setUseTimeRange(checked);
+                    if (checked) {
+                      form.setValue("hours", "");
+                    } else {
+                      form.setValue("start_time", "");
+                      form.setValue("end_time", "");
+                    }
+                  }}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="hourly_rate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{language === "fr" ? "Taux horaire ($)" : "Hourly Rate ($)"}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} placeholder="75" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <Label htmlFor="time-range-mode" className="cursor-pointer">
+                  {language === "fr" 
+                    ? "Calculer les heures automatiquement (heure de début/fin)" 
+                    : "Calculate hours automatically (start/end time)"}
+                </Label>
               </div>
+
+              {!useTimeRange ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="hours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === "fr" ? "Heures" : "Hours"}</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.25" {...field} placeholder="8" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="hourly_rate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === "fr" ? "Taux horaire ($)" : "Hourly Rate ($)"}</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} placeholder="75" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="start_time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === "fr" ? "Heure de début" : "Start Time"}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="time" 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(e);
+                              const endTime = form.getValues("end_time");
+                              if (endTime) {
+                                calculateHours(e.target.value, endTime);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="end_time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === "fr" ? "Heure de fin" : "End Time"}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="time" 
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              const startTime = form.getValues("start_time");
+                              if (startTime) {
+                                calculateHours(startTime, e.target.value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="hourly_rate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === "fr" ? "Taux horaire ($)" : "Hourly Rate ($)"}</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} placeholder="75" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {useTimeRange && form.watch("start_time") && form.watch("end_time") && (
+                <div className="text-sm text-muted-foreground">
+                  {language === "fr" ? "Heures calculées: " : "Calculated hours: "}
+                  <span className="font-medium">{form.watch("hours") || "0"}h</span>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
