@@ -527,6 +527,7 @@ export type Database = {
       products: {
         Row: {
           category: string | null
+          company_id: string | null
           cost: number | null
           created_at: string
           description: string | null
@@ -543,6 +544,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          company_id?: string | null
           cost?: number | null
           created_at?: string
           description?: string | null
@@ -559,6 +561,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          company_id?: string | null
           cost?: number | null
           created_at?: string
           description?: string | null
@@ -573,7 +576,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
