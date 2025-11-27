@@ -134,10 +134,6 @@ const Reports = () => {
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
   const [productSelectedCompanyId, setProductSelectedCompanyId] = useState<string>('');
   
-  // États pour les filtres de la section Inventory
-  const [inventoryFilterType, setInventoryFilterType] = useState<'all' | 'company'>('all');
-  const [inventorySelectedCompanyId, setInventorySelectedCompanyId] = useState<string>('');
-  
   // États pour les filtres de la section Expenses
   const [expenseFilterType, setExpenseFilterType] = useState<'all' | 'company' | 'category'>('all');
   const [expenseSelectedCompanyId, setExpenseSelectedCompanyId] = useState<string>('');
@@ -169,14 +165,14 @@ const Reports = () => {
     }) || [];
   }, [allProducts]);
 
-  // Filter products for inventory report by company
+  // Filter products for inventory report by company (using the same filters as product profit)
   const filteredInventoryProducts = useMemo(() => {
-    if (inventoryFilterType === 'all' || !inventorySelectedCompanyId) {
+    if (productFilterType === 'all' || !productSelectedCompanyId) {
       return products;
     }
     
-    return products.filter(product => product.company_id === inventorySelectedCompanyId);
-  }, [products, inventoryFilterType, inventorySelectedCompanyId]);
+    return products.filter(product => product.company_id === productSelectedCompanyId);
+  }, [products, productFilterType, productSelectedCompanyId]);
 
   // Filter profit data to show only physical products and optionally by company
   const filteredProfitData = useMemo(() => {
@@ -770,8 +766,8 @@ const Reports = () => {
   const exportProductsToPDF = async () => {
     console.log('exportProductsToPDF called', { 
       filteredInventoryProducts: filteredInventoryProducts?.length,
-      inventoryFilterType, 
-      inventorySelectedCompanyId 
+      productFilterType, 
+      productSelectedCompanyId 
     });
     
     const productsToExport = filteredInventoryProducts || [];
@@ -802,8 +798,8 @@ const Reports = () => {
     doc.text(filterText, pageWidth / 2, 30, { align: 'center' });
     
     // Company filter
-    if (inventoryFilterType === 'company' && inventorySelectedCompanyId) {
-      const company = companies?.find(c => c.id === inventorySelectedCompanyId);
+    if (productFilterType === 'company' && productSelectedCompanyId) {
+      const company = companies?.find(c => c.id === productSelectedCompanyId);
       if (company) {
         doc.text(`${t("reports.pdf.company")}: ${company.name}`, pageWidth / 2, 38, { align: 'center' });
       }
@@ -889,8 +885,8 @@ const Reports = () => {
   const exportProductsToExcel = () => {
     console.log('exportProductsToExcel called', { 
       filteredInventoryProducts: filteredInventoryProducts?.length,
-      inventoryFilterType, 
-      inventorySelectedCompanyId 
+      productFilterType, 
+      productSelectedCompanyId 
     });
     
     const productsToExport = filteredInventoryProducts || [];
@@ -3702,54 +3698,6 @@ const Reports = () => {
               </Button>
             </div>
           </div>
-
-          {/* Inventory Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("reports.products.companyFilter")}</CardTitle>
-              <CardDescription>{t("reports.products.companyFilterDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>{t("reports.products.filterType")}</Label>
-                  <Select value={inventoryFilterType} onValueChange={(value: 'all' | 'company') => {
-                    setInventoryFilterType(value);
-                    setInventorySelectedCompanyId('');
-                  }}>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder={t("reports.products.selectFilterType")} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border border-border shadow-lg z-50">
-                      <SelectItem value="all">{t("reports.products.allCompanies")}</SelectItem>
-                      <SelectItem value="company">{t("reports.products.byCompany")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {inventoryFilterType === 'company' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="inventory-company-select">{t("reports.products.company")}</Label>
-                    <Select 
-                      value={inventorySelectedCompanyId} 
-                      onValueChange={setInventorySelectedCompanyId}
-                    >
-                      <SelectTrigger id="inventory-company-select" className="bg-background">
-                        <SelectValue placeholder={t("reports.products.selectCompany")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border border-border shadow-lg z-50">
-                        {companies?.map((company) => (
-                          <SelectItem key={company.id} value={company.id}>
-                            {company.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
