@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Package, Briefcase, Receipt, Home } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Briefcase, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,8 +47,7 @@ export default function Categories() {
     color: "#3b82f6",
     for_products: true,
     for_services: true,
-    for_expenses: true,
-    for_home_office: false
+    for_expenses: true
   });
 
   // Helper to get translated name
@@ -78,8 +77,7 @@ export default function Categories() {
         color: category.color || "#3b82f6",
         for_products: category.for_products ?? true,
         for_services: category.for_services ?? true,
-        for_expenses: category.for_expenses ?? true,
-        for_home_office: category.for_home_office ?? false
+        for_expenses: category.for_expenses ?? true
       });
     } else {
       setEditingCategory(null);
@@ -91,8 +89,7 @@ export default function Categories() {
         color: "#3b82f6",
         for_products: true,
         for_services: true,
-        for_expenses: true,
-        for_home_office: false
+        for_expenses: true
       });
     }
     setIsDialogOpen(true);
@@ -101,17 +98,16 @@ export default function Categories() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingCategory(null);
-      setFormData({
-        name_en: "",
-        name_fr: "",
-        description_en: "",
-        description_fr: "",
-        color: "#3b82f6",
-        for_products: true,
-        for_services: true,
-        for_expenses: true,
-        for_home_office: false
-      });
+    setFormData({
+      name_en: "",
+      name_fr: "",
+      description_en: "",
+      description_fr: "",
+      color: "#3b82f6",
+      for_products: true,
+      for_services: true,
+      for_expenses: true
+    });
   };
 
   const handleSave = async () => {
@@ -240,12 +236,6 @@ export default function Categories() {
                   <div className="flex items-center gap-1 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded">
                     <Receipt className="h-3 w-3" />
                     {language === "fr" ? "Dépenses" : "Expenses"}
-                  </div>
-                )}
-                {category.for_home_office && (
-                  <div className="flex items-center gap-1 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-1 rounded">
-                    <Home className="h-3 w-3" />
-                    {language === "fr" ? "Bureau à domicile" : "Home Office"}
                   </div>
                 )}
               </div>
@@ -410,22 +400,6 @@ export default function Categories() {
                   >
                     <Receipt className="h-4 w-4" />
                     {language === "fr" ? "Dépenses" : "Expenses"}
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="for_home_office"
-                    checked={formData.for_home_office}
-                    onCheckedChange={(checked) => 
-                      setFormData({ ...formData, for_home_office: checked === true })
-                    }
-                  />
-                  <label
-                    htmlFor="for_home_office"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-                  >
-                    <Home className="h-4 w-4" />
-                    {language === "fr" ? "Bureau à domicile" : "Home Office"}
                   </label>
                 </div>
               </div>
