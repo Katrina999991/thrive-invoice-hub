@@ -1513,14 +1513,6 @@ Cordialement,
 
               {selectedCompanyId && (
                 <>
-                  <div className="mb-4 p-3 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      {language === "fr" 
-                        ? "Les modèles d'email seront automatiquement traduits dans la langue du client lors de l'envoi (Français ou Anglais)."
-                        : "Email templates will be automatically translated to the client's language when sending (French or English)."}
-                    </p>
-                  </div>
-
                   <Accordion type="multiple" className="w-full">
                     <AccordionItem value="invoice-email">
                       <AccordionTrigger className="hover:no-underline">
