@@ -22,6 +22,7 @@ export type Database = {
           description_en: string | null
           description_fr: string | null
           for_expenses: boolean | null
+          for_home_office: boolean | null
           for_products: boolean | null
           for_services: boolean | null
           id: string
@@ -38,6 +39,7 @@ export type Database = {
           description_en?: string | null
           description_fr?: string | null
           for_expenses?: boolean | null
+          for_home_office?: boolean | null
           for_products?: boolean | null
           for_services?: boolean | null
           id?: string
@@ -54,6 +56,7 @@ export type Database = {
           description_en?: string | null
           description_fr?: string | null
           for_expenses?: boolean | null
+          for_home_office?: boolean | null
           for_products?: boolean | null
           for_services?: boolean | null
           id?: string
