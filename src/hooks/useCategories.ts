@@ -118,6 +118,11 @@ export const useCategories = () => {
         color: "#84cc16", for_products: false, for_services: false, for_expenses: true 
       },
       { 
+        name: "Home Office", name_en: "Home Office", name_fr: "Bureau à domicile",
+        description: "Home office expenses for self-employed", description_en: "Home office expenses for self-employed", description_fr: "Dépenses de bureau à domicile pour travailleurs autonomes",
+        color: "#f97316", for_products: false, for_services: false, for_expenses: true, for_home_office: true 
+      },
+      { 
         name: "Other", name_en: "Other", name_fr: "Autre",
         description: "Other miscellaneous", description_en: "Other miscellaneous", description_fr: "Divers",
         color: "#a855f7", for_products: true, for_services: true, for_expenses: true 
