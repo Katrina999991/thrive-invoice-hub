@@ -39,7 +39,43 @@ export const useCategories = () => {
         if (newError) throw newError;
         setCategories(newData || []);
       } else {
-        setCategories(data || []);
+        // Check if "Bureau à domicile" / "Home Office" category exists
+        const hasHomeOffice = data.some(cat => 
+          (cat.name_en === "Home Office" || cat.name_fr === "Bureau à domicile") &&
+          cat.for_home_office === true
+        );
+        
+        // If not, create it
+        if (!hasHomeOffice) {
+          await supabase
+            .from("categories")
+            .insert({
+              user_id: user.id,
+              name: "Home Office",
+              name_en: "Home Office",
+              name_fr: "Bureau à domicile",
+              description: "Home office expenses for self-employed",
+              description_en: "Home office expenses for self-employed",
+              description_fr: "Dépenses de bureau à domicile pour travailleurs autonomes",
+              color: "#f97316",
+              for_products: false,
+              for_services: false,
+              for_expenses: true,
+              for_home_office: true
+            });
+          
+          // Fetch again after adding the category
+          const { data: updatedData, error: updateError } = await supabase
+            .from("categories")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("name", { ascending: true });
+          
+          if (updateError) throw updateError;
+          setCategories(updatedData || []);
+        } else {
+          setCategories(data || []);
+        }
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
