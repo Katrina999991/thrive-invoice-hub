@@ -33,6 +33,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -1515,267 +1521,289 @@ Cordialement,
                     </p>
                   </div>
 
-                  <div className="space-y-6 pt-4 border-t">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{language === "fr" ? "Email de nouvelle facture" : "New Invoice Email"}</h4>
-                      {(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Lock className="h-3 w-3" />
-                          Pro
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_email_subject_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Subject (English)
-                        </Label>
-                        <Input
-                          id="invoice_email_subject_en"
-                          value={emailTemplates.invoice_email_subject_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_en: e.target.value})}
-                          placeholder="Invoice {invoice_number} from {company_name}"
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_email_subject_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Sujet (Français)
-                        </Label>
-                        <Input
-                          id="invoice_email_subject_fr"
-                          value={emailTemplates.invoice_email_subject_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_fr: e.target.value})}
-                          placeholder="Facture {invoice_number} de {company_name}"
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                    </div>
+                  <Accordion type="multiple" className="w-full">
+                    <AccordionItem value="invoice-email">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center justify-between w-full pr-2">
+                          <h4 className="font-medium">{language === "fr" ? "Email de nouvelle facture" : "New Invoice Email"}</h4>
+                          {(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') && (
+                            <Badge variant="secondary" className="flex items-center gap-1 ml-2">
+                              <Lock className="h-3 w-3" />
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4 pt-4">
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}
+                        </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_email_subject_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Subject (English)
+                            </Label>
+                            <Input
+                              id="invoice_email_subject_en"
+                              value={emailTemplates.invoice_email_subject_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_en: e.target.value})}
+                              placeholder="Invoice {invoice_number} from {company_name}"
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_email_subject_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Sujet (Français)
+                            </Label>
+                            <Input
+                              id="invoice_email_subject_fr"
+                              value={emailTemplates.invoice_email_subject_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_fr: e.target.value})}
+                              placeholder="Facture {invoice_number} de {company_name}"
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_email_message_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Message (English)
-                        </Label>
-                        <Textarea
-                          id="invoice_email_message_en"
-                          rows={6}
-                          value={emailTemplates.invoice_email_message_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_en: e.target.value})}
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_email_message_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Message (Français)
-                        </Label>
-                        <Textarea
-                          id="invoice_email_message_fr"
-                          rows={6}
-                          value={emailTemplates.invoice_email_message_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_fr: e.target.value})}
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_email_message_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Message (English)
+                            </Label>
+                            <Textarea
+                              id="invoice_email_message_en"
+                              rows={6}
+                              value={emailTemplates.invoice_email_message_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_en: e.target.value})}
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_email_message_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Message (Français)
+                            </Label>
+                            <Textarea
+                              id="invoice_email_message_fr"
+                              rows={6}
+                              value={emailTemplates.invoice_email_message_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_fr: e.target.value})}
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                  <div className="space-y-6 pt-4 border-t">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{language === "fr" ? "Email de rappel de paiement" : "Overdue Payment Reminder"}</h4>
-                      {(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Lock className="h-3 w-3" />
-                          Pro
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="overdue_email_subject_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Subject (English)
-                        </Label>
-                        <Input
-                          id="overdue_email_subject_en"
-                          value={emailTemplates.overdue_email_subject_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_en: e.target.value})}
-                          placeholder="Payment Overdue - Invoice {invoice_number}"
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="overdue_email_subject_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Sujet (Français)
-                        </Label>
-                        <Input
-                          id="overdue_email_subject_fr"
-                          value={emailTemplates.overdue_email_subject_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_fr: e.target.value})}
-                          placeholder="Paiement en retard - Facture {invoice_number}"
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                    </div>
+                    <AccordionItem value="overdue-email">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center justify-between w-full pr-2">
+                          <h4 className="font-medium">{language === "fr" ? "Email de rappel de paiement" : "Overdue Payment Reminder"}</h4>
+                          {(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') && (
+                            <Badge variant="secondary" className="flex items-center gap-1 ml-2">
+                              <Lock className="h-3 w-3" />
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4 pt-4">
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{issue_date}"}, {"{due_date}"}, {"{days_overdue}"}
+                        </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="overdue_email_subject_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Subject (English)
+                            </Label>
+                            <Input
+                              id="overdue_email_subject_en"
+                              value={emailTemplates.overdue_email_subject_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_en: e.target.value})}
+                              placeholder="Payment Overdue - Invoice {invoice_number}"
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="overdue_email_subject_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Sujet (Français)
+                            </Label>
+                            <Input
+                              id="overdue_email_subject_fr"
+                              value={emailTemplates.overdue_email_subject_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_fr: e.target.value})}
+                              placeholder="Paiement en retard - Facture {invoice_number}"
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="overdue_email_message_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Message (English)
-                        </Label>
-                        <Textarea
-                          id="overdue_email_message_en"
-                          rows={6}
-                          value={emailTemplates.overdue_email_message_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_en: e.target.value})}
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="overdue_email_message_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Message (Français)
-                        </Label>
-                        <Textarea
-                          id="overdue_email_message_fr"
-                          rows={6}
-                          value={emailTemplates.overdue_email_message_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_fr: e.target.value})}
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="overdue_email_message_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Message (English)
+                            </Label>
+                            <Textarea
+                              id="overdue_email_message_en"
+                              rows={6}
+                              value={emailTemplates.overdue_email_message_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_en: e.target.value})}
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="overdue_email_message_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Message (Français)
+                            </Label>
+                            <Textarea
+                              id="overdue_email_message_fr"
+                              rows={6}
+                              value={emailTemplates.overdue_email_message_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_fr: e.target.value})}
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                  <div className="space-y-6 pt-4 border-t">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{language === "fr" ? "Email de confirmation de paiement" : "Payment Confirmation Email"}</h4>
-                      {(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Lock className="h-3 w-3" />
-                          Pro
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="payment_confirmation_email_subject_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Subject (English)
-                        </Label>
-                        <Input
-                          id="payment_confirmation_email_subject_en"
-                          value={emailTemplates.payment_confirmation_email_subject_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_en: e.target.value})}
-                          placeholder="Payment Confirmation - Invoice {invoice_number}"
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="payment_confirmation_email_subject_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Sujet (Français)
-                        </Label>
-                        <Input
-                          id="payment_confirmation_email_subject_fr"
-                          value={emailTemplates.payment_confirmation_email_subject_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_fr: e.target.value})}
-                          placeholder="Confirmation de paiement - Facture {invoice_number}"
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                    </div>
+                    <AccordionItem value="payment-confirmation">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center justify-between w-full pr-2">
+                          <h4 className="font-medium">{language === "fr" ? "Email de confirmation de paiement" : "Payment Confirmation Email"}</h4>
+                          {(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') && (
+                            <Badge variant="secondary" className="flex items-center gap-1 ml-2">
+                              <Lock className="h-3 w-3" />
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4 pt-4">
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{payment_date}"}
+                        </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_confirmation_email_subject_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Subject (English)
+                            </Label>
+                            <Input
+                              id="payment_confirmation_email_subject_en"
+                              value={emailTemplates.payment_confirmation_email_subject_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_en: e.target.value})}
+                              placeholder="Payment Confirmation - Invoice {invoice_number}"
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_confirmation_email_subject_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Sujet (Français)
+                            </Label>
+                            <Input
+                              id="payment_confirmation_email_subject_fr"
+                              value={emailTemplates.payment_confirmation_email_subject_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_fr: e.target.value})}
+                              placeholder="Confirmation de paiement - Facture {invoice_number}"
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="payment_confirmation_email_message_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Message (English)
-                        </Label>
-                        <Textarea
-                          id="payment_confirmation_email_message_en"
-                          rows={6}
-                          value={emailTemplates.payment_confirmation_email_message_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_en: e.target.value})}
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="payment_confirmation_email_message_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
-                          Message (Français)
-                        </Label>
-                        <Textarea
-                          id="payment_confirmation_email_message_fr"
-                          rows={6}
-                          value={emailTemplates.payment_confirmation_email_message_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_fr: e.target.value})}
-                          disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_confirmation_email_message_en" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Message (English)
+                            </Label>
+                            <Textarea
+                              id="payment_confirmation_email_message_en"
+                              rows={6}
+                              value={emailTemplates.payment_confirmation_email_message_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_en: e.target.value})}
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_confirmation_email_message_fr" className={(planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium') ? "opacity-50" : ""}>
+                              Message (Français)
+                            </Label>
+                            <Textarea
+                              id="payment_confirmation_email_message_fr"
+                              rows={6}
+                              value={emailTemplates.payment_confirmation_email_message_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_fr: e.target.value})}
+                              disabled={planLimits?.plan_type === 'free' || planLimits?.plan_type === 'premium'}
+                            />
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                  <div className="space-y-6 pt-4 border-t">
-                    <h4 className="font-medium">{language === "fr" ? "Message dans le corps de la facture" : "Invoice Body Message"}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {language === "fr" ? "Ce message apparaîtra après le tableau des produits/services dans la facture PDF" : "This message will appear after the products/services table in the PDF invoice"}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_body_message_en">Message (English)</Label>
-                        <Textarea
-                          id="invoice_body_message_en"
-                          rows={3}
-                          value={emailTemplates.invoice_body_message_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_body_message_en: e.target.value})}
-                          placeholder="Additional message in invoice body..."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_body_message_fr">Message (Français)</Label>
-                        <Textarea
-                          id="invoice_body_message_fr"
-                          rows={3}
-                          value={emailTemplates.invoice_body_message_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_body_message_fr: e.target.value})}
-                          placeholder="Message additionnel dans le corps de la facture..."
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    <AccordionItem value="invoice-body">
+                      <AccordionTrigger className="hover:no-underline">
+                        <h4 className="font-medium">{language === "fr" ? "Message dans le corps de la facture" : "Invoice Body Message"}</h4>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4 pt-4">
+                        <p className="text-sm text-muted-foreground">
+                          {language === "fr" ? "Ce message apparaîtra après le tableau des produits/services dans la facture PDF" : "This message will appear after the products/services table in the PDF invoice"}
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_body_message_en">Message (English)</Label>
+                            <Textarea
+                              id="invoice_body_message_en"
+                              rows={3}
+                              value={emailTemplates.invoice_body_message_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_body_message_en: e.target.value})}
+                              placeholder="Additional message in invoice body..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_body_message_fr">Message (Français)</Label>
+                            <Textarea
+                              id="invoice_body_message_fr"
+                              rows={3}
+                              value={emailTemplates.invoice_body_message_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_body_message_fr: e.target.value})}
+                              placeholder="Message additionnel dans le corps de la facture..."
+                            />
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                  <div className="space-y-6 pt-4 border-t">
-                    <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_footer_message_en">Message (English)</Label>
-                        <Textarea
-                          id="invoice_footer_message_en"
-                          rows={3}
-                          value={emailTemplates.invoice_footer_message_en}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_en: e.target.value})}
-                          placeholder="Thank you for your business!"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="invoice_footer_message_fr">Message (Français)</Label>
-                        <Textarea
-                          id="invoice_footer_message_fr"
-                          rows={3}
-                          value={emailTemplates.invoice_footer_message_fr}
-                          onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_fr: e.target.value})}
-                          placeholder="Merci pour votre confiance!"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    <AccordionItem value="invoice-footer">
+                      <AccordionTrigger className="hover:no-underline">
+                        <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_footer_message_en">Message (English)</Label>
+                            <Textarea
+                              id="invoice_footer_message_en"
+                              rows={3}
+                              value={emailTemplates.invoice_footer_message_en}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_en: e.target.value})}
+                              placeholder="Thank you for your business!"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="invoice_footer_message_fr">Message (Français)</Label>
+                            <Textarea
+                              id="invoice_footer_message_fr"
+                              rows={3}
+                              value={emailTemplates.invoice_footer_message_fr}
+                              onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_fr: e.target.value})}
+                              placeholder="Merci pour votre confiance!"
+                            />
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
 
                   <div className="pt-4">
                     <Button onClick={handleSaveEmailTemplates} disabled={isSavingTemplates}>
