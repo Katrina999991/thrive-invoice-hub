@@ -457,6 +457,7 @@ export type Database = {
           due_date: string | null
           id: string
           invoice_number: string
+          is_archived: boolean
           issue_date: string
           notes: string | null
           overdue_reminder_sent_at: string | null
@@ -478,6 +479,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_number: string
+          is_archived?: boolean
           issue_date?: string
           notes?: string | null
           overdue_reminder_sent_at?: string | null
@@ -499,6 +501,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_number?: string
+          is_archived?: boolean
           issue_date?: string
           notes?: string | null
           overdue_reminder_sent_at?: string | null

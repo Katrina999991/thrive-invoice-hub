@@ -280,6 +280,31 @@ export const useInvoices = () => {
     }
   };
 
+  const archiveInvoice = async (id: string, isArchived: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ is_archived: isArchived })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await fetchInvoices();
+      
+      toast({
+        title: "Success",
+        description: isArchived ? "Invoice archived successfully" : "Invoice unarchived successfully"
+      });
+    } catch (error) {
+      console.error("Error archiving invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to archive invoice",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     fetchInvoices();
   }, [user]);
@@ -290,6 +315,7 @@ export const useInvoices = () => {
     createInvoice,
     updateInvoice,
     deleteInvoice,
+    archiveInvoice,
     refetch: fetchInvoices
   };
 };
