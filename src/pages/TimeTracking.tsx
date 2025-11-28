@@ -1044,11 +1044,7 @@ export default function TimeTracking() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    setUseCustomDescription(false);
-                    form.reset();
-                  }}
+                  onClick={handleCloseDialog}
                 >
                   {language === "fr" ? "Annuler" : "Cancel"}
                 </Button>
