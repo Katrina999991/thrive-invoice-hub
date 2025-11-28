@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -60,9 +60,10 @@ const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterValue, setFilterValue] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   
   // Database hooks
-  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, refetch: fetchInvoices } = useInvoices();
+  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, archiveInvoice, refetch: fetchInvoices } = useInvoices();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -569,6 +570,14 @@ const Invoices = () => {
   };
 
   const filteredInvoices = invoices.filter(invoice => {
+    // Filter archived invoices
+    if (!showArchived && (invoice as any).is_archived) {
+      return false;
+    }
+    if (showArchived && !(invoice as any).is_archived) {
+      return false;
+    }
+
     // Filter by search term
     const clientName = clients.find(c => c.id === invoice.client_id)?.name || "";
     const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -2372,6 +2381,13 @@ Best regards,
             </SelectContent>
           </Select>
         )}
+        <Button
+          variant={showArchived ? "default" : "outline"}
+          onClick={() => setShowArchived(!showArchived)}
+        >
+          {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+          {showArchived ? (language === "fr" ? "Factures actives" : "Active invoices") : (language === "fr" ? "Factures archivées" : "Archived invoices")}
+        </Button>
       </div>
 
       <Card>
@@ -2554,8 +2570,31 @@ Best regards,
                                 <p>{language === "fr" ? "Générer un lien de paiement Stripe" : "Generate Stripe payment link"}</p>
                               </TooltipContent>
                             </Tooltip>
-                          )
-                        )}
+                            )
+                          )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => archiveInvoice(invoice.id, !(invoice as any).is_archived)}
+                            >
+                              {(invoice as any).is_archived ? (
+                                <ArchiveRestore className="h-4 w-4" />
+                              ) : (
+                                <Archive className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {(invoice as any).is_archived 
+                                ? (language === "fr" ? "Désarchiver la facture" : "Unarchive invoice")
+                                : (language === "fr" ? "Archiver la facture" : "Archive invoice")
+                              }
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
                         <AlertDialog>
                           <Tooltip>
                             <TooltipTrigger asChild>
