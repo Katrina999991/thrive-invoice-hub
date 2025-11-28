@@ -589,6 +589,12 @@ const Invoices = () => {
     return matchesSearch;
   });
 
+  // Calculate stats based on filtered invoices
+  const totalAmount = filteredInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+  const paidAmount = filteredInvoices
+    .filter(invoice => invoice.status === "paid")
+    .reduce((sum, invoice) => sum + invoice.total, 0);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid": return "default";
@@ -1649,12 +1655,6 @@ Best regards,
     }
   };
 
-  const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
-
-  const paidAmount = invoices
-    .filter(invoice => invoice.status === "paid")
-    .reduce((sum, invoice) => sum + invoice.total, 0);
-
   if (loading) {
     return <div>{t("invoices.loading")}</div>;
   }
@@ -2271,7 +2271,7 @@ Best regards,
             <CardTitle className="text-sm font-medium">{t("invoices.totalInvoices")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{invoices.length}</div>
+            <div className="text-2xl font-bold">{filteredInvoices.length}</div>
           </CardContent>
         </Card>
         <Card>
