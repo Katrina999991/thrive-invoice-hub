@@ -142,8 +142,9 @@ export default function TimeTracking() {
 
     const updateElapsed = () => {
       const [hours, minutes] = activeTimer.startTime.split(':').map(Number);
-      const startDate = new Date(activeTimer.date);
-      startDate.setHours(hours, minutes, 0, 0);
+      // Parse date manually to avoid timezone issues
+      const [year, month, day] = activeTimer.date.split('-').map(Number);
+      const startDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
       
       const now = new Date();
       const diffMs = now.getTime() - startDate.getTime();
