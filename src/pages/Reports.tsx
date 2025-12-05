@@ -14,6 +14,7 @@ import { useExpenseReports } from "@/hooks/useExpenseReports";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
+import { useCategories } from "@/hooks/useCategories";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -126,9 +127,14 @@ const Reports = () => {
   const { invoices } = useInvoices();
   const { companies } = useCompanies();
   const { clients } = useClients();
+  const { categories } = useCategories();
   const { data: dashboardData } = useDashboard(t);
   const { products: allProducts } = useProducts();
   
+  // Filter categories for expenses
+  const expenseCategories = useMemo(() => {
+    return categories.filter(cat => cat.for_expenses);
+  }, [categories]);
   // États pour les filtres de la section Products
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
   const [productSelectedCompanyId, setProductSelectedCompanyId] = useState<string>('');
@@ -4165,15 +4171,12 @@ const Reports = () => {
                         <SelectTrigger>
                           <SelectValue placeholder={t("reports.expenses.selectCategory")} />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Office">Bureau</SelectItem>
-                          <SelectItem value="Travel">Voyage</SelectItem>
-                          <SelectItem value="Meals">Repas</SelectItem>
-                          <SelectItem value="Marketing">Marketing</SelectItem>
-                          <SelectItem value="Equipment">Équipement</SelectItem>
-                          <SelectItem value="Professional Services">Services professionnels</SelectItem>
-                          <SelectItem value="Utilities">Services publics</SelectItem>
-                          <SelectItem value="Other">Autre</SelectItem>
+                        <SelectContent className="bg-background z-50">
+                          {expenseCategories.map((category) => (
+                            <SelectItem key={category.id} value={category.name}>
+                              {language === "fr" ? (category.name_fr || category.name) : (category.name_en || category.name)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
