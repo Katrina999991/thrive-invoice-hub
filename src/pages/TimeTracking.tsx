@@ -172,19 +172,26 @@ export default function TimeTracking() {
     ));
   };
 
-  // Fonction pour ouvrir le dialog et pré-remplir avec le premier service
+  // Fonction pour ouvrir le dialog et pré-remplir avec le dernier client et premier service
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
-    // Pré-sélectionner le premier service
-    if (services.length > 0) {
-      setTimeout(() => {
+    setTimeout(() => {
+      // Pré-sélectionner le dernier client utilisé
+      const lastClientId = localStorage.getItem("lastTimeEntryClientId");
+      if (lastClientId && clients.find(c => c.id === lastClientId)) {
+        form.setValue("client_id", lastClientId);
+        handleClientChange(lastClientId);
+      }
+      
+      // Pré-sélectionner le premier service
+      if (services.length > 0) {
         form.setValue("service_id", services[0].id);
         form.setValue("description", services[0].name);
         if (services[0].price) {
           form.setValue("hourly_rate", services[0].price.toString());
         }
-      }, 0);
-    }
+      }
+    }, 0);
   };
 
   const onSubmit = async (data: TimeEntryFormData) => {
@@ -224,6 +231,10 @@ export default function TimeTracking() {
         ranges
       );
     }
+    
+    // Sauvegarder le dernier client utilisé
+    localStorage.setItem("lastTimeEntryClientId", data.client_id);
+    
     setIsDialogOpen(false);
     setEditingEntry(null);
     setUseCustomDescription(false);
