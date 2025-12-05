@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -74,6 +74,14 @@ type TimeRange = {
   end_time: string;
 };
 
+type ActiveTimer = {
+  clientId: string;
+  startTime: string;
+  date: string;
+  serviceId?: string;
+  description?: string;
+};
+
 export default function TimeTracking() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -97,6 +105,11 @@ export default function TimeTracking() {
   ]);
   const [baseHours, setBaseHours] = useState<number>(0);
   const [showInvoiceConfirm, setShowInvoiceConfirm] = useState(false);
+  const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
+  const [isStartTimerDialogOpen, setIsStartTimerDialogOpen] = useState(false);
+  const [timerClientId, setTimerClientId] = useState<string>("");
+  const [timerServiceId, setTimerServiceId] = useState<string>("");
 
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
@@ -106,6 +119,167 @@ export default function TimeTracking() {
   });
 
   const services = products.filter(p => p.is_active && p.quantity === null);
+
+  // Load active timer from localStorage on mount
+  useEffect(() => {
+    const savedTimer = localStorage.getItem("activeTimeTracker");
+    if (savedTimer) {
+      try {
+        const timer = JSON.parse(savedTimer) as ActiveTimer;
+        setActiveTimer(timer);
+      } catch (e) {
+        localStorage.removeItem("activeTimeTracker");
+      }
+    }
+  }, []);
+
+  // Update elapsed time every second when timer is active
+  useEffect(() => {
+    if (!activeTimer) {
+      setElapsedTime("00:00:00");
+      return;
+    }
+
+    const updateElapsed = () => {
+      const [hours, minutes] = activeTimer.startTime.split(':').map(Number);
+      const startDate = new Date(activeTimer.date);
+      startDate.setHours(hours, minutes, 0, 0);
+      
+      const now = new Date();
+      const diffMs = now.getTime() - startDate.getTime();
+      
+      if (diffMs < 0) {
+        setElapsedTime("00:00:00");
+        return;
+      }
+      
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+      
+      setElapsedTime(
+        `${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`
+      );
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [activeTimer]);
+
+  // Start timer function
+  const handleStartTimer = () => {
+    if (!timerClientId) {
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: language === "fr" ? "Veuillez sélectionner un client" : "Please select a client",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const now = new Date();
+    const currentTime = format(now, "HH:mm");
+    const currentDate = format(now, "yyyy-MM-dd");
+    
+    const service = services.find(s => s.id === timerServiceId);
+    
+    const timer: ActiveTimer = {
+      clientId: timerClientId,
+      startTime: currentTime,
+      date: currentDate,
+      serviceId: timerServiceId || undefined,
+      description: service?.name || undefined,
+    };
+    
+    localStorage.setItem("activeTimeTracker", JSON.stringify(timer));
+    localStorage.setItem("lastTimeEntryClientId", timerClientId);
+    setActiveTimer(timer);
+    setIsStartTimerDialogOpen(false);
+    setTimerClientId("");
+    setTimerServiceId("");
+    
+    toast({
+      title: language === "fr" ? "Timer démarré" : "Timer started",
+      description: language === "fr" 
+        ? `Début à ${currentTime}` 
+        : `Started at ${currentTime}`,
+    });
+  };
+
+  // Stop timer and open form to complete entry
+  const handleStopTimer = () => {
+    if (!activeTimer) return;
+    
+    const now = new Date();
+    const endTime = format(now, "HH:mm");
+    
+    // Calculate hours
+    const [startH, startM] = activeTimer.startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    let startMinutes = startH * 60 + startM;
+    let endMinutes = endH * 60 + endM;
+    if (endMinutes < startMinutes) endMinutes += 24 * 60;
+    const totalHours = ((endMinutes - startMinutes) / 60).toFixed(2);
+    
+    // Get client's hourly rate
+    const client = clients.find(c => c.id === activeTimer.clientId);
+    const service = services.find(s => s.id === activeTimer.serviceId);
+    
+    // Reset form and populate with timer data
+    form.reset({
+      client_id: activeTimer.clientId,
+      company_id: "",
+      service_id: activeTimer.serviceId || "",
+      description: activeTimer.description || "",
+      hours: totalHours,
+      hourly_rate: service?.price?.toString() || client?.hourly_rate?.toString() || "",
+      date: activeTimer.date,
+      notes: "",
+    });
+    
+    // Set up time range
+    setUseTimeRange(true);
+    setTimeRanges([{
+      id: crypto.randomUUID(),
+      start_time: activeTimer.startTime,
+      end_time: endTime
+    }]);
+    
+    if (activeTimer.serviceId && activeTimer.serviceId !== "custom") {
+      setUseCustomDescription(false);
+    } else if (activeTimer.description) {
+      setUseCustomDescription(true);
+    }
+    
+    // Clear the timer
+    localStorage.removeItem("activeTimeTracker");
+    setActiveTimer(null);
+    
+    // Open the dialog
+    setIsDialogOpen(true);
+  };
+
+  // Cancel timer without saving
+  const handleCancelTimer = () => {
+    localStorage.removeItem("activeTimeTracker");
+    setActiveTimer(null);
+    toast({
+      title: language === "fr" ? "Timer annulé" : "Timer cancelled",
+    });
+  };
+
+  // Open start timer dialog
+  const handleOpenStartTimerDialog = () => {
+    const lastClientId = localStorage.getItem("lastTimeEntryClientId");
+    if (lastClientId && clients.find(c => c.id === lastClientId)) {
+      setTimerClientId(lastClientId);
+    }
+    if (services.length > 0) {
+      setTimerServiceId(services[0].id);
+    }
+    setIsStartTimerDialogOpen(true);
+  };
 
   const form = useForm<TimeEntryFormData>({
     resolver: zodResolver(timeEntrySchema),
@@ -580,12 +754,53 @@ export default function TimeTracking() {
               {language === "fr" ? "Créer une facture" : "Create Invoice"} ({selectedEntries.length})
             </Button>
           )}
+          {!activeTimer && (
+            <Button variant="outline" onClick={handleOpenStartTimerDialog}>
+              <Play className="mr-2 h-4 w-4" />
+              {language === "fr" ? "Démarrer le pointage" : "Start Timer"}
+            </Button>
+          )}
           <Button onClick={handleOpenDialog}>
             <Plus className="mr-2 h-4 w-4" />
             {language === "fr" ? "Ajouter des heures" : "Add Hours"}
           </Button>
         </div>
       </div>
+
+      {/* Active Timer Card */}
+      {activeTimer && (
+        <Card className="border-primary bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  <span className="font-medium text-primary">
+                    {language === "fr" ? "En cours" : "In progress"}
+                  </span>
+                </div>
+                <div className="text-2xl font-mono font-bold">{elapsedTime}</div>
+                <div className="text-muted-foreground">
+                  {clients.find(c => c.id === activeTimer.clientId)?.name || "-"}
+                  {activeTimer.description && ` • ${activeTimer.description}`}
+                </div>
+                <Badge variant="outline">
+                  {language === "fr" ? "Début" : "Started"}: {activeTimer.startTime}
+                </Badge>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleStopTimer} variant="default">
+                  <Square className="mr-2 h-4 w-4" />
+                  {language === "fr" ? "Terminer" : "Stop"}
+                </Button>
+                <Button onClick={handleCancelTimer} variant="ghost" size="icon">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -1123,6 +1338,63 @@ export default function TimeTracking() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Start Timer Dialog */}
+      <Dialog open={isStartTimerDialogOpen} onOpenChange={setIsStartTimerDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {language === "fr" ? "Démarrer le pointage" : "Start Timer"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{language === "fr" ? "Client" : "Client"}</Label>
+              <Select value={timerClientId} onValueChange={setTimerClientId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={language === "fr" ? "Sélectionner un client" : "Select client"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === "fr" ? "Service (optionnel)" : "Service (optional)"}</Label>
+              <Select value={timerServiceId} onValueChange={setTimerServiceId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={language === "fr" ? "Sélectionner un service" : "Select service"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {language === "fr" ? "Aucun" : "None"}
+                  </SelectItem>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsStartTimerDialogOpen(false)}>
+                {language === "fr" ? "Annuler" : "Cancel"}
+              </Button>
+              <Button onClick={handleStartTimer}>
+                <Play className="mr-2 h-4 w-4" />
+                {language === "fr" ? "Démarrer" : "Start"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
