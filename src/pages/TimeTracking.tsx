@@ -378,20 +378,49 @@ export default function TimeTracking() {
       // Get company taxes
       const companyTaxes = (company?.taxes as any[]) || [];
       
-      const items = entries.map((entry) => {
-        // Parse date without timezone issues
-        const [year, month, day] = entry.date.split('-').map(Number);
-        const localDate = new Date(year, month - 1, day);
-        
-        return {
-          description: `${entry.description} - ${format(localDate, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`,
-          quantity: entry.hours,
-          unit_price: entry.hourly_rate,
-          total: entry.hours * entry.hourly_rate,
-          notes: entry.notes || null,
-          product_taxes: companyTaxes.length > 0 ? companyTaxes : null,
-        };
-      });
+      // Group entries by date
+      const entriesByDate = entries.reduce((acc, entry) => {
+        if (!acc[entry.date]) {
+          acc[entry.date] = [];
+        }
+        acc[entry.date].push(entry);
+        return acc;
+      }, {} as Record<string, typeof entries>);
+      
+      // Create invoice items, combining entries with the same date
+      const items = Object.entries(entriesByDate)
+        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+        .map(([date, dateEntries]) => {
+          // Parse date without timezone issues
+          const [year, month, day] = date.split('-').map(Number);
+          const localDate = new Date(year, month - 1, day);
+          
+          // Sum hours for this date
+          const totalHours = dateEntries.reduce((sum, e) => sum + e.hours, 0);
+          
+          // Use weighted average for hourly rate if different rates
+          const totalAmount = dateEntries.reduce((sum, e) => sum + (e.hours * e.hourly_rate), 0);
+          const avgHourlyRate = totalHours > 0 ? totalAmount / totalHours : dateEntries[0].hourly_rate;
+          
+          // Combine descriptions if different
+          const uniqueDescriptions = [...new Set(dateEntries.map(e => e.description))];
+          const description = uniqueDescriptions.length === 1
+            ? `${uniqueDescriptions[0]} - ${format(localDate, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`
+            : `${uniqueDescriptions.join(", ")} - ${format(localDate, "d MMM yyyy", { locale: language === "fr" ? fr : undefined })}`;
+          
+          // Combine notes
+          const allNotes = dateEntries.map(e => e.notes).filter(Boolean);
+          const combinedNotes = allNotes.length > 0 ? allNotes.join(" | ") : null;
+          
+          return {
+            description,
+            quantity: totalHours,
+            unit_price: avgHourlyRate,
+            total: totalAmount,
+            notes: combinedNotes,
+            product_taxes: companyTaxes.length > 0 ? companyTaxes : null,
+          };
+        });
 
       const subtotal = items.reduce((sum, item) => sum + item.total, 0);
       
