@@ -182,13 +182,14 @@ export default function TimeTracking() {
     const currentTime = format(now, "HH:mm");
     const currentDate = format(now, "yyyy-MM-dd");
     
-    const service = services.find(s => s.id === timerServiceId);
+    const actualServiceId = timerServiceId && timerServiceId !== "_none" ? timerServiceId : undefined;
+    const service = actualServiceId ? services.find(s => s.id === actualServiceId) : undefined;
     
     const timer: ActiveTimer = {
       clientId: timerClientId,
       startTime: currentTime,
       date: currentDate,
-      serviceId: timerServiceId || undefined,
+      serviceId: actualServiceId,
       description: service?.name || undefined,
     };
     
@@ -1371,7 +1372,7 @@ export default function TimeTracking() {
                   <SelectValue placeholder={language === "fr" ? "Sélectionner un service" : "Select service"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="_none">
                     {language === "fr" ? "Aucun" : "None"}
                   </SelectItem>
                   {services.map((service) => (
