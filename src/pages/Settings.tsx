@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle } from "lucide-react";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
@@ -1892,7 +1892,38 @@ Cordialement,
           </CardContent>
         </Card>
       </div>
+      {/* Contact Us Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5" />
+            {language === "fr" ? "Contactez-nous" : "Contact Us"}
+          </CardTitle>
+          <CardDescription>
+            {language === "fr" 
+              ? "Besoin d'aide ou avez-vous des questions? N'hésitez pas à nous contacter."
+              : "Need help or have questions? Don't hesitate to contact us."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3">
+            <Mail className="h-5 w-5 text-muted-foreground" />
+            <a 
+              href="mailto:support@gestionflow.net" 
+              className="text-primary hover:underline font-medium"
+            >
+              support@gestionflow.net
+            </a>
+          </div>
+          <p className="text-sm text-muted-foreground mt-3">
+            {language === "fr" 
+              ? "Notre équipe de support vous répondra dans les plus brefs délais."
+              : "Our support team will respond to you as soon as possible."}
+          </p>
+        </CardContent>
+      </Card>
 
+      
       {/* Email Change Dialog */}
       <Dialog open={showEmailChangeDialog} onOpenChange={setShowEmailChangeDialog}>
         <DialogContent>
