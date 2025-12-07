@@ -100,12 +100,12 @@ serve(async (req) => {
       throw new Error("Le montant minimum pour un paiement Stripe est de 0,50 $ CAD. Augmentez le total de la facture avant de générer le lien de paiement.");
     }
 
-    // Calculate application fee based on plan: Free 3%, Premium 1.5%, Pro 0.5%
+    // Calculate application fee based on plan: Free 2%, Premium 1%, Pro 0.5%
     let applicationFeeRate = 0;
     if (planType === 'free') {
-      applicationFeeRate = 0.03; // 3% commission
+      applicationFeeRate = 0.02; // 2% commission
     } else if (planType === 'premium') {
-      applicationFeeRate = 0.015; // 1.5% commission
+      applicationFeeRate = 0.01; // 1% commission
     } else if (planType === 'pro') {
       applicationFeeRate = 0.005; // 0.5% commission
     }
