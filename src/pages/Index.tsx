@@ -321,7 +321,7 @@ const Index = () => {
           <img 
             src={currentLogo} 
             alt={currentLang === "EN" ? "GestionFlow - Business Management Software" : "GestionFlow - Logiciel de Gestion d'Entreprise"} 
-            className="h-24"
+            className="h-40 md:h-48"
             loading="eager"
           />
         </div>
