@@ -60,6 +60,12 @@ export const useStripeCheckout = () => {
 
   const checkSubscription = async () => {
     try {
+      // Check if user is authenticated before calling the edge function
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        return null;
+      }
+
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) throw error;
