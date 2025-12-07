@@ -18,6 +18,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCompanies } from "@/hooks/useCompanies";
+import { useClients } from "@/hooks/useClients";
 
 
 
@@ -29,6 +30,7 @@ const Products = () => {
   const { categories, loading: categoriesLoading } = useCategories();
   const { createExpense } = useExpenses();
   const { companies, loading: companiesLoading } = useCompanies();
+  const { clients, loading: clientsLoading } = useClients();
 
   // Helper to get translated category name
   const getCategoryName = (category: any) => {
@@ -56,7 +58,8 @@ const Products = () => {
     category: "",
     quantity: "",
     unit: "piece",
-    company_id: ""
+    company_id: "",
+    client_id: ""
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, type: 'percentage' | 'amount', value: number}>>([]);
@@ -117,7 +120,8 @@ const Products = () => {
       quantity: newItem.type === "service" ? null : (parseInt(newItem.quantity) || 0),
       unit: newItem.unit,
       taxes: taxes.length > 0 ? taxes : [],
-      company_id: newItem.company_id || null
+      company_id: newItem.company_id || null,
+      client_id: newItem.client_id || null
     };
     
     if (editingProduct) {
@@ -154,7 +158,8 @@ const Products = () => {
       category: "",
       quantity: "",
       unit: "piece",
-      company_id: ""
+      company_id: "",
+      client_id: ""
     });
     setTaxes([]);
     setEditingProduct(null);
@@ -172,7 +177,8 @@ const Products = () => {
       category: product.category || "",
       quantity: product.quantity?.toString() || "",
       unit: product.unit || "piece",
-      company_id: product.company_id || ""
+      company_id: product.company_id || "",
+      client_id: product.client_id || ""
     });
     // Handle taxes - parse JSON if it exists and migrate old format
     if (product.taxes && Array.isArray(product.taxes)) {
@@ -242,6 +248,14 @@ const Products = () => {
                   {language === "fr" ? "Compagnie" : "Company"}
                 </p>
                 <p className="font-medium">{item.companies.name}</p>
+              </div>
+            )}
+            {item.clients && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {language === "fr" ? "Client" : "Client"}
+                </p>
+                <p className="font-medium">{item.clients.name}</p>
               </div>
             )}
           </div>
@@ -453,6 +467,34 @@ const Products = () => {
                       companies.map((company) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="client">
+                  {language === "fr" ? "Client" : "Client"}
+                </Label>
+                <Select value={newItem.client_id} onValueChange={(value) => setNewItem({...newItem, client_id: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === "fr" ? "Sélectionner un client (optionnel)" : "Select a client (optional)"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        {language === "fr" ? "Aucun client. " : "No clients. "}
+                        <Link to="/clients" className="text-primary hover:underline inline-flex items-center gap-1">
+                          {language === "fr" ? "Créer un client" : "Create a client"}
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    ) : (
+                      clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
                         </SelectItem>
                       ))
                     )}
