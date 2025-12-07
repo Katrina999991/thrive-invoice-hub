@@ -25,6 +25,10 @@ export const useProducts = () => {
           companies:company_id (
             id,
             name
+          ),
+          clients:client_id (
+            id,
+            name
           )
         `)
         .eq("user_id", user.id)
