@@ -474,33 +474,35 @@ const Products = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="client">
-                  {language === "fr" ? "Client" : "Client"}
-                </Label>
-                <Select value={newItem.client_id} onValueChange={(value) => setNewItem({...newItem, client_id: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={language === "fr" ? "Sélectionner un client (optionnel)" : "Select a client (optional)"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.length === 0 ? (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        {language === "fr" ? "Aucun client. " : "No clients. "}
-                        <Link to="/clients" className="text-primary hover:underline inline-flex items-center gap-1">
-                          {language === "fr" ? "Créer un client" : "Create a client"}
-                          <ExternalLink className="h-3 w-3" />
-                        </Link>
-                      </div>
-                    ) : (
-                      clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+              {newItem.type === "service" && (
+                <div className="space-y-2">
+                  <Label htmlFor="client">
+                    {language === "fr" ? "Client" : "Client"}
+                  </Label>
+                  <Select value={newItem.client_id} onValueChange={(value) => setNewItem({...newItem, client_id: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={language === "fr" ? "Sélectionner un client (optionnel)" : "Select a client (optional)"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          {language === "fr" ? "Aucun client. " : "No clients. "}
+                          <Link to="/clients" className="text-primary hover:underline inline-flex items-center gap-1">
+                            {language === "fr" ? "Créer un client" : "Create a client"}
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                        </div>
+                      ) : (
+                        clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="category">
