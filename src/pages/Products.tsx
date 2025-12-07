@@ -446,33 +446,35 @@ const Products = () => {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="company">
-                  {language === "fr" ? "Compagnie" : "Company"}
-                </Label>
-                <Select value={newItem.company_id} onValueChange={(value) => setNewItem({...newItem, company_id: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={language === "fr" ? "Sélectionner une compagnie (optionnel)" : "Select a company (optional)"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies.length === 0 ? (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        {language === "fr" ? "Aucune compagnie. " : "No companies. "}
-                        <Link to="/companies" className="text-primary hover:underline inline-flex items-center gap-1">
-                          {language === "fr" ? "Créer une compagnie" : "Create a company"}
-                          <ExternalLink className="h-3 w-3" />
-                        </Link>
-                      </div>
-                    ) : (
-                      companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+              {newItem.type === "product" && (
+                <div className="space-y-2">
+                  <Label htmlFor="company">
+                    {language === "fr" ? "Compagnie" : "Company"}
+                  </Label>
+                  <Select value={newItem.company_id} onValueChange={(value) => setNewItem({...newItem, company_id: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={language === "fr" ? "Sélectionner une compagnie (optionnel)" : "Select a company (optional)"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          {language === "fr" ? "Aucune compagnie. " : "No companies. "}
+                          <Link to="/companies" className="text-primary hover:underline inline-flex items-center gap-1">
+                            {language === "fr" ? "Créer une compagnie" : "Create a company"}
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                        </div>
+                      ) : (
+                        companies.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {newItem.type === "service" && (
                 <div className="space-y-2">
