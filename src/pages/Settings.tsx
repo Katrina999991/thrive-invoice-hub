@@ -44,6 +44,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useCompanies } from "@/hooks/useCompanies";
 import { z } from "zod";
+import { ContactForm } from "@/components/ContactForm";
 
 export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
@@ -1901,25 +1902,12 @@ Cordialement,
           </CardTitle>
           <CardDescription>
             {language === "fr" 
-              ? "Besoin d'aide ou avez-vous des questions? N'hésitez pas à nous contacter."
-              : "Need help or have questions? Don't hesitate to contact us."}
+              ? "Besoin d'aide ou avez-vous des questions? Remplissez le formulaire ci-dessous."
+              : "Need help or have questions? Fill out the form below."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-muted-foreground" />
-            <a 
-              href="mailto:support@gestionflow.net" 
-              className="text-primary hover:underline font-medium"
-            >
-              support@gestionflow.net
-            </a>
-          </div>
-          <p className="text-sm text-muted-foreground mt-3">
-            {language === "fr" 
-              ? "Notre équipe de support vous répondra dans les plus brefs délais."
-              : "Our support team will respond to you as soon as possible."}
-          </p>
+          <ContactForm language={language} userEmail={user?.email} />
         </CardContent>
       </Card>
 
