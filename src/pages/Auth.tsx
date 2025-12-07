@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, LogIn, UserPlus, Home } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
@@ -20,8 +21,15 @@ import { validatePassword } from "@/lib/passwordValidation";
 export default function Auth() {
   const { t, language, setLanguage } = useLanguage();
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    // Load saved email from localStorage if "remember me" was checked
+    return localStorage.getItem('remembered_email') || "";
+  });
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => {
+    // Check if there's a saved email (means remember me was checked before)
+    return !!localStorage.getItem('remembered_email');
+  });
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -129,6 +137,13 @@ export default function Auth() {
         variant: "destructive",
       });
     } else {
+      // Save or remove email based on "remember me" checkbox
+      if (rememberMe) {
+        localStorage.setItem('remembered_email', email);
+      } else {
+        localStorage.removeItem('remembered_email');
+      }
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
@@ -435,6 +450,20 @@ export default function Auth() {
                     required
                     disabled={isLoading}
                   />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    disabled={isLoading}
+                  />
+                  <Label 
+                    htmlFor="remember-me" 
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {language === 'en' ? 'Remember me' : 'Se souvenir de moi'}
+                  </Label>
                 </div>
                 {error && (
                   <Alert variant="destructive">
