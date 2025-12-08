@@ -18,6 +18,7 @@ export const useDashboard = (t?: TranslationFunction) => {
           .from("invoices")
           .select("id, total, status, created_at, updated_at, invoice_number, clients(name)")
           .eq("user_id", userId)
+          .eq("is_archived", false)
           .order("updated_at", { ascending: false }),
         supabase
           .from("clients")
