@@ -206,10 +206,14 @@ export default function TimeTracking() {
       date: currentDate,
       serviceId: actualServiceId,
       description: service?.name || undefined,
+      isPaused: false,
+      pausedAt: null,
+      totalPausedMs: 0,
     };
     
     localStorage.setItem("activeTimeTracker", JSON.stringify(timer));
     localStorage.setItem("lastTimeEntryClientId", timerClientId);
+    setElapsedTime("00:00:00");
     setActiveTimer(timer);
     setIsStartTimerDialogOpen(false);
     setTimerClientId("");
