@@ -135,6 +135,19 @@ const Reports = () => {
   const expenseCategories = useMemo(() => {
     return categories.filter(cat => cat.for_expenses);
   }, [categories]);
+
+  // Helper function to get translated category name
+  const getTranslatedCategoryName = (categoryName: string) => {
+    const category = categories.find(cat => 
+      cat.name === categoryName || 
+      cat.name_en === categoryName || 
+      cat.name_fr === categoryName
+    );
+    if (!category) return categoryName;
+    return language === 'fr' 
+      ? (category.name_fr || category.name) 
+      : (category.name_en || category.name);
+  };
   // États pour les filtres de la section Products
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
   const [productSelectedCompanyId, setProductSelectedCompanyId] = useState<string>('');
@@ -152,12 +165,29 @@ const Reports = () => {
   const [expenseStartDate, setExpenseStartDate] = useState<Date | undefined>();
   const [expenseEndDate, setExpenseEndDate] = useState<Date | undefined>();
   
-  const { reportData: expenseReportData, loading: expenseLoading } = useExpenseReports(
+  const { reportData: expenseReportDataRaw, loading: expenseLoading } = useExpenseReports(
     expenseStartDate, 
     expenseEndDate, 
     expenseFilterType, 
     expenseFilterType === 'company' ? expenseSelectedCompanyId : expenseSelectedCategory
   );
+
+  // Transform expense report data with translated category names
+  const expenseReportData = useMemo(() => {
+    if (!expenseReportDataRaw) return null;
+    
+    return {
+      ...expenseReportDataRaw,
+      expensesByCategory: expenseReportDataRaw.expensesByCategory.map(cat => ({
+        ...cat,
+        category: getTranslatedCategoryName(cat.category)
+      })),
+      expenseDetails: expenseReportDataRaw.expenseDetails.map(expense => ({
+        ...expense,
+        category: getTranslatedCategoryName(expense.category)
+      }))
+    };
+  }, [expenseReportDataRaw, categories, language]);
   
   // Filter to show only physical products (exclude services)
   const products = useMemo(() => {
