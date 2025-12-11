@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -80,6 +80,9 @@ type ActiveTimer = {
   date: string;
   serviceId?: string;
   description?: string;
+  isPaused?: boolean;
+  pausedAt?: string | null;
+  totalPausedMs?: number;
 };
 
 export default function TimeTracking() {
@@ -147,7 +150,18 @@ export default function TimeTracking() {
       const startDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
       
       const now = new Date();
-      const diffMs = now.getTime() - startDate.getTime();
+      let diffMs = now.getTime() - startDate.getTime();
+      
+      // Subtract total paused time
+      if (activeTimer.totalPausedMs) {
+        diffMs -= activeTimer.totalPausedMs;
+      }
+      
+      // If currently paused, subtract time since pause started
+      if (activeTimer.isPaused && activeTimer.pausedAt) {
+        const pausedAtTime = new Date(activeTimer.pausedAt).getTime();
+        diffMs -= (now.getTime() - pausedAtTime);
+      }
       
       if (diffMs < 0) {
         setElapsedTime("00:00:00");
@@ -268,6 +282,47 @@ export default function TimeTracking() {
     setActiveTimer(null);
     toast({
       title: language === "fr" ? "Timer annulé" : "Timer cancelled",
+    });
+  };
+
+  // Pause timer
+  const handlePauseTimer = () => {
+    if (!activeTimer || activeTimer.isPaused) return;
+    
+    const updatedTimer: ActiveTimer = {
+      ...activeTimer,
+      isPaused: true,
+      pausedAt: new Date().toISOString(),
+    };
+    
+    localStorage.setItem("activeTimeTracker", JSON.stringify(updatedTimer));
+    setActiveTimer(updatedTimer);
+    
+    toast({
+      title: language === "fr" ? "Timer en pause" : "Timer paused",
+    });
+  };
+
+  // Resume timer
+  const handleResumeTimer = () => {
+    if (!activeTimer || !activeTimer.isPaused || !activeTimer.pausedAt) return;
+    
+    const pausedAtTime = new Date(activeTimer.pausedAt).getTime();
+    const now = new Date().getTime();
+    const pauseDuration = now - pausedAtTime;
+    
+    const updatedTimer: ActiveTimer = {
+      ...activeTimer,
+      isPaused: false,
+      pausedAt: null,
+      totalPausedMs: (activeTimer.totalPausedMs || 0) + pauseDuration,
+    };
+    
+    localStorage.setItem("activeTimeTracker", JSON.stringify(updatedTimer));
+    setActiveTimer(updatedTimer);
+    
+    toast({
+      title: language === "fr" ? "Timer repris" : "Timer resumed",
     });
   };
 
@@ -771,14 +826,20 @@ export default function TimeTracking() {
 
       {/* Active Timer Card */}
       {activeTimer && (
-        <Card className="border-primary bg-primary/5">
+        <Card className={cn("border-primary", activeTimer.isPaused ? "bg-muted/50" : "bg-primary/5")}>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  <div className={cn(
+                    "w-3 h-3 rounded-full",
+                    activeTimer.isPaused ? "bg-yellow-500" : "bg-red-500 animate-pulse"
+                  )} />
                   <span className="font-medium text-primary">
-                    {language === "fr" ? "En cours" : "In progress"}
+                    {activeTimer.isPaused 
+                      ? (language === "fr" ? "En pause" : "Paused")
+                      : (language === "fr" ? "En cours" : "In progress")
+                    }
                   </span>
                 </div>
                 <div className="text-2xl font-mono font-bold">{elapsedTime}</div>
@@ -791,6 +852,17 @@ export default function TimeTracking() {
                 </Badge>
               </div>
               <div className="flex gap-2">
+                {activeTimer.isPaused ? (
+                  <Button onClick={handleResumeTimer} variant="outline">
+                    <Play className="mr-2 h-4 w-4" />
+                    {language === "fr" ? "Reprendre" : "Resume"}
+                  </Button>
+                ) : (
+                  <Button onClick={handlePauseTimer} variant="outline">
+                    <Pause className="mr-2 h-4 w-4" />
+                    {language === "fr" ? "Pause" : "Pause"}
+                  </Button>
+                )}
                 <Button onClick={handleStopTimer} variant="default">
                   <Square className="mr-2 h-4 w-4" />
                   {language === "fr" ? "Terminer" : "Stop"}
