@@ -37,7 +37,8 @@ export const useTimeEntries = () => {
           time_entry_ranges (id, start_time, end_time)
         `)
         .eq("user_id", user.id)
-        .order("date", { ascending: true });
+        .order("date", { ascending: true })
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       setTimeEntries(data || []);
