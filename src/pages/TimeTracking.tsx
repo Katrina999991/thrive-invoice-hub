@@ -77,6 +77,7 @@ type TimeRange = {
 type ActiveTimer = {
   clientId: string;
   startTime: string;
+  startTimestamp: number; // Precise timestamp for elapsed calculation
   date: string;
   serviceId?: string;
   description?: string;
@@ -129,6 +130,12 @@ export default function TimeTracking() {
     if (savedTimer) {
       try {
         const timer = JSON.parse(savedTimer) as ActiveTimer;
+        // Backwards compatibility: if no startTimestamp, calculate from date/time
+        if (!timer.startTimestamp) {
+          const [hours, minutes] = timer.startTime.split(':').map(Number);
+          const [year, month, day] = timer.date.split('-').map(Number);
+          timer.startTimestamp = new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
+        }
         setActiveTimer(timer);
       } catch (e) {
         localStorage.removeItem("activeTimeTracker");
@@ -144,13 +151,8 @@ export default function TimeTracking() {
     }
 
     const updateElapsed = () => {
-      const [hours, minutes] = activeTimer.startTime.split(':').map(Number);
-      // Parse date manually to avoid timezone issues
-      const [year, month, day] = activeTimer.date.split('-').map(Number);
-      const startDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
-      
       const now = new Date();
-      let diffMs = now.getTime() - startDate.getTime();
+      let diffMs = now.getTime() - activeTimer.startTimestamp;
       
       // Subtract total paused time
       if (activeTimer.totalPausedMs) {
@@ -203,6 +205,7 @@ export default function TimeTracking() {
     const timer: ActiveTimer = {
       clientId: timerClientId,
       startTime: currentTime,
+      startTimestamp: now.getTime(),
       date: currentDate,
       serviceId: actualServiceId,
       description: service?.name || undefined,
