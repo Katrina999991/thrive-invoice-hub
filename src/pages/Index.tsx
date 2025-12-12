@@ -60,9 +60,9 @@ const Index = () => {
     FR: {
       nav: {
         home: "Accueil",
-        features: "Fonctionnalités",
+        software: "Logiciel de gestion",
         pricing: "Tarifs",
-        about: "À propos",
+        comparison: "Comparaison",
         login: "Connexion",
         freeTrial: "Essai gratuit"
       },
@@ -154,9 +154,9 @@ const Index = () => {
     EN: {
       nav: {
         home: "Home",
-        features: "Features",
+        software: "Management Software",
         pricing: "Pricing",
-        about: "About",
+        comparison: "Comparison",
         login: "Login",
         freeTrial: "Free Trial"
       },
@@ -344,7 +344,7 @@ const Index = () => {
                 onClick={() => scrollToSection('features')} 
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
-                {t.nav.features}
+                {t.nav.software}
               </button>
               <button 
                 onClick={() => navigate('/pricing')} 
@@ -353,10 +353,10 @@ const Index = () => {
                 {t.nav.pricing}
               </button>
               <button 
-                onClick={() => scrollToSection('about')} 
+                onClick={() => scrollToSection('comparison')} 
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
-                {t.nav.about}
+                {t.nav.comparison}
               </button>
             </nav>
 
@@ -418,7 +418,7 @@ const Index = () => {
                   onClick={() => scrollToSection('features')} 
                   className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
                 >
-                  {t.nav.features}
+                  {t.nav.software}
                 </button>
                 <button 
                   onClick={() => { navigate('/pricing'); setMobileMenuOpen(false); }} 
@@ -427,10 +427,10 @@ const Index = () => {
                   {t.nav.pricing}
                 </button>
                 <button 
-                  onClick={() => scrollToSection('about')} 
+                  onClick={() => scrollToSection('comparison')} 
                   className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
                 >
-                  {t.nav.about}
+                  {t.nav.comparison}
                 </button>
                 <div className="flex items-center gap-2 px-2 pt-2 border-t border-border">
                   <Globe className="h-4 w-4 text-muted-foreground" />
