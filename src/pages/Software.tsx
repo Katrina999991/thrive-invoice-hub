@@ -439,7 +439,7 @@ const Software = () => {
               <img 
                 src={isDark ? logoDark : logoLight} 
                 alt="GestionFlow" 
-                className="h-8 w-auto"
+                className="h-10 md:h-12 w-auto"
               />
             </button>
 
