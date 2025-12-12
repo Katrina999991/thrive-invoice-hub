@@ -125,21 +125,22 @@ const Pricing = () => {
         clients: "clients",
         invoices: "invoices/month",
         expenses: "expenses/month",
-        pdfExport: "PDF Export",
-        emailBasic: "Email Invoice Sending (basic)",
+        invoicePdfExport: "Invoice PDF Download",
+        emailBasic: "Email invoice sending",
         revenueReport: "Revenue Report",
         invoiceTemplate: "invoice template",
         invoiceTemplates: "invoice templates",
-        categoryManagement: "Category Management",
+        categoryManagement: "Product & expense categories",
         taxReport: "Tax Report",
-        allReports: "All Reports",
-        customEmails: "Custom Email Templates",
+        allReports: "All reports (Revenue, Taxes, Clients, Products, Expenses, Invoices)",
+        customEmails: "Custom email templates",
         unlimited: "Unlimited",
+        stripeFee: "platform fee on Stripe payments",
       },
       planDescriptions: {
-        free: "Ideal for freelancers just starting out",
-        premium: "For small businesses and independent professionals",
-        pro: "For growing businesses or multi-company operations",
+        free: "Get started for free",
+        premium: "The smart choice for small businesses",
+        pro: "For agencies and multi-company operations",
       }
     },
     fr: {
@@ -163,21 +164,22 @@ const Pricing = () => {
         clients: "clients",
         invoices: "factures/mois",
         expenses: "dépenses/mois",
-        pdfExport: "Téléchargement PDF",
-        emailBasic: "Envoi de factures par courriel (basique)",
+        invoicePdfExport: "Téléchargement PDF des factures",
+        emailBasic: "Envoi de factures par courriel",
         revenueReport: "Rapport de revenus",
         invoiceTemplate: "modèle de facture",
         invoiceTemplates: "modèles de factures",
-        categoryManagement: "Gestion des catégories",
+        categoryManagement: "Catégories produits & dépenses",
         taxReport: "Rapport des taxes",
-        allReports: "Tous les rapports",
-        customEmails: "Personnalisation des emails",
+        allReports: "Tous les rapports (Revenus, Taxes, Clients, Produits, Dépenses, Factures)",
+        customEmails: "Personnalisation des courriels",
         unlimited: "Illimité",
+        stripeFee: "de frais sur paiements Stripe",
       },
       planDescriptions: {
-        free: "Idéale pour les travailleurs autonomes qui débutent",
-        premium: "Pour petites entreprises et professionnels indépendants",
-        pro: "Pour entreprises en croissance ou multi-compagnies",
+        free: "Commencez gratuitement",
+        premium: "Le choix idéal pour petites entreprises",
+        pro: "Pour agences et gestion multi-entreprises",
       }
     }
   };
@@ -197,95 +199,83 @@ const Pricing = () => {
 
   const getPlanFeatures = (plan: any) => {
     const features = [];
-    
-    // Companies
-    features.push({
-      text: `${plan.max_companies ?? t.features.unlimited} ${plan.max_companies === 1 ? t.features.company : t.features.companies}`,
-      included: true
-    });
-    
-    // Clients
-    features.push({
-      text: `${plan.max_clients ?? t.features.unlimited} ${t.features.clients}`,
-      included: true
-    });
-    
-    // Invoices
-    features.push({
-      text: `${plan.max_invoices_per_month ?? t.features.unlimited} ${t.features.invoices}`,
-      included: true
-    });
-    
-    // Expenses
-    features.push({
-      text: `${plan.max_expenses_per_month ?? t.features.unlimited} ${t.features.expenses}`,
-      included: true
-    });
 
-    // Basic features for free
+    // FREE PLAN - Entry level
     if (plan.plan_type === 'free') {
+      features.push({ text: `1 ${t.features.company}`, included: true });
+      features.push({ text: `10 ${t.features.clients}`, included: true });
+      features.push({ text: `15 ${t.features.invoices}`, included: true });
+      features.push({ text: `10 ${t.features.expenses}`, included: true });
       features.push({ text: t.features.emailBasic, included: true });
-      features.push({ text: `1 ${t.features.invoiceTemplate} (Classique)`, included: true });
+      features.push({ text: `1 ${t.features.invoiceTemplate} (Classic)`, included: true });
       features.push({ text: t.features.revenueReport, included: true });
-      features.push({ 
-        text: language === 'fr' 
-          ? '2% de frais sur paiements Stripe' 
-          : '2% fee on Stripe payments', 
-        included: true 
-      });
+      features.push({ text: `2% ${t.features.stripeFee}`, included: true });
     }
+
+    // PREMIUM PLAN - Value features first, then limits
     if (plan.plan_type === 'premium') {
-      features.push({ 
-        text: language === 'fr' 
-          ? '1% de frais sur paiements Stripe' 
-          : '1% fee on Stripe payments', 
-        included: true 
-      });
-    }
-    
-    // Pro plan fees
-    if (plan.plan_type === 'pro') {
-      features.push({ 
-        text: language === 'fr' 
-          ? '0,5% de frais sur paiements Stripe' 
-          : '0.5% fee on Stripe payments', 
-        included: true 
-      });
-    }
-
-    // PDF Export
-    if (plan.pdf_export) {
-      features.push({ text: t.features.pdfExport, included: true });
-    }
-
-    // Additional template
-    if (plan.plan_type === 'premium') {
-      features.push({ text: `1 ${t.features.invoiceTemplate} ${language === 'fr' ? 'additionnel' : 'additional'} (Moderne)`, included: true });
-    }
-
-    // All templates
-    if (plan.all_invoice_templates) {
-      features.push({ text: `${language === 'fr' ? 'Tous les' : 'All'} ${t.features.invoiceTemplates}`, included: true });
-    }
-
-    // Category management
-    if (plan.category_management) {
+      // Value propositions first
+      features.push({ text: `1% ${t.features.stripeFee}`, included: true });
+      features.push({ text: t.features.invoicePdfExport, included: true });
+      features.push({ text: `+1 ${t.features.invoiceTemplate} (Modern)`, included: true });
       features.push({ text: t.features.categoryManagement, included: true });
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Rapports : Revenus + Taxes' 
+          : 'Reports: Revenue + Tax', 
+        included: true 
+      });
+      // Then limits
+      features.push({ text: `1 ${t.features.company}`, included: true });
+      features.push({ text: `50 ${t.features.clients}`, included: true });
+      features.push({ text: `100 ${t.features.invoices}`, included: true });
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Dépenses illimitées' 
+          : 'Unlimited expenses', 
+        included: true 
+      });
     }
 
-    // Tax report
-    if (plan.plan_type === 'premium') {
-      features.push({ text: t.features.taxReport, included: true });
-    }
-
-    // All reports
-    if (plan.all_reports) {
+    // PRO PLAN - Advanced features
+    if (plan.plan_type === 'pro') {
+      // Value propositions first
+      features.push({ text: `0.5% ${t.features.stripeFee}`, included: true });
+      features.push({ text: t.features.invoicePdfExport, included: true });
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Tous les modèles de factures' 
+          : 'All invoice templates', 
+        included: true 
+      });
+      features.push({ text: t.features.categoryManagement, included: true });
       features.push({ text: t.features.allReports, included: true });
-    }
-
-    // Custom emails
-    if (plan.custom_email_templates) {
       features.push({ text: t.features.customEmails, included: true });
+      // Then unlimited everything
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Entreprises illimitées' 
+          : 'Unlimited companies', 
+        included: true 
+      });
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Clients illimités' 
+          : 'Unlimited clients', 
+        included: true 
+      });
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Factures illimitées' 
+          : 'Unlimited invoices', 
+        included: true 
+      });
+      features.push({ 
+        text: language === 'fr' 
+          ? 'Dépenses illimitées' 
+          : 'Unlimited expenses', 
+        included: true 
+      });
     }
 
     return features;
@@ -361,17 +351,17 @@ const Pricing = () => {
           const features = getPlanFeatures(plan);
           const price = billingCycle === 'monthly' ? plan.monthly_price : plan.yearly_price;
           const isCurrent = isCurrentPlan(plan.plan_type);
-          const isPro = plan.plan_type === 'pro';
+          const isPremium = plan.plan_type === 'premium';
 
           return (
             <Card 
               key={plan.id} 
-              className={`relative ${isPro ? 'border-primary shadow-lg scale-105' : ''} ${isCurrent ? 'ring-2 ring-primary' : ''}`}
+              className={`relative ${isPremium ? 'border-primary shadow-lg scale-105' : ''} ${isCurrent ? 'ring-2 ring-primary' : ''}`}
             >
-              {isPro && (
+              {isPremium && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <Badge className="px-4 py-1">
-                    {language === 'fr' ? 'Plus populaire' : 'Most Popular'}
+                    {language === 'fr' ? 'Recommandé' : 'Recommended'}
                   </Badge>
                 </div>
               )}
@@ -427,7 +417,7 @@ const Pricing = () => {
                   <>
                     <Button 
                       className="w-full" 
-                      variant={isCurrent ? 'outline' : (isPro ? 'default' : 'secondary')}
+                      variant={isCurrent ? 'outline' : (isPremium ? 'default' : 'secondary')}
                       disabled={isCurrent || stripeLoading}
                       onClick={() => handleUpgrade(plan.plan_type)}
                     >
