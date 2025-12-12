@@ -12,7 +12,10 @@ import {
   Shield,
   CreditCard,
   FileText,
-  Building2
+  Building2,
+  ArrowDown,
+  Database,
+  AlertCircle
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -158,6 +161,31 @@ const PublicPricing = () => {
           }
         ]
       },
+      downgrade: {
+        title: "Politique de rétrogradation de plan",
+        description: "Si vous passez à un plan inférieur (par exemple, de Pro à Premium), voici ce qui se passe :",
+        keepData: {
+          icon: "Database",
+          title: "Vos données sont conservées",
+          points: [
+            "Vous conservez toutes vos données existantes (entreprises, clients, factures, dépenses).",
+            "Vous pouvez consulter, modifier et supprimer toutes vos données à tout moment.",
+            "Aucune donnée n'est supprimée automatiquement."
+          ]
+        },
+        limits: {
+          icon: "AlertCircle",
+          title: "Limites du nouveau plan",
+          description: "Cependant, si votre compte dépasse les limites de votre nouveau plan :",
+          points: [
+            "Vous ne pourrez pas créer de nouvelles entités tant que vous n'êtes pas revenu dans les limites du plan."
+          ]
+        },
+        example: {
+          title: "Exemple",
+          text: "Si vous avez 3 entreprises avec le plan Pro et que vous passez à Premium (qui permet 1 entreprise), vous conservez vos 3 entreprises. Cependant, vous devez en supprimer 2 avant de pouvoir en créer une nouvelle."
+        }
+      },
       cta: {
         title: "Prêt à simplifier votre gestion ?",
         subtitle: "Rejoignez des milliers d'entrepreneurs qui gagnent du temps avec GestionFlow.",
@@ -279,6 +307,31 @@ const PublicPricing = () => {
           }
         ]
       },
+      downgrade: {
+        title: "Plan Downgrade Policy",
+        description: "If you downgrade to a lower plan (for example, from Pro to Premium), here's what happens:",
+        keepData: {
+          icon: "Database",
+          title: "Your data is preserved",
+          points: [
+            "You keep all your existing data (companies, clients, invoices, expenses).",
+            "You can view, edit, and delete all your existing data at any time.",
+            "No data is deleted automatically."
+          ]
+        },
+        limits: {
+          icon: "AlertCircle",
+          title: "New plan limits",
+          description: "However, if your account exceeds the limits of your new plan:",
+          points: [
+            "You will not be able to create new entities until you are back within the plan limits."
+          ]
+        },
+        example: {
+          title: "Example",
+          text: "If you have 3 companies on the Pro plan and downgrade to Premium (which allows 1 company), you will keep all 3 companies. However, you must delete 2 companies before you can create a new one."
+        }
+      },
       cta: {
         title: "Ready to simplify your business?",
         subtitle: "Join thousands of entrepreneurs saving time with GestionFlow.",
@@ -318,6 +371,8 @@ const PublicPricing = () => {
       case 'Shield': return <Shield className="h-8 w-8 text-primary" />;
       case 'CreditCard': return <CreditCard className="h-8 w-8 text-primary" />;
       case 'FileText': return <FileText className="h-8 w-8 text-primary" />;
+      case 'Database': return <Database className="h-6 w-6 text-primary" />;
+      case 'AlertCircle': return <AlertCircle className="h-6 w-6 text-amber-500" />;
       default: return <Shield className="h-8 w-8 text-primary" />;
     }
   };
@@ -565,6 +620,75 @@ const PublicPricing = () => {
                 <p className="text-muted-foreground">{item.answer}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Downgrade Policy Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <ArrowDown className="h-8 w-8 text-primary" />
+            <h2 className="text-3xl font-bold text-foreground">
+              {t.downgrade.title}
+            </h2>
+          </div>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            {t.downgrade.description}
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8 mb-10">
+            {/* Keep Data Card */}
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  {getReassuranceIcon(t.downgrade.keepData.icon)}
+                  <h3 className="text-lg font-semibold text-foreground">{t.downgrade.keepData.title}</h3>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {t.downgrade.keepData.points.map((point, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Limits Card */}
+            <Card className="border-amber-500/20 bg-amber-500/5">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  {getReassuranceIcon(t.downgrade.limits.icon)}
+                  <h3 className="text-lg font-semibold text-foreground">{t.downgrade.limits.title}</h3>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">{t.downgrade.limits.description}</p>
+                <ul className="space-y-3">
+                  {t.downgrade.limits.points.map((point, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Example Box */}
+          <div className="bg-background border border-border rounded-lg p-6 max-w-2xl mx-auto">
+            <div className="flex items-start gap-3">
+              <Building2 className="h-5 w-5 text-primary shrink-0 mt-1" />
+              <div>
+                <h4 className="font-semibold text-foreground mb-2">{t.downgrade.example.title}</h4>
+                <p className="text-sm text-muted-foreground">{t.downgrade.example.text}</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
