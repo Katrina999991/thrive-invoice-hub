@@ -24,6 +24,7 @@ import Pricing from "./pages/Pricing";
 import Auth from "./pages/Auth";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
+import Software from "./pages/Software";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => {
               <PasswordChangeDialog />
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/software" element={<Software />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/dashboard" element={

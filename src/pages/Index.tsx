@@ -341,7 +341,7 @@ const Index = () => {
                 {t.nav.home}
               </button>
               <button 
-                onClick={() => scrollToSection('features')} 
+                onClick={() => navigate('/software')} 
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
                 {t.nav.software}
@@ -415,7 +415,7 @@ const Index = () => {
                   {t.nav.home}
                 </button>
                 <button 
-                  onClick={() => scrollToSection('features')} 
+                  onClick={() => { navigate('/software'); setMobileMenuOpen(false); }} 
                   className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
                 >
                   {t.nav.software}
