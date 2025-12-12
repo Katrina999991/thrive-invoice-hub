@@ -76,8 +76,9 @@ const Index = () => {
     FR: {
       nav: {
         home: "Accueil",
-        software: "Logiciel",
+        software: "Logiciel de gestion",
         pricing: "Tarifs",
+        comparison: "Comparaison",
         login: "Connexion",
         getStarted: "Commencer gratuitement"
       },
@@ -320,8 +321,9 @@ const Index = () => {
     EN: {
       nav: {
         home: "Home",
-        software: "Software",
+        software: "Management Software",
         pricing: "Pricing",
+        comparison: "Comparison",
         login: "Login",
         getStarted: "Get Started Free"
       },
@@ -673,6 +675,12 @@ const Index = () => {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <button 
+                onClick={() => scrollToSection('hero')} 
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                {t.nav.home}
+              </button>
+              <button 
                 onClick={() => navigate('/software')} 
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
@@ -683,6 +691,12 @@ const Index = () => {
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
                 {t.nav.pricing}
+              </button>
+              <button 
+                onClick={() => navigate('/comparison')} 
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                {t.nav.comparison}
               </button>
             </nav>
 
@@ -735,6 +749,12 @@ const Index = () => {
             <div className="md:hidden border-t border-border py-4">
               <nav className="flex flex-col gap-4">
                 <button 
+                  onClick={() => { scrollToSection('hero'); setMobileMenuOpen(false); }} 
+                  className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
+                >
+                  {t.nav.home}
+                </button>
+                <button 
                   onClick={() => { navigate('/software'); setMobileMenuOpen(false); }} 
                   className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
                 >
@@ -745,6 +765,12 @@ const Index = () => {
                   className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
                 >
                   {t.nav.pricing}
+                </button>
+                <button 
+                  onClick={() => { navigate('/comparison'); setMobileMenuOpen(false); }} 
+                  className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
+                >
+                  {t.nav.comparison}
                 </button>
                 <div className="flex items-center gap-2 px-2 pt-2 border-t border-border">
                   <Globe className="h-4 w-4 text-muted-foreground" />
