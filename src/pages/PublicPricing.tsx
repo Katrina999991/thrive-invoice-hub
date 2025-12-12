@@ -145,7 +145,7 @@ const PublicPricing = () => {
         items: [
           {
             question: "Puis-je changer de plan à tout moment ?",
-            answer: "Oui ! Vous pouvez passer à un plan supérieur ou inférieur à tout moment. Le changement prend effet immédiatement."
+            answer: "Oui ! Les mises à niveau prennent effet immédiatement avec facturation au prorata. Les rétrogradations prennent effet à la fin de votre période de facturation."
           },
           {
             question: "Quels modes de paiement acceptez-vous ?",
@@ -291,7 +291,7 @@ const PublicPricing = () => {
         items: [
           {
             question: "Can I change plans at any time?",
-            answer: "Yes! You can upgrade or downgrade at any time. Changes take effect immediately."
+            answer: "Yes! Upgrades take effect immediately with prorated billing. Downgrades take effect at the end of your billing period."
           },
           {
             question: "What payment methods do you accept?",
