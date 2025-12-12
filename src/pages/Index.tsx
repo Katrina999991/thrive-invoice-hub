@@ -288,7 +288,7 @@ const Index = () => {
           },
           {
             question: "Comment fonctionnent les paiements Stripe?",
-            answer: "Vous pouvez connecter votre compte Stripe pour permettre à vos clients de payer directement depuis leurs factures. Les paiements sont sécurisés et vous pouvez suivre le statut en temps réel."
+            answer: "Vous avez deux options : connecter votre compte Stripe existant ou créer un nouveau compte Stripe Connect directement depuis GestionFlow en quelques clics. Une fois configuré, vos clients peuvent payer directement depuis leurs factures. Les paiements sont sécurisés et vous pouvez suivre le statut en temps réel."
           },
           {
             question: "Mes données sont-elles sécurisées?",
@@ -533,7 +533,7 @@ const Index = () => {
           },
           {
             question: "How do Stripe payments work?",
-            answer: "You can connect your Stripe account to allow your clients to pay directly from their invoices. Payments are secure and you can track the status in real time."
+            answer: "You have two options: connect your existing Stripe account or create a new Stripe Connect account directly from GestionFlow in just a few clicks. Once set up, your clients can pay directly from their invoices. Payments are secure and you can track the status in real time."
           },
           {
             question: "Is my data secure?",
