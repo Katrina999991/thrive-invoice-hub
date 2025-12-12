@@ -84,12 +84,12 @@ const Index = () => {
       },
       hero: {
         badge: "Logiciel de gestion d'entreprise",
-        title: "Gérez toutes vos entreprises",
-        titleHighlight: "dans un seul compte",
-        subtitle: "GestionFlow est le logiciel de gestion conçu pour les travailleurs autonomes, consultants et PME. Factures, clients, dépenses, paiements, rapports et suivi du temps — tout est centralisé dans une interface moderne et intuitive.",
+        title: "Gérez votre entreprise",
+        titleHighlight: "simplement et efficacement",
+        subtitle: "GestionFlow est le logiciel de gestion tout-en-un pour les travailleurs autonomes, consultants et PME. Factures, clients, dépenses, paiements et rapports — tout est centralisé pour vous faire gagner du temps.",
         cta: "Commencer gratuitement",
-        ctaSecondary: "Voir les fonctionnalités",
-        noCard: "Aucune carte de crédit requise"
+        ctaSecondary: "Voir les tarifs",
+        noCard: "Plan gratuit disponible • Aucune carte requise"
       },
       socialProof: {
         companies: "entreprises gérées",
@@ -98,27 +98,27 @@ const Index = () => {
       },
       benefits: {
         title: "Pourquoi choisir GestionFlow ?",
-        subtitle: "Une solution pensée pour les besoins réels des entrepreneurs et des PME",
+        subtitle: "Une solution pensée pour les besoins réels des entrepreneurs",
         items: [
           {
             icon: "Building2",
-            title: "Multi-entreprises inclus",
-            description: "Gérez plusieurs entreprises depuis un seul compte. Taxes, numérotation et données séparées, mais accessibles en un clic."
+            title: "Gestion multi-entreprises",
+            description: "Gérez plusieurs entreprises depuis un seul compte. Parfait pour les consultants et agences avec plusieurs activités."
           },
           {
-            icon: "Zap",
-            title: "Simple et rapide",
-            description: "Interface moderne et intuitive. Créez une facture en moins de 30 secondes, sans formation nécessaire."
+            icon: "FileText",
+            title: "Facturation professionnelle",
+            description: "Créez des factures en quelques clics, envoyez-les par courriel et suivez les paiements en temps réel."
           },
           {
             icon: "PieChart",
-            title: "Rapports inclus pour tous",
-            description: "Exports PDF et Excel inclus dans tous les plans, même le gratuit. Visualisez vos revenus, dépenses et taxes."
+            title: "Rapports clairs",
+            description: "Visualisez vos revenus et taxes en un coup d'œil. Exports PDF et Excel inclus dans tous les plans."
           },
           {
-            icon: "Shield",
-            title: "Sécurisé et fiable",
-            description: "Vos données sont protégées avec un chiffrement de niveau bancaire. Accès sécurisé depuis n'importe où."
+            icon: "CreditCard",
+            title: "Paiements en ligne",
+            description: "Vos clients paient directement depuis leurs factures via Stripe. Moins de retards, plus de trésorerie."
           }
         ]
       },
@@ -188,65 +188,62 @@ const Index = () => {
         steps: [
           {
             number: "1",
-            title: "Créez votre compte",
-            description: "Inscription gratuite en 30 secondes. Aucune carte de crédit requise."
+            title: "Ajoutez vos entreprises et clients",
+            description: "Configurez vos entreprises avec leurs taxes et logo. Importez ou ajoutez vos clients."
           },
           {
             number: "2",
-            title: "Configurez votre entreprise",
-            description: "Ajoutez vos informations, vos taxes et votre logo. Personnalisez vos factures."
+            title: "Créez vos factures et suivez vos dépenses",
+            description: "Facturez en quelques clics, envoyez par courriel et enregistrez vos dépenses."
           },
           {
             number: "3",
-            title: "Gérez et facturez",
-            description: "Ajoutez vos clients, créez vos factures et recevez vos paiements."
+            title: "Consultez vos rapports et recevez vos paiements",
+            description: "Visualisez vos revenus et taxes. Vos clients paient en ligne, vous êtes payé plus vite."
           }
         ]
       },
       pricing: {
         title: "Des forfaits adaptés à chaque besoin",
-        subtitle: "Commencez gratuitement, évoluez quand vous êtes prêt",
+        subtitle: "Plan gratuit disponible • La plupart des entreprises choisissent Premium",
         free: {
           name: "Gratuit",
           price: "0$",
           period: "/mois",
-          description: "Idéal pour débuter",
+          description: "Pour commencer",
           features: [
             "1 entreprise",
-            "3 clients",
-            "5 factures/mois",
-            "5 dépenses/mois",
-            "Rapport de revenus",
-            "Export PDF et Excel"
+            "10 clients",
+            "15 factures/mois",
+            "10 dépenses/mois",
+            "Rapport de revenus"
           ]
         },
         premium: {
           name: "Premium",
-          price: "14,99$",
+          price: "19,99$",
           period: "/mois",
-          description: "Pour les entreprises en croissance",
-          popular: "Populaire",
+          description: "Le choix idéal pour petites entreprises",
+          popular: "Recommandé",
           features: [
-            "Clients illimités",
-            "Factures illimitées",
-            "Téléchargement PDF",
-            "Modèle moderne",
+            "1% de frais Stripe (au lieu de 2%)",
+            "Téléchargement PDF des factures",
+            "Rapports : Revenus + Taxes",
             "Gestion des catégories",
-            "Rapport des taxes"
+            "Modèle de facture moderne"
           ]
         },
         pro: {
           name: "Pro",
-          price: "24,99$",
+          price: "34,99$",
           period: "/mois",
-          description: "Pour les professionnels exigeants",
+          description: "Pour agences et multi-entreprises",
           features: [
             "Entreprises illimitées",
-            "Dépenses illimitées",
             "Tous les rapports",
-            "Tous les modèles",
-            "Personnalisation courriels",
-            "Frais Stripe réduits"
+            "Tous les modèles de factures",
+            "Personnalisation des courriels",
+            "0,5% de frais Stripe"
           ]
         },
         cta: "Voir tous les forfaits"
@@ -280,15 +277,15 @@ const Index = () => {
         items: [
           {
             question: "Puis-je vraiment gérer plusieurs entreprises?",
-            answer: "Oui! GestionFlow vous permet de créer et gérer plusieurs entreprises avec des paramètres distincts pour chacune (taxes, numérotation, logo). Toutes vos données sont accessibles depuis un seul compte avec une navigation rapide entre les entreprises."
+            answer: "Oui! Avec le plan Pro, vous pouvez créer et gérer plusieurs entreprises avec des paramètres distincts pour chacune (taxes, numérotation, logo). Toutes vos données sont accessibles depuis un seul compte."
           },
           {
             question: "Le plan gratuit est-il vraiment gratuit?",
-            answer: "Absolument. Le plan gratuit inclut 1 entreprise, 3 clients, 5 factures et 5 dépenses par mois, ainsi que le rapport de revenus et les exports PDF/Excel. Aucune carte de crédit n'est requise pour commencer."
+            answer: "Absolument. Le plan gratuit inclut 1 entreprise, 10 clients, 15 factures et 10 dépenses par mois, ainsi que le rapport de revenus. Aucune carte de crédit n'est requise pour commencer."
           },
           {
             question: "Comment fonctionnent les paiements Stripe?",
-            answer: "Vous avez deux options : connecter votre compte Stripe existant ou créer un nouveau compte Stripe Connect directement depuis GestionFlow en quelques clics. Une fois configuré, vos clients peuvent payer directement depuis leurs factures. Les paiements sont sécurisés et vous pouvez suivre le statut en temps réel."
+            answer: "Vous avez deux options : connecter votre compte Stripe existant ou créer un nouveau compte Stripe Connect directement depuis GestionFlow en quelques clics. Une fois configuré, vos clients peuvent payer directement depuis leurs factures."
           },
           {
             question: "Mes données sont-elles sécurisées?",
@@ -296,15 +293,15 @@ const Index = () => {
           },
           {
             question: "Puis-je annuler mon abonnement à tout moment?",
-            answer: "Oui, vous pouvez annuler votre abonnement à tout moment. Il n'y a pas de frais cachés ni d'engagement à long terme. Vous conservez l'accès jusqu'à la fin de votre période de facturation."
+            answer: "Oui, vous pouvez annuler votre abonnement à tout moment. Il n'y a pas de frais cachés ni d'engagement. Vous conservez l'accès jusqu'à la fin de votre période de facturation."
           }
         ]
       },
       cta: {
         title: "Prêt à simplifier votre gestion?",
-        subtitle: "Rejoignez des centaines d'entrepreneurs qui font confiance à GestionFlow pour gérer leur entreprise.",
+        subtitle: "Rejoignez des centaines d'entrepreneurs qui font confiance à GestionFlow.",
         button: "Créer mon compte gratuit",
-        noCard: "Aucune carte de crédit requise • Configuration en 2 minutes"
+        noCard: "Plan gratuit disponible • Pas de carte requise"
       },
       footer: {
         description: "La solution complète de gestion d'entreprise pour les travailleurs autonomes, consultants et PME.",
@@ -329,12 +326,12 @@ const Index = () => {
       },
       hero: {
         badge: "Business Management Software",
-        title: "Manage all your companies",
-        titleHighlight: "in one account",
-        subtitle: "GestionFlow is business management software designed for freelancers, consultants, and SMBs. Invoices, clients, expenses, payments, reports, and time tracking — everything is centralized in a modern, intuitive interface.",
+        title: "Manage your business",
+        titleHighlight: "simply and efficiently",
+        subtitle: "GestionFlow is the all-in-one management software for freelancers, consultants, and SMBs. Invoices, clients, expenses, payments, and reports — everything is centralized to save you time.",
         cta: "Get Started Free",
-        ctaSecondary: "See Features",
-        noCard: "No credit card required"
+        ctaSecondary: "View Pricing",
+        noCard: "Free plan available • No credit card required"
       },
       socialProof: {
         companies: "companies managed",
@@ -343,27 +340,27 @@ const Index = () => {
       },
       benefits: {
         title: "Why choose GestionFlow?",
-        subtitle: "A solution built for the real needs of entrepreneurs and SMBs",
+        subtitle: "A solution built for the real needs of entrepreneurs",
         items: [
           {
             icon: "Building2",
-            title: "Multi-company included",
-            description: "Manage multiple businesses from a single account. Taxes, numbering, and data kept separate but accessible in one click."
+            title: "Multi-company management",
+            description: "Manage multiple businesses from a single account. Perfect for consultants and agencies with multiple activities."
           },
           {
-            icon: "Zap",
-            title: "Simple and fast",
-            description: "Modern, intuitive interface. Create an invoice in under 30 seconds, no training required."
+            icon: "FileText",
+            title: "Professional invoicing",
+            description: "Create invoices in a few clicks, send them by email, and track payments in real time."
           },
           {
             icon: "PieChart",
-            title: "Reports included for all",
-            description: "PDF and Excel exports included in all plans, even free. View your revenue, expenses, and taxes."
+            title: "Clear reports",
+            description: "View your revenue and taxes at a glance. PDF and Excel exports included in all plans."
           },
           {
-            icon: "Shield",
-            title: "Secure and reliable",
-            description: "Your data is protected with bank-level encryption. Secure access from anywhere."
+            icon: "CreditCard",
+            title: "Online payments",
+            description: "Your clients pay directly from their invoices via Stripe. Fewer delays, better cash flow."
           }
         ]
       },
@@ -433,65 +430,62 @@ const Index = () => {
         steps: [
           {
             number: "1",
-            title: "Create your account",
-            description: "Free sign-up in 30 seconds. No credit card required."
+            title: "Add your companies and clients",
+            description: "Set up your companies with their taxes and logo. Import or add your clients."
           },
           {
             number: "2",
-            title: "Set up your company",
-            description: "Add your information, taxes, and logo. Customize your invoices."
+            title: "Create invoices and track expenses",
+            description: "Invoice in a few clicks, send by email, and record your expenses."
           },
           {
             number: "3",
-            title: "Manage and invoice",
-            description: "Add your clients, create invoices, and receive payments."
+            title: "View reports and get paid",
+            description: "Visualize your revenue and taxes. Your clients pay online, you get paid faster."
           }
         ]
       },
       pricing: {
         title: "Plans that fit every need",
-        subtitle: "Start free, upgrade when you're ready",
+        subtitle: "Free plan available • Most businesses choose Premium",
         free: {
           name: "Free",
           price: "$0",
           period: "/month",
-          description: "Perfect to get started",
+          description: "To get started",
           features: [
             "1 company",
-            "3 clients",
-            "5 invoices/month",
-            "5 expenses/month",
-            "Revenue report",
-            "PDF and Excel export"
+            "10 clients",
+            "15 invoices/month",
+            "10 expenses/month",
+            "Revenue report"
           ]
         },
         premium: {
           name: "Premium",
-          price: "$14.99",
+          price: "$19.99",
           period: "/month",
-          popular: "Popular",
-          description: "For growing businesses",
+          popular: "Recommended",
+          description: "The smart choice for small businesses",
           features: [
-            "Unlimited clients",
-            "Unlimited invoices",
-            "PDF download",
-            "Modern template",
+            "1% Stripe fee (instead of 2%)",
+            "Invoice PDF download",
+            "Reports: Revenue + Tax",
             "Category management",
-            "Tax reports"
+            "Modern invoice template"
           ]
         },
         pro: {
           name: "Pro",
-          price: "$24.99",
+          price: "$34.99",
           period: "/month",
-          description: "For demanding professionals",
+          description: "For agencies and multi-company",
           features: [
             "Unlimited companies",
-            "Unlimited expenses",
             "All reports",
-            "All templates",
-            "Email customization",
-            "Reduced Stripe fees"
+            "All invoice templates",
+            "Custom email templates",
+            "0.5% Stripe fee"
           ]
         },
         cta: "View all plans"
@@ -525,15 +519,15 @@ const Index = () => {
         items: [
           {
             question: "Can I really manage multiple companies?",
-            answer: "Yes! GestionFlow lets you create and manage multiple companies with distinct settings for each (taxes, numbering, logo). All your data is accessible from a single account with quick navigation between companies."
+            answer: "Yes! With the Pro plan, you can create and manage multiple companies with distinct settings for each (taxes, numbering, logo). All your data is accessible from a single account."
           },
           {
             question: "Is the free plan really free?",
-            answer: "Absolutely. The free plan includes 1 company, 3 clients, 5 invoices and 5 expenses per month, plus the revenue report and PDF/Excel exports. No credit card required to get started."
+            answer: "Absolutely. The free plan includes 1 company, 10 clients, 15 invoices and 10 expenses per month, plus the revenue report. No credit card required to get started."
           },
           {
             question: "How do Stripe payments work?",
-            answer: "You have two options: connect your existing Stripe account or create a new Stripe Connect account directly from GestionFlow in just a few clicks. Once set up, your clients can pay directly from their invoices. Payments are secure and you can track the status in real time."
+            answer: "You have two options: connect your existing Stripe account or create a new Stripe Connect account directly from GestionFlow in just a few clicks. Once set up, your clients can pay directly from their invoices."
           },
           {
             question: "Is my data secure?",
@@ -541,15 +535,15 @@ const Index = () => {
           },
           {
             question: "Can I cancel my subscription anytime?",
-            answer: "Yes, you can cancel your subscription at any time. There are no hidden fees or long-term commitments. You keep access until the end of your billing period."
+            answer: "Yes, you can cancel your subscription at any time. There are no hidden fees or commitments. You keep access until the end of your billing period."
           }
         ]
       },
       cta: {
         title: "Ready to simplify your management?",
-        subtitle: "Join hundreds of entrepreneurs who trust GestionFlow to manage their business.",
+        subtitle: "Join hundreds of entrepreneurs who trust GestionFlow.",
         button: "Create my free account",
-        noCard: "No credit card required • 2-minute setup"
+        noCard: "Free plan available • No credit card required"
       },
       footer: {
         description: "The complete business management solution for freelancers, consultants, and SMBs.",
@@ -843,7 +837,7 @@ const Index = () => {
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button
-              onClick={() => scrollToSection('features')}
+              onClick={() => navigate('/pricing')}
               variant="outline"
               size="lg"
               className="text-lg px-8 py-6"
