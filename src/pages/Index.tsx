@@ -1067,7 +1067,7 @@ const Index = () => {
               <img 
                 src={currentLogo} 
                 alt="GestionFlow" 
-                className="h-10 mb-4"
+                className="h-20 mb-4"
                 loading="lazy"
               />
               <p className="text-muted-foreground max-w-md">

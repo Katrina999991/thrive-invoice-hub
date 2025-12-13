@@ -642,7 +642,7 @@ const PublicPricing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <img src={footerLogo} alt="GestionFlow Logo" className="h-8 w-auto" />
+              <img src={footerLogo} alt="GestionFlow Logo" className="h-16 w-auto" />
             </div>
             <p className="text-sm text-background/70">
               © {new Date().getFullYear()} GestionFlow. {t.footer.rights}
