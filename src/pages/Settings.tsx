@@ -45,12 +45,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCompanies } from "@/hooks/useCompanies";
 import { z } from "zod";
 import { ContactForm } from "@/components/ContactForm";
+import { useEncryption } from "@/hooks/useEncryption";
 
 export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const { canUseFeature, planLimits } = useSubscription();
+  const { encryptFields, decryptFields } = useEncryption();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
@@ -144,14 +146,20 @@ export default function Settings() {
           .maybeSingle();
 
         if (error) throw error;
-        if (data?.username) {
-          setUsername(data.username);
-        }
-        if (data?.recovery_email) {
-          setRecoveryEmail(data.recovery_email);
-        }
-        if (data?.phone_number) {
-          setPhoneNumber(data.phone_number);
+        
+        if (data) {
+          // Decrypt sensitive fields
+          const decryptedData = await decryptFields('profiles', data);
+          
+          if (decryptedData.username) {
+            setUsername(decryptedData.username);
+          }
+          if (decryptedData.recovery_email) {
+            setRecoveryEmail(decryptedData.recovery_email);
+          }
+          if (decryptedData.phone_number) {
+            setPhoneNumber(decryptedData.phone_number);
+          }
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
@@ -397,9 +405,13 @@ Cordialement,
     
     setIsSavingRecoveryEmail(true);
     try {
+      // Encrypt recovery email before saving
+      const dataToSave = { recovery_email: recoveryEmail.trim() || null };
+      const encryptedData = await encryptFields('profiles', dataToSave);
+      
       const { error } = await supabase
         .from("profiles")
-        .update({ recovery_email: recoveryEmail.trim() || null })
+        .update({ recovery_email: encryptedData.recovery_email })
         .eq("user_id", user.id);
 
       if (error) throw error;
@@ -541,9 +553,13 @@ Cordialement,
     
     setIsSavingPhone(true);
     try {
+      // Encrypt phone number before saving
+      const dataToSave = { phone_number: phoneNumber.trim() || null };
+      const encryptedData = await encryptFields('profiles', dataToSave);
+      
       const { error } = await supabase
         .from("profiles")
-        .update({ phone_number: phoneNumber.trim() || null })
+        .update({ phone_number: encryptedData.phone_number })
         .eq("user_id", user.id);
 
       if (error) throw error;
