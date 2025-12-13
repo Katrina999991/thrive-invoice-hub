@@ -6,11 +6,11 @@ import { useNavigate } from "react-router-dom";
 import { 
   Building2, Users, Package, FileText, Bell, CreditCard, 
   Receipt, Clock, BarChart3, Settings, Check,
-  ArrowRight, Globe, Menu, X
+  ArrowRight
 } from "lucide-react";
-import { useState } from "react";
 import logoLight from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
+import PublicNavigation from "@/components/PublicNavigation";
 
 const translations = {
   fr: {
@@ -412,9 +412,8 @@ const translations = {
 const featureIcons = [Building2, Users, Package, FileText, Bell, CreditCard, Receipt, Clock, BarChart3, Settings];
 
 const Software = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const t = translations[language];
 
@@ -427,129 +426,9 @@ const Software = () => {
       : "Simple, complete and multi-business management software. Manage clients, invoicing, expenses and time."
   });
 
-  const isDark = document.documentElement.classList.contains('dark');
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button onClick={() => navigate('/')} className="flex items-center gap-2">
-              <img 
-                src={isDark ? logoDark : logoLight} 
-                alt="GestionFlow" 
-                className="h-10 md:h-12 w-auto"
-              />
-            </button>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <button 
-                onClick={() => navigate('/')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.home}
-              </button>
-              <button 
-                onClick={() => navigate('/software')} 
-                className="text-primary font-medium"
-              >
-                {t.nav.software}
-              </button>
-              <button 
-                onClick={() => navigate('/pricing')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.pricing}
-              </button>
-              <button 
-                onClick={() => navigate('/comparison')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.comparison}
-              </button>
-            </nav>
-
-            <div className="hidden md:flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-muted-foreground" />
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as 'fr' | 'en')}
-                  className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
-                >
-                  <option value="fr">FR</option>
-                  <option value="en">EN</option>
-                </select>
-              </div>
-              <Button variant="ghost" onClick={() => navigate('/auth')}>
-                {t.nav.login}
-              </Button>
-              <Button onClick={() => navigate('/auth')}>
-                {t.nav.freeTrial}
-              </Button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 flex flex-col gap-4">
-              <button 
-                onClick={() => { navigate('/'); setMobileMenuOpen(false); }} 
-                className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-              >
-                {t.nav.home}
-              </button>
-              <button 
-                onClick={() => setMobileMenuOpen(false)} 
-                className="text-primary font-medium text-left px-2"
-              >
-                {t.nav.software}
-              </button>
-              <button 
-                onClick={() => { navigate('/pricing'); setMobileMenuOpen(false); }} 
-                className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-              >
-                {t.nav.pricing}
-              </button>
-              <button 
-                onClick={() => { navigate('/comparison'); setMobileMenuOpen(false); }} 
-                className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-              >
-                {t.nav.comparison}
-              </button>
-              <div className="flex items-center gap-2 px-2 pt-2 border-t border-border">
-                <Globe className="h-4 w-4 text-muted-foreground" />
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as 'fr' | 'en')}
-                  className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
-                >
-                  <option value="fr">FR</option>
-                  <option value="en">EN</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-2 px-2">
-                <Button variant="ghost" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }}>
-                  {t.nav.login}
-                </Button>
-                <Button onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }}>
-                  {t.nav.freeTrial}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
+      <PublicNavigation />
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4">
