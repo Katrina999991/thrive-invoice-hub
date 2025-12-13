@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useEncryption } from "@/hooks/useEncryption";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Client = Tables<"clients"> & {
@@ -17,6 +18,7 @@ export const useClients = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { encryptFields, decryptArray } = useEncryption();
 
   const fetchClients = async () => {
     if (!user) return;
@@ -34,7 +36,10 @@ export const useClients = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setClients(data || []);
+      
+      // Decrypt sensitive fields
+      const decryptedClients = await decryptArray('clients', data || []);
+      setClients(decryptedClients);
     } catch (error) {
       console.error("Error fetching clients:", error);
       toast({
@@ -78,9 +83,12 @@ export const useClients = () => {
     }
 
     try {
+      // Encrypt sensitive fields before saving
+      const encryptedData = await encryptFields('clients', clientData as Record<string, any>);
+      
       const { data, error } = await supabase
         .from("clients")
-        .insert({ ...clientData, user_id: user.id })
+        .insert({ ...clientData, ...encryptedData, user_id: user.id } as ClientInsert)
         .select()
         .single();
 
@@ -107,9 +115,12 @@ export const useClients = () => {
 
   const updateClient = async (id: string, updates: ClientUpdate) => {
     try {
+      // Encrypt sensitive fields before updating
+      const encryptedUpdates = await encryptFields('clients', updates as Record<string, any>);
+      
       const { error } = await supabase
         .from("clients")
-        .update(updates)
+        .update(encryptedUpdates)
         .eq("id", id);
 
       if (error) throw error;
