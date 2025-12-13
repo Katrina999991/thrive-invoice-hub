@@ -15,7 +15,8 @@ import {
   Building2,
   ArrowDown,
   Database,
-  AlertCircle
+  AlertCircle,
+  Globe
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -380,84 +381,122 @@ const PublicPricing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
-              <img src={currentLogo} alt="GestionFlow Logo" className="h-10 w-auto" />
-            </div>
-            
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <button onClick={() => navigate('/')} className="flex items-center gap-2">
+              <img 
+                src={currentLogo} 
+                alt="GestionFlow" 
+                className="h-10 md:h-12 w-auto"
+              />
+            </button>
+
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">
+            <nav className="hidden md:flex items-center gap-8">
+              <button 
+                onClick={() => navigate('/')} 
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
                 {t.nav.home}
               </button>
-              <button onClick={() => navigate("/software")} className="text-muted-foreground hover:text-foreground transition-colors">
+              <button 
+                onClick={() => navigate('/software')} 
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
                 {t.nav.software}
               </button>
-              <button className="text-foreground font-medium">
+              <button 
+                className="text-primary font-medium"
+              >
                 {t.nav.pricing}
               </button>
-              <button onClick={() => navigate("/software#comparison")} className="text-muted-foreground hover:text-foreground transition-colors">
+              <button 
+                onClick={() => navigate('/comparison')} 
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
                 {t.nav.comparison}
               </button>
-              <button 
-                onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}
-                className="px-3 py-1 rounded-md bg-muted text-muted-foreground hover:bg-accent transition-colors text-sm font-medium"
-              >
-                {language === 'fr' ? 'EN' : 'FR'}
-              </button>
-              <Button variant="ghost" onClick={() => navigate("/auth")}>
+            </nav>
+
+            <div className="hidden md:flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'fr' | 'en')}
+                  className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
+                >
+                  <option value="fr">FR</option>
+                  <option value="en">EN</option>
+                </select>
+              </div>
+              <Button variant="ghost" onClick={() => navigate('/auth')}>
                 {t.nav.login}
               </Button>
-              <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90">
+              <Button onClick={() => navigate('/auth')}>
                 {t.nav.getStarted}
               </Button>
             </div>
 
-            {/* Mobile menu button */}
-            <div className="md:hidden flex items-center gap-2">
-              <button 
-                onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}
-                className="px-3 py-1 rounded-md bg-muted text-muted-foreground text-sm font-medium"
-              >
-                {language === 'fr' ? 'EN' : 'FR'}
-              </button>
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
-        </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-background border-b border-border">
-            <div className="px-4 py-4 space-y-4">
-              <button onClick={() => { navigate("/"); setMobileMenuOpen(false); }} className="block w-full text-left text-muted-foreground hover:text-foreground">
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 flex flex-col gap-4">
+              <button 
+                onClick={() => { navigate('/'); setMobileMenuOpen(false); }} 
+                className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
+              >
                 {t.nav.home}
               </button>
-              <button onClick={() => { navigate("/software"); setMobileMenuOpen(false); }} className="block w-full text-left text-muted-foreground hover:text-foreground">
+              <button 
+                onClick={() => { navigate('/software'); setMobileMenuOpen(false); }} 
+                className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
+              >
                 {t.nav.software}
               </button>
-              <button className="block w-full text-left text-foreground font-medium">
+              <button 
+                className="text-primary font-medium text-left px-2"
+              >
                 {t.nav.pricing}
               </button>
-              <button onClick={() => { navigate("/software#comparison"); setMobileMenuOpen(false); }} className="block w-full text-left text-muted-foreground hover:text-foreground">
+              <button 
+                onClick={() => { navigate('/comparison'); setMobileMenuOpen(false); }} 
+                className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
+              >
                 {t.nav.comparison}
               </button>
-              <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full" onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}>
+              <div className="flex items-center gap-2 px-2">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'fr' | 'en')}
+                  className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
+                >
+                  <option value="fr">FR</option>
+                  <option value="en">EN</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2 px-2 pt-2">
+                <Button variant="outline" className="w-full" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }}>
                   {t.nav.login}
                 </Button>
-                <Button className="w-full" onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}>
+                <Button className="w-full" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }}>
                   {t.nav.getStarted}
                 </Button>
               </div>
             </div>
-          </div>
-        )}
-      </nav>
+          )}
+        </div>
+      </header>
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
