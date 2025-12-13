@@ -188,7 +188,7 @@ const Index = () => {
           {
             number: "1",
             title: "Ajoutez vos entreprises et clients",
-            description: "Configurez vos entreprises avec leurs taxes et logo. Importez ou ajoutez vos clients."
+            description: "Configurez vos entreprises avec leurs taxes et logo, puis ajoutez vos clients."
           },
           {
             number: "2",
@@ -430,7 +430,7 @@ const Index = () => {
           {
             number: "1",
             title: "Add your companies and clients",
-            description: "Set up your companies with their taxes and logo. Import or add your clients."
+            description: "Set up your companies with their taxes and logo, then add your clients."
           },
           {
             number: "2",
