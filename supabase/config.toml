@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.encrypt-decrypt]
 verify_jwt = false
+
+[functions.migrate-encryption]
+verify_jwt = false
