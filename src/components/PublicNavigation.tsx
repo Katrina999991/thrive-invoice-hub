@@ -88,7 +88,7 @@ const PublicNavigation = ({ onScrollToSection }: PublicNavigationProps) => {
             <img 
               src={currentLogo} 
               alt="GestionFlow" 
-              className="h-10 md:h-12 cursor-pointer"
+              className="h-20 md:h-24 cursor-pointer"
               onClick={handleLogoClick}
             />
           </div>
