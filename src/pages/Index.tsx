@@ -11,8 +11,6 @@ import {
   Globe, 
   CreditCard, 
   Clock, 
-  Menu, 
-  X,
   Building2,
   Receipt,
   Bell,
@@ -37,6 +35,7 @@ import reportsPreview from "@/assets/dashboard-preview-reports.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import { useSEO } from "@/hooks/useSEO";
+import PublicNavigation from "@/components/PublicNavigation";
 import {
   Accordion,
   AccordionContent,
@@ -622,14 +621,11 @@ const Index = () => {
     }
   });
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-    setMobileMenuOpen(false);
   };
 
   const getIcon = (iconName: string, className: string): React.ReactNode => {
@@ -652,159 +648,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <img 
-                src={currentLogo} 
-                alt="GestionFlow" 
-                className="h-10 md:h-12 cursor-pointer"
-                onClick={() => scrollToSection('hero')}
-              />
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <button 
-                onClick={() => scrollToSection('hero')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.home}
-              </button>
-              <button 
-                onClick={() => navigate('/software')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.software}
-              </button>
-              <button 
-                onClick={() => navigate('/pricing')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.pricing}
-              </button>
-              <button 
-                onClick={() => navigate('/comparison')} 
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {t.nav.comparison}
-              </button>
-            </nav>
-
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-3">
-              {/* Language Selector */}
-              <div className="flex items-center gap-1 border border-border rounded-lg p-1">
-                <Globe className="h-4 w-4 text-muted-foreground ml-1" />
-                <Button
-                  variant={currentLang === "FR" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setLanguage("fr")}
-                  className="h-7 px-2 text-xs"
-                >
-                  FR
-                </Button>
-                <Button
-                  variant={currentLang === "EN" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setLanguage("en")}
-                  className="h-7 px-2 text-xs"
-                >
-                  EN
-                </Button>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/auth")}
-              >
-                {t.nav.login}
-              </Button>
-              <Button
-                onClick={() => navigate("/auth")}
-              >
-                {t.nav.getStarted}
-              </Button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-border py-4">
-              <nav className="flex flex-col gap-4">
-                <button 
-                  onClick={() => { scrollToSection('hero'); setMobileMenuOpen(false); }} 
-                  className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-                >
-                  {t.nav.home}
-                </button>
-                <button 
-                  onClick={() => { navigate('/software'); setMobileMenuOpen(false); }} 
-                  className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-                >
-                  {t.nav.software}
-                </button>
-                <button 
-                  onClick={() => { navigate('/pricing'); setMobileMenuOpen(false); }} 
-                  className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-                >
-                  {t.nav.pricing}
-                </button>
-                <button 
-                  onClick={() => { navigate('/comparison'); setMobileMenuOpen(false); }} 
-                  className="text-foreground hover:text-primary transition-colors font-medium text-left px-2"
-                >
-                  {t.nav.comparison}
-                </button>
-                <div className="flex items-center gap-2 px-2 pt-2 border-t border-border">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <Button
-                    variant={currentLang === "FR" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setLanguage("fr")}
-                    className="h-8 px-3"
-                  >
-                    FR
-                  </Button>
-                  <Button
-                    variant={currentLang === "EN" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setLanguage("en")}
-                    className="h-8 px-3"
-                  >
-                    EN
-                  </Button>
-                </div>
-                <div className="flex flex-col gap-2 px-2 pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}
-                    className="w-full"
-                  >
-                    {t.nav.login}
-                  </Button>
-                  <Button
-                    onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}
-                    className="w-full"
-                  >
-                    {t.nav.getStarted}
-                  </Button>
-                </div>
-              </nav>
-            </div>
-          )}
-        </div>
-      </header>
+      <PublicNavigation onScrollToSection={scrollToSection} />
 
       {/* Hero Section */}
       <section id="hero" className="container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-24">
