@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Fields that should be encrypted for each table
 export const ENCRYPTED_FIELDS = {
   clients: ['email', 'phone'],
-  profiles: ['phone_number', 'recovery_email', 'stripe_account_id'],
+  profiles: ['phone_number', 'recovery_email'],
 } as const;
 
 type TableName = keyof typeof ENCRYPTED_FIELDS;

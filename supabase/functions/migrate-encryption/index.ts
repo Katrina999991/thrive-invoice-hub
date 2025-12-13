@@ -103,11 +103,11 @@ serve(async (req) => {
       }
     }
 
-    // Migrate ALL profiles
+    // Migrate ALL profiles (phone_number and recovery_email only, not stripe_account_id)
     logStep("Fetching all profiles...");
     const { data: profiles, error: profilesError } = await supabaseClient
       .from("profiles")
-      .select("id, phone_number, recovery_email, stripe_account_id");
+      .select("id, phone_number, recovery_email");
 
     if (profilesError) {
       logStep("Error fetching profiles", { error: profilesError.message });
@@ -126,11 +126,6 @@ serve(async (req) => {
           
           if (profile.recovery_email && !profile.recovery_email.startsWith("ENC:")) {
             updates.recovery_email = encryptData(profile.recovery_email, encryptionKey);
-            needsUpdate = true;
-          }
-          
-          if (profile.stripe_account_id && !profile.stripe_account_id.startsWith("ENC:")) {
-            updates.stripe_account_id = encryptData(profile.stripe_account_id, encryptionKey);
             needsUpdate = true;
           }
           
