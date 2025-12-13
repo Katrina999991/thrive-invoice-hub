@@ -97,25 +97,25 @@ const PublicNavigation = ({ onScrollToSection }: PublicNavigationProps) => {
           <nav className="hidden md:flex items-center gap-6">
             <button 
               onClick={handleHomeClick} 
-              className={`transition-colors font-medium ${isActive('/') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              className={`transition-colors font-medium relative ${isActive('/') ? 'text-primary after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full' : 'text-foreground hover:text-primary'}`}
             >
               {t.home}
             </button>
             <button 
               onClick={() => navigate('/software')} 
-              className={`transition-colors font-medium ${isActive('/software') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              className={`transition-colors font-medium relative ${isActive('/software') ? 'text-primary after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full' : 'text-foreground hover:text-primary'}`}
             >
               {t.software}
             </button>
             <button 
               onClick={() => navigate('/pricing')} 
-              className={`transition-colors font-medium ${isActive('/pricing') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              className={`transition-colors font-medium relative ${isActive('/pricing') ? 'text-primary after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full' : 'text-foreground hover:text-primary'}`}
             >
               {t.pricing}
             </button>
             <button 
               onClick={() => navigate('/comparison')} 
-              className={`transition-colors font-medium ${isActive('/comparison') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              className={`transition-colors font-medium relative ${isActive('/comparison') ? 'text-primary after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full' : 'text-foreground hover:text-primary'}`}
             >
               {t.comparison}
             </button>
