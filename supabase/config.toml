@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.send-overdue-reminders]
 verify_jwt = false
+
+[functions.encrypt-decrypt]
+verify_jwt = false

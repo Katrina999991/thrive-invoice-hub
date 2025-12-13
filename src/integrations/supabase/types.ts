@@ -865,6 +865,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrypt_sensitive: { Args: { ciphertext: string }; Returns: string }
+      encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
       get_user_plan_limits: {
         Args: { user_uuid: string }
@@ -883,6 +885,7 @@ export type Database = {
           plan_type: Database["public"]["Enums"]["subscription_plan"]
         }[]
       }
+      is_encrypted: { Args: { data: string }; Returns: boolean }
       reset_monthly_usage: { Args: never; Returns: undefined }
     }
     Enums: {
