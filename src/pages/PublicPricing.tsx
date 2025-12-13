@@ -398,6 +398,9 @@ const PublicPricing = () => {
               <button className="text-foreground font-medium">
                 {t.nav.pricing}
               </button>
+              <button onClick={() => navigate("/software#comparison")} className="text-muted-foreground hover:text-foreground transition-colors">
+                {t.nav.comparison}
+              </button>
               <button 
                 onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}
                 className="px-3 py-1 rounded-md bg-muted text-muted-foreground hover:bg-accent transition-colors text-sm font-medium"
@@ -439,6 +442,9 @@ const PublicPricing = () => {
               </button>
               <button className="block w-full text-left text-foreground font-medium">
                 {t.nav.pricing}
+              </button>
+              <button onClick={() => { navigate("/software#comparison"); setMobileMenuOpen(false); }} className="block w-full text-left text-muted-foreground hover:text-foreground">
+                {t.nav.comparison}
               </button>
               <div className="pt-4 space-y-2">
                 <Button variant="outline" className="w-full" onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}>
