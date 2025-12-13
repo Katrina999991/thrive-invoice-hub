@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, Shield } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle } from "lucide-react";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
@@ -68,7 +68,6 @@ export default function Settings() {
   const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isMigratingEncryption, setIsMigratingEncryption] = useState(false);
   const [recoveryEmailError, setRecoveryEmailError] = useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
   const [newPrimaryEmailError, setNewPrimaryEmailError] = useState<string>("");
@@ -644,33 +643,6 @@ Cordialement,
       });
     } finally {
       setIsSavingNumbering(false);
-    }
-  };
-
-  const handleMigrateEncryption = async () => {
-    setIsMigratingEncryption(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('migrate-encryption', {
-        body: {},
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: language === "fr" ? "Migration terminée" : "Migration completed",
-        description: language === "fr" 
-          ? `Clients: ${data.results.clients.encrypted} chiffrés, ${data.results.clients.skipped} déjà chiffrés. Profils: ${data.results.profiles.encrypted} chiffrés.`
-          : `Clients: ${data.results.clients.encrypted} encrypted, ${data.results.clients.skipped} already encrypted. Profiles: ${data.results.profiles.encrypted} encrypted.`,
-      });
-    } catch (error: any) {
-      console.error("Error migrating encryption:", error);
-      toast({
-        title: language === "fr" ? "Erreur" : "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsMigratingEncryption(false);
     }
   };
 
@@ -1879,46 +1851,6 @@ Cordialement,
           </CardContent>
         </Card>
 
-        {/* Data Encryption Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              {language === "fr" ? "Chiffrement des données" : "Data Encryption"}
-            </CardTitle>
-            <CardDescription>
-              {language === "fr" 
-                ? "Chiffrer les données sensibles existantes (emails, téléphones) pour une protection renforcée."
-                : "Encrypt existing sensitive data (emails, phones) for enhanced protection."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <p className="text-sm text-muted-foreground mb-3">
-                {language === "fr" 
-                  ? "Cette action chiffrera toutes les données sensibles non encore chiffrées dans vos clients et votre profil. Les nouvelles données sont automatiquement chiffrées."
-                  : "This action will encrypt all sensitive data not yet encrypted in your clients and profile. New data is automatically encrypted."}
-              </p>
-              <Button 
-                onClick={handleMigrateEncryption} 
-                disabled={isMigratingEncryption}
-                variant="outline"
-              >
-                {isMigratingEncryption ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {language === "fr" ? "Migration en cours..." : "Migrating..."}
-                  </>
-                ) : (
-                  <>
-                    <Shield className="mr-2 h-4 w-4" />
-                    {language === "fr" ? "Chiffrer les données existantes" : "Encrypt existing data"}
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         <PasswordChangeForm />
 

@@ -48,31 +48,18 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header");
-    }
-
-    // Verify user is authenticated
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
-    if (authError || !userData.user) {
-      throw new Error("Unauthorized");
-    }
-
-    logStep("Migration started", { userId: userData.user.id });
+    logStep("Migration started - processing ALL users");
 
     const results = {
       clients: { total: 0, encrypted: 0, skipped: 0, errors: 0 },
       profiles: { total: 0, encrypted: 0, skipped: 0, errors: 0 },
     };
 
-    // Migrate clients table
-    logStep("Fetching clients...");
+    // Migrate ALL clients
+    logStep("Fetching all clients...");
     const { data: clients, error: clientsError } = await supabaseClient
       .from("clients")
-      .select("id, email, phone")
-      .eq("user_id", userData.user.id);
+      .select("id, email, phone");
 
     if (clientsError) {
       logStep("Error fetching clients", { error: clientsError.message });
@@ -116,12 +103,11 @@ serve(async (req) => {
       }
     }
 
-    // Migrate profiles table
-    logStep("Fetching profiles...");
+    // Migrate ALL profiles
+    logStep("Fetching all profiles...");
     const { data: profiles, error: profilesError } = await supabaseClient
       .from("profiles")
-      .select("id, phone_number, recovery_email, stripe_account_id")
-      .eq("user_id", userData.user.id);
+      .select("id, phone_number, recovery_email, stripe_account_id");
 
     if (profilesError) {
       logStep("Error fetching profiles", { error: profilesError.message });
@@ -185,7 +171,7 @@ serve(async (req) => {
     logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: error instanceof Error && error.message === "Unauthorized" ? 401 : 500,
+      status: 500,
     });
   }
 });
