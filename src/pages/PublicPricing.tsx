@@ -87,8 +87,9 @@ const PublicPricing = () => {
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Le meilleur équilibre pour freelances et petites entreprises",
-          badge: "Recommandé",
+          badge: "Le plus populaire",
           yearlySavings: "Économisez environ 2 mois",
+          popularText: "Choisi par la majorité de nos utilisateurs",
           cta: "Passer à Premium",
           features: [
             { text: "1 entreprise", icon: "Building2" },
@@ -179,8 +180,9 @@ const PublicPricing = () => {
           period: "/month",
           yearlyPeriod: "/year",
           description: "The best balance for freelancers and small businesses",
-          badge: "Recommended",
+          badge: "Most Popular",
           yearlySavings: "Save about 2 months",
+          popularText: "Chosen by the majority of our users",
           cta: "Upgrade to Premium",
           features: [
             { text: "1 company", icon: "Building2" },
@@ -400,6 +402,7 @@ const PublicPricing = () => {
                   <p className="text-sm text-primary font-medium mb-2">{t.plans.premium.yearlySavings}</p>
                 )}
                 <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.premium.description}</p>
+                <p className="text-xs text-primary/80 mt-2 italic">{t.plans.premium.popularText}</p>
               </CardHeader>
               <CardContent className="pt-0">
                 <Button 
