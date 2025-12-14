@@ -9,11 +9,15 @@ import {
   Star,
   Shield,
   CreditCard,
+  HelpCircle,
+  Users,
   FileText,
-  ArrowDown,
-  Database,
-  AlertCircle,
-  Building2
+  Building2,
+  Receipt,
+  Mail,
+  BarChart3,
+  Percent,
+  Lock
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -24,6 +28,7 @@ import PublicNavigation from "@/components/PublicNavigation";
 const PublicPricing = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   
   const [isDark, setIsDark] = useState<boolean>(() => {
     return document.documentElement.classList.contains("dark");
@@ -47,141 +52,87 @@ const PublicPricing = () => {
 
   const translations = {
     FR: {
-      nav: {
-        home: "Accueil",
-        software: "Logiciel de gestion",
-        pricing: "Tarifs",
-        comparison: "Comparaison",
-        login: "Connexion",
-        getStarted: "Commencer gratuitement"
-      },
       hero: {
-        title: "Des tarifs simples et transparents",
-        subtitle: "Choisissez le plan qui correspond à vos besoins. Commencez gratuitement, évoluez à votre rythme."
+        title: "Tarifs GestionFlow",
+        subtitle: "Choisissez le plan qui correspond à votre activité"
+      },
+      billing: {
+        monthly: "Mensuel",
+        yearly: "Annuel",
+        savings: "Économisez ~2 mois"
       },
       plans: {
         free: {
           name: "Gratuit",
           price: "0 $",
+          yearlyPrice: "0 $",
           period: "/mois",
-          description: "Parfait pour découvrir GestionFlow et démarrer votre activité.",
-          targetAudience: "Idéal pour les nouveaux entrepreneurs",
+          description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
           cta: "Commencer gratuitement",
           features: [
-            "1 entreprise",
-            "10 clients",
-            "15 factures par mois",
-            "10 dépenses par mois",
-            "Envoi de factures par courriel",
-            "1 modèle de facture (Classique)",
-            "Rapport de revenus",
-            "Paiements Stripe (frais de 2%)"
+            { text: "1 entreprise", icon: "Building2" },
+            { text: "10 clients", icon: "Users" },
+            { text: "15 factures par mois", icon: "FileText" },
+            { text: "10 dépenses par mois", icon: "Receipt" },
+            { text: "Envoi de factures par courriel", icon: "Mail" },
+            { text: "1 modèle de facture (Classique – bleu)", icon: "FileText" },
+            { text: "Rapport de revenus", icon: "BarChart3" },
+            { text: "Paiements Stripe (frais de 2 %)", icon: "Percent" }
           ]
         },
         premium: {
           name: "Premium",
           price: "19,99 $",
+          yearlyPrice: "199 $",
           period: "/mois",
-          description: "L'équilibre parfait pour les freelances et consultants en croissance.",
-          targetAudience: "Recommandé pour la plupart des utilisateurs",
+          yearlyPeriod: "/an",
+          description: "Le meilleur équilibre pour freelances et petites entreprises",
           badge: "Recommandé",
+          yearlySavings: "Économisez environ 2 mois",
           cta: "Passer à Premium",
           features: [
-            "1 entreprise",
-            "50 clients",
-            "100 factures par mois",
-            "Dépenses illimitées",
-            "Téléchargement PDF des factures",
-            "2 modèles de factures (Classique + Moderne)",
-            "Gestion des catégories",
-            "Rapports : revenus + taxes",
-            "Paiements Stripe (frais de 1%)"
+            { text: "1 entreprise", icon: "Building2" },
+            { text: "Clients illimités", icon: "Users" },
+            { text: "Factures illimitées", icon: "FileText" },
+            { text: "Dépenses illimitées", icon: "Receipt" },
+            { text: "Téléchargement PDF des factures", icon: "FileText" },
+            { text: "2 modèles de factures (Classique + Moderne)", icon: "FileText" },
+            { text: "Gestion des catégories (produits, services, dépenses)", icon: "BarChart3" },
+            { text: "Rapports : revenus + taxes", icon: "BarChart3" },
+            { text: "Paiements Stripe (frais de 1 %)", icon: "Percent" }
           ]
         },
         pro: {
           name: "Pro",
           price: "34,99 $",
+          yearlyPrice: "349 $",
           period: "/mois",
-          description: "Contrôle total pour les agences et consultants multi-entreprises.",
-          targetAudience: "Pour les professionnels établis",
+          yearlyPeriod: "/an",
+          description: "Contrôle total pour entreprises en croissance et multi-entreprises",
           cta: "Passer à Pro",
           features: [
-            "Entreprises illimitées",
-            "Clients illimités",
-            "Factures illimitées",
-            "Dépenses illimitées",
-            "Tous les modèles de factures",
-            "Tous les rapports disponibles",
-            "Personnalisation complète des courriels",
-            "Paiements Stripe (frais de 0,5%)"
+            { text: "Entreprises illimitées", icon: "Building2" },
+            { text: "Clients illimités", icon: "Users" },
+            { text: "Factures illimitées", icon: "FileText" },
+            { text: "Dépenses illimitées", icon: "Receipt" },
+            { text: "Tous les modèles de factures", icon: "FileText" },
+            { text: "Tous les rapports (revenus, taxes, clients, produits, dépenses, factures)", icon: "BarChart3" },
+            { text: "Personnalisation complète des courriels", icon: "Mail" },
+            { text: "Paiements Stripe (frais de 0,5 %)", icon: "Percent" }
           ]
         }
       },
-      reassurance: {
-        title: "Aucune surprise, juste de la transparence",
+      decision: {
+        title: "Quel plan choisir ?",
         items: [
-          {
-            icon: "Shield",
-            title: "Aucun frais caché",
-            description: "Les prix affichés sont les prix finaux. Pas de surprises."
-          },
-          {
-            icon: "CreditCard",
-            title: "Annulez à tout moment",
-            description: "Pas d'engagement. Changez ou annulez votre plan quand vous voulez."
-          },
-          {
-            icon: "FileText",
-            title: "Exports inclus",
-            description: "Tous les plans incluent l'export PDF et Excel de vos rapports."
-          }
+          { condition: "Vous débutez ou testez l'outil ?", plan: "Gratuit", icon: "Zap" },
+          { condition: "Vous facturez régulièrement et voulez travailler sans limites ?", plan: "Premium", icon: "Crown" },
+          { condition: "Vous gérez plusieurs entreprises ou avez besoin de rapports avancés ?", plan: "Pro", icon: "Star" }
         ]
       },
-      faq: {
-        title: "Questions fréquentes",
-        items: [
-          {
-            question: "Puis-je changer de plan à tout moment ?",
-            answer: "Oui ! Les mises à niveau prennent effet immédiatement avec facturation au prorata. Les rétrogradations prennent effet à la fin de votre période de facturation."
-          },
-          {
-            question: "Quels modes de paiement acceptez-vous ?",
-            answer: "Nous acceptons les cartes de crédit (Visa, Mastercard, American Express) via Stripe, notre partenaire de paiement sécurisé."
-          },
-          {
-            question: "Y a-t-il un essai gratuit ?",
-            answer: "Le plan Gratuit vous permet d'essayer GestionFlow sans limite de temps. Passez à Premium quand vous êtes prêt."
-          },
-          {
-            question: "Que se passe-t-il si je dépasse les limites de mon plan ?",
-            answer: "Vous recevrez une notification vous invitant à passer au plan supérieur. Vos données restent intactes."
-          }
-        ]
-      },
-      downgrade: {
-        title: "Politique de rétrogradation de plan",
-        description: "Si vous passez à un plan inférieur (par exemple, de Pro à Premium), voici ce qui se passe :",
-        keepData: {
-          icon: "Database",
-          title: "Vos données sont conservées",
-          points: [
-            "Vous conservez toutes vos données existantes (entreprises, clients, factures, dépenses).",
-            "Vous pouvez consulter, modifier et supprimer toutes vos données à tout moment.",
-            "Aucune donnée n'est supprimée automatiquement."
-          ]
-        },
-        limits: {
-          icon: "AlertCircle",
-          title: "Limites du nouveau plan",
-          description: "Cependant, si votre compte dépasse les limites de votre nouveau plan :",
-          points: [
-            "Vous ne pourrez pas créer de nouvelles entités tant que vous n'êtes pas revenu dans les limites du plan."
-          ]
-        },
-        example: {
-          title: "Exemple",
-          text: "Si vous avez 3 entreprises avec le plan Pro et que vous passez à Premium (qui permet 1 entreprise), vous conservez vos 3 entreprises. Cependant, vous devez en supprimer 2 avant de pouvoir en créer une nouvelle."
-        }
+      trust: {
+        secure: "Tous les paiements sont traités de manière sécurisée via Stripe.",
+        cancel: "Annulez ou changez de plan à tout moment."
       },
       cta: {
         title: "Prêt à simplifier votre gestion ?",
@@ -193,141 +144,87 @@ const PublicPricing = () => {
       }
     },
     EN: {
-      nav: {
-        home: "Home",
-        software: "Management Software",
-        pricing: "Pricing",
-        comparison: "Comparison",
-        login: "Login",
-        getStarted: "Start for Free"
-      },
       hero: {
-        title: "Simple and transparent pricing",
-        subtitle: "Choose the plan that fits your needs. Start free, upgrade when you're ready."
+        title: "GestionFlow Pricing",
+        subtitle: "Choose the plan that fits your business"
+      },
+      billing: {
+        monthly: "Monthly",
+        yearly: "Yearly",
+        savings: "Save ~2 months"
       },
       plans: {
         free: {
           name: "Free",
           price: "$0",
+          yearlyPrice: "$0",
           period: "/month",
-          description: "Perfect to discover GestionFlow and start your business.",
-          targetAudience: "Ideal for new entrepreneurs",
+          description: "Ideal to discover GestionFlow and start your business",
           cta: "Get Started Free",
           features: [
-            "1 company",
-            "10 clients",
-            "15 invoices per month",
-            "10 expenses per month",
-            "Email invoice sending",
-            "1 invoice template (Classic)",
-            "Revenue report",
-            "Stripe payments (2% fee)"
+            { text: "1 company", icon: "Building2" },
+            { text: "10 clients", icon: "Users" },
+            { text: "15 invoices per month", icon: "FileText" },
+            { text: "10 expenses per month", icon: "Receipt" },
+            { text: "Email invoice sending", icon: "Mail" },
+            { text: "1 invoice template (Classic – blue)", icon: "FileText" },
+            { text: "Revenue report", icon: "BarChart3" },
+            { text: "Stripe payments (2% fee)", icon: "Percent" }
           ]
         },
         premium: {
           name: "Premium",
           price: "$19.99",
+          yearlyPrice: "$199",
           period: "/month",
-          description: "The perfect balance for growing freelancers and consultants.",
-          targetAudience: "Recommended for most users",
+          yearlyPeriod: "/year",
+          description: "The best balance for freelancers and small businesses",
           badge: "Recommended",
+          yearlySavings: "Save about 2 months",
           cta: "Upgrade to Premium",
           features: [
-            "1 company",
-            "50 clients",
-            "100 invoices per month",
-            "Unlimited expenses",
-            "Invoice PDF download",
-            "2 invoice templates (Classic + Modern)",
-            "Category management",
-            "Reports: revenue + taxes",
-            "Stripe payments (1% fee)"
+            { text: "1 company", icon: "Building2" },
+            { text: "Unlimited clients", icon: "Users" },
+            { text: "Unlimited invoices", icon: "FileText" },
+            { text: "Unlimited expenses", icon: "Receipt" },
+            { text: "Invoice PDF download", icon: "FileText" },
+            { text: "2 invoice templates (Classic + Modern)", icon: "FileText" },
+            { text: "Category management (products, services, expenses)", icon: "BarChart3" },
+            { text: "Reports: revenue + taxes", icon: "BarChart3" },
+            { text: "Stripe payments (1% fee)", icon: "Percent" }
           ]
         },
         pro: {
           name: "Pro",
           price: "$34.99",
+          yearlyPrice: "$349",
           period: "/month",
-          description: "Full control for agencies and multi-company consultants.",
-          targetAudience: "For established professionals",
+          yearlyPeriod: "/year",
+          description: "Full control for growing and multi-company businesses",
           cta: "Upgrade to Pro",
           features: [
-            "Unlimited companies",
-            "Unlimited clients",
-            "Unlimited invoices",
-            "Unlimited expenses",
-            "All invoice templates",
-            "All reports available",
-            "Full email customization",
-            "Stripe payments (0.5% fee)"
+            { text: "Unlimited companies", icon: "Building2" },
+            { text: "Unlimited clients", icon: "Users" },
+            { text: "Unlimited invoices", icon: "FileText" },
+            { text: "Unlimited expenses", icon: "Receipt" },
+            { text: "All invoice templates", icon: "FileText" },
+            { text: "All reports (revenue, taxes, clients, products, expenses, invoices)", icon: "BarChart3" },
+            { text: "Full email customization", icon: "Mail" },
+            { text: "Stripe payments (0.5% fee)", icon: "Percent" }
           ]
         }
       },
-      reassurance: {
-        title: "No surprises, just transparency",
+      decision: {
+        title: "Which plan to choose?",
         items: [
-          {
-            icon: "Shield",
-            title: "No hidden fees",
-            description: "The prices shown are the final prices. No surprises."
-          },
-          {
-            icon: "CreditCard",
-            title: "Cancel anytime",
-            description: "No commitment. Change or cancel your plan whenever you want."
-          },
-          {
-            icon: "FileText",
-            title: "Exports included",
-            description: "All plans include PDF and Excel export of your reports."
-          }
+          { condition: "Starting out or testing the tool?", plan: "Free", icon: "Zap" },
+          { condition: "Billing regularly and want to work without limits?", plan: "Premium", icon: "Crown" },
+          { condition: "Managing multiple companies or need advanced reports?", plan: "Pro", icon: "Star" }
         ]
       },
-      faq: {
-        title: "Frequently asked questions",
-        items: [
-          {
-            question: "Can I change plans at any time?",
-            answer: "Yes! Upgrades take effect immediately with prorated billing. Downgrades take effect at the end of your billing period."
-          },
-          {
-            question: "What payment methods do you accept?",
-            answer: "We accept credit cards (Visa, Mastercard, American Express) via Stripe, our secure payment partner."
-          },
-          {
-            question: "Is there a free trial?",
-            answer: "The Free plan lets you try GestionFlow with no time limit. Upgrade to Premium when you're ready."
-          },
-          {
-            question: "What happens if I exceed my plan limits?",
-            answer: "You'll receive a notification to upgrade. Your data remains safe and intact."
-          }
-        ]
-      },
-      downgrade: {
-        title: "Plan Downgrade Policy",
-        description: "If you downgrade to a lower plan (for example, from Pro to Premium), here's what happens:",
-        keepData: {
-          icon: "Database",
-          title: "Your data is preserved",
-          points: [
-            "You keep all your existing data (companies, clients, invoices, expenses).",
-            "You can view, edit, and delete all your existing data at any time.",
-            "No data is deleted automatically."
-          ]
-        },
-        limits: {
-          icon: "AlertCircle",
-          title: "New plan limits",
-          description: "However, if your account exceeds the limits of your new plan:",
-          points: [
-            "You will not be able to create new entities until you are back within the plan limits."
-          ]
-        },
-        example: {
-          title: "Example",
-          text: "If you have 3 companies on the Pro plan and downgrade to Premium (which allows 1 company), you will keep all 3 companies. However, you must delete 2 companies before you can create a new one."
-        }
+      trust: {
+        secure: "All payments are securely processed via Stripe.",
+        cancel: "Cancel or change your plan at any time."
       },
       cta: {
         title: "Ready to simplify your business?",
@@ -363,14 +260,27 @@ const PublicPricing = () => {
     }
   };
 
-  const getReassuranceIcon = (iconName: string) => {
+  const getFeatureIcon = (iconName: string) => {
+    const iconClass = "h-4 w-4 text-primary shrink-0";
     switch (iconName) {
-      case 'Shield': return <Shield className="h-8 w-8 text-primary" />;
-      case 'CreditCard': return <CreditCard className="h-8 w-8 text-primary" />;
-      case 'FileText': return <FileText className="h-8 w-8 text-primary" />;
-      case 'Database': return <Database className="h-6 w-6 text-primary" />;
-      case 'AlertCircle': return <AlertCircle className="h-6 w-6 text-amber-500" />;
-      default: return <Shield className="h-8 w-8 text-primary" />;
+      case 'Building2': return <Building2 className={iconClass} />;
+      case 'Users': return <Users className={iconClass} />;
+      case 'FileText': return <FileText className={iconClass} />;
+      case 'Receipt': return <Receipt className={iconClass} />;
+      case 'Mail': return <Mail className={iconClass} />;
+      case 'BarChart3': return <BarChart3 className={iconClass} />;
+      case 'Percent': return <Percent className={iconClass} />;
+      default: return <Check className={iconClass} />;
+    }
+  };
+
+  const getDecisionIcon = (iconName: string) => {
+    const iconClass = "h-5 w-5";
+    switch (iconName) {
+      case 'Zap': return <Zap className={iconClass} />;
+      case 'Crown': return <Crown className={iconClass} />;
+      case 'Star': return <Star className={iconClass} />;
+      default: return <Zap className={iconClass} />;
     }
   };
 
@@ -379,9 +289,9 @@ const PublicPricing = () => {
       <PublicNavigation />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-32 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             {t.hero.title}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -390,82 +300,119 @@ const PublicPricing = () => {
         </div>
       </section>
 
+      {/* Billing Toggle */}
+      <section className="pb-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-2 p-1 bg-muted rounded-lg">
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
+                billingCycle === "monthly"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.billing.monthly}
+            </button>
+            <button
+              onClick={() => setBillingCycle("yearly")}
+              className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                billingCycle === "yearly"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.billing.yearly}
+              <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                {t.billing.savings}
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Cards */}
       <section className="pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
             {/* Free Plan */}
-            <Card className="relative border-border hover:border-primary/50 transition-colors">
+            <Card className="relative border-border hover:border-primary/30 transition-all duration-300 bg-card">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-muted">
+                  <div className="p-2.5 rounded-xl bg-muted text-muted-foreground">
                     {getPlanIcon('free')}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">{t.plans.free.name}</h3>
-                  </div>
+                  <h3 className="text-2xl font-bold text-foreground">{t.plans.free.name}</h3>
                 </div>
                 <div className="mb-4">
                   <span className="text-4xl font-bold text-foreground">{t.plans.free.price}</span>
-                  <span className="text-muted-foreground">{t.plans.free.period}</span>
+                  <span className="text-muted-foreground ml-1">{t.plans.free.period}</span>
                 </div>
-                <p className="text-muted-foreground text-sm">{t.plans.free.description}</p>
-                <p className="text-xs text-primary font-medium mt-2">{t.plans.free.targetAudience}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.free.description}</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 <Button 
                   variant="outline" 
-                  className="w-full mb-6"
+                  className="w-full mb-6 h-12 font-medium"
                   onClick={() => navigate("/auth")}
                 >
                   {t.plans.free.cta}
                 </Button>
                 <ul className="space-y-3">
                   {t.plans.free.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    <li key={index} className="flex items-center gap-3">
+                      {getFeatureIcon(feature.icon)}
+                      <span className="text-sm text-foreground">{feature.text}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Premium Plan */}
-            <Card className="relative border-2 border-primary shadow-lg scale-105">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-sm font-medium">
+            {/* Premium Plan - Highlighted */}
+            <Card className="relative border-2 border-primary shadow-xl md:scale-105 bg-card">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                <span className="bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold shadow-lg">
                   {t.plans.premium.badge}
                 </span>
               </div>
               <CardHeader className="pb-4 pt-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-primary/10">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                     {getPlanIcon('premium')}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">{t.plans.premium.name}</h3>
-                  </div>
+                  <h3 className="text-2xl font-bold text-foreground">{t.plans.premium.name}</h3>
                 </div>
-                <div className="mb-4">
-                  <span className="text-4xl font-bold text-foreground">{t.plans.premium.price}</span>
-                  <span className="text-muted-foreground">{t.plans.premium.period}</span>
+                <div className="mb-2">
+                  {billingCycle === "monthly" ? (
+                    <>
+                      <span className="text-4xl font-bold text-foreground">{t.plans.premium.price}</span>
+                      <span className="text-muted-foreground ml-1">{t.plans.premium.period}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold text-foreground">{t.plans.premium.yearlyPrice}</span>
+                      <span className="text-muted-foreground ml-1">{t.plans.premium.yearlyPeriod}</span>
+                    </>
+                  )}
                 </div>
-                <p className="text-muted-foreground text-sm">{t.plans.premium.description}</p>
-                <p className="text-xs text-primary font-medium mt-2">{t.plans.premium.targetAudience}</p>
+                {billingCycle === "yearly" && (
+                  <p className="text-sm text-primary font-medium mb-2">{t.plans.premium.yearlySavings}</p>
+                )}
+                <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.premium.description}</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 <Button 
-                  className="w-full mb-6 bg-primary hover:bg-primary/90"
+                  className="w-full mb-6 h-12 font-medium"
                   onClick={() => navigate("/auth")}
                 >
                   {t.plans.premium.cta}
                 </Button>
                 <ul className="space-y-3">
                   {t.plans.premium.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    <li key={index} className="flex items-center gap-3">
+                      {getFeatureIcon(feature.icon)}
+                      <span className="text-sm text-foreground">{feature.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -473,36 +420,42 @@ const PublicPricing = () => {
             </Card>
 
             {/* Pro Plan */}
-            <Card className="relative border-border hover:border-primary/50 transition-colors">
+            <Card className="relative border-border hover:border-primary/30 transition-all duration-300 bg-card">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-muted">
+                  <div className="p-2.5 rounded-xl bg-muted text-muted-foreground">
                     {getPlanIcon('pro')}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">{t.plans.pro.name}</h3>
-                  </div>
+                  <h3 className="text-2xl font-bold text-foreground">{t.plans.pro.name}</h3>
                 </div>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-foreground">{t.plans.pro.price}</span>
-                  <span className="text-muted-foreground">{t.plans.pro.period}</span>
+                  {billingCycle === "monthly" ? (
+                    <>
+                      <span className="text-4xl font-bold text-foreground">{t.plans.pro.price}</span>
+                      <span className="text-muted-foreground ml-1">{t.plans.pro.period}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold text-foreground">{t.plans.pro.yearlyPrice}</span>
+                      <span className="text-muted-foreground ml-1">{t.plans.pro.yearlyPeriod}</span>
+                    </>
+                  )}
                 </div>
-                <p className="text-muted-foreground text-sm">{t.plans.pro.description}</p>
-                <p className="text-xs text-primary font-medium mt-2">{t.plans.pro.targetAudience}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.pro.description}</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 <Button 
                   variant="outline" 
-                  className="w-full mb-6"
+                  className="w-full mb-6 h-12 font-medium"
                   onClick={() => navigate("/auth")}
                 >
                   {t.plans.pro.cta}
                 </Button>
                 <ul className="space-y-3">
                   {t.plans.pro.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    <li key={index} className="flex items-center gap-3">
+                      {getFeatureIcon(feature.icon)}
+                      <span className="text-sm text-foreground">{feature.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -512,107 +465,43 @@ const PublicPricing = () => {
         </div>
       </section>
 
-      {/* Reassurance Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-            {t.reassurance.title}
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {t.reassurance.items.map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-4">
-                  {getReassuranceIcon(item.icon)}
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-            {t.faq.title}
-          </h2>
-          <div className="space-y-6">
-            {t.faq.items.map((item, index) => (
-              <div key={index} className="border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-2">{item.question}</h3>
-                <p className="text-muted-foreground">{item.answer}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Downgrade Policy Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      {/* Decision Help Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <ArrowDown className="h-8 w-8 text-primary" />
-            <h2 className="text-3xl font-bold text-foreground">
-              {t.downgrade.title}
-            </h2>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <HelpCircle className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">{t.decision.title}</h2>
+            </div>
           </div>
-          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            {t.downgrade.description}
-          </p>
-          
-          <div className="grid md:grid-cols-2 gap-8 mb-10">
-            {/* Keep Data Card */}
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  {getReassuranceIcon(t.downgrade.keepData.icon)}
-                  <h3 className="text-lg font-semibold text-foreground">{t.downgrade.keepData.title}</h3>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {t.decision.items.map((item, index) => (
+              <div 
+                key={index} 
+                className="bg-card border border-border rounded-xl p-6 text-center hover:border-primary/30 transition-colors"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4">
+                  {getDecisionIcon(item.icon)}
                 </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {t.downgrade.keepData.points.map((point, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Limits Card */}
-            <Card className="border-amber-500/20 bg-amber-500/5">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  {getReassuranceIcon(t.downgrade.limits.icon)}
-                  <h3 className="text-lg font-semibold text-foreground">{t.downgrade.limits.title}</h3>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{t.downgrade.limits.description}</p>
-                <ul className="space-y-3">
-                  {t.downgrade.limits.points.map((point, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Example Box */}
-          <div className="bg-background border border-border rounded-lg p-6 max-w-2xl mx-auto">
-            <div className="flex items-start gap-3">
-              <Building2 className="h-5 w-5 text-primary shrink-0 mt-1" />
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">{t.downgrade.example.title}</h4>
-                <p className="text-sm text-muted-foreground">{t.downgrade.example.text}</p>
+                <p className="text-sm text-muted-foreground mb-3">{item.condition}</p>
+                <p className="text-lg font-bold text-primary">→ {item.plan}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Section */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <Lock className="h-5 w-5 text-primary" />
+              <span className="text-sm">{t.trust.secure}</span>
+            </div>
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <span className="text-sm">{t.trust.cancel}</span>
             </div>
           </div>
         </div>
@@ -621,15 +510,15 @@ const PublicPricing = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-primary/5">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             {t.cta.title}
           </h2>
-          <p className="text-xl text-muted-foreground mb-8">
+          <p className="text-lg text-muted-foreground mb-8">
             {t.cta.subtitle}
           </p>
           <Button 
             size="lg" 
-            className="bg-primary hover:bg-primary/90 text-lg px-8"
+            className="h-14 px-8 text-lg font-medium"
             onClick={() => navigate("/auth")}
           >
             {t.cta.button}
@@ -638,13 +527,13 @@ const PublicPricing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-foreground text-background py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-border">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <img src={footerLogo} alt="GestionFlow Logo" className="h-16 w-auto" />
+              <img src={footerLogo} alt="GestionFlow Logo" className="h-10 w-auto" />
             </div>
-            <p className="text-sm text-background/70">
+            <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} GestionFlow. {t.footer.rights}
             </p>
           </div>
