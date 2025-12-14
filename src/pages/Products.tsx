@@ -102,7 +102,7 @@ const Products = () => {
       return;
     }
 
-    if (parseFloat(newItem.price) < parseFloat(newItem.cost)) {
+    if (newItem.cost && parseFloat(newItem.price) < parseFloat(newItem.cost)) {
       toast({
         title: "Error",
         description: "Le prix de vente doit être égal ou supérieur au prix coûtant",
@@ -417,7 +417,7 @@ const Products = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cost">
-                    {t("products.costPrice")} <span className="text-destructive">*</span>
+                    {t("products.costPrice")} {newItem.type === "product" && <span className="text-destructive">*</span>}
                   </Label>
                   <Input
                     id="cost"
@@ -426,7 +426,7 @@ const Products = () => {
                     placeholder="0.00"
                     value={newItem.cost}
                     onChange={(e) => setNewItem({...newItem, cost: e.target.value})}
-                    required
+                    required={newItem.type === "product"}
                   />
                 </div>
                 <div className="space-y-2">
