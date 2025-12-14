@@ -46,15 +46,17 @@ const ComparisonQuickBooks = () => {
     <div className="min-h-screen bg-background">
       <PublicNavigation />
       
-      <main className="container mx-auto px-4 py-16">
+      <main className="container mx-auto px-4 py-16 pt-24">
         {/* Back Link */}
-        <Link 
-          to="/comparison" 
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour aux comparaisons
-        </Link>
+        <div className="mb-8">
+          <Link 
+            to="/comparison" 
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour aux comparaisons
+          </Link>
+        </div>
 
         {/* Header */}
         <header className="text-center mb-16">
