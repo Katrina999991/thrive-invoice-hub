@@ -554,7 +554,7 @@ const Pricing = () => {
                 </div>
               </CardContent>
 
-              <CardFooter className="pt-4">
+              <CardFooter className="pt-4 flex-col gap-2">
                 <Button 
                   className={`w-full h-12 font-medium ${
                     buttonConfig.isUpgrade && isPremium ? 'text-base' : ''
@@ -569,6 +569,13 @@ const Pricing = () => {
                   {buttonConfig.text}
                   {buttonConfig.isUpgrade && <ArrowRight className="h-4 w-4 ml-2" />}
                 </Button>
+                {plan.plan_type === 'free' && planLimits?.plan_type !== 'free' && (
+                  <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                    {language === 'fr' 
+                      ? 'Passer au plan Gratuit met fin à votre abonnement payant à la fin de votre période de facturation. Aucun engagement à long terme.'
+                      : 'Switching to the Free plan ends your paid subscription at the end of your billing period. No long-term commitment.'}
+                  </p>
+                )}
               </CardFooter>
             </Card>
           );
