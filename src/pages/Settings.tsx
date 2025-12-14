@@ -191,17 +191,16 @@ export default function Settings() {
     setIsCheckingUsername(true);
     const timeoutId = setTimeout(async () => {
       try {
+        // Use the database function that bypasses RLS
         const { data, error } = await supabase
-          .from("profiles")
-          .select("user_id")
-          .eq("username", trimmedUsername)
-          .maybeSingle();
+          .rpc('check_username_available', {
+            check_username: trimmedUsername,
+            current_user_id: user?.id
+          });
 
         if (error) throw error;
 
-        // If no data found, username is available
-        // If data found but it's current user's id, still available
-        setUsernameAvailable(!data || data.user_id === user?.id);
+        setUsernameAvailable(data === true);
       } catch (error) {
         console.error("Error checking username:", error);
         setUsernameAvailable(null);

@@ -865,6 +865,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_username_available: {
+        Args: { check_username: string; current_user_id: string }
+        Returns: boolean
+      }
       decrypt_sensitive: { Args: { ciphertext: string }; Returns: string }
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
