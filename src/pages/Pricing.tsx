@@ -683,7 +683,7 @@ const Pricing = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Accordion type="single" collapsible defaultValue="faq-1" className="w-full">
+          <Accordion type="multiple" defaultValue={["faq-1", "faq-2", "faq-6"]} className="w-full">
             {/* Question 1 - Highlighted: Upgrade/Downgrade */}
             <AccordionItem value="faq-1" className="border-l-4 border-l-primary pl-4">
               <AccordionTrigger className="text-left hover:no-underline">
