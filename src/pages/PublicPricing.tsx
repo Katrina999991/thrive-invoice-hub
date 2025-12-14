@@ -110,6 +110,7 @@ const PublicPricing = () => {
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Contrôle total pour entreprises en croissance et multi-entreprises",
+          yearlySavings: "Économisez environ 2 mois",
           cta: "Passer à Pro",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
@@ -203,6 +204,7 @@ const PublicPricing = () => {
           period: "/month",
           yearlyPeriod: "/year",
           description: "Full control for growing and multi-company businesses",
+          yearlySavings: "Save about 2 months",
           cta: "Upgrade to Pro",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
@@ -431,7 +433,7 @@ const PublicPricing = () => {
                   </div>
                   <h3 className="text-2xl font-bold text-foreground">{t.plans.pro.name}</h3>
                 </div>
-                <div className="mb-4">
+                <div className="mb-2">
                   {billingCycle === "monthly" ? (
                     <>
                       <span className="text-4xl font-bold text-foreground">{t.plans.pro.price}</span>
@@ -444,6 +446,9 @@ const PublicPricing = () => {
                     </>
                   )}
                 </div>
+                {billingCycle === "yearly" && (
+                  <p className="text-sm text-primary font-medium mb-2">{t.plans.pro.yearlySavings}</p>
+                )}
                 <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.pro.description}</p>
               </CardHeader>
               <CardContent className="pt-0">
