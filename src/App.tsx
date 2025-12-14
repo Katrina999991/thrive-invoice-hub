@@ -26,6 +26,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 import Software from "./pages/Software";
 import PublicPricing from "./pages/PublicPricing";
+import Comparison from "./pages/Comparison";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/software" element={<Software />} />
                 <Route path="/pricing" element={<PublicPricing />} />
+                <Route path="/comparison" element={<Comparison />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/dashboard" element={
