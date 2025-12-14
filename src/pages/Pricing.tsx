@@ -690,7 +690,7 @@ const Pricing = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Accordion type="multiple" defaultValue={["faq-1", "faq-2", "faq-6"]} className="w-full">
+          <Accordion type="multiple" defaultValue={["faq-1", "faq-2", "faq-7"]} className="w-full">
             {/* Question 1 - Highlighted: Upgrade/Downgrade */}
             <AccordionItem value="faq-1" className="border-l-4 border-l-primary pl-4">
               <AccordionTrigger className="text-left hover:no-underline">
@@ -725,8 +725,22 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 3 */}
+            {/* Question 3 - NEW: Stop subscription */}
             <AccordionItem value="faq-3">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Comment puis-je arrêter mon abonnement payant ?' : 'How can I stop my paid subscription?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Pour arrêter votre abonnement payant, il suffit de passer au plan Gratuit depuis la page Abonnement. Votre plan actuel restera actif jusqu'à la fin de votre période de facturation, puis la facturation s'arrêtera automatiquement. Aucun engagement à long terme n'est requis."
+                  : "To stop your paid subscription, simply switch to the Free plan from the Subscription page. Your current plan will remain active until the end of your billing period, then billing will stop automatically. No long-term commitment is required."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 4 */}
+            <AccordionItem value="faq-4">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Puis-je changer de plan plusieurs fois ?' : 'Can I change plans multiple times?'}
@@ -739,8 +753,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 4 */}
-            <AccordionItem value="faq-4">
+            {/* Question 5 */}
+            <AccordionItem value="faq-5">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Que se passe-t-il si je downgrade mon plan ?' : 'What happens if I downgrade my plan?'}
@@ -753,8 +767,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 5 */}
-            <AccordionItem value="faq-5">
+            {/* Question 6 */}
+            <AccordionItem value="faq-6">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Mes données seront-elles perdues si je downgrade ?' : 'Will my data be lost if I downgrade?'}
@@ -767,8 +781,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 6 - Highlighted: Stripe Payments */}
-            <AccordionItem value="faq-6" className="border-l-4 border-l-primary pl-4">
+            {/* Question 7 - Highlighted: Stripe Payments */}
+            <AccordionItem value="faq-7" className="border-l-4 border-l-primary pl-4">
               <AccordionTrigger className="text-left hover:no-underline">
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-primary shrink-0" />
@@ -784,8 +798,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 7 */}
-            <AccordionItem value="faq-7">
+            {/* Question 8 */}
+            <AccordionItem value="faq-8">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Pourquoi les frais Stripe diminuent-ils selon le plan ?' : 'Why do Stripe fees decrease based on the plan?'}
@@ -798,8 +812,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 8 */}
-            <AccordionItem value="faq-8">
+            {/* Question 9 */}
+            <AccordionItem value="faq-9">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Puis-je passer directement du plan Gratuit au plan Pro ?' : 'Can I upgrade directly from Free to Pro?'}
@@ -812,8 +826,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 9 */}
-            <AccordionItem value="faq-9">
+            {/* Question 10 */}
+            <AccordionItem value="faq-10">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Puis-je revenir à un plan inférieur plus tard ?' : 'Can I downgrade to a lower plan later?'}
@@ -826,8 +840,8 @@ const Pricing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Question 10 */}
-            <AccordionItem value="faq-10">
+            {/* Question 11 */}
+            <AccordionItem value="faq-11">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
                   {language === 'fr' ? 'Comment puis-je annuler mon abonnement ?' : 'How can I cancel my subscription?'}
