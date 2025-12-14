@@ -28,6 +28,7 @@ import Software from "./pages/Software";
 import PublicPricing from "./pages/PublicPricing";
 import Comparison from "./pages/Comparison";
 import ComparisonQuickBooks from "./pages/ComparisonQuickBooks";
+import ComparisonWave from "./pages/ComparisonWave";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => {
                 <Route path="/pricing" element={<PublicPricing />} />
                 <Route path="/comparison" element={<Comparison />} />
                 <Route path="/comparison/quickbooks" element={<ComparisonQuickBooks />} />
+                <Route path="/comparison/wave" element={<ComparisonWave />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/dashboard" element={
