@@ -103,6 +103,12 @@ export default function Auth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth event:", event, "Session exists:", !!session);
       
+      // Ignore events if password was just updated (prevents dialog from reopening)
+      if (event === 'USER_UPDATED') {
+        console.log("USER_UPDATED event - ignoring to prevent dialog reopen");
+        return;
+      }
+      
       if (event === 'PASSWORD_RECOVERY') {
         console.log("PASSWORD_RECOVERY event detected");
         setIsPasswordRecoveryMode(true);
@@ -273,6 +279,9 @@ export default function Auth() {
     setIsLoading(false);
   };
 
+  // Track if password was just updated to prevent dialog from reopening
+  const [passwordJustUpdated, setPasswordJustUpdated] = useState(false);
+
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -303,9 +312,14 @@ export default function Auth() {
         variant: "destructive",
       });
     } else {
+      // Set flag to prevent dialog from reopening on USER_UPDATED event
+      setPasswordJustUpdated(true);
+      
       toast({
-        title: "Password updated!",
-        description: "Your password has been successfully updated.",
+        title: language === 'en' ? "Password updated!" : "Mot de passe mis à jour !",
+        description: language === 'en' 
+          ? "Your password has been successfully updated." 
+          : "Votre mot de passe a été mis à jour avec succès.",
       });
       setShowUpdatePassword(false);
       setIsPasswordRecoveryMode(false);
@@ -313,7 +327,11 @@ export default function Auth() {
       setConfirmPassword("");
       // Mark that user has logged in normally
       localStorage.setItem('has_logged_in_before', 'true');
-      navigate("/dashboard");
+      
+      // Use setTimeout to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     }
     
     setIsLoading(false);
