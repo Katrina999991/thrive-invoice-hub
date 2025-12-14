@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { 
   Check, 
@@ -16,7 +22,10 @@ import {
   Mail,
   BarChart3,
   Lock,
-  ArrowRight
+  ArrowRight,
+  RefreshCcw,
+  BadgePercent,
+  Gift
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -141,6 +150,62 @@ const PublicPricing = () => {
         subtitle: "Rejoignez des milliers d'entrepreneurs qui gagnent du temps avec GestionFlow.",
         button: "Commencer gratuitement"
       },
+      faq: {
+        title: "Questions fréquentes",
+        subtitle: "Tout ce que vous devez savoir avant de choisir votre plan",
+        questions: [
+          {
+            question: "Puis-je utiliser GestionFlow gratuitement ?",
+            answer: "Oui. Le plan Gratuit vous permet de gérer 1 entreprise, jusqu'à 10 clients et de créer jusqu'à 15 factures par mois, sans engagement.",
+            highlight: "free"
+          },
+          {
+            question: "Puis-je changer de plan à tout moment ?",
+            answer: "Oui. Vous pouvez passer à un plan supérieur ou inférieur à tout moment, directement depuis votre compte.",
+            highlight: "planChange"
+          },
+          {
+            question: "Comment fonctionnent les upgrades de plan ?",
+            answer: "Lors d'un upgrade, le nouveau plan prend effet immédiatement et le montant est ajusté au prorata selon le temps restant dans votre cycle de facturation.",
+            highlight: "planChange"
+          },
+          {
+            question: "Comment fonctionnent les downgrades de plan ?",
+            answer: "Lors d'un downgrade, votre plan actuel reste actif jusqu'à la fin du cycle de facturation. Le nouveau plan s'applique automatiquement au prochain renouvellement.",
+            highlight: "planChange"
+          },
+          {
+            question: "Y a-t-il un engagement à long terme ?",
+            answer: "Non. Aucun engagement à long terme. Vous pouvez annuler ou changer de plan à tout moment.",
+            highlight: null
+          },
+          {
+            question: "Comment fonctionnent les paiements et les frais Stripe ?",
+            answer: "Les paiements sont traités de manière sécurisée via Stripe. Les frais Stripe diminuent selon votre plan : Gratuit : 2 %, Premium : 1 %, Pro : 0,5 %.",
+            highlight: "stripe"
+          },
+          {
+            question: "Puis-je passer du plan Gratuit directement au plan Pro ?",
+            answer: "Oui. Vous pouvez passer directement au plan Pro à tout moment.",
+            highlight: "planChange"
+          },
+          {
+            question: "Que se passe-t-il si je dépasse les limites du plan Gratuit ?",
+            answer: "Vous serez invité à passer au plan Premium pour continuer à créer des factures ou ajouter des clients sans interruption.",
+            highlight: "free"
+          },
+          {
+            question: "Mes données sont-elles conservées si je change de plan ?",
+            answer: "Oui. Toutes vos données restent accessibles, quel que soit votre plan.",
+            highlight: null
+          },
+          {
+            question: "GestionFlow est-il adapté aux entreprises canadiennes ?",
+            answer: "Oui. GestionFlow est conçu pour les travailleurs autonomes et les PME, avec des rapports clairs et une gestion adaptée aux taxes et aux besoins locaux.",
+            highlight: null
+          }
+        ]
+      },
       footer: {
         rights: "Tous droits réservés."
       }
@@ -235,6 +300,62 @@ const PublicPricing = () => {
         title: "Ready to simplify your business?",
         subtitle: "Join thousands of entrepreneurs saving time with GestionFlow.",
         button: "Get Started Free"
+      },
+      faq: {
+        title: "Frequently Asked Questions",
+        subtitle: "Everything you need to know before choosing your plan",
+        questions: [
+          {
+            question: "Can I use GestionFlow for free?",
+            answer: "Yes. The Free plan allows you to manage 1 company, up to 10 clients and create up to 15 invoices per month, with no commitment.",
+            highlight: "free"
+          },
+          {
+            question: "Can I change my plan at any time?",
+            answer: "Yes. You can upgrade or downgrade your plan at any time, directly from your account.",
+            highlight: "planChange"
+          },
+          {
+            question: "How do plan upgrades work?",
+            answer: "When upgrading, your new plan takes effect immediately and the amount is prorated based on the time remaining in your billing cycle.",
+            highlight: "planChange"
+          },
+          {
+            question: "How do plan downgrades work?",
+            answer: "When downgrading, your current plan remains active until the end of the billing cycle. The new plan applies automatically at the next renewal.",
+            highlight: "planChange"
+          },
+          {
+            question: "Is there a long-term commitment?",
+            answer: "No. No long-term commitment. You can cancel or change your plan at any time.",
+            highlight: null
+          },
+          {
+            question: "How do payments and Stripe fees work?",
+            answer: "Payments are securely processed via Stripe. Stripe fees decrease based on your plan: Free: 2%, Premium: 1%, Pro: 0.5%.",
+            highlight: "stripe"
+          },
+          {
+            question: "Can I upgrade from Free directly to Pro?",
+            answer: "Yes. You can upgrade directly to Pro at any time.",
+            highlight: "planChange"
+          },
+          {
+            question: "What happens if I exceed the Free plan limits?",
+            answer: "You will be prompted to upgrade to Premium to continue creating invoices or adding clients without interruption.",
+            highlight: "free"
+          },
+          {
+            question: "Is my data kept if I change plans?",
+            answer: "Yes. All your data remains accessible, regardless of your plan.",
+            highlight: null
+          },
+          {
+            question: "Is GestionFlow suitable for Canadian businesses?",
+            answer: "Yes. GestionFlow is designed for self-employed workers and SMBs, with clear reports and management adapted to local taxes and needs.",
+            highlight: null
+          }
+        ]
       },
       footer: {
         rights: "All rights reserved."
@@ -527,6 +648,65 @@ const PublicPricing = () => {
               <span className="text-sm">{t.trust.cancel}</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <HelpCircle className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">{t.faq.title}</h2>
+            </div>
+            <p className="text-muted-foreground">{t.faq.subtitle}</p>
+          </div>
+          
+          <Accordion type="single" collapsible className="space-y-3">
+            {t.faq.questions.map((item, index) => {
+              const getHighlightIcon = (highlight: string | null) => {
+                switch (highlight) {
+                  case 'planChange':
+                    return <RefreshCcw className="h-4 w-4 text-primary shrink-0" />;
+                  case 'stripe':
+                    return <BadgePercent className="h-4 w-4 text-primary shrink-0" />;
+                  case 'free':
+                    return <Gift className="h-4 w-4 text-primary shrink-0" />;
+                  default:
+                    return null;
+                }
+              };
+
+              const highlightIcon = getHighlightIcon(item.highlight);
+              const isHighlighted = item.highlight !== null;
+
+              return (
+                <AccordionItem 
+                  key={index} 
+                  value={`item-${index}`}
+                  className={`border rounded-xl px-4 bg-card ${
+                    isHighlighted 
+                      ? 'border-primary/30 ring-1 ring-primary/10' 
+                      : 'border-border'
+                  }`}
+                >
+                  <AccordionTrigger className="text-left py-5 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      {highlightIcon}
+                      <span className={`text-sm md:text-base font-medium ${
+                        isHighlighted ? 'text-foreground' : 'text-foreground'
+                      }`}>
+                        {item.question}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-sm pb-5 pl-7">
+                    {item.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       </section>
 
