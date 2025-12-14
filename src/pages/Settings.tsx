@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle } from "lucide-react";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
@@ -58,8 +58,11 @@ export default function Settings() {
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
   const [invoiceColor, setInvoiceColor] = useState<string>("blue");
   const [username, setUsername] = useState<string>("");
+  const [originalUsername, setOriginalUsername] = useState<string>("");
   const [isLoadingUsername, setIsLoadingUsername] = useState(false);
   const [isSavingUsername, setIsSavingUsername] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [showUsernameExistsDialog, setShowUsernameExistsDialog] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState<string>("");
   const [isSavingRecoveryEmail, setIsSavingRecoveryEmail] = useState(false);
@@ -154,6 +157,7 @@ export default function Settings() {
           
           if (decryptedData.username) {
             setUsername(decryptedData.username);
+            setOriginalUsername(decryptedData.username);
           }
           if (decryptedData.recovery_email) {
             setRecoveryEmail(decryptedData.recovery_email);
@@ -172,6 +176,42 @@ export default function Settings() {
     loadUserProfile();
     loadStripeAccount();
   }, [user]);
+
+  // Check username availability with debounce
+  useEffect(() => {
+    const trimmedUsername = username.trim();
+    
+    // Reset if empty or same as original
+    if (!trimmedUsername || trimmedUsername === originalUsername) {
+      setUsernameAvailable(null);
+      setIsCheckingUsername(false);
+      return;
+    }
+
+    setIsCheckingUsername(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("username", trimmedUsername)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        // If no data found, username is available
+        // If data found but it's current user's id, still available
+        setUsernameAvailable(!data || data.user_id === user?.id);
+      } catch (error) {
+        console.error("Error checking username:", error);
+        setUsernameAvailable(null);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [username, originalUsername, user?.id]);
 
   // Load email templates when company is selected
   useEffect(() => {
@@ -837,23 +877,56 @@ Cordialement,
               <div className="space-y-2">
                 <Label htmlFor="username">{t("settings.account.username")}</Label>
                 <div className="flex gap-2">
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder={t("settings.account.usernamePlaceholder")}
-                    disabled={isLoadingUsername || isSavingUsername}
-                  />
+                  <div className="relative flex-1">
+                    <Input
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder={t("settings.account.usernamePlaceholder")}
+                      disabled={isLoadingUsername || isSavingUsername}
+                      className={
+                        username.trim() && username.trim() !== originalUsername
+                          ? usernameAvailable === true
+                            ? "border-green-500 pr-10"
+                            : usernameAvailable === false
+                              ? "border-destructive pr-10"
+                              : "pr-10"
+                          : ""
+                      }
+                    />
+                    {username.trim() && username.trim() !== originalUsername && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {isCheckingUsername ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        ) : usernameAvailable === true ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : usernameAvailable === false ? (
+                          <XCircle className="h-4 w-4 text-destructive" />
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
                   <Button 
                     onClick={handleSaveUsername} 
-                    disabled={isLoadingUsername || isSavingUsername}
+                    disabled={isLoadingUsername || isSavingUsername || (usernameAvailable === false)}
                   >
                     {isSavingUsername ? t("settings.account.saving") : t("settings.account.save")}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.account.usernameDescription")}
-                </p>
+                {username.trim() && username.trim() !== originalUsername && !isCheckingUsername && (
+                  <p className={`text-xs ${usernameAvailable === true ? "text-green-500" : usernameAvailable === false ? "text-destructive" : "text-muted-foreground"}`}>
+                    {usernameAvailable === true 
+                      ? (language === "fr" ? "Ce nom d'utilisateur est disponible" : "This username is available")
+                      : usernameAvailable === false 
+                        ? (language === "fr" ? "Ce nom d'utilisateur est déjà pris" : "This username is already taken")
+                        : t("settings.account.usernameDescription")}
+                  </p>
+                )}
+                {(!username.trim() || username.trim() === originalUsername) && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.account.usernameDescription")}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="recoveryEmail">
