@@ -7,7 +7,6 @@ import {
   Crown, 
   Zap, 
   Star,
-  Shield,
   CreditCard,
   HelpCircle,
   Users,
@@ -16,8 +15,8 @@ import {
   Receipt,
   Mail,
   BarChart3,
-  Percent,
-  Lock
+  Lock,
+  ArrowRight
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -54,21 +53,21 @@ const PublicPricing = () => {
     FR: {
       hero: {
         title: "Tarifs GestionFlow",
-        subtitle: "Choisissez le plan qui correspond à votre activité"
+        subtitle: "Des plans simples et transparents qui évoluent avec votre entreprise"
       },
       billing: {
         monthly: "Mensuel",
         yearly: "Annuel",
-        savings: "Économisez ~2 mois"
+        savings: "Économisez environ 2 mois avec l'abonnement annuel"
       },
       plans: {
         free: {
           name: "Gratuit",
           price: "0 $",
-          yearlyPrice: "0 $",
           period: "/mois",
           description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
           cta: "Commencer gratuitement",
+          stripeInfo: "💳 Paiements Stripe — 2 %",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
@@ -76,8 +75,7 @@ const PublicPricing = () => {
             { text: "10 dépenses par mois", icon: "Receipt" },
             { text: "Envoi de factures par courriel", icon: "Mail" },
             { text: "1 modèle de facture (Classique – bleu)", icon: "FileText" },
-            { text: "Rapport de revenus", icon: "BarChart3" },
-            { text: "Paiements Stripe (frais de 2 %)", icon: "Percent" }
+            { text: "Rapport de revenus", icon: "BarChart3" }
           ]
         },
         premium: {
@@ -87,10 +85,12 @@ const PublicPricing = () => {
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Le meilleur équilibre pour freelances et petites entreprises",
-          badge: "Le plus populaire",
-          yearlySavings: "Économisez environ 2 mois",
+          badge: "⭐ Le plus populaire",
+          yearlySavings: "Économisez environ 2 mois avec l'abonnement annuel",
           popularText: "Choisi par la majorité de nos utilisateurs",
           cta: "Passer à Premium",
+          stripeInfo: "💳 Paiements Stripe — 1 %",
+          stripeNote: "Payez moins de frais sur chaque paiement encaissé",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
@@ -99,8 +99,7 @@ const PublicPricing = () => {
             { text: "Téléchargement PDF des factures", icon: "FileText" },
             { text: "2 modèles de factures (Classique + Moderne)", icon: "FileText" },
             { text: "Gestion des catégories (produits, services, dépenses)", icon: "BarChart3" },
-            { text: "Rapports : revenus + taxes", icon: "BarChart3" },
-            { text: "Paiements Stripe (frais de 1 %)", icon: "Percent" }
+            { text: "Rapports : revenus + taxes", icon: "BarChart3" }
           ]
         },
         pro: {
@@ -109,18 +108,19 @@ const PublicPricing = () => {
           yearlyPrice: "349 $",
           period: "/mois",
           yearlyPeriod: "/an",
-          description: "Contrôle total pour entreprises en croissance et multi-entreprises",
+          description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
           yearlySavings: "Économisez environ 2 mois",
           cta: "Passer à Pro",
+          stripeInfo: "💳 Paiements Stripe — 0,5 %",
+          stripeNote: "Optimisez vos coûts de paiement à mesure que votre activité grandit",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
             { text: "Factures illimitées", icon: "FileText" },
             { text: "Dépenses illimitées", icon: "Receipt" },
             { text: "Tous les modèles de factures", icon: "FileText" },
-            { text: "Tous les rapports (revenus, taxes, clients, produits, dépenses, factures)", icon: "BarChart3" },
-            { text: "Personnalisation complète des courriels", icon: "Mail" },
-            { text: "Paiements Stripe (frais de 0,5 %)", icon: "Percent" }
+            { text: "Tous les rapports", icon: "BarChart3" },
+            { text: "Personnalisation complète des courriels", icon: "Mail" }
           ]
         }
       },
@@ -129,12 +129,12 @@ const PublicPricing = () => {
         items: [
           { condition: "Vous débutez ou testez l'outil ?", plan: "Gratuit", icon: "Zap" },
           { condition: "Vous facturez régulièrement et voulez travailler sans limites ?", plan: "Premium", icon: "Crown" },
-          { condition: "Vous gérez plusieurs entreprises ou avez besoin de rapports avancés ?", plan: "Pro", icon: "Star" }
+          { condition: "Vous gérez plusieurs entreprises ou encaissez des volumes plus élevés ?", plan: "Pro", icon: "Star" }
         ]
       },
       trust: {
         secure: "Tous les paiements sont traités de manière sécurisée via Stripe.",
-        cancel: "Annulez ou changez de plan à tout moment."
+        cancel: "Aucun engagement à long terme. Changez de plan à tout moment."
       },
       cta: {
         title: "Prêt à simplifier votre gestion ?",
@@ -148,21 +148,21 @@ const PublicPricing = () => {
     EN: {
       hero: {
         title: "GestionFlow Pricing",
-        subtitle: "Choose the plan that fits your business"
+        subtitle: "Simple and transparent plans that grow with your business"
       },
       billing: {
         monthly: "Monthly",
         yearly: "Yearly",
-        savings: "Save ~2 months"
+        savings: "Save about 2 months with annual subscription"
       },
       plans: {
         free: {
           name: "Free",
           price: "$0",
-          yearlyPrice: "$0",
           period: "/month",
           description: "Ideal to discover GestionFlow and start your business",
           cta: "Get Started Free",
+          stripeInfo: "💳 Stripe Payments — 2%",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
@@ -170,8 +170,7 @@ const PublicPricing = () => {
             { text: "10 expenses per month", icon: "Receipt" },
             { text: "Email invoice sending", icon: "Mail" },
             { text: "1 invoice template (Classic – blue)", icon: "FileText" },
-            { text: "Revenue report", icon: "BarChart3" },
-            { text: "Stripe payments (2% fee)", icon: "Percent" }
+            { text: "Revenue report", icon: "BarChart3" }
           ]
         },
         premium: {
@@ -181,10 +180,12 @@ const PublicPricing = () => {
           period: "/month",
           yearlyPeriod: "/year",
           description: "The best balance for freelancers and small businesses",
-          badge: "Most Popular",
-          yearlySavings: "Save about 2 months",
+          badge: "⭐ Most Popular",
+          yearlySavings: "Save about 2 months with annual subscription",
           popularText: "Chosen by the majority of our users",
           cta: "Upgrade to Premium",
+          stripeInfo: "💳 Stripe Payments — 1%",
+          stripeNote: "Pay less fees on every payment received",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
@@ -193,8 +194,7 @@ const PublicPricing = () => {
             { text: "Invoice PDF download", icon: "FileText" },
             { text: "2 invoice templates (Classic + Modern)", icon: "FileText" },
             { text: "Category management (products, services, expenses)", icon: "BarChart3" },
-            { text: "Reports: revenue + taxes", icon: "BarChart3" },
-            { text: "Stripe payments (1% fee)", icon: "Percent" }
+            { text: "Reports: revenue + taxes", icon: "BarChart3" }
           ]
         },
         pro: {
@@ -203,18 +203,19 @@ const PublicPricing = () => {
           yearlyPrice: "$349",
           period: "/month",
           yearlyPeriod: "/year",
-          description: "Full control for growing and multi-company businesses",
+          description: "Built for growing businesses and multi-company management",
           yearlySavings: "Save about 2 months",
           cta: "Upgrade to Pro",
+          stripeInfo: "💳 Stripe Payments — 0.5%",
+          stripeNote: "Optimize your payment costs as your business grows",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
             { text: "Unlimited invoices", icon: "FileText" },
             { text: "Unlimited expenses", icon: "Receipt" },
             { text: "All invoice templates", icon: "FileText" },
-            { text: "All reports (revenue, taxes, clients, products, expenses, invoices)", icon: "BarChart3" },
-            { text: "Full email customization", icon: "Mail" },
-            { text: "Stripe payments (0.5% fee)", icon: "Percent" }
+            { text: "All reports", icon: "BarChart3" },
+            { text: "Full email customization", icon: "Mail" }
           ]
         }
       },
@@ -223,12 +224,12 @@ const PublicPricing = () => {
         items: [
           { condition: "Starting out or testing the tool?", plan: "Free", icon: "Zap" },
           { condition: "Billing regularly and want to work without limits?", plan: "Premium", icon: "Crown" },
-          { condition: "Managing multiple companies or need advanced reports?", plan: "Pro", icon: "Star" }
+          { condition: "Managing multiple companies or processing higher volumes?", plan: "Pro", icon: "Star" }
         ]
       },
       trust: {
         secure: "All payments are securely processed via Stripe.",
-        cancel: "Cancel or change your plan at any time."
+        cancel: "No long-term commitment. Change your plan at any time."
       },
       cta: {
         title: "Ready to simplify your business?",
@@ -273,7 +274,6 @@ const PublicPricing = () => {
       case 'Receipt': return <Receipt className={iconClass} />;
       case 'Mail': return <Mail className={iconClass} />;
       case 'BarChart3': return <BarChart3 className={iconClass} />;
-      case 'Percent': return <Percent className={iconClass} />;
       default: return <Check className={iconClass} />;
     }
   };
@@ -293,7 +293,7 @@ const PublicPricing = () => {
       <PublicNavigation />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-12 px-4 sm:px-6 lg:px-8">
+      <section className="pt-32 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             {t.hero.title}
@@ -305,14 +305,14 @@ const PublicPricing = () => {
       </section>
 
       {/* Billing Toggle */}
-      <section className="pb-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center justify-center gap-2 p-1 bg-muted rounded-lg">
+      <section className="pb-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto text-center">
+          <div className="inline-flex items-center gap-1 p-1.5 bg-muted rounded-xl">
             <button
               onClick={() => setBillingCycle("monthly")}
-              className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
+              className={`py-3 px-6 rounded-lg text-sm font-medium transition-all ${
                 billingCycle === "monthly"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-background text-foreground shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -320,27 +320,30 @@ const PublicPricing = () => {
             </button>
             <button
               onClick={() => setBillingCycle("yearly")}
-              className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+              className={`py-3 px-6 rounded-lg text-sm font-medium transition-all ${
                 billingCycle === "yearly"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-background text-foreground shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {t.billing.yearly}
-              <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                {t.billing.savings}
-              </span>
             </button>
           </div>
+          {billingCycle === "yearly" && (
+            <p className="mt-4 text-sm text-primary font-medium animate-in fade-in slide-in-from-top-2">
+              ✨ {t.billing.savings}
+            </p>
+          )}
         </div>
       </section>
 
       {/* Pricing Cards */}
       <section className="pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+            
             {/* Free Plan */}
-            <Card className="relative border-border hover:border-primary/30 transition-all duration-300 bg-card">
+            <Card className="relative border-border hover:border-primary/30 transition-all duration-300 bg-card flex flex-col">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2.5 rounded-xl bg-muted text-muted-foreground">
@@ -354,7 +357,7 @@ const PublicPricing = () => {
                 </div>
                 <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.free.description}</p>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 flex flex-col flex-1">
                 <Button 
                   variant="outline" 
                   className="w-full mb-6 h-12 font-medium"
@@ -362,7 +365,7 @@ const PublicPricing = () => {
                 >
                   {t.plans.free.cta}
                 </Button>
-                <ul className="space-y-3">
+                <ul className="space-y-3 flex-1">
                   {t.plans.free.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-3">
                       {getFeatureIcon(feature.icon)}
@@ -370,17 +373,20 @@ const PublicPricing = () => {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-6 pt-4 border-t border-border">
+                  <p className="text-sm font-medium text-muted-foreground">{t.plans.free.stripeInfo}</p>
+                </div>
               </CardContent>
             </Card>
 
             {/* Premium Plan - Highlighted */}
-            <Card className="relative border-2 border-primary shadow-xl md:scale-105 bg-card">
+            <Card className="relative border-2 border-primary shadow-2xl md:scale-[1.03] bg-card flex flex-col ring-4 ring-primary/10">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                <span className="bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                <span className="bg-primary text-primary-foreground px-5 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
                   {t.plans.premium.badge}
                 </span>
               </div>
-              <CardHeader className="pb-4 pt-8">
+              <CardHeader className="pb-4 pt-10">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                     {getPlanIcon('premium')}
@@ -400,20 +406,21 @@ const PublicPricing = () => {
                     </>
                   )}
                 </div>
+                <p className="text-xs text-primary font-medium mb-2">{t.plans.premium.popularText}</p>
                 {billingCycle === "yearly" && (
-                  <p className="text-sm text-primary font-medium mb-2">{t.plans.premium.yearlySavings}</p>
+                  <p className="text-xs text-primary/80 mb-2">✨ {t.plans.premium.yearlySavings}</p>
                 )}
                 <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.premium.description}</p>
-                <p className="text-xs text-primary/80 mt-2 italic">{t.plans.premium.popularText}</p>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 flex flex-col flex-1">
                 <Button 
-                  className="w-full mb-6 h-12 font-medium"
+                  className="w-full mb-6 h-12 font-medium text-base"
                   onClick={() => navigate("/auth")}
                 >
                   {t.plans.premium.cta}
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <ul className="space-y-3">
+                <ul className="space-y-3 flex-1">
                   {t.plans.premium.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-3">
                       {getFeatureIcon(feature.icon)}
@@ -421,11 +428,15 @@ const PublicPricing = () => {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-6 pt-4 border-t border-border">
+                  <p className="text-sm font-bold text-primary">{t.plans.premium.stripeInfo}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t.plans.premium.stripeNote}</p>
+                </div>
               </CardContent>
             </Card>
 
             {/* Pro Plan */}
-            <Card className="relative border-border hover:border-primary/30 transition-all duration-300 bg-card">
+            <Card className="relative border-border hover:border-primary/30 transition-all duration-300 bg-card flex flex-col">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2.5 rounded-xl bg-muted text-muted-foreground">
@@ -447,11 +458,11 @@ const PublicPricing = () => {
                   )}
                 </div>
                 {billingCycle === "yearly" && (
-                  <p className="text-sm text-primary font-medium mb-2">{t.plans.pro.yearlySavings}</p>
+                  <p className="text-sm text-primary font-medium mb-2">✨ {t.plans.pro.yearlySavings}</p>
                 )}
                 <p className="text-muted-foreground text-sm leading-relaxed">{t.plans.pro.description}</p>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 flex flex-col flex-1">
                 <Button 
                   variant="outline" 
                   className="w-full mb-6 h-12 font-medium"
@@ -459,7 +470,7 @@ const PublicPricing = () => {
                 >
                   {t.plans.pro.cta}
                 </Button>
-                <ul className="space-y-3">
+                <ul className="space-y-3 flex-1">
                   {t.plans.pro.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-3">
                       {getFeatureIcon(feature.icon)}
@@ -467,6 +478,10 @@ const PublicPricing = () => {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-6 pt-4 border-t border-border">
+                  <p className="text-sm font-bold text-primary">{t.plans.pro.stripeInfo}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t.plans.pro.stripeNote}</p>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -486,7 +501,7 @@ const PublicPricing = () => {
             {t.decision.items.map((item, index) => (
               <div 
                 key={index} 
-                className="bg-card border border-border rounded-xl p-6 text-center hover:border-primary/30 transition-colors"
+                className="bg-card border border-border rounded-xl p-6 text-center hover:border-primary/30 hover:shadow-lg transition-all"
               >
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4">
                   {getDecisionIcon(item.icon)}
@@ -530,6 +545,7 @@ const PublicPricing = () => {
             onClick={() => navigate("/auth")}
           >
             {t.cta.button}
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
