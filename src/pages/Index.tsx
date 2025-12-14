@@ -20,7 +20,8 @@ import {
   Check,
   ArrowRight,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  ZoomIn
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -36,6 +37,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
+import ImageLightbox from "@/components/ImageLightbox";
 import {
   Accordion,
   AccordionContent,
@@ -70,6 +72,20 @@ const Index = () => {
   
   const currentDashboardPreview = currentLang === "EN" ? dashboardPreviewEn : dashboardPreview;
   const currentInvoicesPreview = currentLang === "EN" ? invoicesPreviewEn : invoicesPreview;
+
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  
+  const lightboxImages = [
+    { src: currentDashboardPreview, alt: currentLang === "EN" ? "Dashboard preview" : "Aperçu du tableau de bord" },
+    { src: currentInvoicesPreview, alt: currentLang === "EN" ? "Invoices preview" : "Aperçu des factures" },
+  ];
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
 
   const translations = {
     FR: {
@@ -782,13 +798,21 @@ const Index = () => {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
-            <div className="rounded-xl overflow-hidden shadow-xl border border-border">
+            <div 
+              className="rounded-xl overflow-hidden shadow-xl border border-border cursor-pointer group relative"
+              onClick={() => openLightbox(0)}
+            >
               <img 
                 src={currentDashboardPreview} 
                 alt={t.showcase.dashboard.title}
-                className="w-full h-auto"
+                className="w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
                 loading="lazy"
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/70 rounded-full p-3">
+                  <ZoomIn className="h-6 w-6 text-primary" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -798,13 +822,21 @@ const Index = () => {
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 rounded-xl overflow-hidden shadow-xl border border-border">
+            <div 
+              className="order-2 lg:order-1 rounded-xl overflow-hidden shadow-xl border border-border cursor-pointer group relative"
+              onClick={() => openLightbox(1)}
+            >
               <img 
                 src={currentInvoicesPreview} 
                 alt={t.showcase.invoices.title}
-                className="w-full h-auto"
+                className="w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
                 loading="lazy"
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/70 rounded-full p-3">
+                  <ZoomIn className="h-6 w-6 text-primary" />
+                </div>
+              </div>
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -1119,6 +1151,15 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={lightboxImages}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={setLightboxIndex}
+      />
     </div>
   );
 };
