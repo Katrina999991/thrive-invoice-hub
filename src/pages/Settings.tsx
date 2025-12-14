@@ -325,45 +325,21 @@ Cordialement,
     
     const trimmedUsername = username.trim();
     
-    // Check if username already exists (if not empty)
-    if (trimmedUsername) {
-      setIsSavingUsername(true);
-      try {
-        const { data: existingUser, error: checkError } = await supabase
-          .from("profiles")
-          .select("user_id")
-          .eq("username", trimmedUsername)
-          .neq("user_id", user.id)
-          .maybeSingle();
-
-        if (checkError) throw checkError;
-
-        if (existingUser) {
-          setShowUsernameExistsDialog(true);
-          setIsSavingUsername(false);
-          return;
-        }
-      } catch (error: any) {
-        console.error("Error checking username:", error);
-        toast({
-          title: t("settings.account.usernameError"),
-          description: error.message,
-          variant: "destructive",
-        });
-        setIsSavingUsername(false);
-        return;
-      }
-    } else {
-      setIsSavingUsername(true);
-    }
-    
+    setIsSavingUsername(true);
     try {
       const { error } = await supabase
         .from("profiles")
         .update({ username: trimmedUsername || null })
         .eq("user_id", user.id);
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a unique constraint violation
+        if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('profiles_username_key')) {
+          setShowUsernameExistsDialog(true);
+          return;
+        }
+        throw error;
+      }
 
       updateAuthUsername(trimmedUsername);
 
