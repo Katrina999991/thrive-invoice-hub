@@ -3,6 +3,9 @@ project_id = "dkinzkawntfzkabroeib"
 [functions.send-email]
 verify_jwt = false
 
+[functions.send-subscription-email]
+verify_jwt = false
+
 [functions.account-recovery]
 verify_jwt = false
 
