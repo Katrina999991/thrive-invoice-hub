@@ -1,6 +1,12 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useLanguage } from "@/hooks/useLanguage";
 import { 
@@ -21,7 +27,11 @@ import {
   Receipt,
   Mail,
   BarChart3,
-  ArrowRight
+  ArrowRight,
+  HelpCircle,
+  RefreshCcw,
+  BadgePercent,
+  XCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
@@ -144,6 +154,62 @@ const Pricing = () => {
       policyExample: "Example: If you have 3 companies on the Pro plan and downgrade to Premium (limit: 1 company), you keep your 3 companies but will need to delete 2 before you can create a new one.",
       freeUserTitle: "Unlock Your Full Potential",
       freeUserDesc: "Upgrade to Premium or Pro and enjoy unlimited invoices, PDF downloads, and reduced Stripe fees.",
+      faq: {
+        title: "Frequently Asked Questions About Your Subscription",
+        subtitle: "Everything you need to know to manage your plan",
+        questions: [
+          {
+            question: "When does a plan change take effect?",
+            answer: "When upgrading, the new plan takes effect immediately. When downgrading, your current plan stays active until the end of the billing cycle.",
+            highlight: "planChange"
+          },
+          {
+            question: "How does proration work?",
+            answer: "When you upgrade to a higher plan, the amount already paid is taken into account and only the balance corresponding to the remaining time is billed.",
+            highlight: "planChange"
+          },
+          {
+            question: "Can I change plans multiple times?",
+            answer: "Yes. You can change your plan at any time from this page, with no long-term commitment.",
+            highlight: null
+          },
+          {
+            question: "What happens if I downgrade my plan?",
+            answer: "You keep all the features of your current plan until the end of your billing period. The new plan will automatically apply at the next renewal.",
+            highlight: "planChange"
+          },
+          {
+            question: "Will my data be lost if I downgrade?",
+            answer: "No. All your data is kept. However, some features may become unavailable depending on the active plan.",
+            highlight: null
+          },
+          {
+            question: "How do Stripe payments work?",
+            answer: "All payments are processed securely via Stripe.",
+            highlight: "stripe"
+          },
+          {
+            question: "Why do Stripe fees decrease based on the plan?",
+            answer: "Premium and Pro plans offer reduced Stripe fees to support businesses that process higher volumes.",
+            highlight: "stripe"
+          },
+          {
+            question: "Can I upgrade directly from Free to Pro?",
+            answer: "Yes. You can upgrade directly to Pro at any time.",
+            highlight: "planChange"
+          },
+          {
+            question: "Can I downgrade to a lower plan later?",
+            answer: "Yes. You can downgrade your plan at any time. The change will take effect at the end of your billing cycle.",
+            highlight: "planChange"
+          },
+          {
+            question: "How can I cancel my subscription?",
+            answer: "You can cancel your subscription at any time from this page. No long-term commitment is required.",
+            highlight: "cancel"
+          }
+        ]
+      },
       plans: {
         free: {
           name: "Free",
@@ -227,6 +293,62 @@ const Pricing = () => {
       policyExample: "Exemple : Si vous avez 3 entreprises sur le plan Pro et que vous passez au plan Premium (limite : 1 entreprise), vous gardez vos 3 entreprises mais vous devrez en supprimer 2 avant de pouvoir en créer une nouvelle.",
       freeUserTitle: "Débloquez tout votre potentiel",
       freeUserDesc: "Passez à Premium ou Pro et profitez de factures illimitées, du téléchargement PDF et de frais Stripe réduits.",
+      faq: {
+        title: "Questions fréquentes sur votre abonnement",
+        subtitle: "Tout ce que vous devez savoir pour gérer votre plan",
+        questions: [
+          {
+            question: "Quand un changement de plan prend-il effet ?",
+            answer: "Lors d'un upgrade, le nouveau plan prend effet immédiatement. Lors d'un downgrade, votre plan actuel reste actif jusqu'à la fin du cycle de facturation.",
+            highlight: "planChange"
+          },
+          {
+            question: "Comment fonctionne l'ajustement au prorata ?",
+            answer: "Lorsque vous passez à un plan supérieur, le montant déjà payé est pris en compte et seul le solde correspondant au temps restant est facturé.",
+            highlight: "planChange"
+          },
+          {
+            question: "Puis-je changer de plan plusieurs fois ?",
+            answer: "Oui. Vous pouvez changer de plan à tout moment depuis cette page, sans engagement à long terme.",
+            highlight: null
+          },
+          {
+            question: "Que se passe-t-il si je downgrade mon plan ?",
+            answer: "Vous conservez toutes les fonctionnalités de votre plan actuel jusqu'à la fin de votre période de facturation. Le nouveau plan sera appliqué automatiquement au prochain renouvellement.",
+            highlight: "planChange"
+          },
+          {
+            question: "Mes données seront-elles perdues si je downgrade ?",
+            answer: "Non. Toutes vos données sont conservées. Certaines fonctionnalités peuvent toutefois devenir indisponibles selon le plan actif.",
+            highlight: null
+          },
+          {
+            question: "Comment fonctionnent les paiements Stripe ?",
+            answer: "Tous les paiements sont traités de manière sécurisée via Stripe.",
+            highlight: "stripe"
+          },
+          {
+            question: "Pourquoi les frais Stripe diminuent-ils selon le plan ?",
+            answer: "Les plans Premium et Pro offrent des frais Stripe réduits afin de soutenir les entreprises qui encaissent des volumes plus élevés.",
+            highlight: "stripe"
+          },
+          {
+            question: "Puis-je passer directement du plan Gratuit au plan Pro ?",
+            answer: "Oui. Vous pouvez passer directement au plan Pro à tout moment.",
+            highlight: "planChange"
+          },
+          {
+            question: "Puis-je revenir à un plan inférieur plus tard ?",
+            answer: "Oui. Vous pouvez downgrade votre plan à tout moment. Le changement prendra effet à la fin de votre cycle de facturation.",
+            highlight: "planChange"
+          },
+          {
+            question: "Comment puis-je annuler mon abonnement ?",
+            answer: "Vous pouvez annuler votre abonnement à tout moment depuis cette page. Aucun engagement à long terme n'est requis.",
+            highlight: "cancel"
+          }
+        ]
+      },
       plans: {
         free: {
           name: "Gratuit",
@@ -657,6 +779,61 @@ const Pricing = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* FAQ Section */}
+      <section className="mb-12">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-3">
+            <HelpCircle className="h-6 w-6 text-primary" />
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">{t.faq.title}</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">{t.faq.subtitle}</p>
+        </div>
+        
+        <Accordion type="single" collapsible className="space-y-3 max-w-3xl mx-auto">
+          {t.faq.questions.map((item, index) => {
+            const getHighlightIcon = (highlight: string | null) => {
+              switch (highlight) {
+                case 'planChange':
+                  return <RefreshCcw className="h-4 w-4 text-primary shrink-0" />;
+                case 'stripe':
+                  return <BadgePercent className="h-4 w-4 text-primary shrink-0" />;
+                case 'cancel':
+                  return <XCircle className="h-4 w-4 text-primary shrink-0" />;
+                default:
+                  return null;
+              }
+            };
+
+            const highlightIcon = getHighlightIcon(item.highlight);
+            const isHighlighted = item.highlight !== null;
+
+            return (
+              <AccordionItem 
+                key={index} 
+                value={`item-${index}`}
+                className={`border rounded-xl px-4 bg-card ${
+                  isHighlighted 
+                    ? 'border-primary/30 ring-1 ring-primary/10' 
+                    : 'border-border'
+                }`}
+              >
+                <AccordionTrigger className="text-left py-5 hover:no-underline">
+                  <div className="flex items-center gap-3">
+                    {highlightIcon}
+                    <span className="text-sm md:text-base font-medium text-foreground">
+                      {item.question}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm pb-5 pl-7">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </section>
 
       {/* Trust Section */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-sm text-muted-foreground py-6">
