@@ -60,6 +60,7 @@ export default function Settings() {
   const [username, setUsername] = useState<string>("");
   const [isLoadingUsername, setIsLoadingUsername] = useState(false);
   const [isSavingUsername, setIsSavingUsername] = useState(false);
+  const [showUsernameExistsDialog, setShowUsernameExistsDialog] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState<string>("");
   const [isSavingRecoveryEmail, setIsSavingRecoveryEmail] = useState(false);
   const [newPrimaryEmail, setNewPrimaryEmail] = useState<string>("");
@@ -322,16 +323,49 @@ Cordialement,
   const handleSaveUsername = async () => {
     if (!user?.id) return;
     
-    setIsSavingUsername(true);
+    const trimmedUsername = username.trim();
+    
+    // Check if username already exists (if not empty)
+    if (trimmedUsername) {
+      setIsSavingUsername(true);
+      try {
+        const { data: existingUser, error: checkError } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("username", trimmedUsername)
+          .neq("user_id", user.id)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (existingUser) {
+          setShowUsernameExistsDialog(true);
+          setIsSavingUsername(false);
+          return;
+        }
+      } catch (error: any) {
+        console.error("Error checking username:", error);
+        toast({
+          title: t("settings.account.usernameError"),
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsSavingUsername(false);
+        return;
+      }
+    } else {
+      setIsSavingUsername(true);
+    }
+    
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ username: username.trim() || null })
+        .update({ username: trimmedUsername || null })
         .eq("user_id", user.id);
 
       if (error) throw error;
 
-      updateAuthUsername(username.trim());
+      updateAuthUsername(trimmedUsername);
 
       toast({
         title: t("settings.account.usernameUpdated"),
@@ -2024,6 +2058,28 @@ Cordialement,
               {isDeleting 
                 ? (language === "fr" ? "Suppression..." : "Deleting...") 
                 : (language === "fr" ? "Oui, supprimer mon compte" : "Yes, delete my account")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Username already exists Dialog */}
+      <AlertDialog open={showUsernameExistsDialog} onOpenChange={setShowUsernameExistsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              {language === "fr" ? "Nom d'utilisateur non disponible" : "Username not available"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr" 
+                ? "Ce nom d'utilisateur est déjà utilisé par un autre compte. Veuillez en choisir un autre." 
+                : "This username is already taken by another account. Please choose a different one."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowUsernameExistsDialog(false)}>
+              {language === "fr" ? "Compris" : "OK"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
