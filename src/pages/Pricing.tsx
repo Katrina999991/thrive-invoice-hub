@@ -21,13 +21,22 @@ import {
   Receipt,
   Mail,
   BarChart3,
-  ArrowRight
+  ArrowRight,
+  RefreshCcw,
+  BadgePercent,
+  HelpCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { toast } from "sonner";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const Pricing = () => {
   const { availablePlans, currentSubscription, isLoading, planLimits } = useSubscription();
@@ -655,6 +664,175 @@ const Pricing = () => {
           <div className="p-3 rounded-lg bg-muted/50 border border-muted-foreground/10">
             <p className="text-sm text-muted-foreground italic">{t.policyExample}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* FAQ Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-primary" />
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">
+                {language === 'fr' ? 'Questions fréquentes sur votre abonnement' : 'Frequently Asked Questions About Your Subscription'}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {language === 'fr' ? 'Tout ce que vous devez savoir pour gérer votre plan' : 'Everything you need to know to manage your plan'}
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible defaultValue="faq-1" className="w-full">
+            {/* Question 1 - Highlighted: Upgrade/Downgrade */}
+            <AccordionItem value="faq-1" className="border-l-4 border-l-primary pl-4">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <RefreshCcw className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-medium">
+                    {language === 'fr' ? 'Quand un changement de plan prend-il effet ?' : 'When does a plan change take effect?'}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pl-6">
+                {language === 'fr' 
+                  ? "Lors d'un upgrade, le nouveau plan prend effet immédiatement. Lors d'un downgrade, votre plan actuel reste actif jusqu'à la fin du cycle de facturation."
+                  : "When upgrading, the new plan takes effect immediately. When downgrading, your current plan stays active until the end of the billing cycle."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 2 - Highlighted: Prorata */}
+            <AccordionItem value="faq-2" className="border-l-4 border-l-primary pl-4">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <BadgePercent className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-medium">
+                    {language === 'fr' ? "Comment fonctionne l'ajustement au prorata ?" : 'How does proration work?'}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pl-6">
+                {language === 'fr'
+                  ? "Lorsque vous passez à un plan supérieur, le montant déjà payé est pris en compte et seul le solde correspondant au temps restant est facturé."
+                  : "When upgrading, the amount already paid is taken into account and only the balance for the remaining time is charged."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 3 */}
+            <AccordionItem value="faq-3">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Puis-je changer de plan plusieurs fois ?' : 'Can I change plans multiple times?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Oui. Vous pouvez changer de plan à tout moment depuis cette page, sans engagement à long terme."
+                  : "Yes. You can change plans at any time from this page, with no long-term commitment."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 4 */}
+            <AccordionItem value="faq-4">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Que se passe-t-il si je downgrade mon plan ?' : 'What happens if I downgrade my plan?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Vous conservez toutes les fonctionnalités de votre plan actuel jusqu'à la fin de votre période de facturation. Le nouveau plan sera appliqué automatiquement au prochain renouvellement."
+                  : "You keep all features of your current plan until the end of your billing period. The new plan will be applied automatically at the next renewal."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 5 */}
+            <AccordionItem value="faq-5">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Mes données seront-elles perdues si je downgrade ?' : 'Will my data be lost if I downgrade?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Non. Toutes vos données sont conservées. Certaines fonctionnalités peuvent toutefois devenir indisponibles selon le plan actif."
+                  : "No. All your data is preserved. Some features may become unavailable depending on the active plan."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 6 - Highlighted: Stripe Payments */}
+            <AccordionItem value="faq-6" className="border-l-4 border-l-primary pl-4">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-medium">
+                    {language === 'fr' ? 'Comment fonctionnent les paiements Stripe ?' : 'How do Stripe payments work?'}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pl-6">
+                {language === 'fr'
+                  ? "Tous les paiements sont traités de manière sécurisée via Stripe."
+                  : "All payments are processed securely through Stripe."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 7 */}
+            <AccordionItem value="faq-7">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Pourquoi les frais Stripe diminuent-ils selon le plan ?' : 'Why do Stripe fees decrease based on the plan?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Les plans Premium et Pro offrent des frais Stripe réduits afin de soutenir les entreprises qui encaissent des volumes plus élevés."
+                  : "Premium and Pro plans offer reduced Stripe fees to support businesses that process higher volumes."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 8 */}
+            <AccordionItem value="faq-8">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Puis-je passer directement du plan Gratuit au plan Pro ?' : 'Can I upgrade directly from Free to Pro?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Oui. Vous pouvez passer directement au plan Pro à tout moment."
+                  : "Yes. You can upgrade directly to the Pro plan at any time."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 9 */}
+            <AccordionItem value="faq-9">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Puis-je revenir à un plan inférieur plus tard ?' : 'Can I downgrade to a lower plan later?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Oui. Vous pouvez downgrade votre plan à tout moment. Le changement prendra effet à la fin de votre cycle de facturation."
+                  : "Yes. You can downgrade your plan at any time. The change will take effect at the end of your billing cycle."}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Question 10 */}
+            <AccordionItem value="faq-10">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span className="font-medium">
+                  {language === 'fr' ? 'Comment puis-je annuler mon abonnement ?' : 'How can I cancel my subscription?'}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {language === 'fr'
+                  ? "Vous pouvez annuler votre abonnement à tout moment depuis cette page. Aucun engagement à long terme n'est requis."
+                  : "You can cancel your subscription at any time from this page. No long-term commitment required."}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </CardContent>
       </Card>
 
