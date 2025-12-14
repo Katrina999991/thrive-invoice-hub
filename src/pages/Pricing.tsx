@@ -122,6 +122,12 @@ const Pricing = () => {
       noCommitment: "No long-term commitment. You can change plans at any time.",
       securePayments: "All payments are processed securely via Stripe.",
       cancelAnytime: "Cancel or change your plan at any time.",
+      policyTitle: "Plan Change Policy",
+      policyIntro: "If you downgrade to a lower plan (e.g., from Pro to Premium), here's what happens:",
+      policyKeepData: "You keep all your existing data (companies, clients, invoices, expenses)",
+      policyViewEdit: "You can view, edit, and delete all your data",
+      policyNoCreate: "However, you won't be able to create new entities if you exceed the new plan's limits",
+      policyExample: "Example: If you have 3 companies on the Pro plan and downgrade to Premium (limit: 1 company), you keep your 3 companies but will need to delete 2 before you can create a new one.",
       freeUserTitle: "Unlock Your Full Potential",
       freeUserDesc: "Upgrade to Premium or Pro and enjoy unlimited invoices, PDF downloads, and advanced features.",
       plans: {
@@ -196,6 +202,12 @@ const Pricing = () => {
       noCommitment: "Aucun engagement à long terme. Vous pouvez changer de plan à tout moment.",
       securePayments: "Tous les paiements sont traités de manière sécurisée via Stripe.",
       cancelAnytime: "Annulez ou changez de plan à tout moment.",
+      policyTitle: "Politique de changement de plan",
+      policyIntro: "Si vous passez à un plan inférieur (par exemple de Pro à Premium), voici ce qui se passe :",
+      policyKeepData: "Vous conservez toutes vos données existantes (entreprises, clients, factures, dépenses)",
+      policyViewEdit: "Vous pouvez consulter, modifier et supprimer toutes vos données",
+      policyNoCreate: "Cependant, vous ne pourrez pas créer de nouvelles entités si vous dépassez les limites du nouveau plan",
+      policyExample: "Exemple : Si vous avez 3 entreprises sur le plan Pro et que vous passez au plan Premium (limite : 1 entreprise), vous gardez vos 3 entreprises mais vous devrez en supprimer 2 avant de pouvoir en créer une nouvelle.",
       freeUserTitle: "Débloquez tout votre potentiel",
       freeUserDesc: "Passez à Premium ou Pro et profitez de factures illimitées, du téléchargement PDF et de fonctionnalités avancées.",
       plans: {
@@ -552,6 +564,36 @@ const Pricing = () => {
           <p className="text-sm text-muted-foreground italic pt-2 border-t">
             {t.noCommitment}
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Plan Change Policy Section */}
+      <Card className="mb-8 border-amber-500/30 bg-amber-500/5">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-amber-500" />
+            <h3 className="text-lg font-semibold text-foreground">{t.policyTitle}</h3>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-foreground font-medium">{t.policyIntro}</p>
+          <ul className="space-y-2 ml-4">
+            <li className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+              {t.policyKeepData}
+            </li>
+            <li className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+              {t.policyViewEdit}
+            </li>
+            <li className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              {t.policyNoCreate}
+            </li>
+          </ul>
+          <div className="p-3 rounded-lg bg-muted/50 border border-muted-foreground/10">
+            <p className="text-sm text-muted-foreground italic">{t.policyExample}</p>
+          </div>
         </CardContent>
       </Card>
 
