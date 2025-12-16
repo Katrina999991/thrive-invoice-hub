@@ -16,6 +16,7 @@ import Clients from "./pages/Clients";
 import Categories from "./pages/Categories";
 import Products from "./pages/Products";
 import StockManagement from "./pages/StockManagement";
+import Quotes from "./pages/Quotes";
 import Invoices from "./pages/Invoices";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
@@ -67,6 +68,7 @@ const App = () => {
                   <Route path="categories" element={<Categories />} />
                   <Route path="products" element={<Products />} />
                   <Route path="stock" element={<StockManagement />} />
+                  <Route path="quotes" element={<Quotes />} />
                   <Route path="invoices" element={<Invoices />} />
                   <Route path="time-tracking" element={<TimeTracking />} />
                   <Route path="expenses" element={<Expenses />} />
