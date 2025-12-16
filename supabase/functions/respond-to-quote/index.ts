@@ -262,7 +262,7 @@ const handler = async (req: Request): Promise<Response> => {
                 ${htmlBody}
               </div>
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-                <a href="https://gestionflow.lovable.app/dashboard/quotes" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+                <a href="https://gestionflow.net/dashboard/quotes" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
                   ${lang === 'fr' ? 'Voir dans GestionFlow' : 'View in GestionFlow'}
                 </a>
               </div>
