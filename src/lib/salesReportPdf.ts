@@ -22,10 +22,11 @@ interface SalesReportPdfOptions {
   endDate?: Date;
   chartRef?: React.RefObject<HTMLDivElement>;
   logoUrl?: string;
+  returnBlob?: boolean; // Si true, retourne un Blob au lieu de sauvegarder
 }
 
-export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Promise<void> => {
-  const { salesData, companyName, startDate, endDate, chartRef, logoUrl } = options;
+export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Promise<Blob | void> => {
+  const { salesData, companyName, startDate, endDate, chartRef, logoUrl, returnBlob = false } = options;
   
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
@@ -306,6 +307,11 @@ export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Pr
     filename += `-${format(startDate, 'yyyy-MM-dd')}-${format(endDate, 'yyyy-MM-dd')}`;
   }
   filename += ".pdf";
+  
+  // Retourner Blob ou sauvegarder selon l'option
+  if (returnBlob) {
+    return doc.output('blob');
+  }
   
   doc.save(filename);
 };
