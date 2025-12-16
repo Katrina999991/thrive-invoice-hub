@@ -1,0 +1,359 @@
+import { useState } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
+import { useCompanies } from "@/hooks/useCompanies";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Package, AlertTriangle, TrendingDown, TrendingUp, Edit2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
+
+const StockManagement = () => {
+  const { t, language } = useLanguage();
+  const { products, loading, updateProduct } = useProducts();
+  const { categories } = useCategories();
+  const { companies } = useCompanies();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCompany, setFilterCompany] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterStock, setFilterStock] = useState<string>("all");
+  
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [newQuantity, setNewQuantity] = useState<string>("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Filter only products (not services) that have quantity tracking
+  const productsWithStock = products.filter(p => p.quantity !== null && p.quantity !== undefined);
+
+  const filteredProducts = productsWithStock.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCompany = filterCompany === "all" || product.company_id === filterCompany;
+    const matchesCategory = filterCategory === "all" || product.category === filterCategory;
+    
+    let matchesStock = true;
+    if (filterStock === "low") {
+      matchesStock = (product.quantity || 0) <= 5 && (product.quantity || 0) > 0;
+    } else if (filterStock === "out") {
+      matchesStock = (product.quantity || 0) === 0;
+    } else if (filterStock === "available") {
+      matchesStock = (product.quantity || 0) > 5;
+    }
+    
+    return matchesSearch && matchesCompany && matchesCategory && matchesStock;
+  });
+
+  const totalProducts = productsWithStock.length;
+  const outOfStock = productsWithStock.filter(p => (p.quantity || 0) === 0).length;
+  const lowStock = productsWithStock.filter(p => (p.quantity || 0) > 0 && (p.quantity || 0) <= 5).length;
+  const totalValue = productsWithStock.reduce((sum, p) => sum + ((p.quantity || 0) * (p.cost || 0)), 0);
+
+  const getCategoryName = (categoryId: string | null) => {
+    if (!categoryId) return "-";
+    const category = categories.find(c => c.id === categoryId || c.name === categoryId);
+    if (!category) return categoryId;
+    return language === 'fr' ? (category.name_fr || category.name) : (category.name_en || category.name);
+  };
+
+  const getCompanyName = (companyId: string | null) => {
+    if (!companyId) return "-";
+    const company = companies.find(c => c.id === companyId);
+    return company?.name || "-";
+  };
+
+  const getStockStatus = (quantity: number) => {
+    if (quantity === 0) {
+      return { label: language === 'fr' ? 'Rupture' : 'Out of Stock', variant: 'destructive' as const, icon: AlertTriangle };
+    } else if (quantity <= 5) {
+      return { label: language === 'fr' ? 'Stock bas' : 'Low Stock', variant: 'secondary' as const, icon: TrendingDown };
+    }
+    return { label: language === 'fr' ? 'En stock' : 'In Stock', variant: 'default' as const, icon: TrendingUp };
+  };
+
+  const handleEditStock = (product: any) => {
+    setEditingProduct(product);
+    setNewQuantity(String(product.quantity || 0));
+    setIsDialogOpen(true);
+  };
+
+  const handleUpdateStock = async () => {
+    if (!editingProduct) return;
+    
+    const quantity = parseInt(newQuantity);
+    if (isNaN(quantity) || quantity < 0) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez entrer une quantité valide' : 'Please enter a valid quantity',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      await updateProduct(editingProduct.id, { quantity });
+      toast({
+        title: language === 'fr' ? 'Stock mis à jour' : 'Stock Updated',
+        description: language === 'fr' ? 'La quantité a été mise à jour avec succès' : 'Quantity has been updated successfully'
+      });
+      setIsDialogOpen(false);
+      setEditingProduct(null);
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de mettre à jour le stock' : 'Failed to update stock',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {language === 'fr' ? 'Gestion des stocks' : 'Stock Management'}
+        </h1>
+        <p className="text-muted-foreground">
+          {language === 'fr' ? 'Suivez et gérez l\'inventaire de vos produits' : 'Track and manage your product inventory'}
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {language === 'fr' ? 'Total produits' : 'Total Products'}
+            </CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalProducts}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {language === 'fr' ? 'Rupture de stock' : 'Out of Stock'}
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{outOfStock}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {language === 'fr' ? 'Stock bas' : 'Low Stock'}
+            </CardTitle>
+            <TrendingDown className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-500">{lowStock}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {language === 'fr' ? 'Valeur totale' : 'Total Value'}
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{language === 'fr' ? 'Inventaire' : 'Inventory'}</CardTitle>
+          <CardDescription>
+            {language === 'fr' ? 'Liste de tous vos produits avec suivi de stock' : 'List of all your products with stock tracking'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder={language === 'fr' ? 'Rechercher un produit...' : 'Search products...'}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select value={filterCompany} onValueChange={setFilterCompany}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder={language === 'fr' ? 'Entreprise' : 'Company'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                {companies.map(company => (
+                  <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder={language === 'fr' ? 'Catégorie' : 'Category'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                {categories.filter(c => c.for_products).map(category => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {language === 'fr' ? (category.name_fr || category.name) : (category.name_en || category.name)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterStock} onValueChange={setFilterStock}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder={language === 'fr' ? 'Statut stock' : 'Stock Status'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                <SelectItem value="available">{language === 'fr' ? 'En stock' : 'In Stock'}</SelectItem>
+                <SelectItem value="low">{language === 'fr' ? 'Stock bas' : 'Low Stock'}</SelectItem>
+                <SelectItem value="out">{language === 'fr' ? 'Rupture' : 'Out of Stock'}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{language === 'fr' ? 'Produit' : 'Product'}</TableHead>
+                  <TableHead>{language === 'fr' ? 'Catégorie' : 'Category'}</TableHead>
+                  <TableHead>{language === 'fr' ? 'Entreprise' : 'Company'}</TableHead>
+                  <TableHead className="text-center">{language === 'fr' ? 'Quantité' : 'Quantity'}</TableHead>
+                  <TableHead>{language === 'fr' ? 'Unité' : 'Unit'}</TableHead>
+                  <TableHead className="text-right">{language === 'fr' ? 'Coût unit.' : 'Unit Cost'}</TableHead>
+                  <TableHead className="text-right">{language === 'fr' ? 'Valeur' : 'Value'}</TableHead>
+                  <TableHead>{language === 'fr' ? 'Statut' : 'Status'}</TableHead>
+                  <TableHead className="text-right">{language === 'fr' ? 'Actions' : 'Actions'}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      {language === 'fr' ? 'Aucun produit trouvé' : 'No products found'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredProducts.map((product) => {
+                    const status = getStockStatus(product.quantity || 0);
+                    const StatusIcon = status.icon;
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            {product.description && (
+                              <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                {product.description}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getCategoryName(product.category)}</TableCell>
+                        <TableCell>{getCompanyName(product.company_id)}</TableCell>
+                        <TableCell className="text-center font-medium">{product.quantity || 0}</TableCell>
+                        <TableCell>{product.unit || '-'}</TableCell>
+                        <TableCell className="text-right">${(product.cost || 0).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">${((product.quantity || 0) * (product.cost || 0)).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge variant={status.variant} className="gap-1">
+                            <StatusIcon className="h-3 w-3" />
+                            {status.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditStock(product)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Edit Stock Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'fr' ? 'Modifier le stock' : 'Update Stock'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingProduct?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{language === 'fr' ? 'Quantité actuelle' : 'Current Quantity'}</Label>
+              <div className="text-2xl font-bold">{editingProduct?.quantity || 0}</div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newQuantity">
+                {language === 'fr' ? 'Nouvelle quantité' : 'New Quantity'}
+              </Label>
+              <Input
+                id="newQuantity"
+                type="number"
+                min="0"
+                value={newQuantity}
+                onChange={(e) => setNewQuantity(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </Button>
+            <Button onClick={handleUpdateStock}>
+              {language === 'fr' ? 'Mettre à jour' : 'Update'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default StockManagement;
