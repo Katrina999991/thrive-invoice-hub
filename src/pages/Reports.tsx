@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Download, FileSpreadsheet, CalendarIcon } from "lucide-react";
+import { Download, FileSpreadsheet, CalendarIcon, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -40,6 +40,7 @@ import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 import { generateSalesReportPdf } from "@/lib/salesReportPdf";
+import { EmailReportDialog } from "@/components/EmailReportDialog";
 
 const Reports = () => {
   const { t, language } = useLanguage();
@@ -47,6 +48,10 @@ const Reports = () => {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   const [showNoProductsDialog, setShowNoProductsDialog] = useState(false);
+  
+  // États pour les dialogues d'envoi par courriel
+  const [emailDialogOpen, setEmailDialogOpen] = useState<string | null>(null);
+  const [currentPdfBlob, setCurrentPdfBlob] = useState<Blob | null>(null);
   
   // Check if a specific report tab is available based on plan
   const isTabAvailable = (tab: string) => {
@@ -3094,7 +3099,7 @@ const Reports = () => {
                   className="flex items-center gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  Export PDF
+                  PDF
                 </Button>
                 <Button
                   variant="outline"
@@ -3104,7 +3109,17 @@ const Reports = () => {
                   className="flex items-center gap-2"
                 >
                   <FileSpreadsheet className="h-4 w-4" />
-                  Export Excel
+                  Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEmailDialogOpen('revenue')}
+                  disabled={!realRevenueData || !chartData.length}
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
               </div>
 
@@ -3390,13 +3405,17 @@ const Reports = () => {
                 </p>
               </div>
               <div className="flex space-x-2">
-                <Button onClick={exportSalesReportToPDF} variant="outline" size="sm">
+                <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={exportSalesReportToExcel} variant="outline" size="sm">
+                <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
+                </Button>
+                <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
               </div>
             </div>
@@ -3529,13 +3548,17 @@ const Reports = () => {
                 </p>
               </div>
               <div className="flex space-x-2">
-                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm">
+                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm">
+                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
+                </Button>
+                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
               </div>
             </div>
@@ -3802,13 +3825,17 @@ const Reports = () => {
               </div>
               
               <div className="flex space-x-2">
-                <Button onClick={exportExpensesToPDF} variant="outline" size="sm">
+                <Button onClick={exportExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={exportExpensesToExcel} variant="outline" size="sm">
+                <Button onClick={exportExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
+                </Button>
+                <Button onClick={() => setEmailDialogOpen('expenses')} variant="outline" size="sm" disabled={!expenseReportData}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
               </div>
             </div>
@@ -4240,13 +4267,17 @@ const Reports = () => {
               </div>
               
               <div className="flex space-x-2">
-                <Button onClick={exportClientsToPDF} variant="outline" size="sm">
+                <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={exportClientsToExcel} variant="outline" size="sm">
+                <Button onClick={exportClientsToExcel} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
+                </Button>
+                <Button onClick={() => setEmailDialogOpen('clients')} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
               </div>
             </div>
@@ -5303,6 +5334,92 @@ const Reports = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Email Report Dialogs */}
+      <EmailReportDialog
+        open={emailDialogOpen === 'revenue'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="revenue"
+        reportTitle={language === 'fr' ? 'Rapport des revenus' : 'Revenue Report'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!realRevenueData || !chartData.length) return null;
+          const doc = new jsPDF();
+          doc.setFontSize(20);
+          doc.text(getReportTranslation('revenueReport', language), doc.internal.pageSize.width / 2, 20, { align: 'center' });
+          const tableData = chartData.map(item => [item.period, `$${item.revenue.toFixed(2)}`, item.invoiceCount.toString()]);
+          autoTable(doc, { head: [['Période', 'Revenus', 'Factures']], body: tableData, startY: 40 });
+          return doc.output('blob');
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'sales'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="sales"
+        reportTitle={language === 'fr' ? 'Ventes par produit' : 'Sales by Product'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!salesData) return null;
+          const doc = new jsPDF();
+          doc.setFontSize(20);
+          doc.text(language === 'fr' ? 'Rapport des ventes par produit' : 'Sales by Product Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
+          const tableData = salesData.products.map(p => [p.product_name, p.total_quantity_sold.toString(), `$${p.total_revenue.toFixed(2)}`]);
+          autoTable(doc, { head: [['Produit', 'Qté', 'Revenus']], body: tableData, startY: 40 });
+          return doc.output('blob');
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'stock'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="stock"
+        reportTitle={language === 'fr' ? 'État des stocks' : 'Stock Status'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!filteredInventoryProducts) return null;
+          const doc = new jsPDF();
+          doc.setFontSize(20);
+          doc.text(language === 'fr' ? 'Rapport État des stocks' : 'Stock Status Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
+          const tableData = filteredInventoryProducts.map(p => [p.name, (p.quantity || 0).toString(), `$${(p.cost || 0).toFixed(2)}`]);
+          autoTable(doc, { head: [['Produit', 'Quantité', 'Coût']], body: tableData, startY: 40 });
+          return doc.output('blob');
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'expenses'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="expenses"
+        reportTitle={language === 'fr' ? 'Rapport des dépenses' : 'Expenses Report'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!expenseReportData) return null;
+          const doc = new jsPDF();
+          doc.setFontSize(20);
+          doc.text(language === 'fr' ? 'Rapport des dépenses' : 'Expenses Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
+          const tableData = expenseReportData.expenseDetails.map(e => [e.description, e.category, `$${e.amount.toFixed(2)}`]);
+          autoTable(doc, { head: [['Description', 'Catégorie', 'Montant']], body: tableData, startY: 40 });
+          return doc.output('blob');
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'clients'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="clients"
+        reportTitle={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!clients) return null;
+          const doc = new jsPDF();
+          doc.setFontSize(20);
+          doc.text(language === 'fr' ? 'Rapport des clients' : 'Clients Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
+          const tableData = clients.map(c => [c.name, c.email || '-', c.phone || '-']);
+          autoTable(doc, { head: [['Nom', 'Email', 'Téléphone']], body: tableData, startY: 40 });
+          return doc.output('blob');
+        }}
+      />
     </div>
   );
 };
