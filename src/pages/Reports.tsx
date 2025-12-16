@@ -151,10 +151,12 @@ const Reports = () => {
   // États pour les filtres de la section Products
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
   const [productSelectedCompanyId, setProductSelectedCompanyId] = useState<string>('');
+  const [productStartDate, setProductStartDate] = useState<Date | undefined>();
+  const [productEndDate, setProductEndDate] = useState<Date | undefined>();
   
   const { salesData, loading: salesLoading } = useSalesReport(
-    startDate, 
-    endDate, 
+    productStartDate, 
+    productEndDate, 
     productFilterType === 'company' ? productSelectedCompanyId : undefined
   );
   
@@ -3501,14 +3503,18 @@ const Reports = () => {
           <Card>
             <CardHeader>
               <CardTitle>{language === 'fr' ? 'Filtres' : 'Filters'}</CardTitle>
-              <CardDescription>{language === 'fr' ? 'Sélectionnez une période et une entreprise' : 'Select a period and company'}</CardDescription>
+              <CardDescription>
+                {language === 'fr' 
+                  ? 'Sélectionnez une période et une entreprise. Note: Seules les factures payées sont incluses dans les ventes.' 
+                  : 'Select a period and company. Note: Only paid invoices are included in sales.'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={setCustomStartDate}
-                onEndDateChange={setCustomEndDate}
+                startDate={productStartDate}
+                endDate={productEndDate}
+                onStartDateChange={setProductStartDate}
+                onEndDateChange={setProductEndDate}
                 t={t}
               />
               <div className="grid gap-4 md:grid-cols-2">
