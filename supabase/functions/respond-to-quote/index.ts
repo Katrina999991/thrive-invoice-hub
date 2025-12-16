@@ -190,9 +190,8 @@ const handler = async (req: Request): Promise<Response> => {
         const userEmail = userData.user.email;
         const client = quote.clients;
         
-        // Determine user's preferred language (default to French for this app)
-        // We could store this in profiles, but for now default to French
-        const lang = 'fr';
+        // Use the client's language preference
+        const lang = client?.language === 'french' ? 'fr' : 'en';
         const template = emailTemplates[lang][response];
         
         // Format date
