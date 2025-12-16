@@ -2305,6 +2305,7 @@ const Reports = () => {
       chartRef: salesProductChartRef,
       planType: planLimits?.plan_type || 'free',
       hideBranding: hidePdfBranding,
+      includedStatuses: selectedSalesStatuses,
     });
   };
 
@@ -5454,6 +5455,7 @@ const Reports = () => {
             returnBlob: true,
             planType: planLimits?.plan_type || 'free',
             hideBranding: hidePdfBranding,
+            includedStatuses: selectedSalesStatuses,
           });
           return blob as Blob;
         }}
