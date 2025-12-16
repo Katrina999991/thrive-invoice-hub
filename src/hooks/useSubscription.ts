@@ -18,6 +18,7 @@ export interface PlanLimits {
   custom_email_templates: boolean;
   all_reports: boolean;
   category_management: boolean;
+  quotes_enabled?: boolean;
 }
 
 export interface SubscriptionPlan {
@@ -38,6 +39,7 @@ export interface SubscriptionPlan {
   custom_email_templates: boolean;
   all_reports: boolean;
   category_management: boolean;
+  quotes_enabled: boolean;
 }
 
 export const useSubscription = () => {

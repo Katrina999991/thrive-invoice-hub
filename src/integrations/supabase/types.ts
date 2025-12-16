@@ -647,6 +647,138 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          notes: string | null
+          product_id: string | null
+          product_taxes: Json | null
+          quantity: number
+          quote_id: string
+          total: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_taxes?: Json | null
+          quantity?: number
+          quote_id: string
+          total?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_taxes?: Json | null
+          quantity?: number
+          quote_id?: string
+          total?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          client_id: string | null
+          converted_at: string | null
+          converted_to_invoice_id: string | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          issue_date: string
+          notes: string | null
+          quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          terms: string | null
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          converted_at?: string | null
+          converted_to_invoice_id?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          quote_number: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          converted_at?: string | null
+          converted_to_invoice_id?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          quote_number?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_to_invoice_id_fkey"
+            columns: ["converted_to_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           all_invoice_templates: boolean
@@ -666,6 +798,7 @@ export type Database = {
           name_fr: string
           pdf_export: boolean
           plan_type: Database["public"]["Enums"]["subscription_plan"]
+          quotes_enabled: boolean
           updated_at: string
           yearly_price: number
         }
@@ -687,6 +820,7 @@ export type Database = {
           name_fr: string
           pdf_export?: boolean
           plan_type: Database["public"]["Enums"]["subscription_plan"]
+          quotes_enabled?: boolean
           updated_at?: string
           yearly_price?: number
         }
@@ -708,6 +842,7 @@ export type Database = {
           name_fr?: string
           pdf_export?: boolean
           plan_type?: Database["public"]["Enums"]["subscription_plan"]
+          quotes_enabled?: boolean
           updated_at?: string
           yearly_price?: number
         }
@@ -872,6 +1007,7 @@ export type Database = {
       decrypt_sensitive: { Args: { ciphertext: string }; Returns: string }
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
+      generate_quote_number: { Args: { company_id: string }; Returns: string }
       get_user_plan_limits: {
         Args: { user_uuid: string }
         Returns: {
