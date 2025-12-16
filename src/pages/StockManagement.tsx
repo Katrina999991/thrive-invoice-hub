@@ -373,15 +373,22 @@ const StockManagement = () => {
             
             {addedQuantity > 0 && editingProduct?.cost > 0 && (
               <div className="space-y-3 pt-2 border-t">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="createExpense"
-                    checked={shouldCreateExpense}
-                    onCheckedChange={(checked) => setShouldCreateExpense(checked === true)}
-                  />
-                  <Label htmlFor="createExpense" className="text-sm cursor-pointer">
-                    {language === 'fr' ? 'Créer une dépense liée au stock' : 'Create expense linked to stock'}
-                  </Label>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="createExpense"
+                      checked={shouldCreateExpense}
+                      onCheckedChange={(checked) => setShouldCreateExpense(checked === true)}
+                    />
+                    <Label htmlFor="createExpense" className="text-sm cursor-pointer">
+                      {language === 'fr' ? 'Créer une dépense liée au stock' : 'Create expense linked to stock'}
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground ml-6">
+                    {language === 'fr' 
+                      ? "Cochez cette option si l'augmentation du stock correspond à un achat." 
+                      : 'Check this option if the stock increase corresponds to a purchase.'}
+                  </p>
                 </div>
                 {shouldCreateExpense && (
                   <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
