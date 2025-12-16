@@ -3496,614 +3496,178 @@ const Reports = () => {
         </TabsContent>
 
 
-        <TabsContent value="products" className="space-y-4">
-          {/* Product Profit Report Section */}
-          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <div>
-              <h2 className="text-2xl font-bold">{t("reports.products.profitTitle")}</h2>
-              <p className="text-muted-foreground">{t("reports.products.profitDesc")}</p>
-            </div>
-            
-            <div className="flex space-x-2">
-              <Button onClick={exportProductProfitToPDF} variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                PDF
-              </Button>
-              <Button onClick={exportProductProfitToExcel} variant="outline" size="sm">
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                Excel
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("reports.products.dateFilters")}</CardTitle>
-                <CardDescription>{t("reports.products.selectPeriodProfit")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <DateRangePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onStartDateChange={setCustomStartDate}
-                  onEndDateChange={setCustomEndDate}
-                  t={t}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("reports.products.companyFilter")}</CardTitle>
-                <CardDescription>{t("reports.products.companyFilterDesc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="products" className="space-y-6">
+          {/* Date & Company Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{language === 'fr' ? 'Filtres' : 'Filters'}</CardTitle>
+              <CardDescription>{language === 'fr' ? 'Sélectionnez une période et une entreprise' : 'Select a period and company'}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setCustomStartDate}
+                onEndDateChange={setCustomEndDate}
+                t={t}
+              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>{language === 'fr' ? 'Filtrer par' : 'Filter by'}</Label>
+                  <Select value={productFilterType} onValueChange={(value: 'all' | 'company') => {
+                    setProductFilterType(value);
+                    setProductSelectedCompanyId('');
+                  }}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner' : 'Select'} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border shadow-lg z-50">
+                      <SelectItem value="all">{language === 'fr' ? 'Toutes les entreprises' : 'All companies'}</SelectItem>
+                      <SelectItem value="company">{language === 'fr' ? 'Par entreprise' : 'By company'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {productFilterType === 'company' && (
                   <div className="space-y-2">
-                    <Label>{t("reports.products.filterType")}</Label>
-                    <Select value={productFilterType} onValueChange={(value: 'all' | 'company') => {
-                      setProductFilterType(value);
-                      setProductSelectedCompanyId('');
-                    }}>
+                    <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
+                    <Select value={productSelectedCompanyId} onValueChange={setProductSelectedCompanyId}>
                       <SelectTrigger className="bg-background">
-                        <SelectValue placeholder={t("reports.products.selectFilterType")} />
+                        <SelectValue placeholder={language === 'fr' ? 'Sélectionner une entreprise' : 'Select a company'} />
                       </SelectTrigger>
                       <SelectContent className="bg-background border border-border shadow-lg z-50">
-                        <SelectItem value="all">{t("reports.products.allCompanies")}</SelectItem>
-                        <SelectItem value="company">{t("reports.products.byCompany")}</SelectItem>
+                        {companies.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  {productFilterType === 'company' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="product-company-select">{t("reports.products.company")}</Label>
-                      <Select value={productSelectedCompanyId} onValueChange={setProductSelectedCompanyId}>
-                        <SelectTrigger className="bg-background">
-                          <SelectValue placeholder={t("reports.products.selectCompany")} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background border border-border shadow-lg z-50">
-                          {companies.map((company) => (
-                            <SelectItem key={company.id} value={company.id}>
-                              {company.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-            {profitLoading ? (
+          {/* ===== 1. RAPPORT VENTES PAR PRODUIT ===== */}
+          <div className="space-y-4">
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+              <div>
+                <h2 className="text-2xl font-bold">{language === 'fr' ? 'Ventes par produit' : 'Sales by Product'}</h2>
+                <p className="text-muted-foreground">
+                  {language === 'fr' 
+                    ? 'Identifiez vos meilleurs et pires produits' 
+                    : 'Identify your best and worst performing products'}
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={exportSalesReportToPDF} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button onClick={exportSalesReportToExcel} variant="outline" size="sm">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+              </div>
+            </div>
+
+            {salesLoading ? (
               <Card>
                 <CardContent className="p-6">
-                  <div className="text-center">{t("reports.products.loadingProfit")}</div>
+                  <div className="text-center">{language === 'fr' ? 'Chargement...' : 'Loading...'}</div>
                 </CardContent>
               </Card>
-            ) : filteredProfitData ? (
+            ) : salesData && salesData.products.length > 0 ? (
               <div className="space-y-4">
-                {/* Résumé des profits */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {/* Sales Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-3">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.totalProfit")}</CardTitle>
+                      <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Chiffre d\'affaires produits' : 'Product Revenue'}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(filteredProfitData.totalProfit)}
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+                          salesData.products.reduce((sum, p) => sum + p.total_revenue, 0)
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.totalRevenue")}</CardTitle>
+                      <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Quantité totale vendue' : 'Total Quantity Sold'}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(filteredProfitData.totalRevenue)}
+                        {salesData.products.reduce((sum, p) => sum + p.total_quantity_sold, 0).toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.totalCost")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-orange-600">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(filteredProfitData.totalCost)}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.overallMargin")}</CardTitle>
+                      <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Nombre de factures' : 'Number of Invoices'}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {filteredProfitData.overallMargin.toFixed(1)}%
+                        {salesData.products.reduce((sum, p) => sum + p.number_of_sales, 0).toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Graphique des profits par produit */}
+                {/* Sales by Product Chart */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("reports.products.profitByProduct")}</CardTitle>
-                    <CardDescription>{t("reports.products.profitByProductDesc")}</CardDescription>
+                    <CardTitle>{language === 'fr' ? 'Revenus par produit' : 'Revenue by Product'}</CardTitle>
                   </CardHeader>
-                  <CardContent ref={productProfitChartRef}>
-                    <BarChart width={600} height={400} data={filteredProfitData.products.slice(0, 10)}>
+                  <CardContent ref={salesProductChartRef}>
+                    <BarChart width={700} height={400} data={salesData.products.slice(0, 10)}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
                         dataKey="product_name" 
                         angle={-45}
                         textAnchor="end"
-                        height={80}
+                        height={100}
+                        interval={0}
+                        fontSize={12}
                       />
                       <YAxis />
-                        <Tooltip 
-                          formatter={(value: any, name: string) => [
-                            new Intl.NumberFormat("fr-FR", { style: "currency", currency: "CAD" }).format(value),
-                            name === "Profit" ? t("reports.products.profit") : 
-                            name === "Revenue" ? t("reports.products.revenue") : t("reports.products.cost")
-                          ]}
-                        />
-                        <Bar dataKey="total_profit" fill="#22c55e" name={t("reports.products.profit")} />
-                        <Bar dataKey="total_cost" fill="#f97316" name={t("reports.products.cost")} />
+                      <Tooltip 
+                        formatter={(value: any) => [
+                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                          language === 'fr' ? 'Revenu' : 'Revenue'
+                        ]}
+                      />
+                      <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
                     </BarChart>
                   </CardContent>
                 </Card>
 
-                {/* Tableau détaillé */}
+                {/* Sales Details Table */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("reports.products.productDetails")}</CardTitle>
-                    <CardDescription>{t("reports.products.productDetailsDesc")}</CardDescription>
+                    <CardTitle>{language === 'fr' ? 'Détail des ventes par produit' : 'Sales Details by Product'}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>{t("reports.products.product")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.qtySold")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.revenue")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.cost")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.profit")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.marginPercent")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.avgPrice")}</TableHead>
+                          <TableHead>{language === 'fr' ? 'Produit' : 'Product'}</TableHead>
+                          <TableHead className="text-right">{language === 'fr' ? 'Qté vendue' : 'Qty Sold'}</TableHead>
+                          <TableHead className="text-right">{language === 'fr' ? 'Chiffre d\'affaires' : 'Revenue'}</TableHead>
+                          <TableHead className="text-right">{language === 'fr' ? 'Nb factures' : 'Invoices'}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredProfitData.products.map((product) => (
-                          <TableRow key={product.product_id}>
-                            <TableCell className="font-medium">{product.product_name}</TableCell>
-                            <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.total_revenue)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.total_cost)}
-                            </TableCell>
-                            <TableCell className={`text-right font-medium ${product.total_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.total_profit)}
-                            </TableCell>
-                            <TableCell className={`text-right ${product.profit_margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {product.profit_margin.toFixed(1)}%
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(product.average_sale_price)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center text-muted-foreground">
-                    {t("reports.products.noProfitData")}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Inventory Report Section */}
-          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <div>
-              <h2 className="text-2xl font-bold">{t("reports.products.inventoryTitle")}</h2>
-              <p className="text-muted-foreground">{t("reports.products.inventoryDesc")}</p>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                onClick={() => exportProductsToPDF()} 
-                variant="outline" 
-                size="sm"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                PDF
-              </Button>
-              <Button 
-                onClick={() => exportProductsToExcel()} 
-                variant="outline" 
-                size="sm"
-              >
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Excel
-              </Button>
-            </div>
-          </div>
-
-          {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.products.totalProducts")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{filteredInventoryProducts?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">{t("reports.products.productsInInventory")}</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.products.activeProducts")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {filteredInventoryProducts?.filter(p => p.is_active).length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">{t("reports.products.activeProductsCount")}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.products.lowStockAlert")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-destructive">
-                  {filteredInventoryProducts?.filter(p => (p.quantity || 0) <= 5 && p.is_active).length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">{t("reports.products.productsOutOfStock")}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.products.totalInventoryValue")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${filteredInventoryProducts?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0).toFixed(2) || "0.00"}
-                </div>
-                <p className="text-xs text-muted-foreground">{t("reports.products.totalInventoryValueDesc")}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Stock Level Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("reports.products.stockLevelsByProduct")}</CardTitle>
-              <CardDescription>{t("reports.products.stockLevelsDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                <div className="w-full overflow-x-auto" ref={stockChartRef}>
-                  <BarChart 
-                    width={800} 
-                    height={400}
-                    data={filteredInventoryProducts.map(p => ({
-                      name: p.name,
-                      quantity: p.quantity || 0,
-                      cost: p.cost || 0,
-                      price: p.price || 0,
-                      isLowStock: (p.quantity || 0) <= 5
-                    }))}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={100}
-                      interval={0}
-                      fontSize={12}
-                    />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`${value}`, t("reports.products.quantityLabel")]}
-                      labelFormatter={(label) => `${t("reports.products.product")}: ${label}`}
-                    />
-                    <Bar 
-                      dataKey="quantity" 
-                      fill="#22c55e"
-                      name={t("reports.products.quantity")}
-                    />
-                  </BarChart>
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  {t("reports.products.noProductsFound")}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Products Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("reports.products.inventoryDetails")}</CardTitle>
-              <CardDescription>{t("reports.products.inventoryDetailsDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("reports.products.name")}</TableHead>
-                      <TableHead>{t("reports.products.sku")}</TableHead>
-                      <TableHead>{t("reports.products.category")}</TableHead>
-                      <TableHead>{t("reports.products.quantity")}</TableHead>
-                      <TableHead>{t("reports.products.cost")}</TableHead>
-                      <TableHead>{t("reports.products.price")}</TableHead>
-                      <TableHead>{t("reports.products.margin")}</TableHead>
-                      <TableHead>{t("reports.products.stockValue")}</TableHead>
-                      <TableHead>{t("reports.products.status")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInventoryProducts.map((product) => {
-                      const margin = product.price && product.cost ? 
-                        ((product.price - product.cost) / product.price * 100).toFixed(1) : "0.0";
-                      const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
-                      const isLowStock = (product.quantity || 0) <= 5;
-                      
-                      return (
-                        <TableRow key={product.id}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{product.sku || "-"}</TableCell>
-                          <TableCell>{product.category || "-"}</TableCell>
-                          <TableCell className={isLowStock ? "text-destructive font-semibold" : ""}>
-                            {product.quantity || 0}
-                            {isLowStock && " ⚠️"}
-                          </TableCell>
-                          <TableCell>${(product.cost || 0).toFixed(2)}</TableCell>
-                          <TableCell>${(product.price || 0).toFixed(2)}</TableCell>
-                          <TableCell>{margin}%</TableCell>
-                          <TableCell>${stockValue}</TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              product.is_active 
-                                ? "bg-green-100 text-green-800" 
-                                : "bg-red-100 text-red-800"
-                            }`}>
-                              {product.is_active ? t("reports.products.active") : t("reports.products.inactive")}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  {t("reports.products.noProductsFound")}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Sales Report Section */}
-          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <div>
-              <h2 className="text-2xl font-bold">{t("reports.products.salesTitle")}</h2>
-              <p className="text-muted-foreground">{t("reports.products.salesDesc")}</p>
-            </div>
-            
-            <div className="flex space-x-2">
-              <Button onClick={exportSalesReportToPDF} variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                PDF
-              </Button>
-              <Button onClick={exportSalesReportToExcel} variant="outline" size="sm">
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                Excel
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {salesLoading ? (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center">{t("reports.products.loadingSales")}</div>
-                </CardContent>
-              </Card>
-            ) : salesData ? (
-              <div className="space-y-4">
-                {/* Sales Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.totalRevenue")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-green-600">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(salesData.totalRevenue)}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.totalQuantitySold")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {salesData.totalQuantitySold.toLocaleString()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.numberOfSales")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {salesData.totalNumberOfSales.toLocaleString()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.productsSold")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {salesData.uniqueProductsSold}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("reports.products.servicesSold")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {salesData.uniqueServicesSold}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Products Chart */}
-                {salesData.products.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t("reports.products.revenueByProduct")}</CardTitle>
-                      <CardDescription>{t("reports.products.revenueByProductDesc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent ref={salesProductChartRef}>
-                      <BarChart width={600} height={400} data={salesData.products.slice(0, 10)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="product_name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
-                        <YAxis />
-                        <Tooltip 
-                          formatter={(value: any, name: string) => [
-                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                            name === "total_revenue" ? t("reports.products.revenue") : 
-                            name === "total_quantity_sold" ? t("reports.products.qtySold") : name
-                          ]}
-                        />
-                        <Bar dataKey="total_revenue" fill="#22c55e" name={t("reports.products.revenue")} />
-                      </BarChart>
-                    </CardContent>
-                  </Card>
-                )}
-
-                  {/* Services Chart */}
-                  {salesData.services.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t("reports.products.revenueByService")}</CardTitle>
-                      <CardDescription>{t("reports.products.revenueByServiceDesc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent ref={salesServiceChartRef}>
-                      <BarChart width={600} height={400} data={salesData.services.slice(0, 10)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="product_name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
-                        <YAxis />
-                        <Tooltip 
-                          formatter={(value: any, name: string) => [
-                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                            name === "total_revenue" ? t("reports.products.revenue") : 
-                            name === "total_quantity_sold" ? t("reports.products.qtySold") : name
-                          ]}
-                        />
-                        <Bar dataKey="total_revenue" fill="#3b82f6" name={t("reports.products.revenue")} />
-                      </BarChart>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Combined Sales Details Table */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("reports.products.salesDetails")}</CardTitle>
-                    <CardDescription>{t("reports.products.salesDetailsDesc")}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("reports.products.productServiceLabel")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.qtySold")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.revenue")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.salesCount")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.avgPrice")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.firstSale")}</TableHead>
-                          <TableHead className="text-right">{t("reports.products.lastSale")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {/* Products */}
                         {salesData.products.map((product) => (
                           <TableRow key={product.product_id}>
-                            <TableCell className="font-medium">{product.product_name} <span className="text-xs text-muted-foreground">({t("reports.products.productLabel")})</span></TableCell>
+                            <TableCell className="font-medium">{product.product_name}</TableCell>
                             <TableCell className="text-right">{product.total_quantity_sold}</TableCell>
                             <TableCell className="text-right">
                               {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.total_revenue)}
                             </TableCell>
                             <TableCell className="text-right">{product.number_of_sales}</TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.average_sale_price)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {format(new Date(product.first_sale_date), 'MMM dd, yyyy')}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {format(new Date(product.last_sale_date), 'MMM dd, yyyy')}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {/* Services */}
-                        {salesData.services.map((service) => (
-                          <TableRow key={service.product_id}>
-                            <TableCell className="font-medium">{service.product_name} <span className="text-xs text-muted-foreground">({t("reports.products.serviceLabel")})</span></TableCell>
-                            <TableCell className="text-right">{service.total_quantity_sold}</TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(service.total_revenue)}
-                            </TableCell>
-                            <TableCell className="text-right">{service.number_of_sales}</TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(service.average_sale_price)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {format(new Date(service.first_sale_date), 'MMM dd, yyyy')}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {format(new Date(service.last_sale_date), 'MMM dd, yyyy')}
-                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -4115,11 +3679,288 @@ const Reports = () => {
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center text-muted-foreground">
-                    {t("reports.products.noSalesData")}
+                    {language === 'fr' 
+                      ? 'Aucune vente de produit trouvée pour cette période' 
+                      : 'No product sales found for this period'}
                   </div>
                 </CardContent>
               </Card>
             )}
+          </div>
+
+          {/* ===== 2. RAPPORT ÉTAT DES STOCKS ===== */}
+          <div className="space-y-4">
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+              <div>
+                <h2 className="text-2xl font-bold">{language === 'fr' ? 'État des stocks' : 'Stock Status'}</h2>
+                <p className="text-muted-foreground">
+                  {language === 'fr' 
+                    ? 'Repérez les produits épuisés et évitez les ruptures' 
+                    : 'Identify out-of-stock products and avoid shortages'}
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+              </div>
+            </div>
+
+            {/* Stock Status Summary Cards */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Produits totaux' : 'Total Products'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{filteredInventoryProducts?.length || 0}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{language === 'fr' ? 'En stock' : 'In Stock'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {filteredInventoryProducts?.filter(p => (p.quantity || 0) > 5).length || 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Stock bas' : 'Low Stock'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-500">
+                    {filteredInventoryProducts?.filter(p => (p.quantity || 0) > 0 && (p.quantity || 0) <= 5).length || 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Épuisé' : 'Out of Stock'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-destructive">
+                    {filteredInventoryProducts?.filter(p => (p.quantity || 0) === 0).length || 0}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Stock Level Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{language === 'fr' ? 'Niveaux de stock par produit' : 'Stock Levels by Product'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
+                  <div className="w-full overflow-x-auto" ref={stockChartRef}>
+                    <BarChart 
+                      width={800} 
+                      height={400}
+                      data={filteredInventoryProducts.map(p => ({
+                        name: p.name,
+                        quantity: p.quantity || 0,
+                        status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
+                      }))}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        fontSize={12}
+                      />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
+                        labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
+                      />
+                      <Bar 
+                        dataKey="quantity" 
+                        fill="#22c55e"
+                        name={language === 'fr' ? 'Quantité' : 'Quantity'}
+                      />
+                    </BarChart>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    {language === 'fr' ? 'Aucun produit trouvé' : 'No products found'}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Stock Status Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{language === 'fr' ? 'Détail des stocks' : 'Stock Details'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{language === 'fr' ? 'Produit' : 'Product'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Quantité' : 'Quantity'}</TableHead>
+                        <TableHead>{language === 'fr' ? 'Statut' : 'Status'}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInventoryProducts.map((product) => {
+                        const qty = product.quantity || 0;
+                        let status = language === 'fr' ? 'En stock' : 'In Stock';
+                        let statusColor = 'bg-green-100 text-green-800';
+                        
+                        if (qty === 0) {
+                          status = language === 'fr' ? 'Épuisé' : 'Out of Stock';
+                          statusColor = 'bg-red-100 text-red-800';
+                        } else if (qty <= 5) {
+                          status = language === 'fr' ? 'Stock bas' : 'Low Stock';
+                          statusColor = 'bg-orange-100 text-orange-800';
+                        }
+                        
+                        return (
+                          <TableRow key={product.id}>
+                            <TableCell className="font-medium">{product.name}</TableCell>
+                            <TableCell className="text-right">{qty}</TableCell>
+                            <TableCell>
+                              <span className={`px-2 py-1 rounded-full text-xs ${statusColor}`}>
+                                {status}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    {language === 'fr' ? 'Aucun produit trouvé' : 'No products found'}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ===== 3. RAPPORT VALEUR DU STOCK ===== */}
+          <div className="space-y-4">
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+              <div>
+                <h2 className="text-2xl font-bold">{language === 'fr' ? 'Valeur du stock' : 'Stock Value'}</h2>
+                <p className="text-muted-foreground">
+                  {language === 'fr' 
+                    ? 'Estimez la valeur de vos immobilisations' 
+                    : 'Estimate the value of your inventory assets'}
+                </p>
+              </div>
+            </div>
+
+            {/* Stock Value Summary */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Valeur totale du stock' : 'Total Stock Value'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+                      filteredInventoryProducts?.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0) || 0
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {language === 'fr' ? 'Quantité × Coût unitaire' : 'Quantity × Unit Cost'}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Valeur potentielle de vente' : 'Potential Sales Value'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+                      filteredInventoryProducts?.reduce((total, p) => total + ((p.quantity || 0) * (p.price || 0)), 0) || 0
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {language === 'fr' ? 'Quantité × Prix de vente' : 'Quantity × Sale Price'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Stock Value Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{language === 'fr' ? 'Valeur par produit' : 'Value by Product'}</CardTitle>
+                <CardDescription>
+                  {language === 'fr' 
+                    ? 'Valeur du stock = Quantité × Coût unitaire' 
+                    : 'Stock Value = Quantity × Unit Cost'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{language === 'fr' ? 'Produit' : 'Product'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Stock' : 'Stock'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Coût unitaire' : 'Unit Cost'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Valeur' : 'Value'}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInventoryProducts
+                        .filter(p => (p.quantity || 0) > 0)
+                        .sort((a, b) => ((b.quantity || 0) * (b.cost || 0)) - ((a.quantity || 0) * (a.cost || 0)))
+                        .map((product) => {
+                          const stockValue = (product.quantity || 0) * (product.cost || 0);
+                          return (
+                            <TableRow key={product.id}>
+                              <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell className="text-right">{product.quantity || 0}</TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.cost || 0)}
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stockValue)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      {/* Total Row */}
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell>{language === 'fr' ? 'TOTAL' : 'TOTAL'}</TableCell>
+                        <TableCell className="text-right">
+                          {filteredInventoryProducts.reduce((sum, p) => sum + (p.quantity || 0), 0)}
+                        </TableCell>
+                        <TableCell className="text-right">-</TableCell>
+                        <TableCell className="text-right">
+                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+                            filteredInventoryProducts.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0)
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    {language === 'fr' ? 'Aucun produit trouvé' : 'No products found'}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
