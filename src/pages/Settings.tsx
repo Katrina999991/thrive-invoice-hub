@@ -1352,34 +1352,6 @@ Cordialement,
                 </RadioGroup>
               </div>
 
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="hide-pdf-branding" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
-                        {language === "fr" ? "Supprimer la signature GestionFlow des PDF" : "Remove GestionFlow signature from PDFs"}
-                      </Label>
-                      {planLimits?.plan_type !== 'pro' && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Lock className="h-3 w-3" />
-                          Pro
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {language === "fr" 
-                        ? "Permet de masquer la mention \"Généré avec GestionFlow\" sur les documents PDF." 
-                        : "Hide the \"Generated with GestionFlow\" mention on PDF documents."}
-                    </p>
-                  </div>
-                  <Switch
-                    id="hide-pdf-branding"
-                    checked={hidePdfBranding}
-                    onCheckedChange={handleHidePdfBrandingChange}
-                    disabled={planLimits?.plan_type !== 'pro'}
-                  />
-                </div>
-              </div>
 
               <div className="border rounded-lg p-4 bg-muted/30">
                 <p className="text-sm font-medium mb-3">{t("settings.invoice.preview")}</p>
@@ -1617,6 +1589,46 @@ Cordialement,
                   </div>
                 </>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {language === "fr" ? "Rapports PDF" : "PDF Reports"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" ? "Personnalisez l'apparence de vos rapports PDF" : "Customize the appearance of your PDF reports"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5 flex-1">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="hide-pdf-branding" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
+                    {language === "fr" ? "Supprimer la signature GestionFlow des PDF" : "Remove GestionFlow signature from PDFs"}
+                  </Label>
+                  {planLimits?.plan_type !== 'pro' && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Lock className="h-3 w-3" />
+                      Pro
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {language === "fr" 
+                    ? "Permet de masquer la mention \"Généré avec GestionFlow\" sur les documents PDF." 
+                    : "Hide the \"Generated with GestionFlow\" mention on PDF documents."}
+                </p>
+              </div>
+              <Switch
+                id="hide-pdf-branding"
+                checked={hidePdfBranding}
+                onCheckedChange={handleHidePdfBrandingChange}
+                disabled={planLimits?.plan_type !== 'pro'}
+              />
             </div>
           </CardContent>
         </Card>
