@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
-
+import { decode as base64Decode } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -161,7 +161,10 @@ serve(async (req) => {
 
     logStep("PDF base64 length", { length: pdfBase64.length });
 
-    // Send email with PDF attachment - Resend accepts base64 directly
+    // Convert base64 to Uint8Array using Deno's standard library
+    const pdfBuffer = base64Decode(pdfBase64);
+
+    // Send email with PDF attachment
     const emailResult = await resend.emails.send({
       from: fromEmail,
       to: [recipientEmail],
@@ -170,7 +173,7 @@ serve(async (req) => {
       attachments: [
         {
           filename: filename,
-          content: Buffer.from(pdfBase64, 'base64'),
+          content: pdfBuffer,
         },
       ],
     });
