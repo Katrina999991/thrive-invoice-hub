@@ -3,12 +3,14 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useCompanies } from "@/hooks/useCompanies";
+import { useExpenses } from "@/hooks/useExpenses";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Package, AlertTriangle, TrendingDown, TrendingUp, Edit2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -19,6 +21,7 @@ const StockManagement = () => {
   const { products, loading, updateProduct } = useProducts();
   const { categories } = useCategories();
   const { companies } = useCompanies();
+  const { createExpense } = useExpenses();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCompany, setFilterCompany] = useState<string>("all");
@@ -28,6 +31,7 @@ const StockManagement = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [newQuantity, setNewQuantity] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [shouldCreateExpense, setShouldCreateExpense] = useState(false);
 
   // Filter only products (not services) that have quantity tracking
   const productsWithStock = products.filter(p => p.quantity !== null && p.quantity !== undefined);
@@ -81,6 +85,7 @@ const StockManagement = () => {
   const handleEditStock = (product: any) => {
     setEditingProduct(product);
     setNewQuantity(String(product.quantity || 0));
+    setShouldCreateExpense(false);
     setIsDialogOpen(true);
   };
 
@@ -97,8 +102,29 @@ const StockManagement = () => {
       return;
     }
 
+    const currentQuantity = editingProduct.quantity || 0;
+    const addedQuantity = quantity - currentQuantity;
+
     try {
       await updateProduct(editingProduct.id, { quantity });
+      
+      // Create expense if checkbox is checked and quantity increased
+      if (shouldCreateExpense && addedQuantity > 0 && editingProduct.cost > 0) {
+        const today = new Date().toISOString().split('T')[0];
+        const totalCost = editingProduct.cost * addedQuantity;
+        
+        await createExpense({
+          description: language === 'fr' 
+            ? `Achat de stock: ${editingProduct.name} (${addedQuantity} ${editingProduct.unit || 'unités'})`
+            : `Stock purchase: ${editingProduct.name} (${addedQuantity} ${editingProduct.unit || 'units'})`,
+          amount: totalCost,
+          category: "Products",
+          expense_date: today,
+          status: "unpaid",
+          company_id: editingProduct.company_id || null
+        }, true);
+      }
+      
       toast({
         title: language === 'fr' ? 'Stock mis à jour' : 'Stock Updated',
         description: language === 'fr' ? 'La quantité a été mise à jour avec succès' : 'Quantity has been updated successfully'
@@ -113,6 +139,9 @@ const StockManagement = () => {
       });
     }
   };
+
+  const addedQuantity = editingProduct ? parseInt(newQuantity || "0") - (editingProduct.quantity || 0) : 0;
+  const expenseAmount = editingProduct && addedQuantity > 0 ? (editingProduct.cost || 0) * addedQuantity : 0;
 
   if (loading) {
     return (
@@ -341,6 +370,32 @@ const StockManagement = () => {
                 onChange={(e) => setNewQuantity(e.target.value)}
               />
             </div>
+            
+            {addedQuantity > 0 && editingProduct?.cost > 0 && (
+              <div className="space-y-3 pt-2 border-t">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="createExpense"
+                    checked={shouldCreateExpense}
+                    onCheckedChange={(checked) => setShouldCreateExpense(checked === true)}
+                  />
+                  <Label htmlFor="createExpense" className="text-sm cursor-pointer">
+                    {language === 'fr' ? 'Créer une dépense liée au stock' : 'Create expense linked to stock'}
+                  </Label>
+                </div>
+                {shouldCreateExpense && (
+                  <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                    <p>
+                      {language === 'fr' ? 'Dépense à créer:' : 'Expense to create:'}{' '}
+                      <span className="font-medium text-foreground">${expenseAmount.toFixed(2)}</span>
+                    </p>
+                    <p className="text-xs mt-1">
+                      ({addedQuantity} × ${(editingProduct?.cost || 0).toFixed(2)})
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
