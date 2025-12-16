@@ -539,36 +539,21 @@ const Products = () => {
                 </Select>
               </div>
               {newItem.type === "product" && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">
-                      {t("products.quantity")} <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      placeholder={t("products.quantityPlaceholder")}
-                      value={newItem.quantity}
-                      onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="unit">{t("products.unit")}</Label>
-                    <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("products.unitPlaceholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="piece">{t("products.unitPiece")}</SelectItem>
-                        <SelectItem value="hour">{t("products.unitHour")}</SelectItem>
-                        <SelectItem value="day">{t("products.unitDay")}</SelectItem>
-                        <SelectItem value="month">{t("products.unitMonth")}</SelectItem>
-                        <SelectItem value="year">{t("products.unitYear")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
+                <div className="space-y-2">
+                  <Label htmlFor="unit">{t("products.unit")}</Label>
+                  <Select value={newItem.unit} onValueChange={(value) => setNewItem({...newItem, unit: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("products.unitPlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="piece">{t("products.unitPiece")}</SelectItem>
+                      <SelectItem value="hour">{t("products.unitHour")}</SelectItem>
+                      <SelectItem value="day">{t("products.unitDay")}</SelectItem>
+                      <SelectItem value="month">{t("products.unitMonth")}</SelectItem>
+                      <SelectItem value="year">{t("products.unitYear")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
               
               {newItem.type === "service" && (
