@@ -9,6 +9,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// HTML escape function to prevent XSS attacks
+function escapeHtml(text: string): string {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEntities[char] || char);
+}
+
+// Sanitize and limit note length to prevent abuse
+function sanitizeNote(note: string | undefined): string | null {
+  if (!note) return null;
+  // Limit to 500 characters and escape HTML
+  const truncated = note.slice(0, 500);
+  return escapeHtml(truncated);
+}
+
 interface RespondRequest {
   token: string;
   response: "accepted" | "refused";
@@ -158,6 +178,9 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Sanitize the note to prevent XSS
+    const sanitizedNote = sanitizeNote(note);
+    
     // Update the quote status
     const respondedAt = new Date().toISOString();
     const { error: updateError } = await supabase
@@ -165,7 +188,7 @@ const handler = async (req: Request): Promise<Response> => {
       .update({
         status: response,
         responded_at: respondedAt,
-        client_response_note: note || null,
+        client_response_note: sanitizedNote,
       })
       .eq("id", quote.id);
 
@@ -203,9 +226,9 @@ const handler = async (req: Request): Promise<Response> => {
           minute: '2-digit'
         });
 
-        // Prepare template variables
-        const clientNote = note 
-          ? (lang === 'fr' ? `\nNote du client : ${note}` : `\nClient note: ${note}`)
+        // Prepare template variables - note is already sanitized
+        const clientNote = sanitizedNote 
+          ? (lang === 'fr' ? `\nNote du client : ${sanitizedNote}` : `\nClient note: ${sanitizedNote}`)
           : '';
 
         let emailSubject = template.subject
