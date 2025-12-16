@@ -4,6 +4,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,10 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Package, AlertTriangle, TrendingDown, TrendingUp, Edit2 } from "lucide-react";
+import { Search, Package, AlertTriangle, TrendingDown, TrendingUp, Edit2, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const StockManagement = () => {
   const { t, language } = useLanguage();
@@ -22,6 +24,38 @@ const StockManagement = () => {
   const { categories } = useCategories();
   const { companies } = useCompanies();
   const { createExpense } = useExpenses();
+  const { planLimits, isLoading: isLoadingPlan } = useSubscription();
+  const navigate = useNavigate();
+  
+  const hasAccess = planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro';
+  
+  // Show upgrade message if user doesn't have access
+  if (!isLoadingPlan && !hasAccess) {
+    return (
+      <div className="p-6">
+        <Card className="max-w-lg mx-auto">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Lock className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle>
+              {language === 'fr' ? 'Fonctionnalité Premium' : 'Premium Feature'}
+            </CardTitle>
+            <CardDescription>
+              {language === 'fr' 
+                ? 'La gestion des stocks est disponible avec les plans Premium et Pro.' 
+                : 'Stock management is available with Premium and Pro plans.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => navigate('/dashboard/settings')}>
+              {language === 'fr' ? 'Voir les plans' : 'View Plans'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCompany, setFilterCompany] = useState<string>("all");
