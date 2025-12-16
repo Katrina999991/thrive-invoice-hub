@@ -178,8 +178,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Generate response link
-    const baseUrl = 'https://gestionflow.lovable.app'; // Production URL
+    // Generate response link - use production domain
+    const baseUrl = 'https://gestionflow.net';
     const responseLink = `${baseUrl}/quote/${accessToken}`;
     const isFrench = client.language === 'french';
     const responseLinkText = isFrench ? quoteEmailTranslations.fr.responseLink : quoteEmailTranslations.en.responseLink;
