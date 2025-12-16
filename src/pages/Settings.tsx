@@ -7,6 +7,7 @@ import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,7 @@ export default function Settings() {
   const [darkMode, setDarkMode] = useState<string>("light");
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
   const [invoiceColor, setInvoiceColor] = useState<string>("blue");
+  const [hidePdfBranding, setHidePdfBranding] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [originalUsername, setOriginalUsername] = useState<string>("");
   const [isLoadingUsername, setIsLoadingUsername] = useState(false);
@@ -127,10 +129,12 @@ export default function Settings() {
     const savedDarkMode = localStorage.getItem("app-dark-mode") || "light";
     const savedInvoiceTemplate = localStorage.getItem("invoice-template") || "classic";
     const savedInvoiceColor = localStorage.getItem("invoice-color") || "blue";
+    const savedHidePdfBranding = localStorage.getItem("hide-pdf-branding") === "true";
     setTheme(savedTheme);
     setDarkMode(savedDarkMode);
     setInvoiceTemplate(savedInvoiceTemplate);
     setInvoiceColor(savedInvoiceColor);
+    setHidePdfBranding(savedHidePdfBranding);
     document.documentElement.setAttribute("data-theme", savedTheme);
     if (savedDarkMode === "dark") {
       document.documentElement.classList.add("dark");
@@ -357,6 +361,12 @@ Cordialement,
   const handleInvoiceColorChange = (value: string) => {
     setInvoiceColor(value);
     localStorage.setItem("invoice-color", value);
+  };
+
+  const handleHidePdfBrandingChange = (checked: boolean) => {
+    if (planLimits?.plan_type !== 'pro') return;
+    setHidePdfBranding(checked);
+    localStorage.setItem("hide-pdf-branding", checked.toString());
   };
 
   const handleSaveUsername = async () => {
@@ -1340,6 +1350,35 @@ Cordialement,
                     </Label>
                   </div>
                 </RadioGroup>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="hide-pdf-branding" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
+                        {language === "fr" ? "Supprimer la signature GestionFlow des PDF" : "Remove GestionFlow signature from PDFs"}
+                      </Label>
+                      {planLimits?.plan_type !== 'pro' && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          Pro
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {language === "fr" 
+                        ? "Permet de masquer la mention \"Généré avec GestionFlow\" sur les documents PDF." 
+                        : "Hide the \"Generated with GestionFlow\" mention on PDF documents."}
+                    </p>
+                  </div>
+                  <Switch
+                    id="hide-pdf-branding"
+                    checked={hidePdfBranding}
+                    onCheckedChange={handleHidePdfBrandingChange}
+                    disabled={planLimits?.plan_type !== 'pro'}
+                  />
+                </div>
               </div>
 
               <div className="border rounded-lg p-4 bg-muted/30">
