@@ -23,7 +23,14 @@ export interface SalesReportSummary {
   services: SalesReportData[];
 }
 
-export const useSalesReport = (startDate?: Date, endDate?: Date, companyId?: string) => {
+export type InvoiceStatus = 'paid' | 'sent' | 'overdue' | 'draft';
+
+export const useSalesReport = (
+  startDate?: Date, 
+  endDate?: Date, 
+  companyId?: string,
+  statuses: InvoiceStatus[] = ['paid']
+) => {
   const [salesData, setSalesData] = useState<SalesReportSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,18 +38,34 @@ export const useSalesReport = (startDate?: Date, endDate?: Date, companyId?: str
 
   const fetchSalesData = async () => {
     if (!user) return;
+    
+    // If no statuses selected, return empty data
+    if (statuses.length === 0) {
+      setSalesData({
+        totalRevenue: 0,
+        totalQuantitySold: 0,
+        totalNumberOfSales: 0,
+        uniqueProductsSold: 0,
+        uniqueServicesSold: 0,
+        products: [],
+        services: []
+      });
+      setLoading(false);
+      return;
+    }
 
     console.log('SalesReport - fetchSalesData called', { 
       startDate: startDate ? startDate.toISOString() : 'undefined', 
       endDate: endDate ? endDate.toISOString() : 'undefined',
-      user: user.id 
+      user: user.id,
+      statuses
     });
 
     try {
       setLoading(true);
       setError(null);
 
-      // Build the query for paid invoices with date filters
+      // Build the query for invoices with date filters
       let query = supabase
         .from('invoice_items')
         .select(`
@@ -53,7 +76,8 @@ export const useSalesReport = (startDate?: Date, endDate?: Date, companyId?: str
           invoices!inner (
             status,
             user_id,
-            issue_date
+            issue_date,
+            due_date
           ),
           products!inner (
             name,
@@ -61,7 +85,7 @@ export const useSalesReport = (startDate?: Date, endDate?: Date, companyId?: str
           )
         `)
         .eq('invoices.user_id', user.id)
-        .eq('invoices.status', 'paid');
+        .in('invoices.status', statuses);
 
       // Add company filter if specified
       if (companyId) {
@@ -216,7 +240,7 @@ export const useSalesReport = (startDate?: Date, endDate?: Date, companyId?: str
 
   useEffect(() => {
     fetchSalesData();
-  }, [user, startDate, endDate, companyId]);
+  }, [user, startDate, endDate, companyId, JSON.stringify(statuses)]);
 
   return {
     salesData,
