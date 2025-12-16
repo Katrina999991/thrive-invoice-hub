@@ -159,10 +159,9 @@ serve(async (req) => {
       </html>
     `;
 
-    // Convert base64 to buffer for attachment
-    const pdfBuffer = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
+    logStep("PDF base64 length", { length: pdfBase64.length });
 
-    // Send email with PDF attachment
+    // Send email with PDF attachment - Resend accepts base64 directly
     const emailResult = await resend.emails.send({
       from: fromEmail,
       to: [recipientEmail],
@@ -171,7 +170,7 @@ serve(async (req) => {
       attachments: [
         {
           filename: filename,
-          content: pdfBuffer,
+          content: Buffer.from(pdfBase64, 'base64'),
         },
       ],
     });
