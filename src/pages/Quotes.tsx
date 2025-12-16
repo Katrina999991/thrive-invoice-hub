@@ -539,13 +539,13 @@ const Quotes = () => {
     setAvailableEmails(emails);
     setSelectedEmails(emails);
     
-    // Set default subject and message
-    const isFrench = language === 'fr';
-    const defaultSubject = isFrench 
+    // Set default subject and message based on CLIENT's language, not UI language
+    const isClientFrench = client?.language === 'french';
+    const defaultSubject = isClientFrench 
       ? `Devis ${quote.quote_number} de ${company?.name || ''}`
       : `Quote ${quote.quote_number} from ${company?.name || ''}`;
     
-    const defaultMessage = isFrench
+    const defaultMessage = isClientFrench
       ? `Cher/Chère ${client?.name || ''},\n\nVeuillez trouver ci-joint votre devis ${quote.quote_number} daté du ${quote.issue_date}.\n\nTotal : $${quote.total.toFixed(2)}\nValide jusqu'au : ${quote.expiry_date || 'N/A'}\n\nMerci de considérer nos services !\n\nCordialement,\n${company?.name || ''}`
       : `Dear ${client?.name || ''},\n\nPlease find attached your quote ${quote.quote_number} dated ${quote.issue_date}.\n\nTotal: $${quote.total.toFixed(2)}\nValid until: ${quote.expiry_date || 'N/A'}\n\nThank you for considering our services!\n\nBest regards,\n${company?.name || ''}`;
     
