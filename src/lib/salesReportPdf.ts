@@ -17,6 +17,8 @@ const COLORS = {
 
 export type PlanType = 'free' | 'premium' | 'pro';
 
+export type InvoiceStatus = 'paid' | 'sent' | 'overdue' | 'draft';
+
 interface SalesReportPdfOptions {
   salesData: SalesReportSummary;
   companyName?: string;
@@ -27,6 +29,7 @@ interface SalesReportPdfOptions {
   returnBlob?: boolean; // Si true, retourne un Blob au lieu de sauvegarder
   planType?: PlanType; // Plan d'abonnement pour le branding
   hideBranding?: boolean; // Option Pro pour masquer complètement le branding
+  includedStatuses?: InvoiceStatus[]; // Statuts de factures inclus dans le rapport
 }
 
 export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Promise<Blob | void> => {
@@ -39,7 +42,8 @@ export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Pr
     logoUrl, 
     returnBlob = false,
     planType = 'free',
-    hideBranding = false
+    hideBranding = false,
+    includedStatuses = ['paid']
   } = options;
   
   const doc = new jsPDF('p', 'mm', 'a4');
@@ -133,6 +137,19 @@ export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Pr
     periodText = `Jusqu'au: ${format(endDate, 'd MMMM yyyy', { locale: fr })}`;
   }
   doc.text(periodText, margin, yPosition);
+  yPosition += 6;
+  
+  // Included statuses
+  const statusLabels: Record<InvoiceStatus, string> = {
+    paid: 'Payées',
+    sent: 'Envoyées',
+    overdue: 'En retard',
+    draft: 'Brouillons'
+  };
+  const statusNames = includedStatuses.map(s => statusLabels[s]).join(', ');
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(11);
+  doc.text(`Factures incluses : ${statusNames}`, margin, yPosition);
   yPosition += 6;
   
   // Generation date
@@ -329,7 +346,15 @@ export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Pr
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(...COLORS.gray);
   
-  const noteText = "Ce rapport présente les ventes par produit sur la période sélectionnée, basé sur les factures payées.";
+  // Build note text based on included statuses
+  const statusDescriptions: Record<InvoiceStatus, string> = {
+    paid: 'payées',
+    sent: 'envoyées',
+    overdue: 'en retard',
+    draft: 'brouillons'
+  };
+  const statusList = includedStatuses.map(s => statusDescriptions[s]).join(', ');
+  const noteText = `Ce rapport présente les ventes par produit sur la période sélectionnée, basé sur les factures ${statusList}.`;
   const splitNote = doc.splitTextToSize(noteText, contentWidth);
   doc.text(splitNote, margin, yPosition);
   
