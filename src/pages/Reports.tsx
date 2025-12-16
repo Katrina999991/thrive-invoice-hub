@@ -53,8 +53,10 @@ const Reports = () => {
   const [emailDialogOpen, setEmailDialogOpen] = useState<string | null>(null);
   const [currentPdfBlob, setCurrentPdfBlob] = useState<Blob | null>(null);
   
-  // Option Pro pour masquer le branding GestionFlow des PDF
-  const [hidePdfBranding, setHidePdfBranding] = useState(false);
+  // Option Pro pour masquer le branding GestionFlow des PDF (lu depuis les paramètres)
+  const [hidePdfBranding, setHidePdfBranding] = useState(() => {
+    return localStorage.getItem("hide-pdf-branding") === "true";
+  });
   
   // Check if a specific report tab is available based on plan
   const isTabAvailable = (tab: string) => {
@@ -3439,18 +3441,6 @@ const Reports = () => {
                     {language === 'fr' ? 'Courriel' : 'Email'}
                   </Button>
                 </div>
-                {planLimits?.plan_type === 'pro' && (
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="hideBranding" 
-                      checked={hidePdfBranding} 
-                      onCheckedChange={(checked) => setHidePdfBranding(checked as boolean)} 
-                    />
-                    <Label htmlFor="hideBranding" className="text-sm text-muted-foreground cursor-pointer">
-                      {language === 'fr' ? 'Supprimer la signature GestionFlow des PDF' : 'Remove GestionFlow branding from PDFs'}
-                    </Label>
-                  </div>
-                )}
               </div>
             </div>
 
