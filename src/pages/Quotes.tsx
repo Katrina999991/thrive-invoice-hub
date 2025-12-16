@@ -246,7 +246,7 @@ const Quotes = () => {
       case 'draft': return 'bg-gray-100 text-gray-800';
       case 'sent': return 'bg-blue-100 text-blue-800';
       case 'accepted': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'refused': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -256,7 +256,7 @@ const Quotes = () => {
       case 'draft': return t("quotes.statusDraft");
       case 'sent': return t("quotes.statusSent");
       case 'accepted': return t("quotes.statusAccepted");
-      case 'rejected': return t("quotes.statusRejected");
+      case 'refused': return t("quotes.statusRejected");
       default: return status;
     }
   };
@@ -656,7 +656,7 @@ const Quotes = () => {
             <SelectItem value="draft">{t("quotes.statusDraft")}</SelectItem>
             <SelectItem value="sent">{t("quotes.statusSent")}</SelectItem>
             <SelectItem value="accepted">{t("quotes.statusAccepted")}</SelectItem>
-            <SelectItem value="rejected">{t("quotes.statusRejected")}</SelectItem>
+            <SelectItem value="refused">{t("quotes.statusRejected")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -694,7 +694,7 @@ const Quotes = () => {
                           <Badge variant="outline" className="ml-2">{t("quotes.converted")}</Badge>
                         </>
                       ) : (
-                        <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'rejected') => updateQuote(quote.id, { status: value })}>
+                        <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'refused') => updateQuote(quote.id, { status: value })}>
                           <SelectTrigger className="w-[130px] h-8">
                             <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
                           </SelectTrigger>
@@ -702,7 +702,7 @@ const Quotes = () => {
                             <SelectItem value="draft">{t("quotes.statusDraft")}</SelectItem>
                             <SelectItem value="sent">{t("quotes.statusSent")}</SelectItem>
                             <SelectItem value="accepted">{t("quotes.statusAccepted")}</SelectItem>
-                            <SelectItem value="rejected">{t("quotes.statusRejected")}</SelectItem>
+                            <SelectItem value="refused">{t("quotes.statusRejected")}</SelectItem>
                           </SelectContent>
                         </Select>
                       )}

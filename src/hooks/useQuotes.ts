@@ -10,7 +10,7 @@ export interface Quote {
   quote_number: string;
   issue_date: string;
   expiry_date: string | null;
-  status: 'draft' | 'sent' | 'accepted' | 'rejected';
+  status: 'draft' | 'sent' | 'accepted' | 'refused';
   subtotal: number;
   tax_amount: number;
   tax_rate: number;
@@ -19,6 +19,9 @@ export interface Quote {
   terms: string | null;
   converted_to_invoice_id: string | null;
   converted_at: string | null;
+  access_token?: string | null;
+  responded_at?: string | null;
+  client_response_note?: string | null;
   created_at: string;
   updated_at: string;
   clients?: {
@@ -52,7 +55,7 @@ export interface QuoteInsert {
   quote_number: string;
   issue_date?: string;
   expiry_date?: string | null;
-  status?: 'draft' | 'sent' | 'accepted' | 'rejected';
+  status?: 'draft' | 'sent' | 'accepted' | 'refused';
   subtotal?: number;
   tax_amount?: number;
   tax_rate?: number;

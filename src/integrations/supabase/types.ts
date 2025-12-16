@@ -718,7 +718,9 @@ export type Database = {
       }
       quotes: {
         Row: {
+          access_token: string | null
           client_id: string | null
+          client_response_note: string | null
           converted_at: string | null
           converted_to_invoice_id: string | null
           created_at: string
@@ -727,6 +729,7 @@ export type Database = {
           issue_date: string
           notes: string | null
           quote_number: string
+          responded_at: string | null
           status: string
           subtotal: number
           tax_amount: number
@@ -737,7 +740,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_token?: string | null
           client_id?: string | null
+          client_response_note?: string | null
           converted_at?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
@@ -746,6 +751,7 @@ export type Database = {
           issue_date?: string
           notes?: string | null
           quote_number: string
+          responded_at?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
@@ -756,7 +762,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_token?: string | null
           client_id?: string | null
+          client_response_note?: string | null
           converted_at?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
@@ -765,6 +773,7 @@ export type Database = {
           issue_date?: string
           notes?: string | null
           quote_number?: string
+          responded_at?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number

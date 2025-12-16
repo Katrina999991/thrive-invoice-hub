@@ -13,6 +13,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Generate a secure random token
+function generateSecureToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
 // Email translations for quotes
 const quoteEmailTranslations = {
   en: {
@@ -24,10 +31,14 @@ Please find attached your quote {quote_number} dated {issue_date}.
 Total: {total}
 Valid until: {expiry_date}
 
+You can accept or refuse this quote directly by clicking the link below:
+{response_link}
+
 Thank you for considering our services!
 
 Best regards,
-{company_name}`
+{company_name}`,
+    responseLink: 'Click here to respond to this quote'
   },
   fr: {
     subject: 'Devis {quote_number} de {company_name}',
@@ -38,10 +49,14 @@ Veuillez trouver ci-joint votre devis {quote_number} daté du {issue_date}.
 Total : {total}
 Valide jusqu'au : {expiry_date}
 
+Vous pouvez accepter ou refuser ce devis directement en cliquant sur le lien ci-dessous :
+{response_link}
+
 Merci de considérer nos services !
 
 Cordialement,
-{company_name}`
+{company_name}`,
+    responseLink: 'Cliquez ici pour répondre à ce devis'
   }
 };
 
@@ -149,8 +164,28 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Generate and save access token if not already present
+    let accessToken = quote.access_token;
+    if (!accessToken) {
+      accessToken = generateSecureToken();
+      const { error: tokenError } = await supabase
+        .from('quotes')
+        .update({ access_token: accessToken })
+        .eq('id', quoteId);
+      
+      if (tokenError) {
+        console.error('Error saving access token:', tokenError);
+      }
+    }
+
+    // Generate response link
+    const baseUrl = 'https://gestionflow.lovable.app'; // Production URL
+    const responseLink = `${baseUrl}/quote/${accessToken}`;
+    const isFrench = client.language === 'french';
+    const responseLinkText = isFrench ? quoteEmailTranslations.fr.responseLink : quoteEmailTranslations.en.responseLink;
+
     // Template variables
-    const templateVars = {
+    const templateVars: Record<string, string> = {
       '{client_name}': client.name,
       '{quote_number}': quote.quote_number,
       '{issue_date}': quote.issue_date,
@@ -159,6 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
       '{subtotal}': `$${quote.subtotal.toFixed(2)}`,
       '{tax_amount}': `$${quote.tax_amount.toFixed(2)}`,
       '{company_name}': company.name,
+      '{response_link}': `<a href="${responseLink}" style="color: #2563eb; text-decoration: underline;">${responseLinkText}</a>`,
     };
 
     const isFrench = client.language === 'french';

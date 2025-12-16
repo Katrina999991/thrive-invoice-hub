@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.send-quote-email]
 verify_jwt = false
+
+[functions.respond-to-quote]
+verify_jwt = false
+
+[functions.get-quote-by-token]
+verify_jwt = false
