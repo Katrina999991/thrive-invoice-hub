@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +30,16 @@ export const EmailReportDialog = ({
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const [recipient, setRecipient] = useState(user?.email || "");
+  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Reset subject when dialog opens with new report title
+  useEffect(() => {
+    if (open) {
+      setSubject(reportTitle);
+    }
+  }, [open, reportTitle]);
 
   const handleSend = async () => {
     if (!recipient) {
@@ -42,6 +50,11 @@ export const EmailReportDialog = ({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(recipient)) {
       toast.error(language === 'fr' ? "Adresse courriel invalide" : "Invalid email address");
+      return;
+    }
+
+    if (!subject.trim()) {
+      toast.error(language === 'fr' ? "Veuillez entrer un objet" : "Please enter a subject");
       return;
     }
 
@@ -78,7 +91,7 @@ export const EmailReportDialog = ({
       const { data, error } = await supabase.functions.invoke("send-report-email", {
         body: {
           recipientEmail: recipient,
-          reportTitle,
+          reportTitle: subject,
           reportType,
           message: message || undefined,
           pdfBase64,
@@ -119,8 +132,8 @@ export const EmailReportDialog = ({
           </DialogTitle>
           <DialogDescription>
             {language === 'fr' 
-              ? `Envoyez le rapport "${reportTitle}" en PDF à un destinataire.`
-              : `Send the "${reportTitle}" report as PDF to a recipient.`}
+              ? `Envoyez le rapport en PDF à un destinataire.`
+              : `Send the report as PDF to a recipient.`}
           </DialogDescription>
         </DialogHeader>
         
@@ -135,6 +148,19 @@ export const EmailReportDialog = ({
               placeholder={language === 'fr' ? 'courriel@exemple.com' : 'email@example.com'}
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="subject">
+              {language === 'fr' ? 'Objet' : 'Subject'}
+            </Label>
+            <Input
+              id="subject"
+              type="text"
+              placeholder={language === 'fr' ? 'Objet du courriel' : 'Email subject'}
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
             />
           </div>
           
