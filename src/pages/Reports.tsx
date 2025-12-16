@@ -5361,12 +5361,15 @@ const Reports = () => {
         pdfBlob={null}
         onGeneratePdf={async () => {
           if (!salesData) return null;
-          const doc = new jsPDF();
-          doc.setFontSize(20);
-          doc.text(language === 'fr' ? 'Rapport des ventes par produit' : 'Sales by Product Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
-          const tableData = salesData.products.map(p => [p.product_name, p.total_quantity_sold.toString(), `$${p.total_revenue.toFixed(2)}`]);
-          autoTable(doc, { head: [['Produit', 'Qté', 'Revenus']], body: tableData, startY: 40 });
-          return doc.output('blob');
+          const blob = await generateSalesReportPdf({
+            salesData,
+            companyName: companies[0]?.name,
+            startDate: productStartDate,
+            endDate: productEndDate,
+            chartRef: salesProductChartRef,
+            returnBlob: true
+          });
+          return blob as Blob;
         }}
       />
 
