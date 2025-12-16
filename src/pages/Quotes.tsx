@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuotes, Quote, QuoteItemInsert } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
@@ -52,6 +53,15 @@ const Quotes = () => {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [viewingQuote, setViewingQuote] = useState<Quote | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  // Email dialog state
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailQuote, setEmailQuote] = useState<Quote | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [availableEmails, setAvailableEmails] = useState<string[]>([]);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const [newQuote, setNewQuote] = useState({
     client_id: "",
@@ -135,7 +145,14 @@ const Quotes = () => {
         "quotes.viewPlans": "Voir les plans",
         "quotes.billTo": "Facturer à",
         "quotes.quoteDetails": "Détails du devis",
-        "quotes.converted": "Converti"
+        "quotes.converted": "Converti",
+        "quotes.sendEmail": "Envoyer par courriel",
+        "quotes.emailSubject": "Objet",
+        "quotes.emailMessage": "Message",
+        "quotes.selectRecipients": "Sélectionner les destinataires",
+        "quotes.sendingEmail": "Envoi en cours...",
+        "quotes.emailSent": "Devis envoyé par courriel avec succès",
+        "quotes.emailError": "Erreur lors de l'envoi du courriel"
       },
       en: {
         "quotes.title": "Quotes",
@@ -196,7 +213,14 @@ const Quotes = () => {
         "quotes.viewPlans": "View Plans",
         "quotes.billTo": "Bill To",
         "quotes.quoteDetails": "Quote Details",
-        "quotes.converted": "Converted"
+        "quotes.converted": "Converted",
+        "quotes.sendEmail": "Send by Email",
+        "quotes.emailSubject": "Subject",
+        "quotes.emailMessage": "Message",
+        "quotes.selectRecipients": "Select Recipients",
+        "quotes.sendingEmail": "Sending...",
+        "quotes.emailSent": "Quote sent by email successfully",
+        "quotes.emailError": "Error sending email"
       }
     };
     return translations[language]?.[key] || key;
@@ -505,7 +529,70 @@ const Quotes = () => {
     doc.save(`${quote.quote_number}.pdf`);
   };
 
-  // Show upgrade dialog if user doesn't have access
+  // Email functions
+  const openEmailDialog = (quote: Quote) => {
+    const client = clients.find(c => c.id === quote.client_id);
+    const company = client?.company_id ? companies.find(c => c.id === client.company_id) : null;
+    
+    // Get available emails from client
+    const emails = client?.email?.split(",").map((e: string) => e.trim()).filter((e: string) => e !== "") || [];
+    setAvailableEmails(emails);
+    setSelectedEmails(emails);
+    
+    // Set default subject and message
+    const isFrench = language === 'fr';
+    const defaultSubject = isFrench 
+      ? `Devis ${quote.quote_number} de ${company?.name || ''}`
+      : `Quote ${quote.quote_number} from ${company?.name || ''}`;
+    
+    const defaultMessage = isFrench
+      ? `Cher/Chère ${client?.name || ''},\n\nVeuillez trouver ci-joint votre devis ${quote.quote_number} daté du ${quote.issue_date}.\n\nTotal : $${quote.total.toFixed(2)}\nValide jusqu'au : ${quote.expiry_date || 'N/A'}\n\nMerci de considérer nos services !\n\nCordialement,\n${company?.name || ''}`
+      : `Dear ${client?.name || ''},\n\nPlease find attached your quote ${quote.quote_number} dated ${quote.issue_date}.\n\nTotal: $${quote.total.toFixed(2)}\nValid until: ${quote.expiry_date || 'N/A'}\n\nThank you for considering our services!\n\nBest regards,\n${company?.name || ''}`;
+    
+    setEmailSubject(defaultSubject);
+    setEmailMessage(defaultMessage);
+    setEmailQuote(quote);
+    setIsEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailQuote || selectedEmails.length === 0) return;
+    
+    setIsSendingEmail(true);
+    try {
+      const hideBranding = localStorage.getItem('hidePdfBranding') === 'true' && planLimits?.plan_type === 'pro';
+      
+      const { data, error } = await supabase.functions.invoke('send-quote-email', {
+        body: {
+          quoteId: emailQuote.id,
+          customSubject: emailSubject,
+          customMessage: emailMessage,
+          selectedEmails,
+          hideBranding
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'fr' ? "Succès" : "Success",
+        description: t("quotes.emailSent")
+      });
+      
+      setIsEmailDialogOpen(false);
+      setEmailQuote(null);
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: t("quotes.emailError"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   if (!hasQuotesAccess && !loading) {
     return (
       <div className="space-y-6">
@@ -631,6 +718,9 @@ const Quotes = () => {
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
                           <Download className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
+                          <Mail className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
                           <Copy className="h-4 w-4" />
@@ -844,6 +934,74 @@ const Quotes = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t("quotes.sendEmail")}</DialogTitle>
+            <DialogDescription>
+              {emailQuote?.quote_number}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>{t("quotes.selectRecipients")}</Label>
+              <div className="space-y-2 mt-2">
+                {availableEmails.map((email) => (
+                  <div key={email} className="flex items-center gap-2">
+                    <Checkbox
+                      id={email}
+                      checked={selectedEmails.includes(email)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedEmails([...selectedEmails, email]);
+                        } else {
+                          setSelectedEmails(selectedEmails.filter(e => e !== email));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={email} className="font-normal">{email}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>{t("quotes.emailSubject")}</Label>
+              <Input
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>{t("quotes.emailMessage")}</Label>
+              <Textarea
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                rows={8}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>
+                {t("quotes.cancel")}
+              </Button>
+              <Button onClick={handleSendEmail} disabled={isSendingEmail || selectedEmails.length === 0}>
+                {isSendingEmail ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {t("quotes.sendingEmail")}
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    {t("quotes.send")}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
