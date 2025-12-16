@@ -364,6 +364,19 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email with Resend
     const fromEmail = Deno.env.get("RESEND_FROM") || "GestionFlow <onboarding@resend.dev>";
     
+    // Always add a response button at the end of the email
+    const responseButtonText = isFrench ? 'Répondre au devis' : 'Respond to Quote';
+    const responseButtonHtml = `
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <a href="${responseLink}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+          ${responseButtonText}
+        </a>
+        <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+          ${isFrench ? 'Ou copiez ce lien :' : 'Or copy this link:'} <a href="${responseLink}" style="color: #2563eb;">${responseLink}</a>
+        </p>
+      </div>
+    `;
+    
     const emailPayload: any = {
       from: fromEmail,
       to: emailsToSend,
@@ -373,6 +386,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="padding: 20px;">
             ${emailMessage}
           </div>
+          ${responseButtonHtml}
         </div>
       `,
       attachments: [{
