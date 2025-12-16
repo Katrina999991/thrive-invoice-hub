@@ -15,6 +15,8 @@ const COLORS = {
   white: [255, 255, 255] as [number, number, number],
 };
 
+export type PlanType = 'free' | 'premium' | 'pro';
+
 interface SalesReportPdfOptions {
   salesData: SalesReportSummary;
   companyName?: string;
@@ -23,10 +25,22 @@ interface SalesReportPdfOptions {
   chartRef?: React.RefObject<HTMLDivElement>;
   logoUrl?: string;
   returnBlob?: boolean; // Si true, retourne un Blob au lieu de sauvegarder
+  planType?: PlanType; // Plan d'abonnement pour le branding
+  hideBranding?: boolean; // Option Pro pour masquer complètement le branding
 }
 
 export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Promise<Blob | void> => {
-  const { salesData, companyName, startDate, endDate, chartRef, logoUrl, returnBlob = false } = options;
+  const { 
+    salesData, 
+    companyName, 
+    startDate, 
+    endDate, 
+    chartRef, 
+    logoUrl, 
+    returnBlob = false,
+    planType = 'free',
+    hideBranding = false
+  } = options;
   
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
@@ -38,32 +52,58 @@ export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Pr
   let pageNumber = 1;
   const totalPages = { value: 1 }; // Will be updated after generating all content
   
+  // Déterminer si on affiche le branding selon le plan
+  const showFullBranding = planType === 'free';
+  const showDiscreteBranding = planType === 'premium';
+  const canHideBranding = planType === 'pro' && hideBranding;
+  
   // Helper function to add footer
   const addFooter = (currentPage: number, total: number) => {
     doc.setFontSize(8);
     doc.setTextColor(...COLORS.gray);
     
-    // Left: Software name
-    doc.text("GestionFlow", margin, pageHeight - 10);
+    // Left: Software name (selon le plan)
+    if (!canHideBranding) {
+      if (showFullBranding) {
+        doc.text("Rapport généré avec GestionFlow", margin, pageHeight - 10);
+      } else if (showDiscreteBranding) {
+        doc.text("GestionFlow", margin, pageHeight - 10);
+      } else {
+        // Pro sans hideBranding: texte discret
+        doc.text("GestionFlow", margin, pageHeight - 10);
+      }
+    }
     
     // Center: Page number
     doc.text(`Page ${currentPage} sur ${total}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
     
-    // Right: Auto-generated mention
-    doc.text("Document généré automatiquement", pageWidth - margin, pageHeight - 10, { align: 'right' });
+    // Right: Auto-generated mention (seulement si branding visible)
+    if (!canHideBranding) {
+      doc.text("Document généré automatiquement", pageWidth - margin, pageHeight - 10, { align: 'right' });
+    }
     
     // Reset text color
     doc.setTextColor(...COLORS.dark);
   };
 
   // ===== HEADER SECTION =====
-  // Logo placeholder (left side)
-  doc.setFillColor(...COLORS.primary);
-  doc.roundedRect(margin, yPosition, 40, 12, 2, 2, 'F');
-  doc.setTextColor(...COLORS.white);
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text("GestionFlow", margin + 20, yPosition + 8, { align: 'center' });
+  // Logo/Branding (left side) - selon le plan
+  if (showFullBranding) {
+    // Free: Logo complet avec fond coloré
+    doc.setFillColor(...COLORS.primary);
+    doc.roundedRect(margin, yPosition, 40, 12, 2, 2, 'F');
+    doc.setTextColor(...COLORS.white);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text("GestionFlow", margin + 20, yPosition + 8, { align: 'center' });
+  } else if (showDiscreteBranding || (planType === 'pro' && !hideBranding)) {
+    // Premium/Pro: Texte simple sans fond
+    doc.setTextColor(...COLORS.gray);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text("GestionFlow", margin, yPosition + 8);
+  }
+  // Pro avec hideBranding: rien du tout
   
   // Report title (right side)
   doc.setTextColor(...COLORS.dark);
