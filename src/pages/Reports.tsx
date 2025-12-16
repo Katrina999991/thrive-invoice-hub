@@ -163,10 +163,24 @@ const Reports = () => {
   const [productStartDate, setProductStartDate] = useState<Date | undefined>();
   const [productEndDate, setProductEndDate] = useState<Date | undefined>();
   
+  // États pour les filtres de statut des factures dans le rapport de ventes
+  const [salesStatusFilters, setSalesStatusFilters] = useState({
+    paid: true,
+    sent: false,
+    overdue: false,
+    draft: false
+  });
+  
+  // Convertir les filtres de statut en tableau pour le hook
+  const selectedSalesStatuses = Object.entries(salesStatusFilters)
+    .filter(([_, checked]) => checked)
+    .map(([status]) => status as 'paid' | 'sent' | 'overdue' | 'draft');
+  
   const { salesData, loading: salesLoading } = useSalesReport(
     productStartDate, 
     productEndDate, 
-    productFilterType === 'company' ? productSelectedCompanyId : undefined
+    productFilterType === 'company' ? productSelectedCompanyId : undefined,
+    selectedSalesStatuses
   );
   
   // États pour les filtres de la section Expenses
@@ -3438,6 +3452,57 @@ const Reports = () => {
                 )}
               </div>
             </div>
+
+            {/* Status Filters */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <span className="text-sm font-medium">
+                    {language === 'fr' ? 'Inclure :' : 'Include:'}
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="status-paid" 
+                      checked={salesStatusFilters.paid} 
+                      onCheckedChange={(checked) => setSalesStatusFilters(prev => ({...prev, paid: checked as boolean}))} 
+                    />
+                    <Label htmlFor="status-paid" className="text-sm cursor-pointer">
+                      {language === 'fr' ? 'Payées' : 'Paid'}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="status-sent" 
+                      checked={salesStatusFilters.sent} 
+                      onCheckedChange={(checked) => setSalesStatusFilters(prev => ({...prev, sent: checked as boolean}))} 
+                    />
+                    <Label htmlFor="status-sent" className="text-sm cursor-pointer">
+                      {language === 'fr' ? 'Envoyées' : 'Sent'}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="status-overdue" 
+                      checked={salesStatusFilters.overdue} 
+                      onCheckedChange={(checked) => setSalesStatusFilters(prev => ({...prev, overdue: checked as boolean}))} 
+                    />
+                    <Label htmlFor="status-overdue" className="text-sm cursor-pointer">
+                      {language === 'fr' ? 'En retard' : 'Overdue'}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="status-draft" 
+                      checked={salesStatusFilters.draft} 
+                      onCheckedChange={(checked) => setSalesStatusFilters(prev => ({...prev, draft: checked as boolean}))} 
+                    />
+                    <Label htmlFor="status-draft" className="text-sm cursor-pointer">
+                      {language === 'fr' ? 'Brouillons' : 'Drafts'}
+                    </Label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {salesLoading ? (
               <Card>
