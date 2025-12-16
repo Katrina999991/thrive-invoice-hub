@@ -39,6 +39,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
+import { generateSalesReportPdf } from "@/lib/salesReportPdf";
 
 const Reports = () => {
   const { t, language } = useLanguage();
@@ -2267,198 +2268,20 @@ const Reports = () => {
   const exportSalesReportToPDF = async () => {
     if (!salesData) return;
     
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    
-    // Title
-    doc.setFontSize(20);
-    doc.text(t("reports.pdf.salesReport"), pageWidth / 2, 20, { align: 'center' });
-    
-    // Date range
-    doc.setFontSize(12);
-    let dateRangeText = t("reports.pdf.allPeriods");
-    if (customStartDate && customEndDate) {
-      dateRangeText = `${t("reports.pdf.period")}: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
-    } else if (customStartDate) {
-      dateRangeText = `${t("reports.pdf.since")} ${format(customStartDate, 'dd/MM/yyyy')}`;
-    } else if (customEndDate) {
-      dateRangeText = `${t("reports.pdf.until")} ${format(customEndDate, 'dd/MM/yyyy')}`;
-    }
-    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
-    
-    // Company filter
+    // Get company name if filtered
+    let companyName: string | undefined;
     if (productFilterType === 'company' && productSelectedCompanyId) {
       const company = companies?.find(c => c.id === productSelectedCompanyId);
-      if (company) {
-        doc.text(`${t("reports.pdf.company")}: ${company.name}`, pageWidth / 2, 43, { align: 'center' });
-      }
-    } else {
-      doc.text(t("reports.pdf.allCompanies"), pageWidth / 2, 43, { align: 'center' });
+      companyName = company?.name;
     }
     
-    // Summary
-    doc.setFontSize(14);
-    doc.text(t("reports.pdf.summary"), 20, 63);
-    doc.setFontSize(12);
-    doc.text(`${t("reports.products.totalRevenue")}: $${salesData.totalRevenue.toFixed(2)}`, 20, 78);
-    doc.text(`${t("reports.products.totalQuantitySold")}: ${salesData.totalQuantitySold}`, 20, 88);
-    doc.text(`${t("reports.products.numberOfSales")}: ${salesData.totalNumberOfSales}`, 20, 98);
-    doc.text(`${t("reports.products.productsSold")}: ${salesData.uniqueProductsSold}`, 20, 108);
-    
-    let yPosition = 128;
-    
-    try {
-      // Capture Sales Charts
-      if (salesProductChartRef.current && salesData.products.length > 0) {
-        const chartCanvas = await html2canvas(salesProductChartRef.current, {
-          backgroundColor: '#ffffff',
-          scale: 1,
-          useCORS: true
-        });
-        const chartImgData = chartCanvas.toDataURL('image/png');
-        
-        doc.setFontSize(14);
-        doc.text(t("reports.pdf.revenueByProductChart"), 20, yPosition);
-        yPosition += 10;
-        
-        const imgWidth = pageWidth - 40;
-        const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
-        
-        // Check if we need a new page
-        if (yPosition + imgHeight > 280) {
-          doc.addPage();
-          yPosition = 20;
-          doc.setFontSize(14);
-          doc.text(t("reports.pdf.revenueByProductChart"), 20, yPosition);
-          yPosition += 10;
-        }
-        
-        doc.addImage(chartImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 20;
-      }
-      
-      // Capture Services Chart if it exists
-      if (salesServiceChartRef.current && salesData.services.length > 0) {
-        // Check if we need a new page
-        if (yPosition > 200) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        const serviceChartCanvas = await html2canvas(salesServiceChartRef.current, {
-          backgroundColor: '#ffffff',
-          scale: 1,
-          useCORS: true
-        });
-        const serviceChartImgData = serviceChartCanvas.toDataURL('image/png');
-        
-        doc.setFontSize(14);
-        doc.text(t("reports.pdf.revenueByServiceChart"), 20, yPosition);
-        yPosition += 10;
-        
-        const serviceImgWidth = pageWidth - 40;
-        const serviceImgHeight = (serviceChartCanvas.height * serviceImgWidth) / serviceChartCanvas.width;
-        
-        // Check if we need a new page for the service chart
-        if (yPosition + serviceImgHeight > 280) {
-          doc.addPage();
-          yPosition = 20;
-          doc.setFontSize(14);
-          doc.text(t("reports.pdf.revenueByServiceChart"), 20, yPosition);
-          yPosition += 10;
-        }
-        
-        doc.addImage(serviceChartImgData, 'PNG', 20, yPosition, serviceImgWidth, serviceImgHeight);
-        yPosition += serviceImgHeight + 20;
-      }
-      
-      // Add data table on a new page
-      doc.addPage();
-      yPosition = 20;
-      
-      // Sales details table
-      if (salesData.products.length > 0 || salesData.services.length > 0) {
-        doc.setFontSize(14);
-        doc.text(t("reports.pdf.salesDetails"), 20, yPosition);
-        yPosition += 10;
-        
-        // Combine products and services for the table
-        const combinedSalesData = [
-          ...salesData.products.map(product => [
-            product.product_name + ' (Product)',
-            product.total_quantity_sold.toString(),
-            '$' + product.total_revenue.toFixed(2),
-            product.number_of_sales.toString(),
-            '$' + product.average_sale_price.toFixed(2),
-            format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
-            format(new Date(product.last_sale_date), 'dd/MM/yyyy')
-          ]),
-          ...salesData.services.map(service => [
-            service.product_name + ' (Service)',
-            service.total_quantity_sold.toString(),
-            '$' + service.total_revenue.toFixed(2),
-            service.number_of_sales.toString(),
-            '$' + service.average_sale_price.toFixed(2),
-            format(new Date(service.first_sale_date), 'dd/MM/yyyy'),
-            format(new Date(service.last_sale_date), 'dd/MM/yyyy')
-          ])
-        ];
-        
-        autoTable(doc, {
-          head: [[t("reports.products.productServiceLabel"), t("reports.products.qtySold"), t("reports.products.revenue"), t("reports.products.salesCount"), t("reports.products.avgPrice"), t("reports.products.firstSale"), t("reports.products.lastSale")]],
-          body: combinedSalesData,
-          startY: yPosition,
-          styles: { fontSize: 8 },
-          headStyles: { fillColor: [34, 197, 94] },
-        });
-      }
-      
-    } catch (error) {
-      console.error('Error capturing sales chart:', error);
-      // Fallback to table only if chart capture fails
-      doc.addPage();
-      yPosition = 20;
-      
-      doc.setFontSize(14);
-      doc.text('Note: Chart could not be captured, showing data table only', 20, yPosition);
-      yPosition += 20;
-      
-      // Add table as fallback
-      if (salesData.products.length > 0 || salesData.services.length > 0) {
-        // Combine products and services for the fallback table
-        const combinedSalesData = [
-          ...salesData.products.map(product => [
-            product.product_name + ' (Product)',
-            product.total_quantity_sold.toString(),
-            '$' + product.total_revenue.toFixed(2),
-            product.number_of_sales.toString(),
-            '$' + product.average_sale_price.toFixed(2),
-            format(new Date(product.first_sale_date), 'dd/MM/yyyy'),
-            format(new Date(product.last_sale_date), 'dd/MM/yyyy')
-          ]),
-          ...salesData.services.map(service => [
-            service.product_name + ' (Service)',
-            service.total_quantity_sold.toString(),
-            '$' + service.total_revenue.toFixed(2),
-            service.number_of_sales.toString(),
-            '$' + service.average_sale_price.toFixed(2),
-            format(new Date(service.first_sale_date), 'dd/MM/yyyy'),
-            format(new Date(service.last_sale_date), 'dd/MM/yyyy')
-          ])
-        ];
-        
-        autoTable(doc, {
-          head: [['Product/Service', 'Qty Sold', 'Revenue', 'Sales Count', 'Avg Price', 'First Sale', 'Last Sale']],
-          body: combinedSalesData,
-          startY: yPosition,
-          styles: { fontSize: 8 },
-          headStyles: { fillColor: [34, 197, 94] },
-        });
-      }
-    }
-    
-    const filename = `${getReportTranslation('salesReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
-    doc.save(filename);
+    await generateSalesReportPdf({
+      salesData,
+      companyName,
+      startDate: productStartDate,
+      endDate: productEndDate,
+      chartRef: salesProductChartRef,
+    });
   };
 
   const exportSalesReportToExcel = () => {
