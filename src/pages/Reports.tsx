@@ -53,6 +53,9 @@ const Reports = () => {
   const [emailDialogOpen, setEmailDialogOpen] = useState<string | null>(null);
   const [currentPdfBlob, setCurrentPdfBlob] = useState<Blob | null>(null);
   
+  // Option Pro pour masquer le branding GestionFlow des PDF
+  const [hidePdfBranding, setHidePdfBranding] = useState(false);
+  
   // Check if a specific report tab is available based on plan
   const isTabAvailable = (tab: string) => {
     if (tab === 'overview' || tab === 'revenue' || tab === 'reminders') return true; // Always available
@@ -2286,6 +2289,8 @@ const Reports = () => {
       startDate: productStartDate,
       endDate: productEndDate,
       chartRef: salesProductChartRef,
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding,
     });
   };
 
@@ -3404,19 +3409,33 @@ const Reports = () => {
                     : 'Identify your best and worst performing products'}
                 </p>
               </div>
-              <div className="flex space-x-2">
-                <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
-                  <Download className="w-4 h-4 mr-2" />
-                  PDF
-                </Button>
-                <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Excel
-                </Button>
-                <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Courriel' : 'Email'}
-                </Button>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex space-x-2">
+                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+                    <Download className="w-4 h-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    Excel
+                  </Button>
+                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Courriel' : 'Email'}
+                  </Button>
+                </div>
+                {planLimits?.plan_type === 'pro' && (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="hideBranding" 
+                      checked={hidePdfBranding} 
+                      onCheckedChange={(checked) => setHidePdfBranding(checked as boolean)} 
+                    />
+                    <Label htmlFor="hideBranding" className="text-sm text-muted-foreground cursor-pointer">
+                      {language === 'fr' ? 'Supprimer la signature GestionFlow des PDF' : 'Remove GestionFlow branding from PDFs'}
+                    </Label>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -5367,7 +5386,9 @@ const Reports = () => {
             startDate: productStartDate,
             endDate: productEndDate,
             chartRef: salesProductChartRef,
-            returnBlob: true
+            returnBlob: true,
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
           });
           return blob as Blob;
         }}
