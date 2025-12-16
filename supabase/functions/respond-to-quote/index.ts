@@ -156,8 +156,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if already responded
-    if (quote.status === "accepted" || quote.status === "refused") {
+    // Check if already responded (DB uses 'rejected', not 'refused')
+    if (quote.status === "accepted" || quote.status === "rejected") {
       return new Response(
         JSON.stringify({ 
           error: "This quote has already been responded to",
@@ -181,12 +181,15 @@ const handler = async (req: Request): Promise<Response> => {
     // Sanitize the note to prevent XSS
     const sanitizedNote = sanitizeNote(note);
     
+    // Map response to database status (DB uses 'rejected', API uses 'refused')
+    const dbStatus = response === 'refused' ? 'rejected' : response;
+    
     // Update the quote status
     const respondedAt = new Date().toISOString();
     const { error: updateError } = await supabase
       .from("quotes")
       .update({
-        status: response,
+        status: dbStatus,
         responded_at: respondedAt,
         client_response_note: sanitizedNote,
       })
