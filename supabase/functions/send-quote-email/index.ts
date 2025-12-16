@@ -196,8 +196,6 @@ const handler = async (req: Request): Promise<Response> => {
       '{company_name}': company.name,
       '{response_link}': `<a href="${responseLink}" style="color: #2563eb; text-decoration: underline;">${responseLinkText}</a>`,
     };
-
-    const isFrench = client.language === 'french';
     
     let emailSubject: string;
     let emailMessage: string;
