@@ -445,11 +445,13 @@ const Quotes = () => {
     const { generateQuotePdf } = await import('@/lib/quotePdf');
     
     const client = clients.find(c => c.id === quote.client_id);
-    // Use the selected company or the first available company (user's company, not client's)
-    const company = selectedCompanyId 
-      ? companies.find(c => c.id === selectedCompanyId) 
+    // Get company from client's company_id, or fall back to first available company
+    const company = client?.company_id 
+      ? companies.find(c => c.id === client.company_id) 
       : companies[0] || null;
     const hidePdfBranding = localStorage.getItem('hidePdfBranding') === 'true' && planLimits?.plan_type === 'pro';
+
+    console.log('Generating PDF with company:', company?.name, 'logo_url:', company?.logo_url);
 
     await generateQuotePdf({
       quote: {
