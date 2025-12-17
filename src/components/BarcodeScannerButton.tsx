@@ -66,28 +66,28 @@ export const BarcodeScannerButton = ({
 
       {/* Scanner overlay */}
       {isScanning && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4">
           {useWebScanner ? (
             // Web scanner with html5-qrcode
-            <div className="w-full max-w-md">
-              <div className="relative">
+            <div className="w-full max-w-md mx-auto">
+              <div className="relative w-full">
                 {/* Scanner container - html5-qrcode will render here */}
                 <div 
                   id={scannerContainerId}
-                  className="w-full rounded-lg overflow-hidden"
-                  style={{ minHeight: '300px' }}
+                  className="w-full rounded-lg overflow-hidden bg-black"
+                  style={{ minHeight: '350px', maxHeight: '60vh' }}
                 />
                 
                 {/* Corner decorations over the video */}
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-2 left-2 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
-                  <div className="absolute top-2 right-2 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
-                  <div className="absolute bottom-2 left-2 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
-                  <div className="absolute bottom-2 right-2 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
+                  <div className="absolute top-2 left-2 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-lg" />
+                  <div className="absolute top-2 right-2 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-lg" />
+                  <div className="absolute bottom-2 left-2 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-lg" />
+                  <div className="absolute bottom-2 right-2 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-lg" />
                 </div>
               </div>
               
-              <p className="text-white mt-4 text-center text-sm">
+              <p className="text-white mt-6 text-center text-base">
                 {language === "fr" 
                   ? "Placez le code-barres devant la caméra" 
                   : "Place the barcode in front of the camera"}

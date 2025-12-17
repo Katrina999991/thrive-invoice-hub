@@ -165,3 +165,25 @@ body.scanner-active ion-app,
 body.scanner-active .app-container {
   background: transparent !important;
 }
+
+/* html5-qrcode scanner styling */
+#html5-qrcode-scanner {
+  width: 100% !important;
+  position: relative !important;
+}
+
+#html5-qrcode-scanner video {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 0.5rem;
+}
+
+#html5-qrcode-scanner__scan_region {
+  min-height: 300px !important;
+}
+
+#html5-qrcode-scanner__dashboard_section,
+#html5-qrcode-scanner__dashboard_section_csr {
+  display: none !important;
+}
