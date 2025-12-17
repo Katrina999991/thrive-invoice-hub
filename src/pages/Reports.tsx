@@ -20,7 +20,8 @@ import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useReminderLogs } from "@/hooks/useReminderLogs";
-import { useState, useMemo, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -41,10 +42,12 @@ import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 import { generateSalesReportPdf } from "@/lib/salesReportPdf";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
+import { logAuditEvent } from "@/lib/auditLogger";
 
 const Reports = () => {
   const { t, language } = useLanguage();
   const { planLimits } = useSubscription();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   const [showNoProductsDialog, setShowNoProductsDialog] = useState(false);
@@ -57,6 +60,19 @@ const Reports = () => {
   const [hidePdfBranding, setHidePdfBranding] = useState(() => {
     return localStorage.getItem("hide-pdf-branding") === "true";
   });
+  
+  // Helper function to log export events
+  const logExport = useCallback((reportType: string, exportFormat: 'pdf' | 'excel', description: string) => {
+    if (!user) return;
+    logAuditEvent({
+      userId: user.id,
+      userName: user.email || 'Unknown',
+      category: 'exports',
+      eventType: exportFormat === 'pdf' ? 'pdf_download' : 'excel_export',
+      description,
+      metadata: { reportType, format: exportFormat }
+    });
+  }, [user]);
   
   // Check if a specific report tab is available based on plan
   const isTabAvailable = (tab: string) => {
@@ -624,6 +640,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('revenueChartsFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('revenue_charts', 'pdf', language === 'fr' ? 'Téléchargement PDF graphiques revenus' : 'Revenue charts PDF download');
   };
 
   // Filter invoices based on selected date range and paid status
@@ -712,6 +729,7 @@ const Reports = () => {
     // Generate filename
     const filename = `${getReportTranslation('revenueReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('revenue', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport revenus' : 'Revenue report PDF download');
   };
 
   // Export functions for taxes
@@ -782,6 +800,7 @@ const Reports = () => {
       : '';
     const filename = `${getReportTranslation('taxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('taxes', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport taxes' : 'Tax report PDF download');
   };
 
   const exportTaxesToExcel = () => {
@@ -829,6 +848,7 @@ const Reports = () => {
       : '';
     const filename = `${getReportTranslation('taxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('taxes', 'excel', language === 'fr' ? 'Export Excel rapport taxes' : 'Tax report Excel export');
   };
 
   // Export functions for products
@@ -949,6 +969,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('inventoryReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('inventory', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport inventaire' : 'Inventory report PDF download');
   };
 
   const exportProductsToExcel = () => {
@@ -1014,6 +1035,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('inventoryReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('inventory', 'excel', language === 'fr' ? 'Export Excel rapport inventaire' : 'Inventory report Excel export');
   };
   
   const exportToExcel = () => {
@@ -1071,6 +1093,7 @@ const Reports = () => {
     // Generate filename and save
     const filename = `${getReportTranslation('revenueReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('revenue', 'excel', language === 'fr' ? 'Export Excel rapport revenus' : 'Revenue report Excel export');
   };
 
   // Export functions for clients
@@ -1169,6 +1192,7 @@ const Reports = () => {
     // Generate filename
     const filename = `${getReportTranslation('clientsReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('clients', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport clients' : 'Clients report PDF download');
   };
   
   const exportClientsToExcel = () => {
@@ -1256,6 +1280,7 @@ const Reports = () => {
     // Generate filename and save
     const filename = `${getReportTranslation('clientsReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('clients', 'excel', language === 'fr' ? 'Export Excel rapport clients' : 'Clients report Excel export');
   };
 
   // Export all clients functions
@@ -1297,6 +1322,7 @@ const Reports = () => {
     
     const filename = `tous-les-clients-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('all_clients', 'pdf', language === 'fr' ? 'Téléchargement PDF tous les clients' : 'All clients PDF download');
   };
 
   const exportAllClientsToExcel = () => {
@@ -1321,6 +1347,7 @@ const Reports = () => {
     
     const filename = `tous-les-clients-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('all_clients', 'excel', language === 'fr' ? 'Export Excel tous les clients' : 'All clients Excel export');
   };
 
   // Export company-specific clients functions
@@ -1367,6 +1394,7 @@ const Reports = () => {
     
     const filename = `clients-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('company_clients', 'pdf', language === 'fr' ? `Téléchargement PDF clients de ${company.name}` : `Company clients PDF download - ${company.name}`);
   };
 
   const exportCompanyClientsToExcel = (company: any) => {
@@ -1396,6 +1424,7 @@ const Reports = () => {
     
     const filename = `clients-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('company_clients', 'excel', language === 'fr' ? `Export Excel clients de ${company.name}` : `Company clients Excel export - ${company.name}`);
   };
 
   // Export clients without company functions
@@ -1441,6 +1470,7 @@ const Reports = () => {
     
     const filename = `clients-sans-compagnie-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('clients_no_company', 'pdf', language === 'fr' ? 'Téléchargement PDF clients sans compagnie' : 'Clients without company PDF download');
   };
 
   const exportClientsWithoutCompanyToExcel = () => {
@@ -1470,6 +1500,7 @@ const Reports = () => {
     
     const filename = `clients-sans-compagnie-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('clients_no_company', 'excel', language === 'fr' ? 'Export Excel clients sans compagnie' : 'Clients without company Excel export');
   };
 
   // Export functions for expenses
@@ -1809,6 +1840,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('expenseReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('expenses', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport dépenses' : 'Expenses report PDF download');
   };
 
   const exportExpenseCategoryChartToPDF = async () => {
@@ -1875,6 +1907,7 @@ const Reports = () => {
     
     const filename = `${t("reports.expenses.byCategory")}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('expenses_by_category', 'pdf', language === 'fr' ? 'Téléchargement PDF dépenses par catégorie' : 'Expenses by category PDF download');
   };
 
   const exportExpenseCompanyChartToPDF = async () => {
@@ -1941,6 +1974,7 @@ const Reports = () => {
     
     const filename = `${t("reports.expenses.byCompany")}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('expenses_by_company', 'pdf', language === 'fr' ? 'Téléchargement PDF dépenses par compagnie' : 'Expenses by company PDF download');
   };
 
   const exportExpensesToExcel = () => {
@@ -2099,6 +2133,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('expenseReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('expenses', 'excel', language === 'fr' ? 'Export Excel rapport dépenses' : 'Expenses report Excel export');
   };
 
   // Export functions for product profits
@@ -2238,6 +2273,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('productProfitReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
+    logExport('product_profit', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport profit produits' : 'Product profit report PDF download');
   };
 
   const exportProductProfitToExcel = () => {
@@ -2286,6 +2322,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('productProfitReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('product_profit', 'excel', language === 'fr' ? 'Export Excel rapport profit produits' : 'Product profit report Excel export');
   };
 
   // Export functions for sales report
@@ -2309,6 +2346,7 @@ const Reports = () => {
       hideBranding: hidePdfBranding,
       includedStatuses: selectedSalesStatuses,
     });
+    logExport('sales', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport ventes' : 'Sales report PDF download');
   };
 
   const exportSalesReportToExcel = () => {
@@ -2362,6 +2400,7 @@ const Reports = () => {
     
     const filename = `${getReportTranslation('salesReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
+    logExport('sales', 'excel', language === 'fr' ? 'Export Excel rapport ventes' : 'Sales report Excel export');
   };
 
   const filteredInvoices = useMemo(() => {
@@ -2496,6 +2535,7 @@ const Reports = () => {
     });
     
     doc.save(`rapport-factures-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    logExport('invoices', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport factures' : 'Invoices report PDF download');
   };
 
   const exportInvoicesToExcel = () => {
@@ -2543,6 +2583,7 @@ const Reports = () => {
     
     XLSX.utils.book_append_sheet(wb, ws, language === 'fr' ? 'Factures' : 'Invoices');
     XLSX.writeFile(wb, `rapport-factures-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    logExport('invoices', 'excel', language === 'fr' ? 'Export Excel rapport factures' : 'Invoices report Excel export');
   };
 
   return (

@@ -76,7 +76,9 @@ export const eventTypeTranslations: Record<string, { fr: string; en: string }> =
   'stock_expense_created': { fr: 'Dépense stock créée automatiquement', en: 'Stock expense auto-created' },
   
   // Exports
+  'pdf_download': { fr: 'PDF téléchargé', en: 'PDF downloaded' },
   'pdf_downloaded': { fr: 'PDF téléchargé', en: 'PDF downloaded' },
+  'excel_export': { fr: 'Export Excel', en: 'Excel exported' },
   'excel_exported': { fr: 'Export Excel', en: 'Excel exported' },
   'report_emailed': { fr: 'Rapport envoyé par courriel', en: 'Report emailed' },
   
