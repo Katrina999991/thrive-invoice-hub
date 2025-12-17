@@ -1520,21 +1520,9 @@ Cordialement,
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center justify-between w-full pr-2">
                           <h4 className="font-medium">{language === "fr" ? "Message dans le corps de la facture" : "Invoice Body Message"}</h4>
-                          {planLimits?.plan_type === 'free' && (
-                            <Badge variant="outline" className="ml-2">
-                              {language === "fr" ? "Gratuit" : "Free"}
-                            </Badge>
-                          )}
-                          {planLimits?.plan_type === 'premium' && (
-                            <Badge variant="secondary" className="ml-2">
-                              Premium
-                            </Badge>
-                          )}
-                          {planLimits?.plan_type === 'pro' && (
-                            <Badge className="ml-2 bg-primary">
-                              Pro
-                            </Badge>
-                          )}
+                          <Badge variant="secondary" className="ml-2">
+                            Premium
+                          </Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-4 pt-4">
@@ -1545,27 +1533,34 @@ Cordialement,
                         {/* Helper text based on plan */}
                         <div className="rounded-lg border bg-muted/30 p-3">
                           <p className="text-xs text-muted-foreground">
-                            {planLimits?.plan_type === 'free' && (
+                            {planLimits?.plan_type === 'free' ? (
                               language === "fr" 
-                                ? "Ce message peut être modifié avant l'envoi. Passez à Premium pour le sauvegarder par défaut."
-                                : "This message can be edited before sending. Upgrade to Premium to save it as default."
-                            )}
-                            {planLimits?.plan_type === 'premium' && (
+                                ? "Vous pouvez modifier ce message avant l'envoi. Passez à Premium pour le sauvegarder par défaut."
+                                : "You can edit this message before sending. Upgrade to Premium to save it as default."
+                            ) : (
                               language === "fr"
-                                ? "Ce message sera utilisé par défaut pour les nouvelles factures."
-                                : "This message will be used by default for new invoices."
-                            )}
-                            {planLimits?.plan_type === 'pro' && (
-                              language === "fr"
-                                ? "Ce message sera utilisé par défaut. Variables avancées disponibles : {invoice_number}, {company_name}, {client_name}, {total}, {due_date}"
-                                : "This message will be used by default. Advanced variables available: {invoice_number}, {company_name}, {client_name}, {total}, {due_date}"
+                                ? "Ce message sera utilisé par défaut pour les nouvelles factures. Disponible sur les plans Premium et Pro."
+                                : "This message will be used by default for new invoices. Available on Premium and Pro plans."
                             )}
                           </p>
                         </div>
 
+                        {/* Variables section - Premium */}
+                        {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
+                          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                            <p className="text-xs font-medium text-foreground mb-1">
+                              {language === "fr" ? "Variables disponibles" : "Available placeholders"}:
+                            </p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{due_date}"}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Pro advanced variables hint */}
                         {planLimits?.plan_type === 'pro' && (
-                          <p className="text-xs text-muted-foreground">
-                            {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{due_date}"}
+                          <p className="text-xs text-muted-foreground italic">
+                            {language === "fr" ? "Variables avancées disponibles sur Pro" : "Advanced placeholders available on Pro"}
                           </p>
                         )}
 
@@ -1598,12 +1593,10 @@ Cordialement,
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center justify-between w-full pr-2">
                           <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
-                          {planLimits?.plan_type !== 'pro' && (
-                            <Badge variant="secondary" className="flex items-center gap-1 ml-2">
-                              <Lock className="h-3 w-3" />
-                              Pro
-                            </Badge>
-                          )}
+                          <Badge variant={planLimits?.plan_type === 'pro' ? "default" : "secondary"} className="flex items-center gap-1 ml-2">
+                            {planLimits?.plan_type !== 'pro' && <Lock className="h-3 w-3" />}
+                            Pro
+                          </Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-4 pt-4">
@@ -1612,8 +1605,8 @@ Cordialement,
                           <p className="text-xs text-muted-foreground">
                             {planLimits?.plan_type === 'pro' 
                               ? (language === "fr" 
-                                  ? "Personnalisez le texte de pied de page affiché sur vos documents PDF."
-                                  : "Customize the footer text displayed on your PDF documents.")
+                                  ? "Personnalisez le texte de pied de page affiché sur vos documents PDF. Disponible uniquement sur le plan Pro."
+                                  : "Customize the footer text displayed on your PDF documents. Available on Pro plan only.")
                               : (language === "fr"
                                   ? "Passez au plan Pro pour personnaliser le pied de page de vos factures PDF."
                                   : "Upgrade to Pro to customize the footer text on your PDF invoices.")
