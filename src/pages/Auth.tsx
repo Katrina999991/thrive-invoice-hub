@@ -182,18 +182,35 @@ export default function Auth() {
   };
   
   const handleMFASuccess = async () => {
-    // Re-sign in the user after MFA verification
+    // Re-sign in the user after MFA verification - skip MFA check since it was just verified
     setShowMFAVerification(false);
     setPendingUserId(null);
     
-    // Sign back in
-    const { error } = await signIn(email, password);
+    // Sign back in directly without MFA check
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
     if (!error) {
+      // Save email if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('remembered_email', email);
+      } else {
+        localStorage.removeItem('remembered_email');
+      }
+      
       toast({
         title: language === 'fr' ? "Bienvenue !" : "Welcome back!",
         description: language === 'fr' ? "Vous êtes connecté avec succès." : "You have successfully signed in.",
       });
       navigate("/dashboard");
+    } else {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
   
