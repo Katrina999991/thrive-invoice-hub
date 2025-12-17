@@ -97,6 +97,16 @@ const Pricing = () => {
       return;
     }
 
+    // Check if user has an active Stripe subscription before trying to open portal
+    if (!hasActiveStripeSubscription) {
+      toast.info(
+        language === 'fr'
+          ? "Vous êtes déjà sur le plan gratuit ou n'avez pas d'abonnement actif."
+          : "You are already on the free plan or don't have an active subscription."
+      );
+      return;
+    }
+
     toast.info(
       language === 'fr'
         ? "Pour rétrograder, nous allons ouvrir le portail client Stripe."

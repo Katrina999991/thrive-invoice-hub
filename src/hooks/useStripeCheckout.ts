@@ -89,6 +89,11 @@ export const useStripeCheckout = () => {
 
       if (error) throw error;
       
+      // Check if the edge function returned an error in the response body
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
       if (data?.url) {
         window.open(data.url, '_blank');
       } else {
@@ -96,7 +101,14 @@ export const useStripeCheckout = () => {
       }
     } catch (error: any) {
       console.error('Customer portal error:', error);
-      toast.error(error.message || 'Failed to open customer portal');
+      const errorMessage = error.message || 'Failed to open customer portal';
+      
+      // Provide user-friendly error messages
+      if (errorMessage.includes('No Stripe customer found')) {
+        toast.error('Aucun abonnement Stripe trouvé. Vous êtes déjà sur le plan gratuit.');
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
