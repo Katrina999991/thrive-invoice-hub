@@ -260,15 +260,6 @@ const StockManagement = () => {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1 flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder={language === 'fr' ? 'Rechercher un produit ou code-barres...' : 'Search products or barcode...'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
               <BarcodeScannerButton
                 onScan={(barcode) => {
                   // Search for product by barcode/sku
@@ -294,7 +285,17 @@ const StockManagement = () => {
                 }}
                 variant="outline"
                 showLabel={false}
+                className="md:order-last"
               />
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder={language === 'fr' ? 'Rechercher un produit ou code-barres...' : 'Search products or barcode...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
             
             <Select value={filterCompany} onValueChange={setFilterCompany}>
