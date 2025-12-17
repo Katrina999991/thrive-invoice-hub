@@ -654,7 +654,47 @@ Cordialement,
     
     setIsSavingTemplates(true);
     try {
-      await updateCompany(selectedCompanyId, emailTemplates);
+      // Build template data based on plan restrictions
+      const templateData: Record<string, string> = {};
+      
+      // Pro-only email templates
+      if (planLimits?.plan_type === 'pro') {
+        templateData.invoice_email_subject_en = emailTemplates.invoice_email_subject_en;
+        templateData.invoice_email_subject_fr = emailTemplates.invoice_email_subject_fr;
+        templateData.invoice_email_message_en = emailTemplates.invoice_email_message_en;
+        templateData.invoice_email_message_fr = emailTemplates.invoice_email_message_fr;
+        templateData.overdue_email_subject_en = emailTemplates.overdue_email_subject_en;
+        templateData.overdue_email_subject_fr = emailTemplates.overdue_email_subject_fr;
+        templateData.overdue_email_message_en = emailTemplates.overdue_email_message_en;
+        templateData.overdue_email_message_fr = emailTemplates.overdue_email_message_fr;
+        templateData.payment_confirmation_email_subject_en = emailTemplates.payment_confirmation_email_subject_en;
+        templateData.payment_confirmation_email_subject_fr = emailTemplates.payment_confirmation_email_subject_fr;
+        templateData.payment_confirmation_email_message_en = emailTemplates.payment_confirmation_email_message_en;
+        templateData.payment_confirmation_email_message_fr = emailTemplates.payment_confirmation_email_message_fr;
+        // Invoice footer - Pro only
+        templateData.invoice_footer_message_en = emailTemplates.invoice_footer_message_en;
+        templateData.invoice_footer_message_fr = emailTemplates.invoice_footer_message_fr;
+      }
+      
+      // Invoice body message - Premium and Pro can save
+      if (planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') {
+        templateData.invoice_body_message_en = emailTemplates.invoice_body_message_en;
+        templateData.invoice_body_message_fr = emailTemplates.invoice_body_message_fr;
+      }
+      
+      // Only save if there's something to save
+      if (Object.keys(templateData).length === 0) {
+        toast({
+          title: language === "fr" ? "Mise à niveau requise" : "Upgrade required",
+          description: language === "fr" 
+            ? "Passez à Premium ou Pro pour sauvegarder vos modèles." 
+            : "Upgrade to Premium or Pro to save your templates.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      await updateCompany(selectedCompanyId, templateData);
       
       toast({
         title: language === "fr" ? "Modèles sauvegardés" : "Templates saved",
@@ -1478,12 +1518,57 @@ Cordialement,
 
                     <AccordionItem value="invoice-body">
                       <AccordionTrigger className="hover:no-underline">
-                        <h4 className="font-medium">{language === "fr" ? "Message dans le corps de la facture" : "Invoice Body Message"}</h4>
+                        <div className="flex items-center justify-between w-full pr-2">
+                          <h4 className="font-medium">{language === "fr" ? "Message dans le corps de la facture" : "Invoice Body Message"}</h4>
+                          {planLimits?.plan_type === 'free' && (
+                            <Badge variant="outline" className="ml-2">
+                              {language === "fr" ? "Gratuit" : "Free"}
+                            </Badge>
+                          )}
+                          {planLimits?.plan_type === 'premium' && (
+                            <Badge variant="secondary" className="ml-2">
+                              Premium
+                            </Badge>
+                          )}
+                          {planLimits?.plan_type === 'pro' && (
+                            <Badge className="ml-2 bg-primary">
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-4 pt-4">
                         <p className="text-sm text-muted-foreground">
                           {language === "fr" ? "Ce message apparaîtra après le tableau des produits/services dans la facture PDF" : "This message will appear after the products/services table in the PDF invoice"}
                         </p>
+                        
+                        {/* Helper text based on plan */}
+                        <div className="rounded-lg border bg-muted/30 p-3">
+                          <p className="text-xs text-muted-foreground">
+                            {planLimits?.plan_type === 'free' && (
+                              language === "fr" 
+                                ? "Ce message peut être modifié avant l'envoi. Passez à Premium pour le sauvegarder par défaut."
+                                : "This message can be edited before sending. Upgrade to Premium to save it as default."
+                            )}
+                            {planLimits?.plan_type === 'premium' && (
+                              language === "fr"
+                                ? "Ce message sera utilisé par défaut pour les nouvelles factures."
+                                : "This message will be used by default for new invoices."
+                            )}
+                            {planLimits?.plan_type === 'pro' && (
+                              language === "fr"
+                                ? "Ce message sera utilisé par défaut. Variables avancées disponibles : {invoice_number}, {company_name}, {client_name}, {total}, {due_date}"
+                                : "This message will be used by default. Advanced variables available: {invoice_number}, {company_name}, {client_name}, {total}, {due_date}"
+                            )}
+                          </p>
+                        </div>
+
+                        {planLimits?.plan_type === 'pro' && (
+                          <p className="text-xs text-muted-foreground">
+                            {language === "fr" ? "Variables disponibles" : "Available placeholders"}: {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{due_date}"}
+                          </p>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="invoice_body_message_en">Message (English)</Label>
@@ -1511,28 +1596,58 @@ Cordialement,
 
                     <AccordionItem value="invoice-footer">
                       <AccordionTrigger className="hover:no-underline">
-                        <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
+                        <div className="flex items-center justify-between w-full pr-2">
+                          <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
+                          {planLimits?.plan_type !== 'pro' && (
+                            <Badge variant="secondary" className="flex items-center gap-1 ml-2">
+                              <Lock className="h-3 w-3" />
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-4 pt-4">
+                        {/* Helper text for Pro feature */}
+                        <div className="rounded-lg border bg-muted/30 p-3">
+                          <p className="text-xs text-muted-foreground">
+                            {planLimits?.plan_type === 'pro' 
+                              ? (language === "fr" 
+                                  ? "Personnalisez le texte de pied de page affiché sur vos documents PDF."
+                                  : "Customize the footer text displayed on your PDF documents.")
+                              : (language === "fr"
+                                  ? "Passez au plan Pro pour personnaliser le pied de page de vos factures PDF."
+                                  : "Upgrade to Pro to customize the footer text on your PDF invoices.")
+                            }
+                          </p>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="invoice_footer_message_en">Message (English)</Label>
+                            <Label htmlFor="invoice_footer_message_en" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
+                              Message (English)
+                            </Label>
                             <Textarea
                               id="invoice_footer_message_en"
                               rows={3}
                               value={emailTemplates.invoice_footer_message_en}
                               onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_en: e.target.value})}
                               placeholder="Thank you for your business!"
+                              disabled={planLimits?.plan_type !== 'pro'}
+                              className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="invoice_footer_message_fr">Message (Français)</Label>
+                            <Label htmlFor="invoice_footer_message_fr" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
+                              Message (Français)
+                            </Label>
                             <Textarea
                               id="invoice_footer_message_fr"
                               rows={3}
                               value={emailTemplates.invoice_footer_message_fr}
                               onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_fr: e.target.value})}
                               placeholder="Merci pour votre confiance!"
+                              disabled={planLimits?.plan_type !== 'pro'}
+                              className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}
                             />
                           </div>
                         </div>
