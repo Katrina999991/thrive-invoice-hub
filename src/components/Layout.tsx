@@ -30,7 +30,7 @@ export default function Layout() {
           <header className="h-14 flex items-center border-b bg-background px-4">
             <SidebarTrigger />
             <div className="ml-4 flex-1">
-              <h1 className="font-semibold">{t("app.title")}</h1>
+              <h1 className="font-semibold hidden md:block">{t("app.title")}</h1>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
