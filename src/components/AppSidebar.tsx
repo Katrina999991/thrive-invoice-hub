@@ -50,7 +50,7 @@ export function AppSidebar() {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
   const { planLimits } = useSubscription();
-  const { state } = useSidebar();
+  const { state, setOpenMobile, isMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
@@ -110,6 +110,17 @@ export function AppSidebar() {
     if (item.requiresFeature && planLimits && !planLimits[item.requiresFeature]) {
       e.preventDefault();
       setShowCategoryDialog(true);
+      return;
+    }
+    // Close sidebar on mobile after navigation
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  const handleSettingsNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
     }
   };
 
@@ -160,7 +171,11 @@ export function AppSidebar() {
                 {settingsItems.map((item) => (
                   <SidebarMenuItem key={item.titleKey}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls(item.url)}>
+                      <NavLink 
+                        to={item.url} 
+                        className={getNavCls(item.url)}
+                        onClick={handleSettingsNavClick}
+                      >
                         <item.icon className="h-4 w-4" />
                         {!isCollapsed && <span>{t(item.titleKey)}</span>}
                       </NavLink>
