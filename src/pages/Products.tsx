@@ -290,9 +290,19 @@ const Products = () => {
         </div>
 
         {item.quantity !== null && (
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{t("products.stock")}</p>
-            <p className="font-medium">{item.quantity} {item.unit}</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">{t("products.stock")}</p>
+              <p className="font-medium">{item.quantity} {item.unit}</p>
+            </div>
+            {item.sku && (
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">SKU</p>
+                <code className="text-xs bg-muted px-2 py-0.5 rounded font-mono">
+                  {item.sku}
+                </code>
+              </div>
+            )}
           </div>
         )}
 

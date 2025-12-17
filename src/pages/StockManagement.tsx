@@ -340,6 +340,7 @@ const StockManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>{language === 'fr' ? 'Produit' : 'Product'}</TableHead>
+                  <TableHead>{language === 'fr' ? 'SKU / Code-barres' : 'SKU / Barcode'}</TableHead>
                   <TableHead>{language === 'fr' ? 'Catégorie' : 'Category'}</TableHead>
                   <TableHead>{language === 'fr' ? 'Entreprise' : 'Company'}</TableHead>
                   <TableHead className="text-center">{language === 'fr' ? 'Quantité' : 'Quantity'}</TableHead>
@@ -353,7 +354,7 @@ const StockManagement = () => {
               <TableBody>
                 {filteredProducts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       {language === 'fr' ? 'Aucun produit trouvé' : 'No products found'}
                     </TableCell>
                   </TableRow>
@@ -373,6 +374,15 @@ const StockManagement = () => {
                             )}
                           </div>
                         </TableCell>
+                        <TableCell>
+                          {product.sku ? (
+                            <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                              {product.sku}
+                            </code>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                        </TableCell>
                         <TableCell>{getCategoryName(product.category)}</TableCell>
                         <TableCell>{getCompanyName(product.company_id)}</TableCell>
                         <TableCell className="text-center font-medium">{product.quantity || 0}</TableCell>
@@ -386,13 +396,37 @@ const StockManagement = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditStock(product)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <BarcodeScannerButton
+                              onScan={(barcode) => {
+                                if (barcode === product.sku) {
+                                  handleEditStock(product);
+                                  toast({
+                                    title: language === 'fr' ? 'Produit trouvé' : 'Product Found',
+                                    description: product.name
+                                  });
+                                } else {
+                                  toast({
+                                    title: language === 'fr' ? 'Code ne correspond pas' : 'Code Mismatch',
+                                    description: language === 'fr' 
+                                      ? `Ce code ne correspond pas à ${product.name}` 
+                                      : `This code doesn't match ${product.name}`,
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              showLabel={false}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditStock(product)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
