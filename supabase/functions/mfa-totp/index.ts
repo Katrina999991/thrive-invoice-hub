@@ -47,10 +47,22 @@ async function hashRecoveryCode(code: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Add proper base32 padding
+function addBase32Padding(secret: string): string {
+  // Remove any existing padding and whitespace
+  const cleaned = secret.replace(/[\s=]/g, '').toUpperCase();
+  // Calculate padding needed (base32 requires length to be multiple of 8)
+  const padLength = (8 - (cleaned.length % 8)) % 8;
+  return cleaned + '='.repeat(padLength);
+}
+
 // HMAC-based OTP generation
 async function generateHOTP(secret: string, counter: number): Promise<string> {
-  // Decode the base32 secret
-  const secretBytes = base32Decode(secret + '======'.slice((secret.length * 5) % 8));
+  // Decode the base32 secret with proper padding
+  const paddedSecret = addBase32Padding(secret);
+  console.log(`HOTP: secret length=${secret.length}, padded length=${paddedSecret.length}`);
+  
+  const secretBytes = base32Decode(paddedSecret);
   
   // Convert counter to 8-byte big-endian buffer
   const counterBuffer = new ArrayBuffer(8);
