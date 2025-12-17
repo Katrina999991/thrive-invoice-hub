@@ -373,9 +373,30 @@ const Products = () => {
             {t("products.subtitle")}
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          if (!open) {
+            resetForm();
+          }
+          setIsDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => {
+              setEditingProduct(null);
+              setNewItem({
+                type: "product",
+                name: "",
+                description: "",
+                price: "",
+                cost: "",
+                category: "",
+                quantity: "",
+                unit: "piece",
+                company_id: "",
+                client_id: "",
+                sku: ""
+              });
+              setTaxes([]);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               {t("products.addButton")}
             </Button>
