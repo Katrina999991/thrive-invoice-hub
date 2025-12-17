@@ -132,3 +132,13 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Barcode scanner styles */
+body.scanner-active {
+  background: transparent !important;
+}
+
+body.scanner-active ion-app,
+body.scanner-active .app-container {
+  background: transparent !important;
+}
