@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Package, AlertTriangle, TrendingDown, TrendingUp, Edit2, Lock } from "lucide-react";
+import { Search, Package, AlertTriangle, TrendingDown, TrendingUp, Edit2, Lock, ScanBarcode } from "lucide-react";
+import { BarcodeScannerButton } from "@/components/BarcodeScannerButton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
@@ -72,7 +73,8 @@ const StockManagement = () => {
 
   const filteredProducts = productsWithStock.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCompany = filterCompany === "all" || product.company_id === filterCompany;
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
@@ -257,13 +259,39 @@ const StockManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder={language === 'fr' ? 'Rechercher un produit...' : 'Search products...'}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+            <div className="relative flex-1 flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder={language === 'fr' ? 'Rechercher un produit ou code-barres...' : 'Search products or barcode...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <BarcodeScannerButton
+                onScan={(barcode) => {
+                  // Search for product by barcode/sku
+                  const productFound = productsWithStock.find(p => p.sku === barcode);
+                  if (productFound) {
+                    setSearchTerm(productFound.name);
+                    toast({
+                      title: language === 'fr' ? 'Produit trouvé' : 'Product Found',
+                      description: productFound.name
+                    });
+                  } else {
+                    setSearchTerm(barcode);
+                    toast({
+                      title: language === 'fr' ? 'Produit non trouvé' : 'Product Not Found',
+                      description: language === 'fr' 
+                        ? `Aucun produit avec le code ${barcode}` 
+                        : `No product found with code ${barcode}`,
+                      variant: 'destructive'
+                    });
+                  }
+                }}
+                variant="outline"
+                showLabel={false}
               />
             </div>
             

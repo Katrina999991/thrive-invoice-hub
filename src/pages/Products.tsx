@@ -10,8 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2, X, Percent, ExternalLink } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, Wrench, Loader2, X, Percent, ExternalLink, ScanBarcode } from "lucide-react";
 import { Link } from "react-router-dom";
+import { BarcodeScannerButton } from "@/components/BarcodeScannerButton";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
@@ -59,7 +60,8 @@ const Products = () => {
     quantity: "",
     unit: "piece",
     company_id: "",
-    client_id: ""
+    client_id: "",
+    sku: ""
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, type: 'percentage' | 'amount', value: number}>>([]);
@@ -121,7 +123,8 @@ const Products = () => {
       unit: newItem.unit,
       taxes: taxes.length > 0 ? taxes : [],
       company_id: newItem.company_id || null,
-      client_id: newItem.client_id || null
+      client_id: newItem.client_id || null,
+      sku: newItem.sku || null
     };
     
     if (editingProduct) {
@@ -159,7 +162,8 @@ const Products = () => {
       quantity: "",
       unit: "piece",
       company_id: "",
-      client_id: ""
+      client_id: "",
+      sku: ""
     });
     setTaxes([]);
     setEditingProduct(null);
@@ -178,7 +182,8 @@ const Products = () => {
       quantity: product.quantity?.toString() || "",
       unit: product.unit || "piece",
       company_id: product.company_id || "",
-      client_id: product.client_id || ""
+      client_id: product.client_id || "",
+      sku: product.sku || ""
     });
     // Handle taxes - parse JSON if it exists and migrate old format
     if (product.taxes && Array.isArray(product.taxes)) {
@@ -414,6 +419,28 @@ const Products = () => {
                   onChange={(e) => setNewItem({...newItem, description: e.target.value})}
                 />
               </div>
+              {newItem.type === "product" && (
+                <div className="space-y-2">
+                  <Label htmlFor="sku">
+                    {language === "fr" ? "Code-barres / SKU" : "Barcode / SKU"}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="sku"
+                      placeholder={language === "fr" ? "Ex: 012345678905" : "E.g.: 012345678905"}
+                      value={newItem.sku}
+                      onChange={(e) => setNewItem({...newItem, sku: e.target.value})}
+                      className="flex-1"
+                    />
+                    <BarcodeScannerButton
+                      onScan={(barcode) => setNewItem({...newItem, sku: barcode})}
+                      variant="outline"
+                      size="default"
+                      showLabel={false}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cost">
