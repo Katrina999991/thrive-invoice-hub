@@ -23,10 +23,10 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -130,63 +130,61 @@ export function AppSidebar() {
         className={isCollapsed ? "w-14" : "w-60"}
         collapsible="icon"
       >
-        <SidebarContent>
-          <div className="py-2 px-4 border-b">
-            <div className="flex flex-col items-center gap-0.5">
-              <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-24 h-24" : "w-40 h-40"} object-contain`} />
-              {!isCollapsed && (
-                <h2 className="font-bold text-base text-center text-primary -mt-1">
-                  {username || t("nav.title")}
-                </h2>
-              )}
-            </div>
+        <SidebarHeader className="border-b">
+          <div className="flex flex-col items-center gap-0.5">
+            <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-24 h-24" : "w-40 h-40"} object-contain`} />
+            {!isCollapsed && (
+              <h2 className="font-bold text-base text-center text-primary -mt-1">
+                {username || t("nav.title")}
+              </h2>
+            )}
           </div>
+        </SidebarHeader>
 
-          <div className="flex-1 overflow-y-auto">
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("nav.main")}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {mainItems.map((item) => (
-                    <SidebarMenuItem key={item.titleKey}>
-                      <SidebarMenuButton asChild>
-                        <NavLink 
-                          to={item.url} 
-                          className={getNavCls(item.url)}
-                          onClick={(e) => handleNavClick(item, e)}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {!isCollapsed && <span>{t(item.titleKey)}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+        <SidebarContent className="overflow-y-auto">
+          <SidebarGroup>
+            <SidebarGroupLabel>{t("nav.main")}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainItems.map((item) => (
+                  <SidebarMenuItem key={item.titleKey}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={getNavCls(item.url)}
+                        onClick={(e) => handleNavClick(item, e)}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && <span>{t(item.titleKey)}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("nav.system")}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {settingsItems.map((item) => (
-                    <SidebarMenuItem key={item.titleKey}>
-                      <SidebarMenuButton asChild>
-                        <NavLink 
-                          to={item.url} 
-                          className={getNavCls(item.url)}
-                          onClick={handleSettingsNavClick}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {!isCollapsed && <span>{t(item.titleKey)}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </div>
+          <SidebarGroup>
+            <SidebarGroupLabel>{t("nav.system")}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {settingsItems.map((item) => (
+                  <SidebarMenuItem key={item.titleKey}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={getNavCls(item.url)}
+                        onClick={handleSettingsNavClick}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && <span>{t(item.titleKey)}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
       </Sidebar>
 
