@@ -19,6 +19,7 @@ import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
 import { validatePassword } from "@/lib/passwordValidation";
 import { checkMFARequired } from "@/hooks/useMFA";
 import { MFAVerificationDialog } from "@/components/MFAVerificationDialog";
+import { logAuditEvent } from "@/lib/auditLogger";
 
 export default function Auth() {
   const { t, language, setLanguage } = useLanguage();
@@ -175,6 +176,15 @@ export default function Auth() {
           setPendingMFACheck(false);
           return;
         }
+        
+        // Log successful login
+        logAuditEvent({
+          userId: currentUser.id,
+          userName: currentUser.email?.split('@')[0] || 'User',
+          category: 'authentication',
+          eventType: 'login_success',
+          description: language === 'fr' ? 'Connexion réussie' : 'Successful login',
+        });
       }
       
       setPendingMFACheck(false);

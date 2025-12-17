@@ -14,8 +14,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Copy, Check, Shield, Key, AlertTriangle } from 'lucide-react';
 import { useMFA } from '@/hooks/useMFA';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { logAuditEvent } from '@/lib/auditLogger';
 
 interface MFASetupDialogProps {
   open: boolean;
@@ -26,6 +28,7 @@ type Step = 'intro' | 'qr' | 'verify' | 'recovery' | 'success';
 
 export function MFASetupDialog({ open, onOpenChange }: MFASetupDialogProps) {
   const { language } = useLanguage();
+  const { user, username } = useAuth();
   const { initiateSetup, verifySetup, isLoading, error } = useMFA();
   
   const [step, setStep] = useState<Step>('intro');
@@ -139,6 +142,16 @@ export function MFASetupDialog({ open, onOpenChange }: MFASetupDialogProps) {
   };
   
   const handleComplete = () => {
+    // Log MFA enabled event
+    if (user?.id) {
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0],
+        category: 'authentication',
+        eventType: 'mfa_enabled',
+        description: language === 'fr' ? 'Authentification à deux facteurs activée' : 'Two-factor authentication enabled',
+      });
+    }
     setStep('success');
   };
   

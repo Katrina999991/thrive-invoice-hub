@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight } from "lucide-react";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
@@ -2044,6 +2044,24 @@ Cordialement,
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        {/* Audit Logs Link */}
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate("/dashboard/audit-logs")}>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                {language === "fr" ? "Audit Logs" : "Audit Logs"}
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" 
+                ? "Consultez l'historique des actions importantes effectuées dans votre compte."
+                : "View the history of important actions performed in your account."}
+            </CardDescription>
+          </CardHeader>
         </Card>
       </div>
       {/* Contact Us Section */}

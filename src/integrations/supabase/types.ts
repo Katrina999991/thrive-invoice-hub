@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          category: Database["public"]["Enums"]["audit_event_category"]
+          company_id: string | null
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          platform: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          user_agent: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["audit_event_category"]
+          company_id?: string | null
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          platform?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          user_agent?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["audit_event_category"]
+          company_id?: string | null
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          platform?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          user_agent?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string | null
@@ -1146,9 +1205,33 @@ export type Database = {
         }[]
       }
       is_encrypted: { Args: { data: string }; Returns: boolean }
+      log_audit_event: {
+        Args: {
+          p_category: Database["public"]["Enums"]["audit_event_category"]
+          p_company_id: string
+          p_description: string
+          p_event_type: string
+          p_ip_address?: string
+          p_metadata?: Json
+          p_platform?: string
+          p_related_entity_id?: string
+          p_related_entity_type?: string
+          p_user_agent?: string
+          p_user_id: string
+          p_user_name: string
+        }
+        Returns: string
+      }
       reset_monthly_usage: { Args: never; Returns: undefined }
     }
     Enums: {
+      audit_event_category:
+        | "authentication"
+        | "billing"
+        | "sales"
+        | "products"
+        | "exports"
+        | "settings"
       billing_cycle: "monthly" | "yearly"
       subscription_plan: "free" | "premium" | "pro"
     }
@@ -1278,6 +1361,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      audit_event_category: [
+        "authentication",
+        "billing",
+        "sales",
+        "products",
+        "exports",
+        "settings",
+      ],
       billing_cycle: ["monthly", "yearly"],
       subscription_plan: ["free", "premium", "pro"],
     },
