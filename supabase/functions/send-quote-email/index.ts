@@ -13,6 +13,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Colors for PDF
+const COLORS = {
+  primary: [37, 99, 235] as [number, number, number],
+  dark: [31, 41, 55] as [number, number, number],
+  gray: [107, 114, 128] as [number, number, number],
+  lightGray: [156, 163, 175] as [number, number, number],
+  tableHeader: [249, 250, 251] as [number, number, number],
+  tableAlt: [249, 250, 251] as [number, number, number],
+  border: [229, 231, 235] as [number, number, number],
+  white: [255, 255, 255] as [number, number, number],
+  totalBg: [239, 246, 255] as [number, number, number],
+};
+
 // Generate a secure random token
 function generateSecureToken(): string {
   const array = new Uint8Array(32);
@@ -57,6 +70,46 @@ Merci de considérer nos services !
 Cordialement,
 {company_name}`,
     responseLink: 'Cliquez ici pour répondre à ce devis'
+  }
+};
+
+// PDF translations
+const pdfTranslations = {
+  fr: {
+    quote: 'DEVIS',
+    preparedFor: 'Préparé pour',
+    quoteNumber: 'N° Devis',
+    issueDate: 'Date',
+    expiryDate: 'Expire le',
+    item: 'Article / Description',
+    quantity: 'Quantité',
+    unitPrice: 'Prix unitaire',
+    total: 'Total',
+    subtotal: 'Sous-total',
+    tax: 'Taxes',
+    totalAmount: 'Total',
+    terms: 'Conditions',
+    notes: 'Notes',
+    thankYou: 'Merci pour votre confiance !',
+    branding: 'Créé avec GestionFlow',
+  },
+  en: {
+    quote: 'QUOTE',
+    preparedFor: 'Prepared for',
+    quoteNumber: 'Quote #',
+    issueDate: 'Date',
+    expiryDate: 'Expires',
+    item: 'Item / Description',
+    quantity: 'Quantity',
+    unitPrice: 'Unit Price',
+    total: 'Total',
+    subtotal: 'Subtotal',
+    tax: 'Taxes',
+    totalAmount: 'Total',
+    terms: 'Terms',
+    notes: 'Notes',
+    thankYou: 'Thank you for your business!',
+    branding: 'Created with GestionFlow',
   }
 };
 
@@ -109,6 +162,8 @@ const handler = async (req: Request): Promise<Response> => {
           companies (
             name,
             logo_url,
+            email,
+            phone,
             street_address,
             city,
             province_state,
@@ -220,85 +275,135 @@ const handler = async (req: Request): Promise<Response> => {
 
     emailMessage = emailMessage.replace(/\n/g, '<br>');
 
-    // Translations for PDF
-    const translations = isFrench ? {
-      quote: 'DEVIS',
-      billTo: 'Client :',
-      quoteNumber: 'Numéro de devis',
-      issueDate: 'Date d\'émission',
-      expiryDate: 'Date d\'expiration',
-      description: 'Description',
-      qty: 'Qté',
-      unitPrice: 'Prix unitaire',
-      total: 'Total',
-      subtotal: 'Sous-total',
-      tax: 'Taxe',
-      terms: 'Conditions',
-      notes: 'Notes',
-      thankYou: 'Merci de votre confiance !'
-    } : {
-      quote: 'QUOTE',
-      billTo: 'Bill To:',
-      quoteNumber: 'Quote Number',
-      issueDate: 'Issue Date',
-      expiryDate: 'Expiry Date',
-      description: 'Description',
-      qty: 'Qty',
-      unitPrice: 'Unit Price',
-      total: 'Total',
-      subtotal: 'Subtotal',
-      tax: 'Tax',
-      terms: 'Terms',
-      notes: 'Notes',
-      thankYou: 'Thank you for considering our services!'
-    };
+    // Get translations for PDF
+    const t = isFrench ? pdfTranslations.fr : pdfTranslations.en;
+    const primaryColor = COLORS.primary;
 
-    // Generate PDF
+    // Generate modern PDF
     const doc = new jsPDF();
-    doc.setFont('helvetica');
-    
-    // Header
-    doc.setFontSize(24);
-    doc.setTextColor(40, 40, 40);
-    doc.text(translations.quote, 20, 25);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    let yPos = 20;
 
-    // Company info
+    // ========== HEADER SECTION ==========
+    
+    // Company info (top-left)
     if (company) {
-      doc.setFontSize(12);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(37, 99, 235);
-      doc.text(company.name, 20, 40);
+      doc.setTextColor(...primaryColor);
+      doc.text(company.name, margin, yPos + 5);
+      
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      let yPos = 47;
-      if (company.street_address) { doc.text(company.street_address, 20, yPos); yPos += 5; }
-      if (company.city) { doc.text(`${company.city}, ${company.province_state || ''} ${company.postal_code || ''}`, 20, yPos); yPos += 5; }
-      if (company.tax_id) { doc.text(company.tax_id, 20, yPos); }
+      doc.setTextColor(...COLORS.gray);
+      let companyY = yPos + 12;
+      
+      if (company.street_address) {
+        doc.text(company.street_address, margin, companyY);
+        companyY += 4;
+      }
+      if (company.city || company.province_state || company.postal_code) {
+        const cityLine = [company.city, company.province_state, company.postal_code].filter(Boolean).join(', ');
+        doc.text(cityLine, margin, companyY);
+        companyY += 4;
+      }
+      if (company.email) {
+        doc.text(company.email, margin, companyY);
+        companyY += 4;
+      }
+      if (company.phone) {
+        doc.text(company.phone, margin, companyY);
+        companyY += 4;
+      }
+      if (company.tax_id) {
+        doc.text(company.tax_id, margin, companyY);
+      }
     }
 
-    // Quote info (right side)
+    // Document title "QUOTE" (right side)
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...primaryColor);
+    doc.text(t.quote, pageWidth - margin, yPos + 8, { align: 'right' });
+
+    // Quote details (right side, below title)
+    let detailsY = yPos + 18;
     doc.setFontSize(10);
-    doc.setTextColor(40, 40, 40);
-    doc.text(`${translations.quoteNumber}: ${quote.quote_number}`, 140, 40);
-    doc.text(`${translations.issueDate}: ${quote.issue_date}`, 140, 47);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...COLORS.dark);
+    
+    // Quote number
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${t.quoteNumber}:`, pageWidth - margin - 45, detailsY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(quote.quote_number, pageWidth - margin, detailsY, { align: 'right' });
+    detailsY += 6;
+    
+    // Issue date
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${t.issueDate}:`, pageWidth - margin - 45, detailsY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(quote.issue_date, pageWidth - margin, detailsY, { align: 'right' });
+    detailsY += 6;
+    
+    // Expiry date (highlighted)
     if (quote.expiry_date) {
-      doc.text(`${translations.expiryDate}: ${quote.expiry_date}`, 140, 54);
-    }
-
-    // Client info
-    if (client) {
-      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text(translations.billTo, 20, 75);
-      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text(`${t.expiryDate}:`, pageWidth - margin - 45, detailsY);
       doc.setFont('helvetica', 'normal');
-      doc.text(client.name, 20, 82);
-      if (client.address) doc.text(client.address, 20, 89);
+      doc.text(quote.expiry_date, pageWidth - margin, detailsY, { align: 'right' });
+      doc.setTextColor(...COLORS.dark);
     }
 
-    // Items table
-    const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
+    yPos = Math.max(yPos + 40, detailsY) + 15;
+
+    // ========== CLIENT SECTION ==========
+    
+    // Draw a subtle box for client info
+    const clientBoxHeight = client?.address ? 40 : 32;
+    doc.setFillColor(...COLORS.tableHeader);
+    doc.setDrawColor(...COLORS.border);
+    doc.roundedRect(margin, yPos, (pageWidth - margin * 2) / 2 - 5, clientBoxHeight, 3, 3, 'FD');
+    
+    yPos += 8;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...COLORS.gray);
+    doc.text(t.preparedFor.toUpperCase(), margin + 8, yPos);
+    
+    yPos += 7;
+    if (client) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...COLORS.dark);
+      doc.text(client.name, margin + 8, yPos);
+      yPos += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...COLORS.gray);
+      
+      if (client.contact_person && client.contact_person !== client.name) {
+        doc.text(client.contact_person, margin + 8, yPos);
+        yPos += 4;
+      }
+      if (client.email) {
+        doc.text(client.email.split(',')[0].trim(), margin + 8, yPos);
+        yPos += 4;
+      }
+      if (client.address) {
+        doc.text(client.address, margin + 8, yPos, { maxWidth: 80 });
+      }
+    }
+
+    yPos = yPos + 20;
+
+    // ========== ITEMS TABLE ==========
+    
+    const tableHeaders = [t.item, t.quantity, t.unitPrice, t.total];
     const tableData = (quote.quote_items || []).map((item: any) => [
       item.description,
       item.quantity.toString(),
@@ -306,55 +411,130 @@ const handler = async (req: Request): Promise<Response> => {
       `$${item.total.toFixed(2)}`
     ]);
 
-    tableData.push(['', '', `${translations.subtotal}:`, `$${quote.subtotal.toFixed(2)}`]);
-    if (quote.tax_amount > 0) {
-      tableData.push(['', '', `${translations.tax}:`, `$${quote.tax_amount.toFixed(2)}`]);
-    }
-    tableData.push(['', '', `${translations.total}:`, `$${quote.total.toFixed(2)}`]);
-
     (doc as any).autoTable({
       head: [tableHeaders],
       body: tableData,
-      startY: 100,
+      startY: yPos,
       theme: 'plain',
-      styles: { fontSize: 10, cellPadding: 3 },
-      headStyles: { fillColor: undefined, textColor: [40, 40, 40], fontStyle: 'bold' },
+      styles: {
+        fontSize: 10,
+        cellPadding: { top: 6, right: 8, bottom: 6, left: 8 },
+        lineColor: COLORS.border,
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: COLORS.tableHeader,
+        textColor: COLORS.dark,
+        fontStyle: 'bold',
+        fontSize: 9,
+      },
+      bodyStyles: {
+        textColor: COLORS.dark,
+      },
+      alternateRowStyles: {
+        fillColor: COLORS.white,
+      },
       columnStyles: {
         0: { cellWidth: 'auto' },
-        1: { halign: 'center' },
-        2: { halign: 'right' },
-        3: { halign: 'right', fontStyle: 'bold' }
+        1: { halign: 'center', cellWidth: 25 },
+        2: { halign: 'right', cellWidth: 35 },
+        3: { halign: 'right', cellWidth: 35, fontStyle: 'bold' }
+      },
+      didParseCell: (data: any) => {
+        if (data.section === 'body' && data.row.index % 2 === 1) {
+          data.cell.styles.fillColor = COLORS.tableAlt;
+        }
       }
     });
 
-    // Notes and terms
-    let finalY = (doc as any).lastAutoTable?.finalY || 150;
-    if (quote.terms) {
-      finalY += 10;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(translations.terms, 20, finalY);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text(quote.terms, 20, finalY + 6, { maxWidth: 170 });
-      finalY += 20;
-    }
+    // ========== TOTALS SECTION ==========
     
-    if (quote.notes) {
-      finalY += 5;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(translations.notes, 20, finalY);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text(quote.notes, 20, finalY + 6, { maxWidth: 170 });
+    const finalY = (doc as any).lastAutoTable?.finalY || yPos + 50;
+    let totalsY = finalY + 10;
+    const totalsX = pageWidth - margin - 70;
+
+    // Subtotal
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...COLORS.gray);
+    doc.text(`${t.subtotal}:`, totalsX, totalsY);
+    doc.setTextColor(...COLORS.dark);
+    doc.text(`$${quote.subtotal.toFixed(2)}`, pageWidth - margin, totalsY, { align: 'right' });
+    totalsY += 7;
+
+    // Taxes
+    if (quote.tax_amount > 0) {
+      doc.setTextColor(...COLORS.gray);
+      doc.text(`${t.tax}:`, totalsX, totalsY);
+      doc.setTextColor(...COLORS.dark);
+      doc.text(`$${quote.tax_amount.toFixed(2)}`, pageWidth - margin, totalsY, { align: 'right' });
+      totalsY += 7;
     }
 
-    // Footer branding
+    // Divider line
+    doc.setDrawColor(...COLORS.border);
+    doc.setLineWidth(0.5);
+    doc.line(totalsX - 5, totalsY, pageWidth - margin, totalsY);
+    totalsY += 8;
+
+    // Total with highlight background
+    doc.setFillColor(...COLORS.totalBg);
+    doc.roundedRect(totalsX - 10, totalsY - 5, 80, 12, 2, 2, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...primaryColor);
+    doc.text(`${t.totalAmount}:`, totalsX, totalsY + 3);
+    doc.text(`$${quote.total.toFixed(2)}`, pageWidth - margin, totalsY + 3, { align: 'right' });
+
+    totalsY += 20;
+
+    // ========== TERMS & NOTES ==========
+    
+    let contentY = totalsY;
+    
+    if (quote.terms) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...COLORS.dark);
+      doc.text(t.terms, margin, contentY);
+      contentY += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...COLORS.gray);
+      const termsLines = doc.splitTextToSize(quote.terms, pageWidth - margin * 2);
+      doc.text(termsLines, margin, contentY);
+      contentY += termsLines.length * 4 + 10;
+    }
+
+    if (quote.notes) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...COLORS.dark);
+      doc.text(t.notes, margin, contentY);
+      contentY += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...COLORS.gray);
+      const notesLines = doc.splitTextToSize(quote.notes, pageWidth - margin * 2);
+      doc.text(notesLines, margin, contentY);
+    }
+
+    // ========== FOOTER ==========
+    
+    // Thank you message
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...COLORS.gray);
+    doc.text(t.thankYou, pageWidth / 2, pageHeight - 25, { align: 'center' });
+
+    // Branding
     if (!hideBranding) {
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(isFrench ? 'Généré avec GestionFlow' : 'Generated with GestionFlow', 105, 285, { align: 'center' });
+      doc.setTextColor(...COLORS.lightGray);
+      doc.text(t.branding, pageWidth / 2, pageHeight - 15, { align: 'center' });
     }
 
     // Convert PDF to base64

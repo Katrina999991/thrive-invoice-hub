@@ -21,8 +21,6 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface QuoteItemLocal {
   description: string;
@@ -444,89 +442,52 @@ const Quotes = () => {
   };
 
   const generatePDF = async (quote: Quote) => {
+    const { generateQuotePdf } = await import('@/lib/quotePdf');
+    
     const client = clients.find(c => c.id === quote.client_id);
     const company = client?.company_id ? companies.find(c => c.id === client.company_id) : null;
     const hidePdfBranding = localStorage.getItem('hidePdfBranding') === 'true' && planLimits?.plan_type === 'pro';
 
-    const doc = new jsPDF();
-    
-    // Header
-    doc.setFontSize(24);
-    doc.setTextColor(40, 40, 40);
-    doc.text(language === 'fr' ? 'DEVIS' : 'QUOTE', 20, 25);
-
-    // Company info
-    if (company) {
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(company.name, 20, 40);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      let yPos = 47;
-      if (company.street_address) { doc.text(company.street_address, 20, yPos); yPos += 5; }
-      if (company.city) { doc.text(`${company.city}, ${company.province_state || ''} ${company.postal_code || ''}`, 20, yPos); yPos += 5; }
-      if (company.tax_id) { doc.text(company.tax_id, 20, yPos); }
-    }
-
-    // Quote info (right side)
-    doc.setFontSize(10);
-    doc.setTextColor(40, 40, 40);
-    doc.text(`${language === 'fr' ? 'Devis N°' : 'Quote #'}: ${quote.quote_number}`, 140, 40);
-    doc.text(`Date: ${quote.issue_date}`, 140, 47);
-    if (quote.expiry_date) {
-      doc.text(`${language === 'fr' ? 'Expire le' : 'Expires'}: ${quote.expiry_date}`, 140, 54);
-    }
-
-    // Client info
-    if (client) {
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text(t("quotes.billTo"), 20, 75);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(client.name, 20, 82);
-      if (client.address) doc.text(client.address, 20, 89);
-    }
-
-    // Items table
-    const tableHeaders = [t("quotes.description"), t("quotes.quantity"), t("quotes.unitPrice"), t("quotes.total")];
-    const tableData = (quote.quote_items || []).map(item => [
-      item.description,
-      item.quantity.toString(),
-      `$${item.unit_price.toFixed(2)}`,
-      `$${item.total.toFixed(2)}`
-    ]);
-
-    tableData.push(['', '', `${t("quotes.subtotal")}:`, `$${quote.subtotal.toFixed(2)}`]);
-    if (quote.tax_amount > 0) {
-      tableData.push(['', '', `${t("quotes.taxAmount")}:`, `$${quote.tax_amount.toFixed(2)}`]);
-    }
-    tableData.push(['', '', `${t("quotes.total")}:`, `$${quote.total.toFixed(2)}`]);
-
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: tableData,
-      startY: 100,
-      theme: 'plain',
-      styles: { fontSize: 10, cellPadding: 3 },
-      headStyles: { fillColor: undefined, textColor: [40, 40, 40], fontStyle: 'bold' },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { halign: 'center' },
-        2: { halign: 'right' },
-        3: { halign: 'right', fontStyle: 'bold' }
-      }
+    await generateQuotePdf({
+      quote: {
+        quote_number: quote.quote_number,
+        issue_date: quote.issue_date,
+        expiry_date: quote.expiry_date,
+        subtotal: quote.subtotal,
+        tax_amount: quote.tax_amount,
+        total: quote.total,
+        terms: quote.terms,
+        notes: quote.notes,
+        quote_items: (quote.quote_items || []).map(item => ({
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.total,
+          notes: item.notes,
+          product_taxes: item.product_taxes as any
+        }))
+      },
+      client: client ? {
+        name: client.name,
+        email: client.email,
+        address: client.address,
+        phone: client.phone,
+        contact_person: client.contact_person
+      } : null,
+      company: company ? {
+        name: company.name,
+        logo_url: company.logo_url,
+        email: company.email,
+        phone: company.phone,
+        street_address: company.street_address,
+        city: company.city,
+        province_state: company.province_state,
+        postal_code: company.postal_code,
+        tax_id: company.tax_id
+      } : null,
+      language: language as 'fr' | 'en',
+      hideBranding: hidePdfBranding
     });
-
-    // Footer with branding
-    if (!hidePdfBranding) {
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(language === 'fr' ? 'Généré avec GestionFlow' : 'Generated with GestionFlow', 105, 285, { align: 'center' });
-    }
-
-    doc.save(`${quote.quote_number}.pdf`);
   };
 
   // Email functions
