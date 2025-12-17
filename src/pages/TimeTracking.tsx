@@ -799,34 +799,36 @@ export default function TimeTracking() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto py-4 sm:py-8 space-y-6 px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold">
             {language === "fr" ? "Suivi des heures" : "Time Tracking"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             {language === "fr"
               ? "Enregistrez vos heures et créez des factures"
               : "Track your hours and create invoices"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {selectedEntries.length > 0 && (
-            <Button onClick={() => setShowInvoiceConfirm(true)} disabled={isCreatingInvoice}>
+            <Button onClick={() => setShowInvoiceConfirm(true)} disabled={isCreatingInvoice} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
-              {language === "fr" ? "Créer une facture" : "Create Invoice"} ({selectedEntries.length})
+              {language === "fr" ? "Facture" : "Invoice"} ({selectedEntries.length})
             </Button>
           )}
           {!activeTimer && (
-            <Button variant="outline" onClick={handleOpenStartTimerDialog}>
+            <Button variant="outline" onClick={handleOpenStartTimerDialog} className="flex-1 sm:flex-none">
               <Play className="mr-2 h-4 w-4" />
-              {language === "fr" ? "Démarrer le pointage" : "Start Timer"}
+              <span className="hidden sm:inline">{language === "fr" ? "Démarrer le pointage" : "Start Timer"}</span>
+              <span className="sm:hidden">{language === "fr" ? "Pointage" : "Timer"}</span>
             </Button>
           )}
-          <Button onClick={handleOpenDialog}>
+          <Button onClick={handleOpenDialog} className="flex-1 sm:flex-none">
             <Plus className="mr-2 h-4 w-4" />
-            {language === "fr" ? "Ajouter des heures" : "Add Hours"}
+            <span className="hidden sm:inline">{language === "fr" ? "Ajouter des heures" : "Add Hours"}</span>
+            <span className="sm:hidden">{language === "fr" ? "Ajouter" : "Add"}</span>
           </Button>
         </div>
       </div>
@@ -889,7 +891,7 @@ export default function TimeTracking() {
             <Clock className="h-5 w-5" />
             {language === "fr" ? "Heures enregistrées" : "Recorded Hours"}
           </CardTitle>
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <div className="flex-1">
               <Select value={filterClient} onValueChange={setFilterClient}>
                 <SelectTrigger>
@@ -912,7 +914,7 @@ export default function TimeTracking() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-[280px] justify-start text-left font-normal",
+                    "w-full sm:w-[280px] justify-start text-left font-normal",
                     !dateRange && "text-muted-foreground"
                   )}
                 >
@@ -939,12 +941,11 @@ export default function TimeTracking() {
                   selected={dateRange}
                   onSelect={(range) => {
                     setDateRange(range);
-                    // Fermer le popover si les deux dates sont sélectionnées
                     if (range?.from && range?.to) {
                       setIsDatePickerOpen(false);
                     }
                   }}
-                  numberOfMonths={2}
+                  numberOfMonths={1}
                   className={cn("p-3 pointer-events-auto")}
                 />
               </PopoverContent>
@@ -956,6 +957,7 @@ export default function TimeTracking() {
                   setFilterClient("all");
                   setDateRange(undefined);
                 }}
+                className="w-full sm:w-auto"
               >
                 <Filter className="mr-2 h-4 w-4" />
                 {language === "fr" ? "Réinitialiser" : "Reset"}

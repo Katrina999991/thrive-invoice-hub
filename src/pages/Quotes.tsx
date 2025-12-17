@@ -626,19 +626,19 @@ const Quotes = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t("quotes.title")}</h1>
-          <p className="text-muted-foreground">{t("quotes.subtitle")}</p>
+          <p className="text-muted-foreground text-sm sm:text-base">{t("quotes.subtitle")}</p>
         </div>
-        <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
+        <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           {t("quotes.createButton")}
         </Button>
       </div>
 
-      <div className="flex gap-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("quotes.searchPlaceholder")}
@@ -648,7 +648,7 @@ const Quotes = () => {
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t("quotes.filterByStatus")} />
           </SelectTrigger>
           <SelectContent>
@@ -670,69 +670,54 @@ const Quotes = () => {
           {filteredQuotes.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">{t("quotes.noQuotes")}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("quotes.quoteNumber")}</TableHead>
-                  <TableHead>{t("quotes.client")}</TableHead>
-                  <TableHead>{t("quotes.amount")}</TableHead>
-                  <TableHead>{t("quotes.status")}</TableHead>
-                  <TableHead>{t("quotes.issueDate")}</TableHead>
-                  <TableHead>{t("quotes.actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
                 {filteredQuotes.map((quote) => (
-                  <TableRow key={quote.id}>
-                    <TableCell className="font-medium">{quote.quote_number}</TableCell>
-                    <TableCell>{quote.clients?.name || '-'}</TableCell>
-                    <TableCell>${quote.total.toFixed(2)}</TableCell>
-                    <TableCell>
-                      {quote.converted_to_invoice_id ? (
-                        <>
-                          <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
-                          <Badge variant="outline" className="ml-2">{t("quotes.converted")}</Badge>
-                        </>
-                      ) : (
-                        <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'refused') => updateQuote(quote.id, { status: value })}>
-                          <SelectTrigger className="w-[130px] h-8">
-                            <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="draft">{t("quotes.statusDraft")}</SelectItem>
-                            <SelectItem value="sent">{t("quotes.statusSent")}</SelectItem>
-                            <SelectItem value="accepted">{t("quotes.statusAccepted")}</SelectItem>
-                            <SelectItem value="refused">{t("quotes.statusRejected")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </TableCell>
-                    <TableCell>{quote.issue_date}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
+                  <Card key={quote.id}>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">{quote.quote_number}</p>
+                          <p className="text-sm text-muted-foreground">{quote.clients?.name || '-'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">${quote.total.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">{quote.issue_date}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
+                        {quote.converted_to_invoice_id && (
+                          <Badge variant="outline">{t("quotes.converted")}</Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-1 pt-2 border-t">
+                        <Button variant="ghost" size="sm" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
+                        <Button variant="ghost" size="sm" onClick={() => generatePDF(quote)}>
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
+                        <Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
                           <Mail className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
+                        <Button variant="ghost" size="sm" onClick={() => duplicateQuote(quote)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                         {quote.status === 'accepted' && !quote.converted_to_invoice_id && (
-                          <Button variant="ghost" size="icon" onClick={() => handleConvertToInvoice(quote)}>
+                          <Button variant="ghost" size="sm" onClick={() => handleConvertToInvoice(quote)}>
                             <ArrowRight className="h-4 w-4" />
                           </Button>
                         )}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" disabled={!!quote.converted_to_invoice_id}>
+                            <Button variant="ghost" size="sm" className="text-destructive" disabled={!!quote.converted_to_invoice_id}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -750,11 +735,100 @@ const Quotes = () => {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("quotes.quoteNumber")}</TableHead>
+                      <TableHead>{t("quotes.client")}</TableHead>
+                      <TableHead>{t("quotes.amount")}</TableHead>
+                      <TableHead>{t("quotes.status")}</TableHead>
+                      <TableHead>{t("quotes.issueDate")}</TableHead>
+                      <TableHead>{t("quotes.actions")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredQuotes.map((quote) => (
+                      <TableRow key={quote.id}>
+                        <TableCell className="font-medium">{quote.quote_number}</TableCell>
+                        <TableCell>{quote.clients?.name || '-'}</TableCell>
+                        <TableCell>${quote.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {quote.converted_to_invoice_id ? (
+                            <>
+                              <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
+                              <Badge variant="outline" className="ml-2">{t("quotes.converted")}</Badge>
+                            </>
+                          ) : (
+                            <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'refused') => updateQuote(quote.id, { status: value })}>
+                              <SelectTrigger className="w-[130px] h-8">
+                                <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="draft">{t("quotes.statusDraft")}</SelectItem>
+                                <SelectItem value="sent">{t("quotes.statusSent")}</SelectItem>
+                                <SelectItem value="accepted">{t("quotes.statusAccepted")}</SelectItem>
+                                <SelectItem value="refused">{t("quotes.statusRejected")}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </TableCell>
+                        <TableCell>{quote.issue_date}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            {quote.status === 'accepted' && !quote.converted_to_invoice_id && (
+                              <Button variant="ghost" size="icon" onClick={() => handleConvertToInvoice(quote)}>
+                                <ArrowRight className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" disabled={!!quote.converted_to_invoice_id}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t("quotes.delete")}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t("quotes.deleteConfirm")}</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t("quotes.cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
+                                    {t("quotes.delete")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
