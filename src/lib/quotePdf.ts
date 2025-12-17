@@ -104,17 +104,46 @@ const translations = {
   }
 };
 
-async function loadLogo(logoUrl: string): Promise<string | null> {
+async function loadLogo(logoUrl: string): Promise<{ data: string; format: string } | null> {
   try {
+    console.log('Loading logo from URL:', logoUrl);
     const response = await fetch(logoUrl);
+    
+    if (!response.ok) {
+      console.error('Failed to fetch logo:', response.status, response.statusText);
+      return null;
+    }
+    
     const blob = await response.blob();
+    console.log('Logo blob type:', blob.type, 'size:', blob.size);
+    
+    // Detect format from MIME type
+    let format = 'PNG';
+    if (blob.type.includes('jpeg') || blob.type.includes('jpg')) {
+      format = 'JPEG';
+    } else if (blob.type.includes('png')) {
+      format = 'PNG';
+    } else if (blob.type.includes('gif')) {
+      format = 'GIF';
+    } else if (blob.type.includes('webp')) {
+      format = 'WEBP';
+    }
+    
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        console.log('Logo loaded successfully, format:', format, 'data length:', result?.length);
+        resolve({ data: result, format });
+      };
+      reader.onerror = (e) => {
+        console.error('FileReader error:', e);
+        resolve(null);
+      };
       reader.readAsDataURL(blob);
     });
-  } catch {
+  } catch (error) {
+    console.error('Error loading logo:', error);
     return null;
   }
 }
@@ -134,15 +163,22 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
   // Company logo (top-left)
   let logoHeight = 0;
   if (company?.logo_url) {
-    const logoData = await loadLogo(company.logo_url);
-    if (logoData) {
+    console.log('Attempting to load company logo:', company.logo_url);
+    const logoResult = await loadLogo(company.logo_url);
+    if (logoResult) {
       try {
-        doc.addImage(logoData, 'PNG', margin, yPos, 35, 35);
+        console.log('Adding logo to PDF with format:', logoResult.format);
+        doc.addImage(logoResult.data, logoResult.format, margin, yPos, 35, 35);
         logoHeight = 35;
+        console.log('Logo added successfully');
       } catch (e) {
-        console.error('Error adding logo:', e);
+        console.error('Error adding logo to PDF:', e);
       }
+    } else {
+      console.warn('Logo could not be loaded');
     }
+  } else {
+    console.log('No logo_url provided for company');
   }
 
   // Company info (next to logo or at top-left)
