@@ -2546,10 +2546,10 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t('reports')}</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('reports')}</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           {t('reportsDescription')}
         </p>
         
@@ -2655,69 +2655,71 @@ const Reports = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
-          <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
-          <TabsTrigger value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
-          <TabsTrigger value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
-          <TabsTrigger value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
-          <TabsTrigger value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
-          <TabsTrigger value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
-          <TabsTrigger value="reminders" disabled={!isTabAvailable('reminders')}>
-            {language === "fr" ? "Rappels" : "Reminders"}
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-max md:w-auto">
+            <TabsTrigger value="overview" className="text-xs md:text-sm">{t("reports.tabs.overview")}</TabsTrigger>
+            <TabsTrigger value="revenue" className="text-xs md:text-sm">{t("reports.tabs.revenue")}</TabsTrigger>
+            <TabsTrigger value="products" className="text-xs md:text-sm" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-xs md:text-sm" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
+            <TabsTrigger value="clients" className="text-xs md:text-sm" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
+            <TabsTrigger value="taxes" className="text-xs md:text-sm" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs md:text-sm" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
+            <TabsTrigger value="reminders" className="text-xs md:text-sm" disabled={!isTabAvailable('reminders')}>
+              {language === "fr" ? "Rappels" : "Reminders"}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.overview.totalRevenue")}</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">{t("reports.overview.totalRevenue")}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {dashboardData ? `$${dashboardData.totalRevenue.toLocaleString('fr-FR')}` : 'Chargement...'}
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-lg md:text-2xl font-bold">
+                  {dashboardData ? `$${dashboardData.totalRevenue.toLocaleString('fr-FR')}` : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground hidden md:block">
                   Revenus des factures payées
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.overview.pendingInvoices")}</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">{t("reports.overview.pendingInvoices")}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {dashboardData ? dashboardData.openInvoicesCount : 'Chargement...'}
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-lg md:text-2xl font-bold">
+                  {dashboardData ? dashboardData.openInvoicesCount : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground hidden md:block">
                   {dashboardData ? `$${dashboardData.openInvoicesTotal.toLocaleString('fr-FR')} en attente` : ''}
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.overview.activeClients")}</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">{t("reports.overview.activeClients")}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {dashboardData ? dashboardData.activeClients : 'Chargement...'}
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-lg md:text-2xl font-bold">
+                  {dashboardData ? dashboardData.activeClients : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground hidden md:block">
                   {dashboardData ? `${dashboardData.newClientsThisMonth} nouveaux ce mois` : ''}
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("reports.overview.activeProducts")}</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">{t("reports.overview.activeProducts")}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {dashboardData ? dashboardData.activeProducts : 'Chargement...'}
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-lg md:text-2xl font-bold">
+                  {dashboardData ? dashboardData.activeProducts : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground hidden md:block">
                   Produits disponibles
                 </p>
               </CardContent>
@@ -2726,21 +2728,21 @@ const Reports = () => {
 
           <div className="grid gap-4 md:grid-cols-1">
             <Card>
-              <CardHeader>
-                <CardTitle>{t("reports.overview.recentActivity")}</CardTitle>
-                <CardDescription>{t("reports.overview.recentActivityDesc")}</CardDescription>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-base md:text-lg">{t("reports.overview.recentActivity")}</CardTitle>
+                <CardDescription className="text-xs md:text-sm">{t("reports.overview.recentActivityDesc")}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 {dashboardData && dashboardData.recentActivity.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 md:space-y-4">
                     {dashboardData.recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{activity.message}</p>
+                      <div key={index} className="flex items-center justify-between p-2 md:p-3 rounded-lg border">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs md:text-sm font-medium truncate">{activity.message}</p>
                           <p className="text-xs text-muted-foreground">{activity.timeAgo}</p>
                         </div>
                         {activity.amount && (
-                          <div className={`text-sm font-semibold ${activity.color === 'green' ? 'text-green-600' : activity.color === 'orange' ? 'text-orange-600' : 'text-blue-600'}`}>
+                          <div className={`text-xs md:text-sm font-semibold ml-2 shrink-0 ${activity.color === 'green' ? 'text-green-600' : activity.color === 'orange' ? 'text-orange-600' : 'text-blue-600'}`}>
                             {activity.amount}
                           </div>
                         )}
