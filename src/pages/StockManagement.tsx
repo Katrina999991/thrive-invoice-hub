@@ -275,6 +275,8 @@ const StockManagement = () => {
                   const productFound = productsWithStock.find(p => p.sku === barcode);
                   if (productFound) {
                     setSearchTerm(productFound.name);
+                    // Ouvrir automatiquement la fenêtre de modification
+                    handleEditStock(productFound);
                     toast({
                       title: language === 'fr' ? 'Produit trouvé' : 'Product Found',
                       description: productFound.name
