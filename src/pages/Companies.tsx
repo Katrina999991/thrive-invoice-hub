@@ -887,6 +887,7 @@ Best regards,
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
 
@@ -1007,6 +1008,7 @@ Best regards,
 
   const resetForm = () => {
     setLogoFile(null);
+    setLogoError(null);
     setNewCompany({
       name: "",
       address: "",
@@ -1358,11 +1360,7 @@ Best regards,
                           const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
                           
                           if (!validMimeTypes.includes(file.type) || !validExtensions.includes(fileExtension)) {
-                            toast({
-                              title: t("companies.validation.error"),
-                              description: t("companies.validation.logoFormatError"),
-                              variant: "destructive"
-                            });
+                            setLogoError(t("companies.validation.logoFormatError"));
                             e.target.value = ''; // Reset input
                             return;
                           }
@@ -1370,15 +1368,13 @@ Best regards,
                           // Validate file size (max 2MB)
                           const maxSize = 2 * 1024 * 1024; // 2MB in bytes
                           if (file.size > maxSize) {
-                            toast({
-                              title: t("companies.validation.error"),
-                              description: t("companies.validation.logoSizeError"),
-                              variant: "destructive"
-                            });
+                            setLogoError(t("companies.validation.logoSizeError"));
                             e.target.value = ''; // Reset input
                             return;
                           }
                           
+                          // Clear error and set file
+                          setLogoError(null);
                           setLogoFile(file);
                           // Show preview
                           const reader = new FileReader();
@@ -1392,6 +1388,11 @@ Best regards,
                     <p className="text-xs text-muted-foreground mt-1">
                       {t("companies.logoHint")}
                     </p>
+                    {logoError && (
+                      <p className="text-xs text-destructive mt-1">
+                        {logoError}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1485,7 +1486,7 @@ Best regards,
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("companies.cancel")}
                 </Button>
-                <Button type="submit" className="flex-1" disabled={uploadingLogo}>
+                <Button type="submit" className="flex-1" disabled={uploadingLogo || !!logoError}>
                   {uploadingLogo ? t("companies.uploadingLogo") : editingCompany ? t("companies.updateButton") : t("companies.addCompany")}
                 </Button>
               </div>
