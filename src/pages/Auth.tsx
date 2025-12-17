@@ -152,6 +152,18 @@ export default function Auth() {
         description: error.message,
         variant: "destructive",
       });
+      
+      // Log failed login attempt (fire-and-forget, we don't have user ID for failed logins)
+      // We use a dummy ID since we can't identify the user on failed login
+      logAuditEvent({
+        userId: '00000000-0000-0000-0000-000000000000',
+        userName: email,
+        category: 'authentication',
+        eventType: 'login_failed',
+        description: language === 'fr' ? `Échec de connexion pour ${email}` : `Failed login attempt for ${email}`,
+        metadata: { email, error_message: error.message }
+      });
+      
       setIsLoading(false);
       setPendingMFACheck(false);
     } else {

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { logAuditEvent } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -12,7 +13,7 @@ type ExpenseUpdate = TablesUpdate<"expenses">;
 export const useExpenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -80,6 +81,18 @@ export const useExpenses = () => {
       // Invalider le cache des limites pour mettre à jour le compteur
       queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
       
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'sales',
+        eventType: 'expense_created',
+        description: `Dépense créée: ${expenseData.description} (${expenseData.amount}$)`,
+        relatedEntityType: 'expense',
+        relatedEntityId: data.id,
+        metadata: { amount: expenseData.amount, category: expenseData.category }
+      });
+      
       toast({
         title: "Success",
         description: "Expense created successfully"
@@ -104,6 +117,11 @@ export const useExpenses = () => {
   };
 
   const updateExpense = async (id: string, updates: ExpenseUpdate) => {
+    if (!user) return;
+    
+    // Get current expense for logging
+    const currentExpense = expenses.find(exp => exp.id === id);
+    
     try {
       const { error } = await supabase
         .from("expenses")
@@ -113,6 +131,18 @@ export const useExpenses = () => {
       if (error) throw error;
 
       await fetchExpenses();
+      
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'sales',
+        eventType: 'expense_updated',
+        description: `Dépense modifiée: ${currentExpense?.description || updates.description}`,
+        relatedEntityType: 'expense',
+        relatedEntityId: id,
+        metadata: { changes: Object.keys(updates) }
+      });
       
       toast({
         title: "Success",
@@ -129,6 +159,11 @@ export const useExpenses = () => {
   };
 
   const deleteExpense = async (id: string) => {
+    if (!user) return;
+    
+    // Get expense for logging before deletion
+    const expenseToDelete = expenses.find(exp => exp.id === id);
+    
     try {
       const { error } = await supabase
         .from("expenses")
@@ -141,6 +176,18 @@ export const useExpenses = () => {
       
       // Invalider le cache des limites pour mettre à jour le compteur
       queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'sales',
+        eventType: 'expense_deleted',
+        description: `Dépense supprimée: ${expenseToDelete?.description} (${expenseToDelete?.amount}$)`,
+        relatedEntityType: 'expense',
+        relatedEntityId: id,
+        metadata: { description: expenseToDelete?.description, amount: expenseToDelete?.amount }
+      });
       
       toast({
         title: "Success",

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { logAuditEvent } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
@@ -11,7 +12,7 @@ type ProductUpdate = TablesUpdate<"products">;
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const { toast } = useToast();
 
   const fetchProducts = async () => {
@@ -62,6 +63,18 @@ export const useProducts = () => {
 
       await fetchProducts();
       
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'products',
+        eventType: 'product_created',
+        description: `Produit créé: ${productData.name} (${productData.price}$)`,
+        relatedEntityType: 'product',
+        relatedEntityId: data.id,
+        metadata: { name: productData.name, price: productData.price, sku: productData.sku }
+      });
+      
       toast({
         title: "Success",
         description: "Product created successfully"
@@ -79,7 +92,13 @@ export const useProducts = () => {
     }
   };
 
-  const updateProduct = async (id: string, updates: ProductUpdate) => {
+  const updateProduct = async (id: string, updates: ProductUpdate, skipAuditLog = false) => {
+    if (!user) return;
+    
+    // Get current product for logging
+    const currentProduct = products.find(p => p.id === id);
+    const isStockAdjustment = updates.quantity !== undefined && Object.keys(updates).length === 1;
+    
     try {
       const { error } = await supabase
         .from("products")
@@ -89,6 +108,36 @@ export const useProducts = () => {
       if (error) throw error;
 
       await fetchProducts();
+      
+      // Log audit event (unless skipAuditLog is true - for internal operations)
+      if (!skipAuditLog) {
+        if (isStockAdjustment) {
+          const oldQty = currentProduct?.quantity || 0;
+          const newQty = updates.quantity || 0;
+          const diff = newQty - oldQty;
+          logAuditEvent({
+            userId: user.id,
+            userName: username || user.email?.split('@')[0] || 'User',
+            category: 'products',
+            eventType: 'stock_adjusted',
+            description: `Stock ajusté: ${currentProduct?.name} (${diff > 0 ? '+' : ''}${diff})`,
+            relatedEntityType: 'product',
+            relatedEntityId: id,
+            metadata: { name: currentProduct?.name, old_quantity: oldQty, new_quantity: newQty, difference: diff }
+          });
+        } else {
+          logAuditEvent({
+            userId: user.id,
+            userName: username || user.email?.split('@')[0] || 'User',
+            category: 'products',
+            eventType: 'product_updated',
+            description: `Produit modifié: ${currentProduct?.name}`,
+            relatedEntityType: 'product',
+            relatedEntityId: id,
+            metadata: { name: currentProduct?.name, changes: Object.keys(updates) }
+          });
+        }
+      }
       
       toast({
         title: "Success",
@@ -105,6 +154,11 @@ export const useProducts = () => {
   };
 
   const deleteProduct = async (id: string) => {
+    if (!user) return;
+    
+    // Get product for logging before deletion
+    const productToDelete = products.find(p => p.id === id);
+    
     try {
       const { error } = await supabase
         .from("products")
@@ -114,6 +168,18 @@ export const useProducts = () => {
       if (error) throw error;
 
       await fetchProducts();
+      
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'products',
+        eventType: 'product_deleted',
+        description: `Produit supprimé: ${productToDelete?.name}`,
+        relatedEntityType: 'product',
+        relatedEntityId: id,
+        metadata: { name: productToDelete?.name, sku: productToDelete?.sku }
+      });
       
       toast({
         title: "Success",

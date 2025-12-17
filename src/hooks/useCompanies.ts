@@ -2,16 +2,44 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { logAuditEvent, AuditEventCategory } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Company = Tables<"companies">;
 type CompanyInsert = TablesInsert<"companies">;
 type CompanyUpdate = TablesUpdate<"companies">;
 
+// Helper to detect what type of settings changed
+const detectSettingsChangeType = (updates: CompanyUpdate): { eventType: string; description: string; category: AuditEventCategory } | null => {
+  const keys = Object.keys(updates);
+  
+  // Tax changes
+  if (keys.includes('taxes')) {
+    return { eventType: 'taxes_updated', description: 'Modification des taxes', category: 'settings' };
+  }
+  
+  // Email template changes
+  if (keys.some(k => k.includes('email_subject') || k.includes('email_message'))) {
+    return { eventType: 'email_templates_updated', description: 'Modification des modèles de courriel', category: 'settings' };
+  }
+  
+  // Invoice template/branding changes
+  if (keys.some(k => k.includes('invoice_body') || k.includes('invoice_footer') || k.includes('logo_url'))) {
+    return { eventType: 'document_templates_updated', description: 'Modification des modèles de documents', category: 'settings' };
+  }
+  
+  // Invoice numbering changes
+  if (keys.some(k => k.includes('invoice_prefix') || k.includes('invoice_digits') || k.includes('invoice_start'))) {
+    return { eventType: 'invoice_numbering_updated', description: 'Modification de la numérotation des factures', category: 'settings' };
+  }
+  
+  return null;
+};
+
 export const useCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const { toast } = useToast();
 
   const fetchCompanies = async () => {
@@ -128,6 +156,11 @@ export const useCompanies = () => {
   };
 
   const updateCompany = async (id: string, updates: CompanyUpdate) => {
+    if (!user) return;
+    
+    // Get company name for logging
+    const company = companies.find(c => c.id === id);
+    
     try {
       const { error } = await supabase
         .from("companies")
@@ -137,6 +170,22 @@ export const useCompanies = () => {
       if (error) throw error;
 
       await fetchCompanies();
+      
+      // Log audit event for settings changes
+      const settingsChange = detectSettingsChangeType(updates);
+      if (settingsChange) {
+        logAuditEvent({
+          userId: user.id,
+          userName: username || user.email?.split('@')[0] || 'User',
+          companyId: id,
+          category: settingsChange.category,
+          eventType: settingsChange.eventType,
+          description: `${settingsChange.description} (${company?.name})`,
+          relatedEntityType: 'company',
+          relatedEntityId: id,
+          metadata: { company_name: company?.name, changes: Object.keys(updates) }
+        });
+      }
       
       toast({
         title: "Success",

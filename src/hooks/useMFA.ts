@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { logAuditEvent } from '@/lib/auditLogger';
 
 interface MFAStatus {
   enabled: boolean;
@@ -164,6 +165,18 @@ export async function verifyRecoveryCodeLogin(userId: string, recoveryCode: stri
     
     if (data.error) {
       return { success: false, error: data.error };
+    }
+    
+    // Log successful recovery code usage
+    if (data.success) {
+      logAuditEvent({
+        userId: userId,
+        userName: 'User',
+        category: 'authentication',
+        eventType: 'recovery_code_used',
+        description: `Code de récupération MFA utilisé (${data.remainingCodes} restants)`,
+        metadata: { remaining_codes: data.remainingCodes }
+      });
     }
     
     return { success: data.success, remainingCodes: data.remainingCodes };
