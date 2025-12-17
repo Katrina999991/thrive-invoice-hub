@@ -204,7 +204,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col overflow-hidden">{children}</div>
+            <div className="flex h-full max-h-screen w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
       )
@@ -356,7 +356,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 p-2 flex-shrink-0", className)}
       {...props}
     />
   )
