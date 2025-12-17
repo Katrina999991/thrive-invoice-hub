@@ -188,63 +188,63 @@ const StockManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           {language === 'fr' ? 'Gestion des stocks' : 'Stock Management'}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           {language === 'fr' ? 'Suivez et gérez l\'inventaire de vos produits' : 'Track and manage your product inventory'}
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">
               {language === 'fr' ? 'Total produits' : 'Total Products'}
             </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProducts}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold">{totalProducts}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {language === 'fr' ? 'Rupture de stock' : 'Out of Stock'}
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">
+              {language === 'fr' ? 'Rupture' : 'Out of Stock'}
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{outOfStock}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold text-destructive">{outOfStock}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">
               {language === 'fr' ? 'Stock bas' : 'Low Stock'}
             </CardTitle>
             <TrendingDown className="h-4 w-4 text-orange-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-500">{lowStock}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold text-orange-500">{lowStock}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {language === 'fr' ? 'Valeur totale' : 'Total Value'}
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">
+              {language === 'fr' ? 'Valeur' : 'Value'}
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold">${totalValue.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
@@ -258,8 +258,8 @@ const StockManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1 flex gap-2">
+          <div className="space-y-3 mb-6">
+            <div className="flex gap-2">
               <BarcodeScannerButton
                 onScan={(barcode) => {
                   // Search for product by barcode/sku
@@ -285,12 +285,11 @@ const StockManagement = () => {
                 }}
                 variant="outline"
                 showLabel={false}
-                className="md:order-last"
               />
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder={language === 'fr' ? 'Rechercher un produit ou code-barres...' : 'Search products or barcode...'}
+                  placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -298,47 +297,109 @@ const StockManagement = () => {
               </div>
             </div>
             
-            <Select value={filterCompany} onValueChange={setFilterCompany}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder={language === 'fr' ? 'Entreprise' : 'Company'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
-                {companies.map(company => (
-                  <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder={language === 'fr' ? 'Catégorie' : 'Category'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
-                {categories.filter(c => c.for_products).map(category => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {language === 'fr' ? (category.name_fr || category.name) : (category.name_en || category.name)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={filterStock} onValueChange={setFilterStock}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder={language === 'fr' ? 'Statut stock' : 'Stock Status'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
-                <SelectItem value="available">{language === 'fr' ? 'En stock' : 'In Stock'}</SelectItem>
-                <SelectItem value="low">{language === 'fr' ? 'Stock bas' : 'Low Stock'}</SelectItem>
-                <SelectItem value="out">{language === 'fr' ? 'Rupture' : 'Out of Stock'}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={filterCompany} onValueChange={setFilterCompany}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={language === 'fr' ? 'Entreprise' : 'Company'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                  {companies.map(company => (
+                    <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={language === 'fr' ? 'Cat.' : 'Cat.'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                  {categories.filter(c => c.for_products).map(category => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {language === 'fr' ? (category.name_fr || category.name) : (category.name_en || category.name)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={filterStock} onValueChange={setFilterStock}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={language === 'fr' ? 'Statut' : 'Status'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                  <SelectItem value="available">{language === 'fr' ? 'En stock' : 'In Stock'}</SelectItem>
+                  <SelectItem value="low">{language === 'fr' ? 'Bas' : 'Low'}</SelectItem>
+                  <SelectItem value="out">{language === 'fr' ? 'Rupture' : 'Out'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Table */}
-          <div className="rounded-md border">
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {language === 'fr' ? 'Aucun produit trouvé' : 'No products found'}
+              </div>
+            ) : (
+              filteredProducts.map((product) => {
+                const status = getStockStatus(product.quantity || 0);
+                const StatusIcon = status.icon;
+                return (
+                  <Card key={product.id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-medium truncate">{product.name}</h3>
+                          <Badge variant={status.variant} className="gap-1 shrink-0">
+                            <StatusIcon className="h-3 w-3" />
+                            {status.label}
+                          </Badge>
+                        </div>
+                        {product.sku && (
+                          <code className="text-xs bg-muted px-2 py-0.5 rounded font-mono">
+                            {product.sku}
+                          </code>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditStock(product)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">{language === 'fr' ? 'Qté:' : 'Qty:'}</span>
+                        <span className="ml-1 font-medium">{product.quantity || 0} {product.unit || ''}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{language === 'fr' ? 'Coût:' : 'Cost:'}</span>
+                        <span className="ml-1">${(product.cost || 0).toFixed(2)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{language === 'fr' ? 'Valeur:' : 'Value:'}</span>
+                        <span className="ml-1 font-medium">${((product.quantity || 0) * (product.cost || 0)).toFixed(2)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{language === 'fr' ? 'Cat.:' : 'Cat.:'}</span>
+                        <span className="ml-1">{getCategoryName(product.category)}</span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
