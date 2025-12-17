@@ -17,6 +17,8 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ReceiptScanner } from "@/components/ReceiptScanner";
+import { Separator } from "@/components/ui/separator";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -69,6 +71,47 @@ const Expenses = () => {
       return;
     }
     setIsDialogOpen(true);
+  };
+
+  // Handle extracted data from receipt scanner
+  const handleReceiptDataExtracted = (data: {
+    amount: number | null;
+    vendor: string | null;
+    date: string | null;
+    description: string | null;
+    category: string | null;
+  }) => {
+    // Map AI category to existing category
+    const categoryMapping: Record<string, string> = {
+      "Fournitures": "Fournitures",
+      "Supplies": "Fournitures",
+      "Transport": "Transport",
+      "Transportation": "Transport",
+      "Repas": "Repas",
+      "Meals": "Repas",
+      "Services": "Services",
+      "Équipement": "Équipement",
+      "Equipment": "Équipement",
+      "Marketing": "Marketing",
+      "Autres": "Autres",
+      "Other": "Autres"
+    };
+
+    const mappedCategory = data.category ? categoryMapping[data.category] || "" : "";
+    const matchingCategory = categories.find(cat => 
+      cat.name === mappedCategory || 
+      cat.name_fr === mappedCategory || 
+      cat.name_en === data.category
+    );
+
+    setNewExpense(prev => ({
+      ...prev,
+      amount: data.amount?.toString() || prev.amount,
+      vendor: data.vendor || prev.vendor,
+      expense_date: data.date || prev.expense_date,
+      description: data.description || prev.description,
+      category: matchingCategory?.name || prev.category
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -211,6 +254,13 @@ const Expenses = () => {
             </DialogHeader>
             <ScrollArea className="max-h-[calc(90vh-150px)] pr-4">
               <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Receipt Scanner - only show when adding new expense */}
+              {!editingExpense && (
+                <>
+                  <ReceiptScanner onDataExtracted={handleReceiptDataExtracted} />
+                  <Separator />
+                </>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="description">{t("expenses.description")} <span className="text-destructive">*</span></Label>
                 <Textarea
