@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,16 @@ import { toast } from "@/hooks/use-toast";
 
 export default function Layout() {
   const { user, signOut } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
+      title: language === 'fr' ? "Déconnecté" : "Signed out",
+      description: language === 'fr' ? "Vous avez été déconnecté avec succès." : "You have been successfully signed out.",
     });
+    navigate("/auth");
   };
 
   return (
