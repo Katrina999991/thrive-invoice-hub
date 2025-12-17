@@ -442,7 +442,7 @@ const StockManagement = () => {
 
       {/* Edit Stock Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[90vw] sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {language === 'fr' ? 'Modifier le stock' : 'Update Stock'}
