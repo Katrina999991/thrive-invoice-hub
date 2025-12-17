@@ -232,10 +232,14 @@ export type Database = {
           phone: string | null
           postal_code: string | null
           province_state: string | null
+          quote_body_message_en: string | null
+          quote_body_message_fr: string | null
           quote_email_message_en: string | null
           quote_email_message_fr: string | null
           quote_email_subject_en: string | null
           quote_email_subject_fr: string | null
+          quote_footer_message_en: string | null
+          quote_footer_message_fr: string | null
           street_address: string | null
           tax_id: string | null
           taxes: Json | null
@@ -285,10 +289,14 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           province_state?: string | null
+          quote_body_message_en?: string | null
+          quote_body_message_fr?: string | null
           quote_email_message_en?: string | null
           quote_email_message_fr?: string | null
           quote_email_subject_en?: string | null
           quote_email_subject_fr?: string | null
+          quote_footer_message_en?: string | null
+          quote_footer_message_fr?: string | null
           street_address?: string | null
           tax_id?: string | null
           taxes?: Json | null
@@ -338,10 +346,14 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           province_state?: string | null
+          quote_body_message_en?: string | null
+          quote_body_message_fr?: string | null
           quote_email_message_en?: string | null
           quote_email_message_fr?: string | null
           quote_email_subject_en?: string | null
           quote_email_subject_fr?: string | null
+          quote_footer_message_en?: string | null
+          quote_footer_message_fr?: string | null
           street_address?: string | null
           tax_id?: string | null
           taxes?: Json | null
