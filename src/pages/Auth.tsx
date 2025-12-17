@@ -17,6 +17,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
 import { validatePassword } from "@/lib/passwordValidation";
+import { checkMFARequired } from "@/hooks/useMFA";
+import { MFAVerificationDialog } from "@/components/MFAVerificationDialog";
 
 export default function Auth() {
   const { t, language, setLanguage } = useLanguage();
@@ -47,6 +49,10 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
+  
+  // MFA state
+  const [showMFAVerification, setShowMFAVerification] = useState(false);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   
   const [isDark, setIsDark] = useState<boolean>(() => {
     return document.documentElement.classList.contains("dark");
@@ -142,6 +148,7 @@ export default function Auth() {
         description: error.message,
         variant: "destructive",
       });
+      setIsLoading(false);
     } else {
       // Save or remove email based on "remember me" checkbox
       if (rememberMe) {
@@ -150,14 +157,50 @@ export default function Auth() {
         localStorage.removeItem('remembered_email');
       }
       
+      // Check if MFA is required for this user
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const mfaRequired = await checkMFARequired(currentUser.id);
+        
+        if (mfaRequired) {
+          // Sign out temporarily and show MFA dialog
+          await supabase.auth.signOut();
+          setPendingUserId(currentUser.id);
+          setShowMFAVerification(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
       navigate("/dashboard");
+      setIsLoading(false);
     }
+  };
+  
+  const handleMFASuccess = async () => {
+    // Re-sign in the user after MFA verification
+    setShowMFAVerification(false);
+    setPendingUserId(null);
     
-    setIsLoading(false);
+    // Sign back in
+    const { error } = await signIn(email, password);
+    if (!error) {
+      toast({
+        title: language === 'fr' ? "Bienvenue !" : "Welcome back!",
+        description: language === 'fr' ? "Vous êtes connecté avec succès." : "You have successfully signed in.",
+      });
+      navigate("/dashboard");
+    }
+  };
+  
+  const handleMFACancel = () => {
+    setShowMFAVerification(false);
+    setPendingUserId(null);
+    setPassword("");
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -856,6 +899,16 @@ export default function Auth() {
           </form>
         </DialogContent>
       </Dialog>
+      
+      {/* MFA Verification Dialog */}
+      {pendingUserId && (
+        <MFAVerificationDialog
+          open={showMFAVerification}
+          userId={pendingUserId}
+          onSuccess={handleMFASuccess}
+          onCancel={handleMFACancel}
+        />
+      )}
     </div>
   );
 }
