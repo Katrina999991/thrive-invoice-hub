@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.get-quote-by-token]
 verify_jwt = false
+
+[functions.mfa-totp]
+verify_jwt = false

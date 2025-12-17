@@ -5,6 +5,7 @@ import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTria
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
+import { MFASecuritySection } from "@/components/MFASecuritySection";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
@@ -2000,6 +2001,8 @@ Cordialement,
           </CardContent>
         </Card>
 
+
+        <MFASecuritySection />
 
         <PasswordChangeForm />
 
