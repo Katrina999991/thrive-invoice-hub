@@ -105,7 +105,7 @@ export const useStripeCheckout = () => {
       
       // Provide user-friendly error messages
       if (errorMessage.includes('No Stripe customer found')) {
-        toast.error('Aucun abonnement Stripe trouvé. Vous êtes déjà sur le plan gratuit.');
+        toast.error('Aucun compte Stripe trouvé. Veuillez contacter le support pour modifier votre abonnement.');
       } else {
         toast.error(errorMessage);
       }
