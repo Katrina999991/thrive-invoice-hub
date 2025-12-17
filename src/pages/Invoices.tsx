@@ -1669,15 +1669,15 @@ Best regards,
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("invoices.title")}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t("invoices.title")}</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             {t("invoices.subtitle")}
           </p>
         </div>
-        <Button onClick={handleCreateInvoiceClick}>
+        <Button onClick={handleCreateInvoiceClick} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           {t("invoices.createButton")}
         </Button>
@@ -2274,262 +2274,359 @@ Best regards,
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("invoices.totalInvoices")}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">{t("invoices.totalInvoices")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredInvoices.length}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold">{filteredInvoices.length}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("invoices.totalAmountLabel")}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">{t("invoices.totalAmountLabel")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalAmount.toLocaleString()}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold">${totalAmount.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("invoices.paidAmount")}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">{t("invoices.paidAmount")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">${paidAmount.toLocaleString()}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold text-green-600">${paidAmount.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("invoices.outstanding")}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">{t("invoices.outstanding")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">${(totalAmount - paidAmount).toLocaleString()}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold text-orange-600">${(totalAmount - paidAmount).toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder={t("invoices.searchPlaceholder")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
+      <div className="space-y-3 mb-6">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder={t("invoices.searchPlaceholder")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         </div>
-        <Select value={filterType} onValueChange={(value) => {
-          setFilterType(value);
-          setFilterValue("");
-        }}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder={t("invoices.filterBy")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("invoices.allInvoices")}</SelectItem>
-            <SelectItem value="client">{t("invoices.byClient")}</SelectItem>
-            <SelectItem value="company">{t("invoices.byCompany")}</SelectItem>
-            <SelectItem value="status">Par statut</SelectItem>
-          </SelectContent>
-        </Select>
-        {filterType === "client" && (
-          <Select value={filterValue} onValueChange={setFilterValue}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("invoices.clientPlaceholder")} />
+        <div className="grid grid-cols-2 gap-2 md:flex md:gap-4">
+          <Select value={filterType} onValueChange={(value) => {
+            setFilterType(value);
+            setFilterValue("");
+          }}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder={t("invoices.filterBy")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("invoices.clientAll")}</SelectItem>
-              {clients && clients.length > 0 ? clients.map((client) => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.name || 'Unnamed Client'}
-                </SelectItem>
-              )) : (
-                <SelectItem value="" disabled>No clients available</SelectItem>
-              )}
+              <SelectItem value="all">{t("invoices.allInvoices")}</SelectItem>
+              <SelectItem value="client">{t("invoices.byClient")}</SelectItem>
+              <SelectItem value="company">{t("invoices.byCompany")}</SelectItem>
+              <SelectItem value="status">Par statut</SelectItem>
             </SelectContent>
           </Select>
-        )}
-        {filterType === "company" && (
-          <Select value={filterValue} onValueChange={setFilterValue}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("invoices.companyPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("invoices.companyAll")}</SelectItem>
-              {companies && companies.length > 0 ? companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name || 'Unnamed Company'}
-                </SelectItem>
-              )) : (
-                <SelectItem value="" disabled>No companies available</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        )}
-        {filterType === "status" && (
-          <Select value={filterValue} onValueChange={setFilterValue}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Sélectionner un statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="draft">Brouillon</SelectItem>
-              <SelectItem value="sent">Envoyé</SelectItem>
-              <SelectItem value="paid">Payé</SelectItem>
-              <SelectItem value="overdue">En retard</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-        <Button
-          variant={showArchived ? "default" : "outline"}
-          onClick={() => setShowArchived(!showArchived)}
-        >
-          {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
-          {showArchived ? (language === "fr" ? "Factures actives" : "Active invoices") : (language === "fr" ? "Factures archivées" : "Archived invoices")}
-        </Button>
+          {filterType === "client" && (
+            <Select value={filterValue} onValueChange={setFilterValue}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder={t("invoices.clientPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("invoices.clientAll")}</SelectItem>
+                {clients && clients.length > 0 ? clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name || 'Unnamed Client'}
+                  </SelectItem>
+                )) : (
+                  <SelectItem value="" disabled>No clients available</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          )}
+          {filterType === "company" && (
+            <Select value={filterValue} onValueChange={setFilterValue}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder={t("invoices.companyPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("invoices.companyAll")}</SelectItem>
+                {companies && companies.length > 0 ? companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name || 'Unnamed Company'}
+                  </SelectItem>
+                )) : (
+                  <SelectItem value="" disabled>No companies available</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          )}
+          {filterType === "status" && (
+            <Select value={filterValue} onValueChange={setFilterValue}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Sélectionner un statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="draft">Brouillon</SelectItem>
+                <SelectItem value="sent">Envoyé</SelectItem>
+                <SelectItem value="paid">Payé</SelectItem>
+                <SelectItem value="overdue">En retard</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          <Button
+            variant={showArchived ? "default" : "outline"}
+            onClick={() => setShowArchived(!showArchived)}
+            className="col-span-2 md:col-span-1"
+          >
+            {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+            <span className="hidden sm:inline">{showArchived ? (language === "fr" ? "Actives" : "Active") : (language === "fr" ? "Archivées" : "Archived")}</span>
+          </Button>
+        </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>{t("invoices.listTitle")}</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg">{t("invoices.listTitle")}</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             {t("invoices.listDesc")}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("invoices.tableInvoiceNumber")}</TableHead>
-                <TableHead>{t("invoices.tableClient")}</TableHead>
-                <TableHead>{t("invoices.tableAmount")}</TableHead>
-                <TableHead>{t("invoices.tableStatus")}</TableHead>
-                <TableHead>{t("invoices.tableIssueDate")}</TableHead>
-                <TableHead>{t("invoices.tableDueDate")}</TableHead>
-                <TableHead>{t("invoices.tableItems")}</TableHead>
-                <TableHead className="text-right">{t("invoices.tableActions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
-                  <TableCell>
-                    {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown Client'}
-                  </TableCell>
-                  <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Select 
-                      value={invoice.status} 
-                      onValueChange={(value) => {
-                        // Si on enlève le statut "paid", on réinitialise aussi paid_at
-                        const updates: any = { status: value };
-                        if (invoice.status === "paid" && value !== "paid") {
-                          updates.paid_at = null;
-                        }
-                        updateInvoice(invoice.id, updates);
-                      }}
-                    >
-                      <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
-                        <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
-                        <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                        <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>{invoice.issue_date}</TableCell>
-                  <TableCell>{invoice.due_date}</TableCell>
-                  <TableCell>{(invoice as any).invoice_items?.length || 0}</TableCell>
-                  <TableCell className="text-right">
-                    <TooltipProvider>
-                      <div className="flex justify-end space-x-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="sm" onClick={() => {
-                              setViewingInvoice(invoice);
-                              setIsViewDialogOpen(true);
-                            }}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{language === 'fr' ? 'Voir la facture' : 'View invoice'}</p>
-                          </TooltipContent>
-                        </Tooltip>
+        <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {filteredInvoices.map((invoice) => (
+              <Card key={invoice.id} className="p-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0">
+                    <div className="font-medium">{invoice.invoice_number}</div>
+                    <div className="text-sm text-muted-foreground truncate">
+                      {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown'}
+                    </div>
+                  </div>
+                  <Badge variant={getStatusColor(invoice.status) as any} className="shrink-0">
+                    {invoice.status === 'draft' && t("invoices.statusDraft")}
+                    {invoice.status === 'sent' && t("invoices.statusSent")}
+                    {invoice.status === 'paid' && t("invoices.statusPaid")}
+                    {invoice.status === 'overdue' && t("invoices.statusOverdue")}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-muted-foreground">{language === 'fr' ? 'Montant:' : 'Amount:'}</span>
+                    <span className="ml-1 font-medium">${invoice.total.toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">{language === 'fr' ? 'Échéance:' : 'Due:'}</span>
+                    <span className="ml-1">{invoice.due_date}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setViewingInvoice(invoice);
+                    setIsViewDialogOpen(true);
+                  }}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)} disabled={!planLimits?.pdf_export}>
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => openEmailDialog(invoice)}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteInvoice(invoice.id)} className="bg-destructive text-destructive-foreground">
+                          {t("invoices.deleteButton")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </Card>
+            ))}
+          </div>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{language === 'fr' ? 'Modifier la facture' : 'Edit invoice'}</p>
-                          </TooltipContent>
-                        </Tooltip>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("invoices.tableInvoiceNumber")}</TableHead>
+                  <TableHead>{t("invoices.tableClient")}</TableHead>
+                  <TableHead>{t("invoices.tableAmount")}</TableHead>
+                  <TableHead>{t("invoices.tableStatus")}</TableHead>
+                  <TableHead>{t("invoices.tableIssueDate")}</TableHead>
+                  <TableHead>{t("invoices.tableDueDate")}</TableHead>
+                  <TableHead>{t("invoices.tableItems")}</TableHead>
+                  <TableHead className="text-right">{t("invoices.tableActions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                    <TableCell>
+                      {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown Client'}
+                    </TableCell>
+                    <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Select 
+                        value={invoice.status} 
+                        onValueChange={(value) => {
+                          const updates: any = { status: value };
+                          if (invoice.status === "paid" && value !== "paid") {
+                            updates.paid_at = null;
+                          }
+                          updateInvoice(invoice.id, updates);
+                        }}
+                      >
+                        <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                          <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                          <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                          <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>{invoice.issue_date}</TableCell>
+                    <TableCell>{invoice.due_date}</TableCell>
+                    <TableCell>{(invoice as any).invoice_items?.length || 0}</TableCell>
+                    <TableCell className="text-right">
+                      <TooltipProvider>
+                        <div className="flex justify-end space-x-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={() => {
+                                setViewingInvoice(invoice);
+                                setIsViewDialogOpen(true);
+                              }}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{language === 'fr' ? 'Voir la facture' : 'View invoice'}</p>
+                            </TooltipContent>
+                          </Tooltip>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => downloadInvoicePDF(invoice)}
-                              disabled={!planLimits?.pdf_export}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{!planLimits?.pdf_export 
-                              ? (language === 'fr' ? 'Téléchargement PDF disponible avec un plan Premium ou Pro' : 'PDF download available with Premium or Pro plan')
-                              : (language === 'fr' ? 'Télécharger en PDF' : 'Download PDF')
-                            }</p>
-                          </TooltipContent>
-                        </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{language === 'fr' ? 'Modifier la facture' : 'Edit invoice'}</p>
+                            </TooltipContent>
+                          </Tooltip>
 
-                        {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => openEmailDialog(invoice)}
+                                onClick={() => downloadInvoicePDF(invoice)}
+                                disabled={!planLimits?.pdf_export}
                               >
-                                <Send className="h-4 w-4" />
+                                <Download className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{language === 'fr' ? 'Envoyer par email' : 'Send email'}</p>
+                              <p>{!planLimits?.pdf_export 
+                                ? (language === 'fr' ? 'Téléchargement PDF disponible avec un plan Premium ou Pro' : 'PDF download available with Premium or Pro plan')
+                                : (language === 'fr' ? 'Télécharger en PDF' : 'Download PDF')
+                              }</p>
                             </TooltipContent>
                           </Tooltip>
-                        )}
-                        {stripeAccountId && invoice.status !== "paid" && (
-                          invoice.payment_link ? (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
-                                  >
-                                    {copiedLink === invoice.invoice_number ? (
-                                      <Check className="h-4 w-4 text-green-600" />
-                                    ) : (
-                                      <Copy className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}</p>
-                                </TooltipContent>
-                              </Tooltip>
 
+                          {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => openEmailDialog(invoice)}
+                                >
+                                  <Send className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === 'fr' ? 'Envoyer par email' : 'Send email'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {stripeAccountId && invoice.status !== "paid" && (
+                            invoice.payment_link ? (
+                              <>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}
+                                    >
+                                      {copiedLink === invoice.invoice_number ? (
+                                        <Check className="h-4 w-4 text-green-600" />
+                                      ) : (
+                                        <Copy className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => handleGeneratePaymentLink(invoice)}
+                                      disabled={isStripeLoading}
+                                    >
+                                      {isStripeLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <CreditCard className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link"}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </>
+                            ) : (
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button 
@@ -2546,97 +2643,77 @@ Best regards,
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>{language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link"}</p>
+                                  <p>{language === "fr" ? "Générer un lien de paiement Stripe" : "Generate Stripe payment link"}</p>
                                 </TooltipContent>
                               </Tooltip>
-                            </>
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleGeneratePaymentLink(invoice)}
-                                  disabled={isStripeLoading}
-                                >
-                                  {isStripeLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <CreditCard className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{language === "fr" ? "Générer un lien de paiement Stripe" : "Generate Stripe payment link"}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            )
-                          )}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => archiveInvoice(invoice.id, !(invoice as any).is_archived)}
-                            >
-                              {(invoice as any).is_archived ? (
-                                <ArchiveRestore className="h-4 w-4" />
-                              ) : (
-                                <Archive className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              {(invoice as any).is_archived 
-                                ? (language === "fr" ? "Désarchiver la facture" : "Unarchive invoice")
-                                : (language === "fr" ? "Archiver la facture" : "Archive invoice")
-                              }
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <AlertDialog>
+                              )
+                            )}
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => archiveInvoice(invoice.id, !(invoice as any).is_archived)}
+                              >
+                                {(invoice as any).is_archived ? (
+                                  <ArchiveRestore className="h-4 w-4" />
+                                ) : (
+                                  <Archive className="h-4 w-4" />
+                                )}
+                              </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{language === 'fr' ? 'Supprimer la facture' : 'Delete invoice'}</p>
+                              <p>
+                                {(invoice as any).is_archived 
+                                  ? (language === "fr" ? "Désarchiver la facture" : "Unarchive invoice")
+                                  : (language === "fr" ? "Archiver la facture" : "Archive invoice")
+                                }
+                              </p>
                             </TooltipContent>
                           </Tooltip>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteInvoice(invoice.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {t("invoices.deleteButton")}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TooltipProvider>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          <AlertDialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === 'fr' ? 'Supprimer la facture' : 'Delete invoice'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteInvoice(invoice.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t("invoices.deleteButton")}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TooltipProvider>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
