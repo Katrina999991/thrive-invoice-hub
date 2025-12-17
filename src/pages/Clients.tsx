@@ -256,15 +256,15 @@ const Clients = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             {t("clients.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button onClick={handleAddClientClick}>
+          <Button onClick={handleAddClientClick} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             {t("clients.addButton")}
           </Button>
@@ -458,8 +458,8 @@ const Clients = () => {
         </Dialog>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center">
+        <div className="relative flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("clients.searchPlaceholder")}
@@ -478,122 +478,216 @@ const Clients = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("clients.tableClientName")}</TableHead>
-                <TableHead>{t("clients.tableContactPerson")}</TableHead>
-                <TableHead>{t("clients.tableServiceProvider")}</TableHead>
-                <TableHead>{t("clients.tableContactInfo")}</TableHead>
-                <TableHead>{t("clients.tableAddress")}</TableHead>
-                <TableHead>{t("clients.tableLanguage")}</TableHead>
-                <TableHead>{t("clients.tableHourlyRate")}</TableHead>
-                <TableHead>{t("clients.tableCreated")}</TableHead>
-                <TableHead className="text-right">{t("clients.tableActions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredClients.map((client, index) => {
-                const isOverLimit = planLimits && planLimits.max_clients !== null && index >= planLimits.max_clients;
-                
-                return (
-                  <TableRow key={client.id} className={isOverLimit ? 'bg-orange-500/5' : ''}>
-                     <TableCell>
-                       <div className="flex items-center gap-2">
-                         <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                         <span className="font-medium">{client.name}</span>
-                         {client.send_overdue_email_auto && (
-                           <Badge variant="secondary" className="text-xs">
-                             <Bell className="h-3 w-3 mr-1" />
-                             {language === "fr" ? "Rappel auto" : "Auto reminder"}
-                           </Badge>
-                         )}
-                         {isOverLimit && (
-                           <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
-                             {language === "fr" ? "Hors limite" : "Over Limit"}
-                           </Badge>
-                         )}
-                       </div>
-                     </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{client.contact_person || "—"}</div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm font-medium text-primary">
-                      {client.companies?.name || "—"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {filteredClients.map((client, index) => {
+              const isOverLimit = planLimits && planLimits.max_clients !== null && index >= planLimits.max_clients;
+              
+              return (
+                <Card key={client.id} className={`${isOverLimit ? 'border-orange-500/50 bg-orange-500/5' : ''}`}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{client.name}</span>
+                        {client.send_overdue_email_auto && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Bell className="h-3 w-3 mr-1" />
+                            {language === "fr" ? "Rappel" : "Reminder"}
+                          </Badge>
+                        )}
+                        {isOverLimit && (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
+                            {language === "fr" ? "Hors limite" : "Over Limit"}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t("clients.deleteConfirm").replace("{name}", client.name)}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteClient(client.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t("clients.deleteButton")}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                    
+                    {client.contact_person && (
+                      <p className="text-sm text-muted-foreground">{client.contact_person}</p>
+                    )}
+                    
+                    {client.companies?.name && (
+                      <Badge variant="outline" className="text-primary">
+                        {client.companies.name}
+                      </Badge>
+                    )}
+                    
+                    <div className="flex flex-col gap-1 text-sm">
                       {client.email && (
-                        <div className="text-sm">
-                          {client.email.split(",").map((email: string, i: number) => (
-                            <div key={i} className="flex items-center">
-                              <Mail className="h-3 w-3 mr-1" />
-                              {email.trim()}
-                            </div>
-                          ))}
+                        <div className="flex items-center text-muted-foreground">
+                          <Mail className="h-3 w-3 mr-2" />
+                          <span className="truncate">{client.email.split(",")[0].trim()}</span>
+                          {client.email.includes(",") && <span className="ml-1">+{client.email.split(",").length - 1}</span>}
                         </div>
                       )}
                       {client.phone && (
-                        <div className="text-sm text-muted-foreground flex items-center">
-                          <Phone className="h-3 w-3 mr-1" />
+                        <div className="flex items-center text-muted-foreground">
+                          <Phone className="h-3 w-3 mr-2" />
                           {client.phone}
                         </div>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell>{client.address || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="flex items-center w-fit">
-                      <Languages className="h-3 w-3 mr-1" />
-                      {client.language === 'french' ? 'Français' : 'English'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium">${client.hourly_rate || 0}/hr</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(client.created_at).toLocaleDateString('fr-FR')}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t("clients.deleteConfirm").replace("{name}", client.name)}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteClient(client.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {t("clients.deleteButton")}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                    
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <Badge variant="outline" className="text-xs">
+                        <Languages className="h-3 w-3 mr-1" />
+                        {client.language === 'french' ? 'FR' : 'EN'}
+                      </Badge>
+                      <span className="text-sm font-medium">${client.hourly_rate || 0}/hr</span>
                     </div>
-                  </TableCell>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {filteredClients.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                {language === "fr" ? "Aucun client trouvé" : "No clients found"}
+              </p>
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("clients.tableClientName")}</TableHead>
+                  <TableHead>{t("clients.tableContactPerson")}</TableHead>
+                  <TableHead>{t("clients.tableServiceProvider")}</TableHead>
+                  <TableHead>{t("clients.tableContactInfo")}</TableHead>
+                  <TableHead>{t("clients.tableLanguage")}</TableHead>
+                  <TableHead>{t("clients.tableHourlyRate")}</TableHead>
+                  <TableHead className="text-right">{t("clients.tableActions")}</TableHead>
                 </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.map((client, index) => {
+                  const isOverLimit = planLimits && planLimits.max_clients !== null && index >= planLimits.max_clients;
+                  
+                  return (
+                    <TableRow key={client.id} className={isOverLimit ? 'bg-orange-500/5' : ''}>
+                       <TableCell>
+                         <div className="flex items-center gap-2">
+                           <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                           <span className="font-medium">{client.name}</span>
+                           {client.send_overdue_email_auto && (
+                             <Badge variant="secondary" className="text-xs">
+                               <Bell className="h-3 w-3 mr-1" />
+                               {language === "fr" ? "Rappel auto" : "Auto reminder"}
+                             </Badge>
+                           )}
+                           {isOverLimit && (
+                             <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
+                               {language === "fr" ? "Hors limite" : "Over Limit"}
+                             </Badge>
+                           )}
+                         </div>
+                       </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{client.contact_person || "—"}</div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-medium text-primary">
+                        {client.companies?.name || "—"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {client.email && (
+                          <div className="text-sm">
+                            {client.email.split(",").map((email: string, i: number) => (
+                              <div key={i} className="flex items-center">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {email.trim()}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {client.phone && (
+                          <div className="text-sm text-muted-foreground flex items-center">
+                            <Phone className="h-3 w-3 mr-1" />
+                            {client.phone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="flex items-center w-fit">
+                        <Languages className="h-3 w-3 mr-1" />
+                        {client.language === 'french' ? 'Français' : 'English'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">${client.hourly_rate || 0}/hr</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t("clients.deleteConfirm").replace("{name}", client.name)}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteClient(client.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t("clients.deleteButton")}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

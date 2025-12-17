@@ -232,14 +232,14 @@ const Expenses = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("expenses.title")}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("expenses.title")}</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             {t("expenses.subtitle")}
           </p>
         </div>
-        <Button onClick={handleAddExpenseClick}>
+        <Button onClick={handleAddExpenseClick} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           {t("expenses.addButton")}
         </Button>
@@ -463,9 +463,9 @@ const Expenses = () => {
         <CardContent>
           <div className="space-y-4">
             {expenses.map((expense) => (
-              <div key={expense.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h3 className="font-medium">{expense.description}</h3>
                     <Badge className={getStatusColor(expense.status)}>
                       {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
@@ -475,9 +475,9 @@ const Expenses = () => {
                     {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                   <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
-                  <div className="flex space-x-1">
+                  <div className="flex items-center gap-1">
                     <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
                       <SelectTrigger className="w-24 h-8">
                         <SelectValue />
