@@ -10,6 +10,7 @@ import { Loader2, KeyRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { validatePassword } from "@/lib/passwordValidation";
+import { logAuditEvent } from "@/lib/auditLogger";
 
 export default function PasswordChangeForm() {
   const { t } = useLanguage();
@@ -19,7 +20,7 @@ export default function PasswordChangeForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
-  const { updatePassword } = useAuth();
+  const { updatePassword, user, username } = useAuth();
   const { language } = useLanguage();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -52,6 +53,17 @@ export default function PasswordChangeForm() {
         variant: "destructive",
       });
     } else {
+      // Log password change event
+      if (user?.id) {
+        logAuditEvent({
+          userId: user.id,
+          userName: username || user.email?.split('@')[0],
+          category: 'authentication',
+          eventType: 'password_changed',
+          description: language === 'fr' ? 'Mot de passe modifié' : 'Password changed',
+        });
+      }
+      
       toast({
         title: t("password.success.title"),
         description: t("password.success.description"),

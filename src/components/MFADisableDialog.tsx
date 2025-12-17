@@ -12,8 +12,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ShieldOff, AlertTriangle } from 'lucide-react';
 import { useMFA } from '@/hooks/useMFA';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { logAuditEvent } from '@/lib/auditLogger';
 
 interface MFADisableDialogProps {
   open: boolean;
@@ -22,6 +24,7 @@ interface MFADisableDialogProps {
 
 export function MFADisableDialog({ open, onOpenChange }: MFADisableDialogProps) {
   const { language } = useLanguage();
+  const { user, username } = useAuth();
   const { disable, isLoading } = useMFA();
   
   const [code, setCode] = useState('');
@@ -54,6 +57,16 @@ export function MFADisableDialog({ open, onOpenChange }: MFADisableDialogProps) 
     setError(null);
     const success = await disable(code);
     if (success) {
+      // Log MFA disabled event
+      if (user?.id) {
+        logAuditEvent({
+          userId: user.id,
+          userName: username || user.email?.split('@')[0],
+          category: 'authentication',
+          eventType: 'mfa_disabled',
+          description: language === 'fr' ? 'Authentification à deux facteurs désactivée' : 'Two-factor authentication disabled',
+        });
+      }
       toast({ title: texts.success });
       onOpenChange(false);
       setCode('');
