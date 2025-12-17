@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight } from "lucide-react";
+import { InvoiceDesignSettings } from "@/components/InvoiceDesignSettings";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
 import PasswordChangeForm from "@/components/PasswordChangeForm";
@@ -57,9 +58,6 @@ export default function Settings() {
   const { encryptFields, decryptFields } = useEncryption();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
-  const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
-  const [invoiceColor, setInvoiceColor] = useState<string>("blue");
-  const [hidePdfBranding, setHidePdfBranding] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [originalUsername, setOriginalUsername] = useState<string>("");
   const [isLoadingUsername, setIsLoadingUsername] = useState(false);
@@ -128,14 +126,8 @@ export default function Settings() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") || "default";
     const savedDarkMode = localStorage.getItem("app-dark-mode") || "light";
-    const savedInvoiceTemplate = localStorage.getItem("invoice-template") || "classic";
-    const savedInvoiceColor = localStorage.getItem("invoice-color") || "blue";
-    const savedHidePdfBranding = localStorage.getItem("hide-pdf-branding") === "true";
     setTheme(savedTheme);
     setDarkMode(savedDarkMode);
-    setInvoiceTemplate(savedInvoiceTemplate);
-    setInvoiceColor(savedInvoiceColor);
-    setHidePdfBranding(savedHidePdfBranding);
     document.documentElement.setAttribute("data-theme", savedTheme);
     if (savedDarkMode === "dark") {
       document.documentElement.classList.add("dark");
@@ -354,21 +346,6 @@ Cordialement,
     }
   };
 
-  const handleInvoiceTemplateChange = (value: string) => {
-    setInvoiceTemplate(value);
-    localStorage.setItem("invoice-template", value);
-  };
-
-  const handleInvoiceColorChange = (value: string) => {
-    setInvoiceColor(value);
-    localStorage.setItem("invoice-color", value);
-  };
-
-  const handleHidePdfBrandingChange = (checked: boolean) => {
-    if (planLimits?.plan_type !== 'pro') return;
-    setHidePdfBranding(checked);
-    localStorage.setItem("hide-pdf-branding", checked.toString());
-  };
 
   const handleSaveUsername = async () => {
     if (!user?.id) return;
@@ -722,67 +699,6 @@ Cordialement,
     }
   };
 
-  const getColorClasses = () => {
-    const colorMap = {
-      blue: {
-        bg: "bg-blue-600",
-        text: "text-blue-600",
-        border: "border-blue-600",
-        bgLight: "bg-blue-100",
-        borderLight: "border-blue-200",
-        gradient: "from-blue-50 to-blue-100",
-        gradientAccent: "from-blue-600 to-blue-700"
-      },
-      green: {
-        bg: "bg-green-600",
-        text: "text-green-600",
-        border: "border-green-600",
-        bgLight: "bg-green-100",
-        borderLight: "border-green-200",
-        gradient: "from-green-50 to-green-100",
-        gradientAccent: "from-green-600 to-green-700"
-      },
-      purple: {
-        bg: "bg-purple-600",
-        text: "text-purple-600",
-        border: "border-purple-600",
-        bgLight: "bg-purple-100",
-        borderLight: "border-purple-200",
-        gradient: "from-purple-50 to-purple-100",
-        gradientAccent: "from-purple-600 to-purple-700"
-      },
-      orange: {
-        bg: "bg-orange-600",
-        text: "text-orange-600",
-        border: "border-orange-600",
-        bgLight: "bg-orange-100",
-        borderLight: "border-orange-200",
-        gradient: "from-orange-50 to-orange-100",
-        gradientAccent: "from-orange-600 to-orange-700"
-      },
-      yellow: {
-        bg: "bg-yellow-600",
-        text: "text-yellow-700",
-        border: "border-yellow-600",
-        bgLight: "bg-yellow-100",
-        borderLight: "border-yellow-200",
-        gradient: "from-yellow-50 to-yellow-100",
-        gradientAccent: "from-yellow-600 to-yellow-700"
-      },
-      gray: {
-        bg: "bg-gray-600",
-        text: "text-gray-700",
-        border: "border-gray-600",
-        bgLight: "bg-gray-100",
-        borderLight: "border-gray-200",
-        gradient: "from-gray-50 to-gray-100",
-        gradientAccent: "from-gray-600 to-gray-700"
-      }
-    };
-    return colorMap[invoiceColor as keyof typeof colorMap] || colorMap.blue;
-  };
-
-  const colors = getColorClasses();
 
   const handleTestOverdueReminders = async () => {
     setIsTestingReminders(true);
@@ -1220,292 +1136,7 @@ Cordialement,
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {t("settings.invoice.title")}
-            </CardTitle>
-            <CardDescription>
-              {t("settings.invoice.description")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium mb-3 block">{t("settings.invoice.templateLabel")}</Label>
-                <RadioGroup value={invoiceTemplate} onValueChange={handleInvoiceTemplateChange}>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="classic" id="classic" />
-                    <Label htmlFor="classic" className="cursor-pointer">{t("settings.invoice.classic")}</Label>
-                  </div>
-                  <div className="flex items-center justify-between space-x-2 mb-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="modern" 
-                        id="modern" 
-                        disabled={planLimits?.plan_type === 'free'}
-                      />
-                      <Label 
-                        htmlFor="modern" 
-                        className={planLimits?.plan_type === 'free' ? "opacity-50" : "cursor-pointer"}
-                      >
-                        {t("settings.invoice.modern")}
-                      </Label>
-                    </div>
-                    {planLimits?.plan_type === 'free' && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
-                        Premium
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between space-x-2 mb-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="professional" 
-                        id="professional" 
-                        disabled={planLimits?.plan_type !== 'pro'}
-                      />
-                      <Label 
-                        htmlFor="professional" 
-                        className={planLimits?.plan_type !== 'pro' ? "opacity-50" : "cursor-pointer"}
-                      >
-                        {t("settings.invoice.professional")}
-                      </Label>
-                    </div>
-                    {planLimits?.plan_type !== 'pro' && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
-                        Pro
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between space-x-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="creative" 
-                        id="creative" 
-                        disabled={planLimits?.plan_type !== 'pro'}
-                      />
-                      <Label 
-                        htmlFor="creative" 
-                        className={planLimits?.plan_type !== 'pro' ? "opacity-50" : "cursor-pointer"}
-                      >
-                        {t("settings.invoice.creative")}
-                      </Label>
-                    </div>
-                    {planLimits?.plan_type !== 'pro' && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
-                        Pro
-                      </Badge>
-                    )}
-                  </div>
-                </RadioGroup>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium mb-3 block">{t("settings.invoice.colorLabel")}</Label>
-                <RadioGroup value={invoiceColor} onValueChange={handleInvoiceColorChange}>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="blue" id="blue" />
-                    <Label htmlFor="blue" className="cursor-pointer flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-blue-600"></div>
-                      {t("settings.invoice.blue")}
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="green" id="green" />
-                    <Label htmlFor="green" className="cursor-pointer flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-green-600"></div>
-                      {t("settings.invoice.green")}
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="purple" id="purple" />
-                    <Label htmlFor="purple" className="cursor-pointer flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-purple-600"></div>
-                      {t("settings.invoice.purple")}
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="orange" id="orange" />
-                    <Label htmlFor="orange" className="cursor-pointer flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-orange-600"></div>
-                      {t("settings.invoice.orange")}
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value="yellow" id="yellow" />
-                    <Label htmlFor="yellow" className="cursor-pointer flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-yellow-600"></div>
-                      {t("settings.invoice.yellow")}
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="gray" id="gray" />
-                    <Label htmlFor="gray" className="cursor-pointer flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-gray-600"></div>
-                      {t("settings.invoice.gray")}
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <p className="text-sm font-medium mb-3">{t("settings.invoice.preview")}</p>
-                {invoiceTemplate === "classic" && (
-                  <div className="bg-white border rounded p-4 space-y-3 text-xs">
-                    <div className="flex justify-between items-start pb-2">
-                      <div>
-                        <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
-                        <div className="text-gray-600">123 Main St, City</div>
-                      </div>
-                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
-                        Logo
-                      </div>
-                    </div>
-                    <div className={`border-t ${colors.borderLight} pt-2`}>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-semibold mb-1 text-gray-900">Bill To:</div>
-                          <div className="text-gray-700">Client Name</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-gray-900">INVOICE #001</div>
-                          <div className="text-gray-600 text-[10px]">Issue Date: 2024-01-15</div>
-                          <div className="text-gray-600 text-[10px]">Due Date: 2024-01-30</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="border-t pt-2 space-y-1">
-                      <div className={`flex justify-between font-semibold text-gray-900 ${colors.bgLight} p-1 rounded`}>
-                        <span>Item</span>
-                        <span>Amount</span>
-                      </div>
-                      <div className="flex justify-between text-gray-700">
-                        <span>Service 1</span>
-                        <span>$100.00</span>
-                      </div>
-                    </div>
-                    <div className={`border-t ${colors.borderLight} pt-2`}>
-                      <div className={`flex justify-between font-bold ${colors.text}`}>
-                        <span>Total</span>
-                        <span>$100.00</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {invoiceTemplate === "modern" && (
-                  <div className="bg-white border rounded p-4 space-y-3 text-xs">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className={`font-bold text-sm ${colors.text}`}>ACME Company</div>
-                        <div className="text-gray-600">123 Main St, City</div>
-                      </div>
-                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
-                        Logo
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded p-2">
-                      <div className="font-semibold mb-1 text-gray-900">Bill To:</div>
-                      <div className="text-gray-700">Client Name</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className={`flex justify-between font-semibold text-gray-900 ${colors.bgLight} p-1 rounded`}>
-                        <span>Item</span>
-                        <span>Amount</span>
-                      </div>
-                      <div className="flex justify-between text-gray-700">
-                        <span>Service 1</span>
-                        <span>$100.00</span>
-                      </div>
-                    </div>
-                    <div className={`${colors.bg} text-white p-2 rounded`}>
-                      <div className="flex justify-between font-bold">
-                        <span>Total</span>
-                        <span>$100.00</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {invoiceTemplate === "professional" && (
-                  <div className={`bg-white border-2 ${colors.border} rounded p-4 space-y-3 text-xs`}>
-                    <div className={`border-b-2 ${colors.border} pb-2 flex justify-between items-start`}>
-                      <div>
-                        <div className={`font-bold text-base ${colors.text}`}>ACME Company</div>
-                        <div className="text-gray-600 text-xs">123 Main St, City</div>
-                      </div>
-                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
-                        Logo
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className={`font-semibold text-xs uppercase ${colors.text} mb-1`}>Bill To</div>
-                        <div className="text-gray-700">Client Name</div>
-                      </div>
-                    </div>
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className={`border-b ${colors.borderLight}`}>
-                          <th className="text-left py-1 font-semibold text-gray-900">Description</th>
-                          <th className="text-right py-1 font-semibold text-gray-900">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="py-1 text-gray-700">Service 1</td>
-                          <td className="text-right text-gray-700">$100.00</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <div className={`border-t-2 ${colors.border} pt-2 flex justify-end`}>
-                      <div className="w-1/3">
-                        <div className={`flex justify-between font-bold text-sm ${colors.text}`}>
-                          <span>TOTAL</span>
-                          <span>$100.00</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {invoiceTemplate === "creative" && (
-                  <div className={`bg-white border-2 ${colors.border} rounded-lg p-4 space-y-3 text-xs`}>
-                    <div className="flex justify-between items-start">
-                      <div className={`${colors.bgLight} rounded-lg p-2`}>
-                        <div className={`font-bold text-sm ${colors.text}`}>ACME</div>
-                        <div className="text-xs text-gray-700">Company</div>
-                      </div>
-                      <div className="w-10 h-8 bg-gray-200 rounded flex items-center justify-center text-[8px] text-gray-500">
-                        Logo
-                      </div>
-                    </div>
-                    <div className="text-gray-600 text-xs">123 Main St, City</div>
-                    <div className={`bg-gray-50 rounded-lg p-2 border ${colors.borderLight}`}>
-                      <div className="font-semibold mb-1 text-gray-900">Client Name</div>
-                      <div className="text-gray-600 text-xs">Customer</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between p-1">
-                        <span className="text-gray-600">Service 1</span>
-                        <span className="font-semibold text-gray-900">$100.00</span>
-                      </div>
-                    </div>
-                    <div className={`${colors.bg} text-white p-2 rounded-lg`}>
-                      <div className="flex justify-between font-bold">
-                        <span>Total</span>
-                        <span>$100.00</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <InvoiceDesignSettings />
 
         <Card>
           <CardHeader>
@@ -1594,45 +1225,6 @@ Cordialement,
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {language === "fr" ? "Rapports PDF" : "PDF Reports"}
-            </CardTitle>
-            <CardDescription>
-              {language === "fr" ? "Personnalisez l'apparence de vos rapports PDF" : "Customize the appearance of your PDF reports"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5 flex-1">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="hide-pdf-branding" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
-                    {language === "fr" ? "Supprimer la signature GestionFlow des PDF" : "Remove GestionFlow signature from PDFs"}
-                  </Label>
-                  {planLimits?.plan_type !== 'pro' && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Lock className="h-3 w-3" />
-                      Pro
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {language === "fr" 
-                    ? "Permet de masquer la mention \"Généré avec GestionFlow\" sur les documents PDF." 
-                    : "Hide the \"Generated with GestionFlow\" mention on PDF documents."}
-                </p>
-              </div>
-              <Switch
-                id="hide-pdf-branding"
-                checked={hidePdfBranding}
-                onCheckedChange={handleHidePdfBrandingChange}
-                disabled={planLimits?.plan_type !== 'pro'}
-              />
-            </div>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>
