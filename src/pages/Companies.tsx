@@ -1348,10 +1348,34 @@ Best regards,
                     <Input
                       id="logo"
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Validate file format
+                          const validFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+                          if (!validFormats.includes(file.type)) {
+                            toast({
+                              title: t("companies.validation.error"),
+                              description: t("companies.validation.logoFormatError"),
+                              variant: "destructive"
+                            });
+                            e.target.value = ''; // Reset input
+                            return;
+                          }
+                          
+                          // Validate file size (max 2MB)
+                          const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                          if (file.size > maxSize) {
+                            toast({
+                              title: t("companies.validation.error"),
+                              description: t("companies.validation.logoSizeError"),
+                              variant: "destructive"
+                            });
+                            e.target.value = ''; // Reset input
+                            return;
+                          }
+                          
                           setLogoFile(file);
                           // Show preview
                           const reader = new FileReader();
@@ -1363,7 +1387,7 @@ Best regards,
                       }}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Upload PNG, JPG, or GIF (max 2MB)
+                      {t("companies.logoHint")}
                     </p>
                   </div>
                 </div>
