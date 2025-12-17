@@ -53,6 +53,7 @@ export default function Auth() {
   // MFA state
   const [showMFAVerification, setShowMFAVerification] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [pendingMFACheck, setPendingMFACheck] = useState(false);
   
   const [isDark, setIsDark] = useState<boolean>(() => {
     return document.documentElement.classList.contains("dark");
@@ -80,11 +81,12 @@ export default function Auth() {
 
   // Handle redirects in useEffect, not during render
   useEffect(() => {
-    if (user && !isPasswordRecoveryMode && !showUpdatePassword) {
+    // Don't redirect if we're checking MFA or showing MFA verification
+    if (user && !isPasswordRecoveryMode && !showUpdatePassword && !pendingMFACheck && !showMFAVerification) {
       console.log("Redirecting to /dashboard because user exists and not in recovery mode");
       navigate("/dashboard");
     }
-  }, [user, isPasswordRecoveryMode, showUpdatePassword, navigate]);
+  }, [user, isPasswordRecoveryMode, showUpdatePassword, pendingMFACheck, showMFAVerification, navigate]);
 
   // Check for password recovery from email link
   useEffect(() => {
@@ -138,6 +140,7 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setPendingMFACheck(true); // Block auto-redirect during MFA check
 
     const { error } = await signIn(email, password);
     
@@ -149,6 +152,7 @@ export default function Auth() {
         variant: "destructive",
       });
       setIsLoading(false);
+      setPendingMFACheck(false);
     } else {
       // Save or remove email based on "remember me" checkbox
       if (rememberMe) {
@@ -168,10 +172,12 @@ export default function Auth() {
           setPendingUserId(currentUser.id);
           setShowMFAVerification(true);
           setIsLoading(false);
+          setPendingMFACheck(false);
           return;
         }
       }
       
+      setPendingMFACheck(false);
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
