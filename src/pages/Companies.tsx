@@ -1352,9 +1352,12 @@ Best regards,
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Validate file format
-                          const validFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
-                          if (!validFormats.includes(file.type)) {
+                          // Validate file format by MIME type AND extension
+                          const validMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+                          const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+                          const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+                          
+                          if (!validMimeTypes.includes(file.type) || !validExtensions.includes(fileExtension)) {
                             toast({
                               title: t("companies.validation.error"),
                               description: t("companies.validation.logoFormatError"),
