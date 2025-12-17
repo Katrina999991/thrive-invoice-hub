@@ -44,6 +44,7 @@ export const eventTypeTranslations: Record<string, { fr: string; en: string }> =
   'mfa_enabled': { fr: 'MFA activé', en: 'MFA enabled' },
   'mfa_disabled': { fr: 'MFA désactivé', en: 'MFA disabled' },
   'mfa_recovery_used': { fr: 'Code de récupération MFA utilisé', en: 'MFA recovery code used' },
+  'recovery_code_used': { fr: 'Code de récupération MFA utilisé', en: 'MFA recovery code used' },
   'password_changed': { fr: 'Mot de passe modifié', en: 'Password changed' },
   'email_changed': { fr: 'Adresse courriel modifiée', en: 'Email changed' },
   
@@ -51,8 +52,12 @@ export const eventTypeTranslations: Record<string, { fr: string; en: string }> =
   'plan_changed': { fr: 'Plan modifié', en: 'Plan changed' },
   'plan_upgraded': { fr: 'Mise à niveau', en: 'Plan upgraded' },
   'plan_downgraded': { fr: 'Rétrogradation', en: 'Plan downgraded' },
+  'subscription_upgraded': { fr: 'Mise à niveau effectuée', en: 'Subscription upgraded' },
   'subscription_cancelled': { fr: 'Abonnement annulé', en: 'Subscription cancelled' },
   'payment_method_updated': { fr: 'Mode de paiement mis à jour', en: 'Payment method updated' },
+  'checkout_initiated': { fr: 'Paiement initié', en: 'Checkout initiated' },
+  'upgrade_scheduled': { fr: 'Mise à niveau planifiée', en: 'Upgrade scheduled' },
+  'customer_portal_opened': { fr: 'Portail client ouvert', en: 'Customer portal opened' },
   
   // Sales
   'invoice_created': { fr: 'Facture créée', en: 'Invoice created' },
@@ -68,7 +73,7 @@ export const eventTypeTranslations: Record<string, { fr: string; en: string }> =
   'product_updated': { fr: 'Produit modifié', en: 'Product updated' },
   'product_deleted': { fr: 'Produit supprimé', en: 'Product deleted' },
   'stock_adjusted': { fr: 'Stock ajusté', en: 'Stock adjusted' },
-  'stock_expense_created': { fr: 'Dépense stock créée', en: 'Stock expense created' },
+  'stock_expense_created': { fr: 'Dépense stock créée automatiquement', en: 'Stock expense auto-created' },
   
   // Exports
   'pdf_downloaded': { fr: 'PDF téléchargé', en: 'PDF downloaded' },
@@ -78,8 +83,10 @@ export const eventTypeTranslations: Record<string, { fr: string; en: string }> =
   // Settings
   'taxes_updated': { fr: 'Taxes modifiées', en: 'Taxes updated' },
   'document_templates_updated': { fr: 'Modèles de documents modifiés', en: 'Document templates updated' },
+  'email_templates_updated': { fr: 'Modèles de courriel modifiés', en: 'Email templates updated' },
   'email_settings_updated': { fr: 'Réglages email modifiés', en: 'Email settings updated' },
   'branding_updated': { fr: 'Apparence PDF modifiée', en: 'PDF branding updated' },
+  'invoice_numbering_updated': { fr: 'Numérotation des factures modifiée', en: 'Invoice numbering updated' },
 };
 
 export const categoryTranslations: Record<AuditEventCategory, { fr: string; en: string }> = {

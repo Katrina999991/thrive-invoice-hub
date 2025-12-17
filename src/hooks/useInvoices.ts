@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { logAuditEvent } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Invoice = Tables<"invoices">;
@@ -13,7 +14,7 @@ type InvoiceItemInsert = TablesInsert<"invoice_items">;
 export const useInvoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const { toast } = useToast();
 
   const fetchInvoices = async () => {
@@ -191,6 +192,18 @@ export const useInvoices = () => {
 
       await fetchInvoices();
       
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'sales',
+        eventType: 'invoice_created',
+        description: `Facture ${invoice.invoice_number} créée (${invoice.total}$)`,
+        relatedEntityType: 'invoice',
+        relatedEntityId: invoice.id,
+        metadata: { invoice_number: invoice.invoice_number, total: invoice.total }
+      });
+      
       toast({
         title: "Success",
         description: "Invoice created successfully"
@@ -209,7 +222,12 @@ export const useInvoices = () => {
   };
 
   const updateInvoice = async (id: string, updates: InvoiceUpdate) => {
+    if (!user) return;
+    
     try {
+      // Get the current invoice for logging
+      const currentInvoice = invoices.find(inv => inv.id === id);
+      
       const { error } = await supabase
         .from("invoices")
         .update(updates)
@@ -218,6 +236,31 @@ export const useInvoices = () => {
       if (error) throw error;
 
       await fetchInvoices();
+      
+      // Log audit event - check if marking as paid
+      if (updates.status === 'paid' && currentInvoice?.status !== 'paid') {
+        logAuditEvent({
+          userId: user.id,
+          userName: username || user.email?.split('@')[0] || 'User',
+          category: 'sales',
+          eventType: 'invoice_marked_paid',
+          description: `Facture ${currentInvoice?.invoice_number} marquée comme payée`,
+          relatedEntityType: 'invoice',
+          relatedEntityId: id,
+          metadata: { invoice_number: currentInvoice?.invoice_number, total: currentInvoice?.total }
+        });
+      } else {
+        logAuditEvent({
+          userId: user.id,
+          userName: username || user.email?.split('@')[0] || 'User',
+          category: 'sales',
+          eventType: 'invoice_updated',
+          description: `Facture ${currentInvoice?.invoice_number} modifiée`,
+          relatedEntityType: 'invoice',
+          relatedEntityId: id,
+          metadata: { invoice_number: currentInvoice?.invoice_number, changes: Object.keys(updates) }
+        });
+      }
       
       toast({
         title: "Success",
@@ -235,6 +278,9 @@ export const useInvoices = () => {
 
   const deleteInvoice = async (id: string) => {
     if (!user) return;
+
+    // Get the invoice for logging before deletion
+    const invoiceToDelete = invoices.find(inv => inv.id === id);
 
     try {
       const { error } = await supabase
@@ -265,6 +311,18 @@ export const useInvoices = () => {
       }
 
       await fetchInvoices();
+      
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'sales',
+        eventType: 'invoice_deleted',
+        description: `Facture ${invoiceToDelete?.invoice_number} supprimée`,
+        relatedEntityType: 'invoice',
+        relatedEntityId: id,
+        metadata: { invoice_number: invoiceToDelete?.invoice_number, total: invoiceToDelete?.total }
+      });
       
       toast({
         title: "Success",

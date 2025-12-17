@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Loader2 } from "lucide-react";
+import { logAuditEvent } from "@/lib/auditLogger";
 
 interface EmailReportDialogProps {
   open: boolean;
@@ -28,7 +29,7 @@ export const EmailReportDialog = ({
   onGeneratePdf,
 }: EmailReportDialogProps) => {
   const { t, language } = useLanguage();
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const [recipient, setRecipient] = useState(user?.email || "");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -101,6 +102,18 @@ export const EmailReportDialog = ({
 
       if (error) {
         throw error;
+      }
+
+      // Log audit event
+      if (user) {
+        logAuditEvent({
+          userId: user.id,
+          userName: username || user.email?.split('@')[0] || 'User',
+          category: 'exports',
+          eventType: 'report_emailed',
+          description: `Rapport envoyé par courriel: ${reportType}`,
+          metadata: { report_type: reportType, recipient }
+        });
       }
 
       toast.success(

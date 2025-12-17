@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { STRIPE_CONFIG, PlanType, BillingCycle } from "@/lib/stripeConfig";
 import { useQueryClient } from "@tanstack/react-query";
+import { logAuditEvent } from "@/lib/auditLogger";
 
 export const useStripeCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +15,9 @@ export const useStripeCheckout = () => {
       
       const priceId = STRIPE_CONFIG[planType][billingCycle].priceId;
       
+      // Get current user for audit logging
+      const { data: { user } } = await supabase.auth.getUser();
+      
       // If it's an upgrade from an existing subscription, update it with proration
       if (isUpgrade) {
         const { data, error } = await supabase.functions.invoke('upgrade-subscription', {
@@ -24,6 +28,18 @@ export const useStripeCheckout = () => {
         
         if (data?.success) {
           toast.success('Mise à niveau effectuée avec succès ! Vous avez accès aux fonctionnalités Pro.');
+          
+          // Log audit event
+          if (user) {
+            logAuditEvent({
+              userId: user.id,
+              userName: user.email?.split('@')[0] || 'User',
+              category: 'billing',
+              eventType: 'subscription_upgraded',
+              description: `Mise à niveau vers ${planType} (${billingCycle})`,
+              metadata: { plan_type: planType, billing_cycle: billingCycle }
+            });
+          }
           
           // Refresh subscription data
           queryClient.invalidateQueries({ queryKey: ['planLimits'] });
@@ -45,6 +61,17 @@ export const useStripeCheckout = () => {
         if (error) throw error;
         
         if (data?.url) {
+          // Log audit event for checkout initiation
+          if (user) {
+            logAuditEvent({
+              userId: user.id,
+              userName: user.email?.split('@')[0] || 'User',
+              category: 'billing',
+              eventType: 'checkout_initiated',
+              description: `Début de souscription ${planType} (${billingCycle})`,
+              metadata: { plan_type: planType, billing_cycle: billingCycle }
+            });
+          }
           window.open(data.url, '_blank');
         } else {
           throw new Error('No checkout URL returned');
@@ -95,6 +122,17 @@ export const useStripeCheckout = () => {
       }
       
       if (data?.url) {
+        // Log audit event
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          logAuditEvent({
+            userId: user.id,
+            userName: user.email?.split('@')[0] || 'User',
+            category: 'billing',
+            eventType: 'customer_portal_opened',
+            description: 'Accès au portail de facturation Stripe'
+          });
+        }
         window.open(data.url, '_blank');
       } else {
         throw new Error('No portal URL returned');
@@ -125,6 +163,19 @@ export const useStripeCheckout = () => {
       });
 
       if (error) throw error;
+      
+      // Log audit event
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        logAuditEvent({
+          userId: user.id,
+          userName: user.email?.split('@')[0] || 'User',
+          category: 'billing',
+          eventType: 'upgrade_scheduled',
+          description: `Mise à niveau planifiée vers ${planType} (${billingCycle})`,
+          metadata: { plan_type: planType, billing_cycle: billingCycle }
+        });
+      }
       
       toast.success(
         billingCycle === 'monthly'
