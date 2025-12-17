@@ -141,7 +141,7 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="overflow-y-auto">
+        <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>{t("nav.main")}</SidebarGroupLabel>
             <SidebarGroupContent>
