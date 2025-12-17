@@ -167,6 +167,7 @@ const StockManagement = () => {
       });
       setIsDialogOpen(false);
       setEditingProduct(null);
+      setSearchTerm("");
     } catch (error) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
