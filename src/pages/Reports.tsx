@@ -46,6 +46,7 @@ import { generateSalesReportPdf } from "@/lib/salesReportPdf";
 import { generateRevenueReportPdf } from "@/lib/revenueReportPdf";
 import { generateRevenueByClientPdf } from "@/lib/revenueByClientPdf";
 import { generateRevenueByProductPdf } from "@/lib/revenueByProductPdf";
+import { generateStockStatusPdf, type StockProduct } from "@/lib/stockStatusPdf";
 import { useRevenueByClient } from "@/hooks/useRevenueByClient";
 import { useRevenueByProduct } from "@/hooks/useRevenueByProduct";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -1130,125 +1131,46 @@ const Reports = () => {
     logExport('taxes', 'excel', language === 'fr' ? 'Export Excel rapport taxes' : 'Tax report Excel export');
   };
 
-  // Export functions for products
-  const exportProductsToPDF = async () => {
-    console.log('exportProductsToPDF called', { 
-      filteredInventoryProducts: filteredInventoryProducts?.length,
-      productFilterType, 
-      productSelectedCompanyId 
-    });
-    
+  // Export functions for products - Stock Status PDF
+  const exportStockStatusToPDF = async () => {
     const productsToExport = filteredInventoryProducts || [];
     
     if (!productsToExport || productsToExport.length === 0) {
-      console.warn('No products to export');
       setShowNoProductsDialog(true);
       return;
     }
     
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    
-    // Title
-    doc.setFontSize(20);
-    doc.text(t("reports.pdf.inventoryReport"), pageWidth / 2, 20, { align: 'center' });
-    
-    // Filters
-    doc.setFontSize(12);
-    let filterText = t("reports.pdf.allPeriods");
-    if (customStartDate && customEndDate) {
-      filterText = `${t("reports.pdf.period")}: ${format(customStartDate, 'dd/MM/yyyy')} - ${format(customEndDate, 'dd/MM/yyyy')}`;
-    } else if (customStartDate) {
-      filterText = `${t("reports.pdf.since")} ${format(customStartDate, 'dd/MM/yyyy')}`;
-    } else if (customEndDate) {
-      filterText = `${t("reports.pdf.until")} ${format(customEndDate, 'dd/MM/yyyy')}`;
-    }
-    doc.text(filterText, pageWidth / 2, 30, { align: 'center' });
-    
-    // Company filter
+    // Get company filter name
+    let companyFilterName: string | undefined;
     if (productFilterType === 'company' && productSelectedCompanyId) {
-      const company = companies?.find(c => c.id === productSelectedCompanyId);
-      if (company) {
-        doc.text(`${t("reports.pdf.company")}: ${company.name}`, pageWidth / 2, 38, { align: 'center' });
-      }
-    } else {
-      doc.text(t("reports.pdf.allCompanies"), pageWidth / 2, 38, { align: 'center' });
+      companyFilterName = companies?.find(c => c.id === productSelectedCompanyId)?.name;
     }
     
-    // Summary
-    const totalProducts = productsToExport.length;
-    const activeProducts = productsToExport.filter(p => p.is_active).length;
-    const lowStockProducts = productsToExport.filter(p => (p.quantity || 0) <= 5 && p.is_active).length;
-    const totalInventoryValue = productsToExport.reduce((total, p) => total + ((p.quantity || 0) * (p.cost || 0)), 0);
+    // Prepare products for the PDF
+    const stockProducts: StockProduct[] = productsToExport.map(p => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      category: p.category,
+      quantity: p.quantity || 0,
+      minStock: 5, // Default minimum stock threshold
+    }));
     
-    doc.text(`${t("reports.pdf.reportDate")}: ${format(new Date(), 'dd/MM/yyyy')}`, 20, 55);
-    doc.text(`${t("reports.pdf.totalProducts")}: ${totalProducts}`, 20, 65);
-    doc.text(`${t("reports.pdf.activeProducts")}: ${activeProducts}`, 20, 75);
-    doc.text(`${t("reports.pdf.lowStockAlerts")}: ${lowStockProducts}`, 20, 85);
-    doc.text(`${t("reports.pdf.totalInventoryValue")}: $${totalInventoryValue.toFixed(2)}`, 20, 95);
-    
-    let yPosition = 115;
-    
-    try {
-      // Capture Stock Chart
-      if (stockChartRef.current && productsToExport.length > 0) {
-        const chartCanvas = await html2canvas(stockChartRef.current, {
-          backgroundColor: '#ffffff',
-          scale: 1,
-          useCORS: true
-        });
-        const chartImgData = chartCanvas.toDataURL('image/png');
-        
-        doc.setFontSize(14);
-        doc.text(getReportTranslation('stockLevelsChart', language), 20, yPosition);
-        yPosition += 10;
-        
-        const imgWidth = pageWidth - 40;
-        const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
-        
-        doc.addImage(chartImgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 20;
-        
-        // Check if we need a new page for the table
-        if (yPosition > 200) {
-          doc.addPage();
-          yPosition = 20;
-        }
-      }
-    } catch (error) {
-      console.error('Error capturing stock chart:', error);
-    }
-    
-    // Products table
-    const tableData = productsToExport.map(product => {
-      const margin = product.price && product.cost ? 
-        ((product.price - product.cost) / product.price * 100).toFixed(1) + '%' : '0.0%';
-      const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
-      
-      return [
-        product.name,
-        product.sku || '-',
-        product.category || '-',
-        (product.quantity || 0).toString(),
-        '$' + (product.cost || 0).toFixed(2),
-        '$' + (product.price || 0).toFixed(2),
-        margin,
-        '$' + stockValue,
-        product.is_active ? 'Active' : 'Inactive'
-      ];
+    await generateStockStatusPdf({
+      products: stockProducts,
+      companyName: companies?.[0]?.name,
+      companyFilterName,
+      language: language === 'fr' ? 'fr' : 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding,
     });
     
-    autoTable(doc, {
-      head: [['Name', 'SKU', 'Category', 'Quantity', 'Cost', 'Price', 'Margin', 'Stock Value', 'Status']],
-      body: tableData,
-      startY: yPosition,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [66, 139, 202] },
-    });
-    
-    const filename = `${getReportTranslation('inventoryReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
-    doc.save(filename);
-    logExport('inventory', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport inventaire' : 'Inventory report PDF download');
+    logExport('stock_status', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport état des stocks' : 'Stock status PDF download');
+  };
+  
+  // Legacy export function (kept for backward compatibility with other parts)
+  const exportProductsToPDF = async () => {
+    await exportStockStatusToPDF();
   };
 
   const exportProductsToExcel = () => {
@@ -5940,13 +5862,34 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'État des stocks' : 'Stock Status'}
         pdfBlob={null}
         onGeneratePdf={async () => {
-          if (!filteredInventoryProducts) return null;
-          const doc = new jsPDF();
-          doc.setFontSize(20);
-          doc.text(language === 'fr' ? 'Rapport État des stocks' : 'Stock Status Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
-          const tableData = filteredInventoryProducts.map(p => [p.name, (p.quantity || 0).toString(), `$${(p.cost || 0).toFixed(2)}`]);
-          autoTable(doc, { head: [['Produit', 'Quantité', 'Coût']], body: tableData, startY: 40 });
-          return doc.output('blob');
+          if (!filteredInventoryProducts || filteredInventoryProducts.length === 0) return null;
+          
+          // Get company filter name
+          let companyFilterName: string | undefined;
+          if (productFilterType === 'company' && productSelectedCompanyId) {
+            companyFilterName = companies?.find(c => c.id === productSelectedCompanyId)?.name;
+          }
+          
+          // Prepare products for the PDF
+          const stockProducts: StockProduct[] = filteredInventoryProducts.map(p => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            category: p.category,
+            quantity: p.quantity || 0,
+            minStock: 5,
+          }));
+          
+          const blob = await generateStockStatusPdf({
+            products: stockProducts,
+            companyName: companies?.[0]?.name,
+            companyFilterName,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
         }}
       />
 
