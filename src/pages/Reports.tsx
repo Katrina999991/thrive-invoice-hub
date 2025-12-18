@@ -5130,20 +5130,43 @@ const Reports = () => {
                 <p className="text-muted-foreground">{t("reports.clients.description")}</p>
               </div>
               
-              <div className="flex space-x-2">
-                <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
-                  <Download className="w-4 h-4 mr-2" />
-                  PDF
-                </Button>
-                <Button onClick={exportClientsToExcel} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Excel
-                </Button>
-                <Button onClick={() => setEmailDialogOpen('clients')} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Courriel' : 'Email'}
-                </Button>
-              </div>
+              <TooltipProvider>
+                <div className="flex space-x-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
+                        <Download className="w-4 h-4 mr-2" />
+                        PDF
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter tous les clients selon les filtres (PDF)' : 'Export all clients based on current filters (PDF)'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportClientsToExcel} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        Excel
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter tous les clients selon les filtres (Excel)' : 'Export all clients based on current filters (Excel)'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={() => setEmailDialogOpen('clients')} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
+                        <Mail className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Courriel' : 'Email'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Envoyer le rapport clients par courriel' : 'Send clients report by email'}
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             </div>
 
             {/* Filtre par date de création */}
@@ -5233,16 +5256,32 @@ const Reports = () => {
                       <CardTitle>{t("reports.clients.allClients")}</CardTitle>
                       <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        PDF
-                      </Button>
-                      <Button onClick={exportAllClientsToExcel} variant="outline" size="sm">
-                        <FileSpreadsheet className="w-4 h-4 mr-2" />
-                        Excel
-                      </Button>
-                    </div>
+                    <TooltipProvider>
+                      <div className="flex space-x-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
+                              <Download className="w-4 h-4 mr-2" />
+                              PDF
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {language === 'fr' ? 'Exporter la liste complète des clients (PDF)' : 'Export complete clients list (PDF)'}
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button onClick={exportAllClientsToExcel} variant="outline" size="sm">
+                              <FileSpreadsheet className="w-4 h-4 mr-2" />
+                              Excel
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {language === 'fr' ? 'Exporter la liste complète des clients (Excel)' : 'Export complete clients list (Excel)'}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -5309,16 +5348,32 @@ const Reports = () => {
                                 {companyClients.length} {companyClients.length > 1 ? t("reports.clients.clientCountPlural") : t("reports.clients.clientCount")}
                               </span>
                             </div>
-                            <div className="flex space-x-2">
-                              <Button onClick={() => exportCompanyClientsToPDF(company)} variant="outline" size="sm">
-                                <Download className="w-4 h-4 mr-2" />
-                                PDF
-                              </Button>
-                              <Button onClick={() => exportCompanyClientsToExcel(company)} variant="outline" size="sm">
-                                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                                Excel
-                              </Button>
-                            </div>
+                            <TooltipProvider>
+                              <div className="flex space-x-2">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button onClick={() => exportCompanyClientsToPDF(company)} variant="outline" size="sm">
+                                      <Download className="w-4 h-4 mr-2" />
+                                      PDF
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {language === 'fr' ? 'Exporter les clients groupés par entreprise (PDF)' : 'Export clients grouped by company (PDF)'}
+                                  </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button onClick={() => exportCompanyClientsToExcel(company)} variant="outline" size="sm">
+                                      <FileSpreadsheet className="w-4 h-4 mr-2" />
+                                      Excel
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {language === 'fr' ? 'Exporter les clients groupés par entreprise (Excel)' : 'Export clients grouped by company (Excel)'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
                           </div>
                           
                           {companyClients.length > 0 ? (
@@ -5373,16 +5428,32 @@ const Reports = () => {
                                 {clientsWithoutCompany.length} {clientsWithoutCompany.length > 1 ? t("reports.clients.clientCountPlural") : t("reports.clients.clientCount")}
                               </span>
                             </div>
-                            <div className="flex space-x-2">
-                              <Button onClick={exportClientsWithoutCompanyToPDF} variant="outline" size="sm">
-                                <Download className="w-4 h-4 mr-2" />
-                                PDF
-                              </Button>
-                              <Button onClick={exportClientsWithoutCompanyToExcel} variant="outline" size="sm">
-                                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                                Excel
-                              </Button>
-                            </div>
+                            <TooltipProvider>
+                              <div className="flex space-x-2">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button onClick={exportClientsWithoutCompanyToPDF} variant="outline" size="sm">
+                                      <Download className="w-4 h-4 mr-2" />
+                                      PDF
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {language === 'fr' ? 'Exporter les clients sans entreprise (PDF)' : 'Export clients without company (PDF)'}
+                                  </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button onClick={exportClientsWithoutCompanyToExcel} variant="outline" size="sm">
+                                      <FileSpreadsheet className="w-4 h-4 mr-2" />
+                                      Excel
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {language === 'fr' ? 'Exporter les clients sans entreprise (Excel)' : 'Export clients without company (Excel)'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
                           </div>
                           
                           <Table>
