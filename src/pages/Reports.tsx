@@ -4581,35 +4581,39 @@ const Reports = () => {
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
               </div>
               
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={exportExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Par période (PDF)' : 'By Period (PDF)'}
-                </Button>
-                <Button onClick={exportExpensesByCategoryToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Par catégorie (PDF)' : 'By Category (PDF)'}
-                </Button>
-                <Button onClick={exportAllExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Toutes (PDF)' : 'All (PDF)'}
-                </Button>
-                <Button onClick={exportExpensesByPeriodToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Par période (Excel)' : 'By Period (Excel)'}
-                </Button>
-                <Button onClick={exportExpensesByCategoryToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Par catégorie (Excel)' : 'By Category (Excel)'}
-                </Button>
-                <Button onClick={exportAllExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Toutes (Excel)' : 'All (Excel)'}
-                </Button>
-                <Button onClick={() => setEmailDialogOpen('expenses')} variant="outline" size="sm" disabled={!expenseReportData}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Courriel' : 'Email'}
-                </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={exportExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <Download className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Par période (PDF)' : 'By Period (PDF)'}
+                  </Button>
+                  <Button onClick={exportExpensesByCategoryToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <Download className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Par catégorie (PDF)' : 'By Category (PDF)'}
+                  </Button>
+                  <Button onClick={exportAllExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <Download className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Toutes (PDF)' : 'All (PDF)'}
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={exportExpensesByPeriodToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Par période (Excel)' : 'By Period (Excel)'}
+                  </Button>
+                  <Button onClick={exportExpensesByCategoryToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Par catégorie (Excel)' : 'By Category (Excel)'}
+                  </Button>
+                  <Button onClick={exportAllExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Toutes (Excel)' : 'All (Excel)'}
+                  </Button>
+                  <Button onClick={() => setEmailDialogOpen('expenses')} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Courriel' : 'Email'}
+                  </Button>
+                </div>
               </div>
             </div>
 
