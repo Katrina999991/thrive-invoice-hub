@@ -231,6 +231,7 @@ const Index = () => {
             "10 clients",
             "15 factures/mois",
             "10 dépenses/mois",
+            "Téléchargement PDF des factures et soumissions",
             "Rapport de revenus"
           ]
         },
@@ -473,6 +474,7 @@ const Index = () => {
             "10 clients",
             "15 invoices/month",
             "10 expenses/month",
+            "Invoice & quote PDF download",
             "Revenue report"
           ]
         },
