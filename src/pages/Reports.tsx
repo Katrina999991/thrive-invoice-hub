@@ -3794,13 +3794,13 @@ const Reports = () => {
                 </Card>
 
                 {/* Export Buttons for Revenue by Product */}
-                {productRevenueData && productRevenueData.productData.length > 0 && (productRevenueStartDate || productRevenueEndDate) && (
+                {(productRevenueStartDate || productRevenueEndDate) && (
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByProductToPDF}
-                      disabled={productRevenueLoading}
+                      disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
                       className="flex items-center gap-2"
                     >
                       <Download className="h-4 w-4" />
@@ -3810,7 +3810,7 @@ const Reports = () => {
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByProductToExcel}
-                      disabled={productRevenueLoading}
+                      disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
                       className="flex items-center gap-2"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
@@ -3820,7 +3820,7 @@ const Reports = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_product')}
-                      disabled={productRevenueLoading}
+                      disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
                       className="flex items-center gap-2"
                     >
                       <Mail className="h-4 w-4" />
