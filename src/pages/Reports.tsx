@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useReports, type RevenueByPeriod } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
 import { useSalesReport } from "@/hooks/useSalesReport";
@@ -4582,6 +4582,7 @@ const Reports = () => {
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
               </div>
               
+              <TooltipProvider>
               <div className="flex flex-col gap-3">
                 {/* PDF Exports */}
                 <div className="flex flex-wrap items-center gap-2">
@@ -4700,6 +4701,7 @@ const Reports = () => {
                   </Tooltip>
                 </div>
               </div>
+              </TooltipProvider>
             </div>
 
             {/* Filtres pour les dépenses */}
