@@ -237,107 +237,129 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
   // ========== HEADER SECTION ==========
   let headerHeight = 20;
   
-  // Company Logo (right side)
-  if (company?.logo_url) {
-    try {
-      const logoResult = await loadLogo(company.logo_url);
-      if (logoResult) {
-        const logoMaxWidth = 40;
-        const logoMaxHeight = 20;
-        const imgRatio = logoResult.width / logoResult.height;
-        
-        let logoWidth = logoMaxWidth;
-        let logoHeight = logoMaxWidth / imgRatio;
-        
-        if (logoHeight > logoMaxHeight) {
-          logoHeight = logoMaxHeight;
-          logoWidth = logoMaxHeight * imgRatio;
-        }
-        
-        const logoX = pageWidth - margin - logoWidth;
-        doc.addImage(logoResult.data, logoResult.format, logoX, headerHeight - 5, logoWidth, logoHeight, undefined, 'FAST');
-      }
-    } catch (e) {
-      console.error('Error adding logo to PDF:', e);
-    }
-  }
-  
-  // Company Info (left side)
-  if (company) {
-    // Creative template has special company name styling
-    if (template === 'creative') {
-      doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-      const companyNameWidth = doc.getStringUnitWidth(company.name) * 12 / doc.internal.scaleFactor;
-      const boxPadding = 8;
-      const boxWidth = companyNameWidth + boxPadding;
-      doc.roundedRect(margin - 2, headerHeight - 5, boxWidth, 8, 2, 2, 'F');
-      
-      const textX = margin - 2 + (boxWidth / 2);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-      doc.text(company.name, textX, headerHeight, { align: 'center' });
-    } else {
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-      doc.text(company.name, margin, headerHeight);
-    }
+  // Creative template: Colored header bar at top with company name left, document info right
+  if (template === 'creative') {
+    // Draw solid colored header bar spanning full width
+    const headerBarHeight = 25;
+    const headerBarY = 10;
+    doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+    doc.rect(0, headerBarY, pageWidth, headerBarHeight, 'F');
     
+    // Company name (left side, white text)
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(company?.name || '', margin, headerBarY + 16);
+    
+    // Document type and number (right side, white text)
+    const docTitle = `${t.title} ${document.document_number}`;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(docTitle, pageWidth - margin, headerBarY + 16, { align: 'right' });
+    
+    headerHeight = headerBarY + headerBarHeight + 10;
+    
+    // Company details below header bar (smaller, gray text)
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
     
-    let yPos = headerHeight + 9;
-    if (company.street_address) {
+    let yPos = headerHeight + 5;
+    if (company?.street_address) {
       doc.text(company.street_address, margin, yPos);
       yPos += 5;
     }
-    if (company.city || company.province_state) {
-      doc.text(`${company.city || ''}, ${company.province_state || ''} ${company.postal_code || ''}`.trim(), margin, yPos);
+    if (company?.city || company?.province_state) {
+      doc.text(`${company?.city || ''}, ${company?.province_state || ''} ${company?.postal_code || ''}`.trim(), margin, yPos);
       yPos += 5;
     }
-    if (company.tax_id) {
+    if (company?.tax_id) {
       doc.text(company.tax_id, margin, yPos);
     }
-  }
-  
-  // Header separator line (not for creative or modern)
-  if (template !== 'creative' && template !== 'modern') {
-    if (template === 'classic') {
-      doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-    } else {
-      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-      doc.setDrawColor(mediumR, mediumG, mediumB);
+  } else {
+    // Non-creative templates: Original header layout
+    // Company Logo (right side)
+    if (company?.logo_url) {
+      try {
+        const logoResult = await loadLogo(company.logo_url);
+        if (logoResult) {
+          const logoMaxWidth = 40;
+          const logoMaxHeight = 20;
+          const imgRatio = logoResult.width / logoResult.height;
+          
+          let logoWidth = logoMaxWidth;
+          let logoHeight = logoMaxWidth / imgRatio;
+          
+          if (logoHeight > logoMaxHeight) {
+            logoHeight = logoMaxHeight;
+            logoWidth = logoMaxHeight * imgRatio;
+          }
+          
+          const logoX = pageWidth - margin - logoWidth;
+          doc.addImage(logoResult.data, logoResult.format, logoX, headerHeight - 5, logoWidth, logoHeight, undefined, 'FAST');
+        }
+      } catch (e) {
+        console.error('Error adding logo to PDF:', e);
+      }
     }
-    doc.setLineWidth(0.5);
-    doc.line(margin, 40, pageWidth - margin, 40);
+    
+    // Company Info (left side)
+    if (company) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(company.name, margin, headerHeight);
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      
+      let yPos = headerHeight + 9;
+      if (company.street_address) {
+        doc.text(company.street_address, margin, yPos);
+        yPos += 5;
+      }
+      if (company.city || company.province_state) {
+        doc.text(`${company.city || ''}, ${company.province_state || ''} ${company.postal_code || ''}`.trim(), margin, yPos);
+        yPos += 5;
+      }
+      if (company.tax_id) {
+        doc.text(company.tax_id, margin, yPos);
+      }
+    }
+    
+    // Header separator line (not for modern)
+    if (template !== 'modern') {
+      if (template === 'classic') {
+        doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+      } else {
+        const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+        const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+        const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+        doc.setDrawColor(mediumR, mediumG, mediumB);
+      }
+      doc.setLineWidth(0.5);
+      doc.line(margin, 40, pageWidth - margin, 40);
+    }
   }
 
   // ========== CLIENT & DOCUMENT INFO SECTION ==========
-  const clientInfoY = 50;
+  // Creative template has a different starting Y due to the header bar
+  const clientInfoY = template === 'creative' ? 60 : 50;
   let nextY = clientInfoY;
   
   if (client) {
-    // Background box for modern and creative templates
+    // Background box for modern template only (creative doesn't need it anymore)
     const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0) + (client.notes ? 5 : 0);
     
     if (template === 'modern') {
       doc.setFillColor(245, 245, 245);
       doc.roundedRect(margin, clientInfoY - 3, contentWidth, boxHeight, 2, 2, 'F');
-    } else if (template === 'creative') {
-      doc.setFillColor(245, 245, 245);
-      doc.roundedRect(margin, clientInfoY - 3, contentWidth, boxHeight, 2, 2, 'F');
-      doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(margin, clientInfoY - 3, contentWidth, boxHeight, 2, 2, 'S');
     }
     
-    const textYOffset = (template === 'creative' || template === 'modern') ? 2 : 0;
-    const leftMargin = (template === 'creative' || template === 'modern') ? margin + 4 : margin;
-    const rightMargin = (template === 'creative' || template === 'modern') ? margin + 4 : margin;
+    const textYOffset = template === 'modern' ? 2 : 0;
+    const leftMargin = template === 'modern' ? margin + 4 : margin;
+    const rightMargin = template === 'modern' ? margin + 4 : margin;
     
     // "Bill To" / "Prepared For" label
     doc.setFontSize(11);
@@ -352,35 +374,38 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     doc.setFont('helvetica', 'bold');
     doc.text(t.billTo, leftMargin, clientInfoY + textYOffset);
     
-    // Document title and number (right side, aligned with Bill To)
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    if (template === 'professional') {
-      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-      doc.setTextColor(mediumR, mediumG, mediumB);
-    } else {
-      doc.setTextColor(40, 40, 40);
+    // Document title and number (right side) - not for creative as it's in header bar
+    if (template !== 'creative') {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      if (template === 'professional') {
+        const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+        const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+        const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+        doc.setTextColor(mediumR, mediumG, mediumB);
+      } else {
+        doc.setTextColor(40, 40, 40);
+      }
+      const docTitle = `${t.documentNumber} ${document.document_number}`;
+      const titleWidth = doc.getTextWidth(docTitle);
+      doc.text(docTitle, pageWidth - rightMargin - titleWidth, clientInfoY + textYOffset);
     }
-    const docTitle = `${t.documentNumber} ${document.document_number}`;
-    const titleWidth = doc.getTextWidth(docTitle);
-    doc.text(docTitle, pageWidth - rightMargin - titleWidth, clientInfoY + textYOffset);
     
-    // Issue date
+    // Issue date and secondary date (right side)
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
     const issueDateText = `${t.issueDate}: ${document.issue_date}`;
     const issueDateWidth = doc.getTextWidth(issueDateText);
-    doc.text(issueDateText, pageWidth - rightMargin - issueDateWidth, clientInfoY + 6 + textYOffset);
+    const dateRightMargin = template === 'creative' ? margin : rightMargin;
+    doc.text(issueDateText, pageWidth - dateRightMargin - issueDateWidth, clientInfoY + (template === 'creative' ? 0 : 6) + textYOffset);
     
     // Secondary date (due date for invoices, expiry date for quotes)
     const secondaryDate = documentType === 'invoice' ? document.due_date : document.expiry_date;
     if (secondaryDate) {
       const secondaryDateText = `${t.secondaryDate}: ${secondaryDate}`;
       const secondaryDateWidth = doc.getTextWidth(secondaryDateText);
-      doc.text(secondaryDateText, pageWidth - rightMargin - secondaryDateWidth, clientInfoY + 12 + textYOffset);
+      doc.text(secondaryDateText, pageWidth - dateRightMargin - secondaryDateWidth, clientInfoY + (template === 'creative' ? 6 : 12) + textYOffset);
     }
     
     // Client details
@@ -489,7 +514,7 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     },
     didParseCell: function(data: any) {
       // Remove fills for custom backgrounds
-      if ((template === 'modern' || template === 'classic') && data.section === 'head') {
+      if ((template === 'modern' || template === 'classic' || template === 'creative') && data.section === 'head') {
         data.cell.styles.fillColor = undefined;
         data.cell.styles.lineWidth = 0;
       }
@@ -512,9 +537,10 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
           data.cell.styles.fontStyle = 'bold';
         }
         
+        // Creative template: total row with pale-blue background and dark text
         if (template === 'creative' && isLastRow) {
           data.cell.styles.fillColor = undefined;
-          data.cell.styles.textColor = [255, 255, 255];
+          data.cell.styles.textColor = selectedColor.primary; // Dark primary color text
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.fontSize = 10;
           data.cell.styles.cellPadding = 5;
@@ -523,15 +549,10 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
           data.cell.styles.lineColor = [240, 240, 240];
         }
       }
-      
-      if (template === 'creative' && data.section === 'head') {
-        data.cell.styles.fillColor = undefined;
-        data.cell.styles.lineWidth = 0;
-      }
     },
     willDrawCell: function(data: any) {
-      // Draw rounded backgrounds
-      if ((template === 'modern' || template === 'classic') && data.section === 'head' && data.column.index === 0) {
+      // Draw rounded backgrounds for table header
+      if ((template === 'modern' || template === 'classic' || template === 'creative') && data.section === 'head' && data.column.index === 0) {
         let totalWidth = 0;
         if (data.table?.columns) {
           data.table.columns.forEach((col: any) => { totalWidth += col.width; });
@@ -539,12 +560,13 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
         const startX = (data.table as any)?.pageStartX || margin;
         const radius = template === 'classic' ? 1.5 : 2;
         
+        // Use light (pale-blue) color for header background
         data.doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
         data.doc.roundedRect(startX, data.cell.y, totalWidth, data.row.height, radius, radius, 'F');
       }
       
-      // Total row backgrounds for creative and modern
-      if ((template === 'creative' || template === 'modern') && data.section === 'body') {
+      // Total row backgrounds
+      if (data.section === 'body') {
         const isLastRow = data.row.index === data.table.body.length - 1;
         if (isLastRow && data.column.index === 0) {
           let totalWidth = 0;
@@ -553,8 +575,15 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
           }
           const startX = (data.table as any)?.pageStartX || margin;
           
-          data.doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          data.doc.roundedRect(startX, data.cell.y, totalWidth, data.row.height, 2, 2, 'F');
+          if (template === 'modern') {
+            // Modern: primary color background with white text
+            data.doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+            data.doc.roundedRect(startX, data.cell.y, totalWidth, data.row.height, 2, 2, 'F');
+          } else if (template === 'creative') {
+            // Creative: pale-blue (light) background with dark text
+            data.doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+            data.doc.roundedRect(startX, data.cell.y, totalWidth, data.row.height, 2, 2, 'F');
+          }
         }
       }
     },
