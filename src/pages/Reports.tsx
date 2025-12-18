@@ -43,6 +43,7 @@ import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 import { generateSalesReportPdf } from "@/lib/salesReportPdf";
+import { generateRevenueReportPdf } from "@/lib/revenueReportPdf";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { logAuditEvent } from "@/lib/auditLogger";
 
@@ -656,90 +657,45 @@ const Reports = () => {
 
   // Filter invoices based on selected date range and paid status
   // Export functions
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     if (!realRevenueData || !chartData.length) return;
     
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const dateLocale = language === 'fr' ? fr : enUS;
-    
-    // Title
-    doc.setFontSize(20);
-    doc.text(getReportTranslation('revenueReport', language), pageWidth / 2, 20, { align: 'center' });
-    
-    // Date range
-    let dateRangeText = '';
-    if (startDate && endDate) {
-      dateRangeText = `${format(startDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(endDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
-    } else if (startDate) {
-      dateRangeText = `${getReportTranslation('since', language)} ${format(startDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
-    } else if (endDate) {
-      dateRangeText = `${getReportTranslation('until', language)} ${format(endDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
-    }
-    
-    doc.setFontSize(12);
-    doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
-    
-    // Filter info
-    let filterText = getReportTranslation('allData', language);
+    // Prepare filter name
+    let filterName: string | undefined;
     if (filterType === 'company' && selectedCompanyId) {
-      const company = companies.find(c => c.id === selectedCompanyId);
-      filterText = `${getReportTranslation('company', language)}: ${company?.name || getReportTranslation('unknown', language)}`;
+      filterName = companies.find(c => c.id === selectedCompanyId)?.name;
     } else if (filterType === 'client' && selectedClientId) {
-      const client = clients.find(c => c.id === selectedClientId);
-      filterText = `${getReportTranslation('client', language)}: ${client?.name || getReportTranslation('unknown', language)}`;
+      filterName = clients.find(c => c.id === selectedClientId)?.name;
     }
-    doc.text(`${getReportTranslation('filter', language)}: ${filterText}`, pageWidth / 2, 40, { align: 'center' });
     
-    // Summary statistics
-    doc.setFontSize(14);
-    doc.text(getReportTranslation('summary', language), 20, 60);
-    doc.setFontSize(10);
-    doc.text(`${getReportTranslation('totalRevenue', language)}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue)}`, 20, 70);
-    doc.text(`${getReportTranslation(viewMode === 'monthly' ? 'numberOfMonths' : 'numberOfYears', language)}: ${viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}`, 20, 80);
-    doc.text(`${getReportTranslation(viewMode === 'monthly' ? 'averageRevenuePerMonth' : 'averageRevenuePerYear', language)}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(realRevenueData.totalRevenue / Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length))}`, 20, 90);
+    // Prepare invoice data for the PDF
+    const invoiceData = filteredInvoices.slice(0, 50).map(invoice => ({
+      invoice_number: invoice.invoice_number,
+      client_name: (invoice as any).clients?.name || 'N/A',
+      issue_date: invoice.issue_date,
+      total: Number(invoice.total),
+      status: invoice.status
+    }));
     
-    // Revenue by period table
-    const tableData = chartData.map(item => [
-      item.period,
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.revenue),
-      item.invoiceCount.toString(),
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.revenue / item.invoiceCount)
-    ]);
-    
-    let finalY = 110;
-    autoTable(doc, {
-      head: [[getReportTranslation('period', language), getReportTranslation('revenue', language), getReportTranslation('totalInvoices', language), getReportTranslation('avgPerInvoice', language)]],
-      body: tableData,
-      startY: finalY,
-      theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] },
-      didDrawPage: (data) => {
-        finalY = data.cursor.y;
-      }
+    await generateRevenueReportPdf({
+      revenueData: {
+        totalRevenue: realRevenueData.totalRevenue,
+        periodData: chartData
+      },
+      companyName: filterType === 'company' && selectedCompanyId 
+        ? companies.find(c => c.id === selectedCompanyId)?.name 
+        : undefined,
+      startDate,
+      endDate,
+      filterType,
+      filterName,
+      viewMode,
+      invoices: invoiceData,
+      language: language as 'fr' | 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding
     });
     
-    // Invoices table (if space permits)
-    if (filteredInvoices.length > 0 && finalY < 200) {
-      const invoiceTableData = filteredInvoices.slice(0, 20).map(invoice => [
-        invoice.invoice_number,
-        (invoice as any).clients?.name || 'N/A',
-        format(new Date(invoice.issue_date), 'MMM dd, yyyy'),
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(invoice.total))
-      ]);
-      
-      autoTable(doc, {
-        head: [['Invoice #', 'Client', 'Date', 'Amount']],
-        body: invoiceTableData,
-        startY: finalY + 20,
-        theme: 'striped',
-        headStyles: { fillColor: [34, 197, 94] },
-      });
-    }
-    
-    // Generate filename
-    const filename = `${getReportTranslation('revenueReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
-    doc.save(filename);
     logExport('revenue', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport revenus' : 'Revenue report PDF download');
   };
 
