@@ -584,72 +584,71 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
 
   // ========== NOTES, TERMS & FOOTER ==========
   const tableEndY = (doc as any).lastAutoTable?.finalY || startY + 100;
+  let contentEndY = tableEndY;
   
   // Notes section
   if (document.notes) {
-    const finalY = tableEndY + 20;
+    const notesY = contentEndY + 20;
     doc.setFontSize(12);
     doc.setTextColor(40, 40, 40);
-    doc.text(`${t.notes}:`, margin, finalY);
+    doc.text(`${t.notes}:`, margin, notesY);
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     const splitNotes = doc.splitTextToSize(document.notes, contentWidth);
-    doc.text(splitNotes, margin, finalY + 10);
+    doc.text(splitNotes, margin, notesY + 10);
+    contentEndY = notesY + 10 + (splitNotes.length * 5);
   }
   
   // Body message (document-type specific)
-  const hasNotes = !!document.notes;
   const bodyMessage = documentType === 'invoice'
     ? (isClientFrench ? company?.invoice_body_message_fr || company?.invoice_body_message_en : company?.invoice_body_message_en || company?.invoice_body_message_fr)
     : (isClientFrench ? company?.quote_body_message_fr || company?.quote_body_message_en : company?.quote_body_message_en || company?.quote_body_message_fr);
   
   if (bodyMessage) {
-    let offset = hasNotes ? 40 : 20;
-    const finalY = tableEndY + offset;
+    const bodyY = contentEndY + 15;
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
     doc.setFont('helvetica', 'normal');
     const splitBody = doc.splitTextToSize(bodyMessage, contentWidth);
-    doc.text(splitBody, margin, finalY);
+    doc.text(splitBody, margin, bodyY);
+    contentEndY = bodyY + (splitBody.length * 5);
   }
   
   // Terms section
   if (document.terms) {
-    const hasBodyMessage = !!bodyMessage;
-    let offset = 20;
-    if (hasNotes && hasBodyMessage) offset = 80;
-    else if (hasNotes || hasBodyMessage) offset = 50;
-    
-    const finalY = tableEndY + offset;
+    const termsY = contentEndY + 15;
     doc.setFontSize(12);
     doc.setTextColor(40, 40, 40);
-    doc.text(`${t.termsLabel}:`, margin, finalY);
+    doc.text(`${t.termsLabel}:`, margin, termsY);
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     const splitTerms = doc.splitTextToSize(document.terms, contentWidth);
-    doc.text(splitTerms, margin, finalY + 10);
+    doc.text(splitTerms, margin, termsY + 10);
+    contentEndY = termsY + 10 + (splitTerms.length * 5);
   }
   
-  // Footer section
+  // Footer section - positioned after content, not at page bottom
   const footerMessage = documentType === 'invoice'
     ? (isClientFrench ? company?.invoice_footer_message_fr || company?.invoice_footer_message : company?.invoice_footer_message_en || company?.invoice_footer_message)
     : (isClientFrench ? company?.quote_footer_message_fr || company?.quote_footer_message_en : company?.quote_footer_message_en || company?.quote_footer_message_fr);
   
   const shouldRenderFooter = !!footerMessage && footerMessage.trim() !== (bodyMessage?.trim() || '');
   
-  // Decorative footer elements
+  // Calculate footer Y position - directly after content with margin
+  const footerY = contentEndY + 30;
+  const centerX = pageWidth / 2;
+  
+  // Decorative footer elements - positioned relative to footer, not page bottom
   if (template === 'modern') {
     doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-    doc.rect(0, pageHeight - 30, pageWidth, 30, 'F');
+    doc.rect(0, footerY - 5, pageWidth, 25, 'F');
   } else if (template === 'professional') {
     doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
     doc.setLineWidth(2);
-    doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
+    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
   }
   
-  // Footer text - CENTERED
-  const centerX = pageWidth / 2;
-  
+  // Footer text - CENTERED, positioned in document flow
   doc.setFontSize(8);
   if (template === 'creative') {
     doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
@@ -658,18 +657,18 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
   }
   
   if (shouldRenderFooter) {
-    doc.text(footerMessage!, centerX, pageHeight - 20, { align: 'center' });
+    doc.text(footerMessage!, centerX, footerY + 5, { align: 'center' });
   } else if (customFooterText) {
-    doc.text(customFooterText, centerX, pageHeight - 20, { align: 'center' });
+    doc.text(customFooterText, centerX, footerY + 5, { align: 'center' });
   } else {
-    doc.text(t.thankYou, centerX, pageHeight - 20, { align: 'center' });
+    doc.text(t.thankYou, centerX, footerY + 5, { align: 'center' });
   }
   
   // Branding (if not hidden) - CENTERED below the thank you message
   if (!hideBranding) {
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
-    doc.text(t.branding, centerX, pageHeight - 12, { align: 'center' });
+    doc.text(t.branding, centerX, footerY + 13, { align: 'center' });
   }
 
   // Return blob or save file
