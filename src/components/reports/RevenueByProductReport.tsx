@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, DollarSign, Hash, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 
 interface RevenueByProductReportProps {
   startDate?: Date;
@@ -171,37 +171,30 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
             </CardTitle>
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    type="number" 
-                    tickFormatter={(value) => formatCurrency(value)}
-                    stroke="#6b7280"
-                  />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={150}
-                    stroke="#6b7280"
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => formatCurrency(value)}
-                    labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
-                    contentStyle={{ 
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <div className="w-full overflow-x-auto">
+              <BarChart width={700} height={400} data={chartData} layout="vertical" margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  type="number" 
+                  tickFormatter={(value) => formatCurrency(value)}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  width={150}
+                />
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value)}
+                  labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                />
+                <Bar dataKey="value" fill="#22c55e" radius={[0, 4, 4, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </div>
           </CardContent>
         </Card>
       )}
