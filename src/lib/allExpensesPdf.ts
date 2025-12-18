@@ -20,7 +20,10 @@ export type PlanType = 'free' | 'premium' | 'pro';
 
 export interface AllExpensesPdfOptions {
   reportData: ExpenseReportData;
+  startDate?: Date;
+  endDate?: Date;
   companyName?: string;
+  companyFilterName?: string;
   language?: 'fr' | 'en';
   planType?: PlanType;
   hideBranding?: boolean;
@@ -29,14 +32,13 @@ export interface AllExpensesPdfOptions {
 
 const getTranslations = (language: 'fr' | 'en') => {
   return language === 'fr' ? {
-    reportTitle: 'Toutes les dépenses',
+    reportTitle: 'Détail de toutes les dépenses',
     company: 'Entreprise',
+    period: 'Période',
+    since: 'À partir du',
+    until: "Jusqu'au",
+    allPeriods: 'Toutes les périodes',
     generatedOn: 'Généré le',
-    summary: 'Résumé',
-    totalExpenses: 'Total des dépenses',
-    paidExpenses: 'Dépenses payées',
-    unpaidExpenses: 'Dépenses impayées',
-    expensesDetail: 'Liste complète des dépenses',
     date: 'Date',
     description: 'Description',
     category: 'Catégorie',
@@ -49,20 +51,21 @@ const getTranslations = (language: 'fr' | 'en') => {
     paid: 'Payée',
     unpaid: 'Impayée',
     totalRow: 'TOTAL',
+    totalAmount: 'Total Montant',
+    totalTaxes: 'Total Taxes',
+    grandTotal: 'Grand Total',
     page: 'Page',
     of: 'sur',
     generatedBy: 'Généré avec GestionFlow',
-    noExpenses: 'Aucune dépense enregistrée',
-    allTime: 'Historique complet'
+    noExpenses: 'Aucune dépense enregistrée'
   } : {
-    reportTitle: 'All Expenses',
+    reportTitle: 'All Expenses Detail',
     company: 'Company',
+    period: 'Period',
+    since: 'From',
+    until: 'Until',
+    allPeriods: 'All periods',
     generatedOn: 'Generated on',
-    summary: 'Summary',
-    totalExpenses: 'Total Expenses',
-    paidExpenses: 'Paid Expenses',
-    unpaidExpenses: 'Unpaid Expenses',
-    expensesDetail: 'Complete Expenses List',
     date: 'Date',
     description: 'Description',
     category: 'Category',
@@ -75,18 +78,23 @@ const getTranslations = (language: 'fr' | 'en') => {
     paid: 'Paid',
     unpaid: 'Unpaid',
     totalRow: 'TOTAL',
+    totalAmount: 'Total Amount',
+    totalTaxes: 'Total Taxes',
+    grandTotal: 'Grand Total',
     page: 'Page',
     of: 'of',
     generatedBy: 'Generated with GestionFlow',
-    noExpenses: 'No expenses recorded',
-    allTime: 'Complete history'
+    noExpenses: 'No expenses recorded'
   };
 };
 
 export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Promise<Blob | void> => {
   const {
     reportData,
+    startDate,
+    endDate,
     companyName,
+    companyFilterName,
     language = 'fr',
     hideBranding = false,
     returnBlob = false
@@ -100,7 +108,6 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   const margin = 15;
-  const contentWidth = pageWidth - (margin * 2);
 
   let yPosition = margin;
   const totalPages = { value: 1 };
@@ -132,8 +139,23 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
     yPosition += 6;
   }
 
-  doc.text(t.allTime, margin, yPosition);
+  // Period
+  let periodText = t.allPeriods;
+  if (startDate && endDate) {
+    periodText = `${t.period}: ${format(startDate, 'd MMMM yyyy', { locale: dateLocale })} – ${format(endDate, 'd MMMM yyyy', { locale: dateLocale })}`;
+  } else if (startDate) {
+    periodText = `${t.since}: ${format(startDate, 'd MMMM yyyy', { locale: dateLocale })}`;
+  } else if (endDate) {
+    periodText = `${t.until}: ${format(endDate, 'd MMMM yyyy', { locale: dateLocale })}`;
+  }
+  doc.text(periodText, margin, yPosition);
   yPosition += 6;
+
+  // Company filter
+  if (companyFilterName) {
+    doc.text(`${t.companyCol}: ${companyFilterName}`, margin, yPosition);
+    yPosition += 6;
+  }
 
   doc.setTextColor(...COLORS.gray);
   doc.setFontSize(9);
@@ -146,59 +168,21 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
   doc.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += 10;
 
-  // ===== SUMMARY =====
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...COLORS.dark);
-  doc.text(t.summary, margin, yPosition);
-  yPosition += 8;
-
-  const cardWidth = (contentWidth - 10) / 3;
-  const cardHeight = 28;
-  const cardPadding = 5;
-
-  const summaryCards = [
-    { label: t.totalExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses), color: COLORS.red },
-    { label: t.paidExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalPaidExpenses), color: COLORS.green },
-    { label: t.unpaidExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalUnpaidExpenses), color: COLORS.orange }
-  ];
-
-  summaryCards.forEach((card, index) => {
-    const cardX = margin + (index * (cardWidth + 5));
-    doc.setFillColor(...COLORS.lightGray);
-    doc.roundedRect(cardX, yPosition, cardWidth, cardHeight, 3, 3, 'F');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.gray);
-    doc.text(card.label, cardX + cardPadding, yPosition + 10);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...card.color);
-    doc.text(card.value, cardX + cardPadding, yPosition + 22);
-  });
-
-  yPosition += cardHeight + 12;
-
   // ===== EXPENSES TABLE =====
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...COLORS.dark);
-  doc.text(t.expensesDetail, margin, yPosition);
-  yPosition += 8;
-
   if (reportData.expenseDetails.length === 0) {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...COLORS.gray);
     doc.text(t.noExpenses, margin, yPosition + 10);
   } else {
+    // Sort by date ascending
     const sortedExpenses = [...reportData.expenseDetails].sort((a, b) => 
-      new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime()
+      new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime()
     );
 
     let totalAmount = 0;
     let totalTaxes = 0;
-    let totalWithTaxes = 0;
+    let grandTotal = 0;
 
     const tableData = sortedExpenses.map(expense => {
       const expenseTaxes = expense.taxes?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
@@ -206,7 +190,7 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
       
       totalAmount += expense.amount;
       totalTaxes += expenseTaxes;
-      totalWithTaxes += expenseTotal;
+      grandTotal += expenseTotal;
 
       const taxDisplay = expense.taxes && expense.taxes.length > 0
         ? expense.taxes.map(tax => `${tax.name}: ${new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(tax.amount || 0)}`).join(', ')
@@ -214,7 +198,7 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
 
       return [
         format(new Date(expense.expense_date), 'dd/MM/yyyy'),
-        expense.description.length > 30 ? expense.description.substring(0, 30) + '...' : expense.description,
+        expense.description.length > 35 ? expense.description.substring(0, 35) + '...' : expense.description,
         expense.category,
         expense.company_name || '-',
         expense.vendor || '-',
@@ -225,6 +209,7 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
       ];
     });
 
+    // Add totals row
     tableData.push([
       t.totalRow,
       '',
@@ -233,7 +218,7 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
       '',
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalAmount),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalTaxes),
-      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalWithTaxes),
+      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(grandTotal),
       ''
     ]);
 
@@ -262,20 +247,22 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
       },
       columnStyles: {
         0: { halign: 'left', cellWidth: 22 },
-        1: { halign: 'left', cellWidth: 45 },
+        1: { halign: 'left', cellWidth: 50 },
         2: { halign: 'left', cellWidth: 30 },
         3: { halign: 'left', cellWidth: 35 },
         4: { halign: 'left', cellWidth: 30 },
         5: { halign: 'right', cellWidth: 25 },
-        6: { halign: 'left', cellWidth: 45 },
+        6: { halign: 'left', cellWidth: 40 },
         7: { halign: 'right', cellWidth: 25 },
         8: { halign: 'center', cellWidth: 20 },
       },
       didParseCell: (data) => {
+        // Style the totals row
         if (data.row.index === tableData.length - 1) {
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.fillColor = COLORS.lightGray;
         }
+        // Color the status column
         if (data.column.index === 8 && data.section === 'body' && data.row.index < tableData.length - 1) {
           const statusText = data.cell.raw as string;
           if (statusText === t.paid) {
@@ -291,13 +278,18 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
     });
   }
 
+  // Add footers to all pages
   totalPages.value = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages.value; i++) {
     doc.setPage(i);
     addFooter(i, totalPages.value);
   }
 
-  const filename = language === 'fr' ? "toutes-les-depenses.pdf" : "all-expenses.pdf";
+  let filename = language === 'fr' ? "detail-toutes-depenses" : "all-expenses-detail";
+  if (startDate && endDate) {
+    filename += `-${format(startDate, 'yyyy-MM-dd')}-${format(endDate, 'yyyy-MM-dd')}`;
+  }
+  filename += ".pdf";
 
   if (returnBlob) {
     return doc.output('blob');
