@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +11,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 const COLOR_PRESETS = [
   { value: "blue", color: "bg-blue-600", label: { en: "Blue", fr: "Bleu" } },
@@ -69,10 +69,18 @@ export function InvoiceDesignSettings() {
   const [customColor, setCustomColor] = useState<string>("#2563eb");
   const [logoPosition, setLogoPosition] = useState<string>("right");
   const [logoSize, setLogoSize] = useState<string>("medium");
-  const [footerText, setFooterText] = useState<string>("");
-  const [defaultTerms, setDefaultTerms] = useState<string>("");
-  const [defaultNotes, setDefaultNotes] = useState<string>("");
   const [hidePdfBranding, setHidePdfBranding] = useState<boolean>(false);
+  
+  // Invoice defaults
+  const [invoiceFooterText, setInvoiceFooterText] = useState<string>("");
+  const [defaultInvoiceTerms, setDefaultInvoiceTerms] = useState<string>("");
+  
+  // Quote defaults
+  const [quoteFooterText, setQuoteFooterText] = useState<string>("");
+  const [defaultQuoteTerms, setDefaultQuoteTerms] = useState<string>("");
+  
+  // Shared defaults
+  const [defaultNotes, setDefaultNotes] = useState<string>("");
 
   useEffect(() => {
     const savedInvoiceTemplate = localStorage.getItem("invoice-template") || "classic";
@@ -80,20 +88,24 @@ export function InvoiceDesignSettings() {
     const savedCustomColor = localStorage.getItem("invoice-custom-color") || "#2563eb";
     const savedLogoPosition = localStorage.getItem("invoice-logo-position") || "right";
     const savedLogoSize = localStorage.getItem("invoice-logo-size") || "medium";
-    const savedFooterText = localStorage.getItem("invoice-footer-text") || "";
-    const savedDefaultTerms = localStorage.getItem("invoice-default-terms") || "";
-    const savedDefaultNotes = localStorage.getItem("invoice-default-notes") || "";
     const savedHidePdfBranding = localStorage.getItem("hide-pdf-branding") === "true";
+    const savedInvoiceFooterText = localStorage.getItem("invoice-footer-text") || "";
+    const savedDefaultInvoiceTerms = localStorage.getItem("invoice-default-terms") || "";
+    const savedQuoteFooterText = localStorage.getItem("quote-footer-text") || "";
+    const savedDefaultQuoteTerms = localStorage.getItem("quote-default-terms") || "";
+    const savedDefaultNotes = localStorage.getItem("invoice-default-notes") || "";
     
     setInvoiceTemplate(savedInvoiceTemplate);
     setInvoiceColor(savedInvoiceColor);
     setCustomColor(savedCustomColor);
     setLogoPosition(savedLogoPosition);
     setLogoSize(savedLogoSize);
-    setFooterText(savedFooterText);
-    setDefaultTerms(savedDefaultTerms);
-    setDefaultNotes(savedDefaultNotes);
     setHidePdfBranding(savedHidePdfBranding);
+    setInvoiceFooterText(savedInvoiceFooterText);
+    setDefaultInvoiceTerms(savedDefaultInvoiceTerms);
+    setQuoteFooterText(savedQuoteFooterText);
+    setDefaultQuoteTerms(savedDefaultQuoteTerms);
+    setDefaultNotes(savedDefaultNotes);
   }, []);
 
   const handleInvoiceTemplateChange = (value: string) => {
@@ -123,25 +135,35 @@ export function InvoiceDesignSettings() {
     localStorage.setItem("invoice-logo-size", value);
   };
 
-  const handleFooterTextChange = (value: string) => {
-    setFooterText(value);
+  const handleHidePdfBrandingChange = (checked: boolean) => {
+    if (planLimits?.plan_type !== 'pro') return;
+    setHidePdfBranding(checked);
+    localStorage.setItem("hide-pdf-branding", checked.toString());
+  };
+
+  const handleInvoiceFooterTextChange = (value: string) => {
+    setInvoiceFooterText(value);
     localStorage.setItem("invoice-footer-text", value);
   };
 
-  const handleDefaultTermsChange = (value: string) => {
-    setDefaultTerms(value);
+  const handleDefaultInvoiceTermsChange = (value: string) => {
+    setDefaultInvoiceTerms(value);
     localStorage.setItem("invoice-default-terms", value);
+  };
+
+  const handleQuoteFooterTextChange = (value: string) => {
+    setQuoteFooterText(value);
+    localStorage.setItem("quote-footer-text", value);
+  };
+
+  const handleDefaultQuoteTermsChange = (value: string) => {
+    setDefaultQuoteTerms(value);
+    localStorage.setItem("quote-default-terms", value);
   };
 
   const handleDefaultNotesChange = (value: string) => {
     setDefaultNotes(value);
     localStorage.setItem("invoice-default-notes", value);
-  };
-
-  const handleHidePdfBrandingChange = (checked: boolean) => {
-    if (planLimits?.plan_type !== 'pro') return;
-    setHidePdfBranding(checked);
-    localStorage.setItem("hide-pdf-branding", checked.toString());
   };
 
   const isPro = planLimits?.plan_type === 'pro';
@@ -340,8 +362,8 @@ export function InvoiceDesignSettings() {
           </div>
           <CardDescription>
             {language === "fr"
-              ? "Personnalisez l'image de marque et le contenu par défaut de vos documents."
-              : "Customize branding and default content for your documents."}
+              ? "Ces paramètres s'appliquent uniquement aux factures et devis PDF. Ils définissent l'image de marque et le contenu par défaut pour les nouveaux documents."
+              : "These settings apply to PDF invoices and quotes only. They define default branding and content for new documents."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -358,110 +380,210 @@ export function InvoiceDesignSettings() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Custom color picker */}
-              <div className="space-y-2">
-                <Label>{language === "fr" ? "Couleur personnalisée" : "Custom Accent Color"}</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={customColor}
-                    onChange={(e) => handleCustomColorChange(e.target.value)}
-                    className="w-10 h-10 rounded cursor-pointer border"
-                  />
-                  <Input
-                    value={customColor}
-                    onChange={(e) => handleCustomColorChange(e.target.value)}
-                    placeholder="#2563eb"
-                    className="w-32"
-                  />
-                </div>
-              </div>
-
-              {/* Logo position & size */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Position du logo" : "Logo Position"}</Label>
-                  <Select value={logoPosition} onValueChange={handleLogoPositionChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LOGO_POSITIONS.map((pos) => (
-                        <SelectItem key={pos.value} value={pos.value}>
-                          {pos.label[language]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Taille du logo" : "Logo Size"}</Label>
-                  <Select value={logoSize} onValueChange={handleLogoSizeChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LOGO_SIZES.map((size) => (
-                        <SelectItem key={size.value} value={size.value}>
-                          {size.label[language]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Footer text */}
-              <div className="space-y-2">
-                <Label>{language === "fr" ? "Texte de pied de page" : "Footer Text"}</Label>
-                <Input
-                  value={footerText}
-                  onChange={(e) => handleFooterTextChange(e.target.value)}
-                  placeholder={language === "fr" ? "Merci pour votre confiance!" : "Thank you for your business!"}
-                />
-              </div>
-
-              {/* Default terms */}
-              <div className="space-y-2">
-                <Label>{language === "fr" ? "Conditions par défaut" : "Default Terms"}</Label>
-                <Textarea
-                  value={defaultTerms}
-                  onChange={(e) => handleDefaultTermsChange(e.target.value)}
-                  placeholder={language === "fr" ? "Paiement dû dans les 30 jours..." : "Payment due within 30 days..."}
-                  rows={3}
-                />
-              </div>
-
-              {/* Default notes */}
-              <div className="space-y-2">
-                <Label>{language === "fr" ? "Notes par défaut" : "Default Notes"}</Label>
-                <Textarea
-                  value={defaultNotes}
-                  onChange={(e) => handleDefaultNotesChange(e.target.value)}
-                  placeholder={language === "fr" ? "Notes additionnelles..." : "Additional notes..."}
-                  rows={3}
-                />
-              </div>
-
-              {/* Remove branding */}
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="space-y-0.5">
-                  <Label>
+            <div className="space-y-8">
+              {/* SECTION 1: Branding (Shared) */}
+              <div className="space-y-4">
+                <div className="border-b pb-2">
+                  <h3 className="text-base font-semibold">{language === "fr" ? "Image de marque" : "Branding"}</h3>
+                  <p className="text-xs text-muted-foreground">
                     {language === "fr" 
-                      ? "Supprimer la signature GestionFlow des PDF" 
-                      : "Remove GestionFlow branding from PDFs"}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {language === "fr"
-                      ? "Masquer la mention \"Généré avec GestionFlow\" sur les documents."
-                      : "Hide the \"Generated with GestionFlow\" mention on documents."}
+                      ? "Personnalisez l'apparence par défaut de vos documents PDF."
+                      : "Customize the default appearance of your PDF documents."}
                   </p>
                 </div>
-                <Switch
-                  checked={hidePdfBranding}
-                  onCheckedChange={handleHidePdfBrandingChange}
-                />
+
+                {/* Custom color picker */}
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Couleur personnalisée" : "Custom Accent Color"}</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={customColor}
+                      onChange={(e) => handleCustomColorChange(e.target.value)}
+                      className="w-10 h-10 rounded cursor-pointer border"
+                    />
+                    <Input
+                      value={customColor}
+                      onChange={(e) => handleCustomColorChange(e.target.value)}
+                      placeholder="#2563eb"
+                      className="w-32"
+                    />
+                  </div>
+                </div>
+
+                {/* Logo position & size */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{language === "fr" ? "Position du logo" : "Logo Position"}</Label>
+                    <Select value={logoPosition} onValueChange={handleLogoPositionChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LOGO_POSITIONS.map((pos) => (
+                          <SelectItem key={pos.value} value={pos.value}>
+                            {pos.label[language]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{language === "fr" ? "Taille du logo" : "Logo Size"}</Label>
+                    <Select value={logoSize} onValueChange={handleLogoSizeChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LOGO_SIZES.map((size) => (
+                          <SelectItem key={size.value} value={size.value}>
+                            {size.label[language]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Remove branding */}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="space-y-0.5">
+                    <Label>
+                      {language === "fr" 
+                        ? "Supprimer la signature GestionFlow des PDF" 
+                        : "Remove GestionFlow branding from PDFs"}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "fr"
+                        ? "Masquer la mention \"Généré avec GestionFlow\" sur les documents."
+                        : "Hide the \"Generated with GestionFlow\" mention on documents."}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={hidePdfBranding}
+                    onCheckedChange={handleHidePdfBrandingChange}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* SECTION 2: Invoice Defaults */}
+              <div className="space-y-4">
+                <div className="border-b pb-2">
+                  <h3 className="text-base font-semibold">{language === "fr" ? "Valeurs par défaut des factures" : "Invoice Defaults"}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Définissez le contenu par défaut appliqué aux nouvelles factures."
+                      : "Set default content applied to new invoices."}
+                  </p>
+                </div>
+
+                {/* Invoice Footer Text */}
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Texte de pied de page de facture" : "Invoice Footer Text"}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Ce texte apparaît en bas des factures PDF."
+                      : "This text appears at the bottom of PDF invoices."}
+                  </p>
+                  <Input
+                    value={invoiceFooterText}
+                    onChange={(e) => handleInvoiceFooterTextChange(e.target.value)}
+                    placeholder={language === "fr" ? "Merci pour votre confiance!" : "Thank you for your business!"}
+                  />
+                </div>
+
+                {/* Default Invoice Terms */}
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Conditions par défaut des factures" : "Default Invoice Terms"}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Ces conditions sont automatiquement pré-remplies lors de la création d'une nouvelle facture."
+                      : "These terms are automatically pre-filled when creating a new invoice."}
+                  </p>
+                  <Textarea
+                    value={defaultInvoiceTerms}
+                    onChange={(e) => handleDefaultInvoiceTermsChange(e.target.value)}
+                    placeholder={language === "fr" ? "Paiement dû dans les 30 jours..." : "Payment due within 30 days..."}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* SECTION 3: Quote Defaults */}
+              <div className="space-y-4">
+                <div className="border-b pb-2">
+                  <h3 className="text-base font-semibold">{language === "fr" ? "Valeurs par défaut des devis" : "Quote Defaults"}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Définissez le contenu par défaut appliqué aux nouveaux devis."
+                      : "Set default content applied to new quotes."}
+                  </p>
+                </div>
+
+                {/* Quote Footer Text */}
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Texte de pied de page de devis" : "Quote Footer Text"}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Ce texte apparaît en bas des devis PDF."
+                      : "This text appears at the bottom of PDF quotes."}
+                  </p>
+                  <Input
+                    value={quoteFooterText}
+                    onChange={(e) => handleQuoteFooterTextChange(e.target.value)}
+                    placeholder={language === "fr" ? "Merci de considérer nos services!" : "Thank you for considering our services!"}
+                  />
+                </div>
+
+                {/* Default Quote Terms */}
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Conditions par défaut des devis" : "Default Quote Terms"}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Ces conditions sont automatiquement pré-remplies lors de la création d'un nouveau devis."
+                      : "These terms are automatically pre-filled when creating a new quote."}
+                  </p>
+                  <Textarea
+                    value={defaultQuoteTerms}
+                    onChange={(e) => handleDefaultQuoteTermsChange(e.target.value)}
+                    placeholder={language === "fr" ? "Ce devis est valide 30 jours..." : "This quote is valid for 30 days..."}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* SECTION 4: Shared Defaults */}
+              <div className="space-y-4">
+                <div className="border-b pb-2">
+                  <h3 className="text-base font-semibold">{language === "fr" ? "Valeurs partagées par défaut" : "Shared Defaults"}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Contenu par défaut appliqué aux factures et aux devis."
+                      : "Default content applied to both invoices and quotes."}
+                  </p>
+                </div>
+
+                {/* Default notes */}
+                <div className="space-y-2">
+                  <Label>{language === "fr" ? "Notes par défaut" : "Default Notes"}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Ces notes sont pré-remplies sur les nouvelles factures et devis."
+                      : "These notes are pre-filled on new invoices and quotes."}
+                  </p>
+                  <Textarea
+                    value={defaultNotes}
+                    onChange={(e) => handleDefaultNotesChange(e.target.value)}
+                    placeholder={language === "fr" ? "Notes additionnelles..." : "Additional notes..."}
+                    rows={3}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -488,7 +610,7 @@ export function InvoiceDesignSettings() {
               color={activeColor}
               logoPosition={logoPosition}
               logoSize={logoSize}
-              footerText={footerText || (language === "fr" ? "Merci pour votre confiance!" : "Thank you for your business!")}
+              footerText={invoiceFooterText || (language === "fr" ? "Merci pour votre confiance!" : "Thank you for your business!")}
               hideBranding={hidePdfBranding}
               language={language}
             />

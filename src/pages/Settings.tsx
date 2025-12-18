@@ -108,12 +108,8 @@ export default function Settings() {
     payment_confirmation_email_message_fr: "",
     invoice_body_message_en: "",
     invoice_body_message_fr: "",
-    invoice_footer_message_en: "",
-    invoice_footer_message_fr: "",
     quote_body_message_en: "",
-    quote_body_message_fr: "",
-    quote_footer_message_en: "",
-    quote_footer_message_fr: ""
+    quote_body_message_fr: ""
   });
   const [isSavingTemplates, setIsSavingTemplates] = useState(false);
   const [isTestingReminders, setIsTestingReminders] = useState(false);
@@ -303,12 +299,8 @@ Cordialement,
 {company_name}`,
           invoice_body_message_en: (company as any).invoice_body_message_en || '',
           invoice_body_message_fr: (company as any).invoice_body_message_fr || '',
-          invoice_footer_message_en: (company as any).invoice_footer_message_en || 'Thank you for your business!',
-          invoice_footer_message_fr: (company as any).invoice_footer_message_fr || 'Merci pour votre confiance!',
           quote_body_message_en: (company as any).quote_body_message_en || '',
-          quote_body_message_fr: (company as any).quote_body_message_fr || '',
-          quote_footer_message_en: (company as any).quote_footer_message_en || 'Thank you for considering our services!',
-          quote_footer_message_fr: (company as any).quote_footer_message_fr || 'Merci de considérer nos services!'
+          quote_body_message_fr: (company as any).quote_body_message_fr || ''
         });
       }
     }
@@ -679,12 +671,6 @@ Cordialement,
         templateData.payment_confirmation_email_subject_fr = emailTemplates.payment_confirmation_email_subject_fr;
         templateData.payment_confirmation_email_message_en = emailTemplates.payment_confirmation_email_message_en;
         templateData.payment_confirmation_email_message_fr = emailTemplates.payment_confirmation_email_message_fr;
-        // Invoice footer - Pro only
-        templateData.invoice_footer_message_en = emailTemplates.invoice_footer_message_en;
-        templateData.invoice_footer_message_fr = emailTemplates.invoice_footer_message_fr;
-        // Quote footer - Pro only
-        templateData.quote_footer_message_en = emailTemplates.quote_footer_message_en;
-        templateData.quote_footer_message_fr = emailTemplates.quote_footer_message_fr;
       }
       
       // Body messages - Premium and Pro can save
@@ -1391,70 +1377,6 @@ Cordialement,
                         </AccordionContent>
                       </AccordionItem>
 
-                      {/* Invoice Footer Message */}
-                      <AccordionItem value="invoice-footer">
-                        <AccordionTrigger className="hover:no-underline">
-                          <div className="flex items-center justify-between w-full pr-2">
-                            <h4 className="font-medium">{language === "fr" ? "Message de pied de page de facture" : "Invoice Footer Message"}</h4>
-                            <Badge variant={planLimits?.plan_type === 'pro' ? "default" : "secondary"} className="flex items-center gap-1 ml-2">
-                              {planLimits?.plan_type !== 'pro' && <Lock className="h-3 w-3" />}
-                              Pro
-                            </Badge>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-4 pt-4">
-                          <p className="text-sm text-muted-foreground">
-                            {language === "fr" 
-                              ? "Ce texte apparaît en bas de la facture PDF." 
-                              : "This text appears at the bottom of the PDF invoice."}
-                          </p>
-                          
-                          {/* Helper text */}
-                          <div className="rounded-lg border bg-muted/30 p-3">
-                            <p className="text-xs text-muted-foreground">
-                              {planLimits?.plan_type === 'pro' 
-                                ? (language === "fr" 
-                                    ? "Personnalisez le texte de pied de page affiché sur vos documents PDF. Disponible uniquement sur le plan Pro."
-                                    : "Customize the footer text displayed on your PDF documents. Available on Pro plan only.")
-                                : (language === "fr"
-                                    ? "Disponible uniquement sur le plan Pro."
-                                    : "Available on Pro plan only.")
-                              }
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="invoice_footer_message_en" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
-                                Message (English)
-                              </Label>
-                              <Textarea
-                                id="invoice_footer_message_en"
-                                rows={3}
-                                value={emailTemplates.invoice_footer_message_en}
-                                onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_en: e.target.value})}
-                                placeholder="Thank you for your business!"
-                                disabled={planLimits?.plan_type !== 'pro'}
-                                className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="invoice_footer_message_fr" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
-                                Message (Français)
-                              </Label>
-                              <Textarea
-                                id="invoice_footer_message_fr"
-                                rows={3}
-                                value={emailTemplates.invoice_footer_message_fr}
-                                onChange={(e) => setEmailTemplates({...emailTemplates, invoice_footer_message_fr: e.target.value})}
-                                placeholder="Merci pour votre confiance!"
-                                disabled={planLimits?.plan_type !== 'pro'}
-                                className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}
-                              />
-                            </div>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
                     </Accordion>
                   </div>
 
@@ -1540,70 +1462,6 @@ Cordialement,
                         </AccordionContent>
                       </AccordionItem>
 
-                      {/* Quote Footer Message */}
-                      <AccordionItem value="quote-footer">
-                        <AccordionTrigger className="hover:no-underline">
-                          <div className="flex items-center justify-between w-full pr-2">
-                            <h4 className="font-medium">{language === "fr" ? "Message de pied de page du devis" : "Quote Footer Message"}</h4>
-                            <Badge variant={planLimits?.plan_type === 'pro' ? "default" : "secondary"} className="flex items-center gap-1 ml-2">
-                              {planLimits?.plan_type !== 'pro' && <Lock className="h-3 w-3" />}
-                              Pro
-                            </Badge>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-4 pt-4">
-                          <p className="text-sm text-muted-foreground">
-                            {language === "fr" 
-                              ? "Ce texte apparaît en bas du devis PDF." 
-                              : "This text appears at the bottom of the PDF quote."}
-                          </p>
-                          
-                          {/* Helper text */}
-                          <div className="rounded-lg border bg-muted/30 p-3">
-                            <p className="text-xs text-muted-foreground">
-                              {planLimits?.plan_type === 'pro' 
-                                ? (language === "fr" 
-                                    ? "Personnalisez le texte de pied de page affiché sur vos devis PDF. Disponible uniquement sur le plan Pro."
-                                    : "Customize the footer text displayed on your PDF quotes. Available on Pro plan only.")
-                                : (language === "fr"
-                                    ? "Disponible uniquement sur le plan Pro."
-                                    : "Available on Pro plan only.")
-                              }
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="quote_footer_message_en" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
-                                Message (English)
-                              </Label>
-                              <Textarea
-                                id="quote_footer_message_en"
-                                rows={3}
-                                value={emailTemplates.quote_footer_message_en}
-                                onChange={(e) => setEmailTemplates({...emailTemplates, quote_footer_message_en: e.target.value})}
-                                placeholder="Thank you for considering our services!"
-                                disabled={planLimits?.plan_type !== 'pro'}
-                                className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="quote_footer_message_fr" className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}>
-                                Message (Français)
-                              </Label>
-                              <Textarea
-                                id="quote_footer_message_fr"
-                                rows={3}
-                                value={emailTemplates.quote_footer_message_fr}
-                                onChange={(e) => setEmailTemplates({...emailTemplates, quote_footer_message_fr: e.target.value})}
-                                placeholder="Merci de considérer nos services!"
-                                disabled={planLimits?.plan_type !== 'pro'}
-                                className={planLimits?.plan_type !== 'pro' ? "opacity-50" : ""}
-                              />
-                            </div>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
                     </Accordion>
                   </div>
 
