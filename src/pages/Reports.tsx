@@ -7558,6 +7558,35 @@ const Reports = () => {
           ? `${language === 'fr' ? 'Clients de' : 'Clients for'} ${selectedCompanyForEmail.name}`
           : (language === 'fr' ? 'Clients par entreprise' : 'Clients by Company')
         }
+        defaultSubject={language === 'fr' 
+          ? `Rapport Clients par entreprise${selectedCompanyForEmail ? ` - ${selectedCompanyForEmail.name}` : ''}`
+          : `Clients by Company Report${selectedCompanyForEmail ? ` - ${selectedCompanyForEmail.name}` : ''}`
+        }
+        defaultMessage={(() => {
+          let msg = language === 'fr'
+            ? `Veuillez trouver ci-joint le rapport Clients par entreprise généré depuis GestionFlow.\n\nLes clients sont regroupés par leur entreprise associée.`
+            : `Please find attached the Clients by Company report generated from GestionFlow.\n\nClients are grouped by their associated company.`;
+          
+          if (selectedCompanyForEmail) {
+            msg = language === 'fr'
+              ? `Veuillez trouver ci-joint la liste des clients de ${selectedCompanyForEmail.name} générée depuis GestionFlow.`
+              : `Please find attached the clients list for ${selectedCompanyForEmail.name} generated from GestionFlow.`;
+          }
+          
+          if (createdFromDate || createdToDate) {
+            let dateRange = '';
+            if (createdFromDate && createdToDate) {
+              dateRange = `${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}`;
+            } else if (createdFromDate) {
+              dateRange = language === 'fr' ? `Depuis le ${format(createdFromDate, 'dd/MM/yyyy')}` : `From ${format(createdFromDate, 'dd/MM/yyyy')}`;
+            } else if (createdToDate) {
+              dateRange = language === 'fr' ? `Jusqu'au ${format(createdToDate, 'dd/MM/yyyy')}` : `Until ${format(createdToDate, 'dd/MM/yyyy')}`;
+            }
+            msg += `\n\n${language === 'fr' ? 'Période de création' : 'Creation period'}: ${dateRange}`;
+          }
+          
+          return msg;
+        })()}
         pdfBlob={null}
         onGeneratePdf={async () => {
           if (!selectedCompanyForEmail || !clients) return null;

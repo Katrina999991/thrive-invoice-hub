@@ -18,6 +18,8 @@ interface EmailReportDialogProps {
   reportTitle: string;
   pdfBlob: Blob | null;
   onGeneratePdf: () => Promise<Blob | null>;
+  defaultSubject?: string;
+  defaultMessage?: string;
 }
 
 export const EmailReportDialog = ({
@@ -27,6 +29,8 @@ export const EmailReportDialog = ({
   reportTitle,
   pdfBlob,
   onGeneratePdf,
+  defaultSubject,
+  defaultMessage,
 }: EmailReportDialogProps) => {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
@@ -35,12 +39,13 @@ export const EmailReportDialog = ({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Reset subject when dialog opens with new report title
+  // Reset subject and message when dialog opens with new report title
   useEffect(() => {
     if (open) {
-      setSubject(reportTitle);
+      setSubject(defaultSubject || reportTitle);
+      setMessage(defaultMessage || "");
     }
-  }, [open, reportTitle]);
+  }, [open, reportTitle, defaultSubject, defaultMessage]);
 
   const handleSend = async () => {
     if (!recipient) {
