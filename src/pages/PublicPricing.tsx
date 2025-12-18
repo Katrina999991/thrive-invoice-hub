@@ -86,7 +86,7 @@ const PublicPricing = () => {
           period: "/mois",
           description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
           cta: "Commencer gratuitement",
-          stripeInfo: "💳 Paiements Stripe — 2 %",
+          stripeInfo: "💳 Paiements Stripe (+2 % frais GestionFlow)",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
@@ -110,7 +110,7 @@ const PublicPricing = () => {
           yearlySavings: "Économisez environ 2 mois avec l'abonnement annuel",
           popularText: "Choisi par la majorité de nos utilisateurs",
           cta: "Passer à Premium",
-          stripeInfo: "💳 Paiements Stripe — 1 %",
+          stripeInfo: "💳 Paiements Stripe (+1 % frais GestionFlow)",
           stripeNote: "Payez moins de frais sur chaque paiement encaissé",
           features: [
             { text: "1 entreprise", icon: "Building2" },
@@ -137,7 +137,7 @@ const PublicPricing = () => {
           description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
           yearlySavings: "Économisez environ 2 mois",
           cta: "Passer à Pro",
-          stripeInfo: "💳 Paiements Stripe — 0,5 %",
+          stripeInfo: "💳 Paiements Stripe (+0,5 % frais GestionFlow)",
           stripeNote: "Optimisez vos coûts de paiement à mesure que votre activité grandit",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
@@ -161,6 +161,11 @@ const PublicPricing = () => {
       trust: {
         secure: "Tous les paiements sont traités de manière sécurisée via Stripe.",
         cancel: "Aucun engagement à long terme. Changez de plan à tout moment."
+      },
+      stripeFootnote: {
+        line1: "Les paiements sont traités de manière sécurisée via Stripe.",
+        line2: "Les frais de traitement standard de Stripe s'appliquent.",
+        line3: "GestionFlow ajoute des frais de traitement supplémentaires selon votre plan."
       },
       cta: {
         title: "Prêt à simplifier votre gestion ?",
@@ -198,7 +203,7 @@ const PublicPricing = () => {
           },
           {
             question: "Comment fonctionnent les paiements et les frais Stripe ?",
-            answer: "Les paiements sont traités de manière sécurisée via Stripe. Les frais Stripe diminuent selon votre plan : Gratuit : 2 %, Premium : 1 %, Pro : 0,5 %.",
+            answer: "Les paiements sont traités de manière sécurisée via Stripe. Les frais de traitement standard de Stripe s'appliquent. GestionFlow ajoute des frais supplémentaires selon votre plan : Gratuit : +2 %, Premium : +1 %, Pro : +0,5 %.",
             highlight: "stripe"
           },
           {
@@ -244,7 +249,7 @@ const PublicPricing = () => {
           period: "/month",
           description: "Ideal to discover GestionFlow and start your business",
           cta: "Get Started Free",
-          stripeInfo: "💳 Stripe Payments — 2%",
+          stripeInfo: "💳 Stripe Payments (+2% GestionFlow fee)",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
@@ -268,7 +273,7 @@ const PublicPricing = () => {
           yearlySavings: "Save about 2 months with annual subscription",
           popularText: "Chosen by the majority of our users",
           cta: "Upgrade to Premium",
-          stripeInfo: "💳 Stripe Payments — 1%",
+          stripeInfo: "💳 Stripe Payments (+1% GestionFlow fee)",
           stripeNote: "Pay less fees on every payment received",
           features: [
             { text: "1 company", icon: "Building2" },
@@ -295,7 +300,7 @@ const PublicPricing = () => {
           description: "Built for growing businesses and multi-company management",
           yearlySavings: "Save about 2 months",
           cta: "Upgrade to Pro",
-          stripeInfo: "💳 Stripe Payments — 0.5%",
+          stripeInfo: "💳 Stripe Payments (+0.5% GestionFlow fee)",
           stripeNote: "Optimize your payment costs as your business grows",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
@@ -319,6 +324,11 @@ const PublicPricing = () => {
       trust: {
         secure: "All payments are securely processed via Stripe.",
         cancel: "No long-term commitment. Change your plan at any time."
+      },
+      stripeFootnote: {
+        line1: "Payments are processed securely via Stripe.",
+        line2: "Standard Stripe processing fees apply.",
+        line3: "GestionFlow adds an additional processing fee based on your plan."
       },
       cta: {
         title: "Ready to simplify your business?",
@@ -356,7 +366,7 @@ const PublicPricing = () => {
           },
           {
             question: "How do payments and Stripe fees work?",
-            answer: "Payments are securely processed via Stripe. Stripe fees decrease based on your plan: Free: 2%, Premium: 1%, Pro: 0.5%.",
+            answer: "Payments are securely processed via Stripe. Standard Stripe processing fees apply. GestionFlow adds an additional fee based on your plan: Free: +2%, Premium: +1%, Pro: +0.5%.",
             highlight: "stripe"
           },
           {
@@ -641,6 +651,25 @@ const PublicPricing = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Stripe Payment Footnote */}
+      <section className="py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-muted/50 border border-border rounded-xl p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <CreditCard className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">
+                {currentLang === "FR" ? "À propos des frais de paiement" : "About Payment Fees"}
+              </span>
+            </div>
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p>{t.stripeFootnote.line1}</p>
+              <p>{t.stripeFootnote.line2}</p>
+              <p>{t.stripeFootnote.line3}</p>
+            </div>
           </div>
         </div>
       </section>
