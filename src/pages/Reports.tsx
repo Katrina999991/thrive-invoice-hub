@@ -45,7 +45,9 @@ import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 import { generateSalesReportPdf } from "@/lib/salesReportPdf";
 import { generateRevenueReportPdf } from "@/lib/revenueReportPdf";
 import { generateRevenueByClientPdf } from "@/lib/revenueByClientPdf";
+import { generateRevenueByProductPdf } from "@/lib/revenueByProductPdf";
 import { useRevenueByClient } from "@/hooks/useRevenueByClient";
+import { useRevenueByProduct } from "@/hooks/useRevenueByProduct";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { logAuditEvent } from "@/lib/auditLogger";
 
@@ -228,6 +230,13 @@ const Reports = () => {
     clientRevenueStartDate,
     clientRevenueEndDate,
     clientRevenueCompanyId && clientRevenueCompanyId !== 'all' ? clientRevenueCompanyId : undefined
+  );
+
+  // Hook for Revenue by Product data
+  const { productRevenueData, loading: productRevenueLoading } = useRevenueByProduct(
+    productRevenueStartDate,
+    productRevenueEndDate,
+    productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined
   );
 
   const { reportData: expenseReportDataRaw, loading: expenseLoading } = useExpenseReports(
@@ -889,6 +898,117 @@ const Reports = () => {
     const filename = `${language === 'fr' ? 'revenus-par-client-graphiques' : 'revenue-by-client-charts'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
     logExport('revenue_by_client_charts', 'pdf', language === 'fr' ? 'Téléchargement PDF graphiques revenus par client' : 'Revenue by client charts PDF download');
+  };
+
+  // Export Revenue by Product to PDF
+  const exportRevenueByProductToPDF = async () => {
+    if (!productRevenueData || productRevenueData.productData.length === 0) return;
+    
+    // Get invoice line details
+    const invoiceLineDetails = invoices
+      .filter(inv => {
+        if (productRevenueStartDate || productRevenueEndDate) {
+          const invoiceDate = new Date(inv.issue_date);
+          if (productRevenueStartDate && invoiceDate < productRevenueStartDate) return false;
+          if (productRevenueEndDate && invoiceDate > productRevenueEndDate) return false;
+        }
+        if (productRevenueCompanyId && productRevenueCompanyId !== 'all') {
+          const client = clients.find(c => c.id === inv.client_id);
+          if (client?.company_id !== productRevenueCompanyId) return false;
+        }
+        return inv.status === 'paid';
+      })
+      .flatMap(inv => {
+        const items = (inv as any).invoice_items || [];
+        return items.map((item: any) => ({
+          invoice_number: inv.invoice_number,
+          client_name: (inv as any).clients?.name || '-',
+          issue_date: inv.issue_date,
+          product_name: item.description || '-',
+          quantity: Number(item.quantity) || 0,
+          line_total: Number(item.total) || 0
+        }));
+      })
+      .slice(0, 100); // Limit to 100 lines for PDF
+
+    const companyFilterName = productRevenueCompanyId && productRevenueCompanyId !== 'all'
+      ? companies.find(c => c.id === productRevenueCompanyId)?.name
+      : undefined;
+
+    await generateRevenueByProductPdf({
+      productRevenueData,
+      startDate: productRevenueStartDate,
+      endDate: productRevenueEndDate,
+      companyFilterName,
+      invoiceLineDetails,
+      language: language as 'fr' | 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding
+    });
+
+    logExport('revenue_by_product', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport revenus par produit' : 'Revenue by product report PDF download');
+  };
+
+  // Export Revenue by Product to Excel
+  const exportRevenueByProductToExcel = () => {
+    if (!productRevenueData || productRevenueData.productData.length === 0) return;
+    
+    const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Calculate average revenue per sale
+    const avgRevenuePerSale = productRevenueData.totalQuantity > 0 
+      ? productRevenueData.totalRevenue / productRevenueData.totalQuantity 
+      : 0;
+    
+    // Summary sheet
+    const summaryRows = [
+      [language === 'fr' ? 'Rapport Revenus par Produit/Service' : 'Revenue by Product/Service Report'],
+      [language === 'fr' ? 'Généré le' : 'Generated on', format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })],
+      [],
+      [language === 'fr' ? 'Période' : 'Period', 
+        productRevenueStartDate ? format(productRevenueStartDate, 'dd/MM/yyyy', { locale: dateLocale }) : '',
+        language === 'fr' ? 'au' : 'to',
+        productRevenueEndDate ? format(productRevenueEndDate, 'dd/MM/yyyy', { locale: dateLocale }) : ''
+      ],
+      [],
+      [language === 'fr' ? 'Revenus Totaux' : 'Total Revenue', productRevenueData.totalRevenue],
+      [language === 'fr' ? 'Nombre de Produits/Services' : 'Number of Products/Services', productRevenueData.uniqueProducts],
+      [language === 'fr' ? 'Quantité Totale Vendue' : 'Total Quantity Sold', productRevenueData.totalQuantity],
+      [language === 'fr' ? 'Revenu Moyen par Vente' : 'Average Revenue per Sale', avgRevenuePerSale],
+      []
+    ];
+    
+    const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
+    XLSX.utils.book_append_sheet(wb, summaryWs, language === 'fr' ? 'Résumé' : 'Summary');
+    
+    // Product details sheet
+    const productHeaders = [
+      language === 'fr' ? 'Produit/Service' : 'Product/Service',
+      language === 'fr' ? 'Qté Vendue' : 'Qty Sold',
+      language === 'fr' ? 'Revenus' : 'Revenue',
+      language === 'fr' ? 'Moy/Vente' : 'Avg/Sale',
+      language === 'fr' ? '% du Total' : '% of Total'
+    ];
+    
+    const productRows = productRevenueData.productData.map(product => [
+      product.productName,
+      product.quantitySold,
+      product.totalRevenue,
+      product.averageRevenuePerSale,
+      product.percentageOfTotal.toFixed(1) + '%'
+    ]);
+    
+    const productWs = XLSX.utils.aoa_to_sheet([productHeaders, ...productRows]);
+    XLSX.utils.book_append_sheet(wb, productWs, language === 'fr' ? 'Produits' : 'Products');
+    
+    // Generate filename and save
+    const companyFilter = productRevenueCompanyId && productRevenueCompanyId !== 'all' 
+      ? `-${companies.find(c => c.id === productRevenueCompanyId)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `${language === 'fr' ? 'revenus-par-produit' : 'revenue-by-product'}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    logExport('revenue_by_product', 'excel', language === 'fr' ? 'Export Excel rapport revenus par produit' : 'Revenue by product report Excel export');
   };
 
   // Export functions for taxes
@@ -3673,6 +3793,42 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
+                {/* Export Buttons for Revenue by Product */}
+                {productRevenueData && productRevenueData.productData.length > 0 && (productRevenueStartDate || productRevenueEndDate) && (
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportRevenueByProductToPDF}
+                      disabled={productRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportRevenueByProductToExcel}
+                      disabled={productRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Excel
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEmailDialogOpen('revenue_by_product')}
+                      disabled={productRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      {language === 'fr' ? 'Courriel' : 'Email'}
+                    </Button>
+                  </div>
+                )}
+
                 <RevenueByProductReport
                   startDate={productRevenueStartDate}
                   endDate={productRevenueEndDate}
@@ -5869,6 +6025,61 @@ const Reports = () => {
             endDate: clientRevenueEndDate,
             companyFilterName,
             invoiceDetails: clientInvoices,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'revenue_by_product'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="revenue_by_product"
+        reportTitle={language === 'fr' ? 'Revenus par produit/service' : 'Revenue by Product/Service'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!productRevenueData || productRevenueData.productData.length === 0) return null;
+          
+          // Get invoice line details
+          const invoiceLineDetails = invoices
+            .filter(inv => {
+              if (productRevenueStartDate || productRevenueEndDate) {
+                const invoiceDate = new Date(inv.issue_date);
+                if (productRevenueStartDate && invoiceDate < productRevenueStartDate) return false;
+                if (productRevenueEndDate && invoiceDate > productRevenueEndDate) return false;
+              }
+              if (productRevenueCompanyId && productRevenueCompanyId !== 'all') {
+                const client = clients.find(c => c.id === inv.client_id);
+                if (client?.company_id !== productRevenueCompanyId) return false;
+              }
+              return inv.status === 'paid';
+            })
+            .flatMap(inv => {
+              const items = (inv as any).invoice_items || [];
+              return items.map((item: any) => ({
+                invoice_number: inv.invoice_number,
+                client_name: (inv as any).clients?.name || '-',
+                issue_date: inv.issue_date,
+                product_name: item.description || '-',
+                quantity: Number(item.quantity) || 0,
+                line_total: Number(item.total) || 0
+              }));
+            })
+            .slice(0, 100);
+
+          const companyFilterName = productRevenueCompanyId && productRevenueCompanyId !== 'all'
+            ? companies.find(c => c.id === productRevenueCompanyId)?.name
+            : undefined;
+
+          const blob = await generateRevenueByProductPdf({
+            productRevenueData,
+            startDate: productRevenueStartDate,
+            endDate: productRevenueEndDate,
+            companyFilterName,
+            invoiceLineDetails,
             language: language as 'fr' | 'en',
             planType: planLimits?.plan_type || 'free',
             hideBranding: hidePdfBranding,
