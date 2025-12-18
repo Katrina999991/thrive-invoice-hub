@@ -99,6 +99,7 @@ const Reports = () => {
   const stockChartRef = useRef<HTMLDivElement>(null);
   const salesProductChartRef = useRef<HTMLDivElement>(null);
   const salesServiceChartRef = useRef<HTMLDivElement>(null);
+  const revenueByClientChartRef = useRef<HTMLDivElement>(null);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -754,6 +755,140 @@ const Reports = () => {
     });
 
     logExport('revenue_by_client', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport revenus par client' : 'Revenue by client report PDF download');
+  };
+
+  // Export Revenue by Client to Excel
+  const exportRevenueByClientToExcel = () => {
+    if (!clientRevenueData || clientRevenueData.clientData.length === 0) return;
+    
+    const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Summary sheet
+    const summaryRows = [
+      [language === 'fr' ? 'Rapport Revenus par Client' : 'Revenue by Client Report'],
+      [language === 'fr' ? 'Généré le' : 'Generated on', format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })],
+      [],
+      [language === 'fr' ? 'Période' : 'Period', 
+        clientRevenueStartDate ? format(clientRevenueStartDate, 'dd/MM/yyyy', { locale: dateLocale }) : '',
+        language === 'fr' ? 'au' : 'to',
+        clientRevenueEndDate ? format(clientRevenueEndDate, 'dd/MM/yyyy', { locale: dateLocale }) : ''
+      ],
+      [],
+      [language === 'fr' ? 'Total Facturé' : 'Total Invoiced', clientRevenueData.totalRevenue],
+      [language === 'fr' ? 'Total Encaissé' : 'Total Paid', clientRevenueData.totalPaid],
+      [language === 'fr' ? 'Nombre de Factures' : 'Number of Invoices', clientRevenueData.totalInvoices],
+      []
+    ];
+    
+    const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
+    XLSX.utils.book_append_sheet(wb, summaryWs, language === 'fr' ? 'Résumé' : 'Summary');
+    
+    // Client details sheet
+    const clientHeaders = [
+      language === 'fr' ? 'Client' : 'Client',
+      language === 'fr' ? 'Facturé' : 'Invoiced',
+      language === 'fr' ? 'Payé' : 'Paid',
+      language === 'fr' ? 'Factures' : 'Invoices',
+      language === 'fr' ? '% du Total' : '% of Total'
+    ];
+    
+    const clientRows = clientRevenueData.clientData.map(client => [
+      client.clientName,
+      client.totalInvoiced,
+      client.totalPaid,
+      client.invoiceCount,
+      client.percentageOfTotal.toFixed(1) + '%'
+    ]);
+    
+    const clientWs = XLSX.utils.aoa_to_sheet([clientHeaders, ...clientRows]);
+    XLSX.utils.book_append_sheet(wb, clientWs, language === 'fr' ? 'Clients' : 'Clients');
+    
+    // Generate filename and save
+    const companyFilter = clientRevenueCompanyId && clientRevenueCompanyId !== 'all' 
+      ? `-${companies.find(c => c.id === clientRevenueCompanyId)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `${language === 'fr' ? 'revenus-par-client' : 'revenue-by-client'}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    logExport('revenue_by_client', 'excel', language === 'fr' ? 'Export Excel rapport revenus par client' : 'Revenue by client report Excel export');
+  };
+
+  // Export Revenue by Client Charts to PDF
+  const exportRevenueByClientChartsToPDF = async () => {
+    if (!clientRevenueData || clientRevenueData.clientData.length === 0) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Title
+    doc.setFontSize(18);
+    doc.text(language === 'fr' ? 'Revenus par Client - Graphiques' : 'Revenue by Client - Charts', pageWidth / 2, 20, { align: 'center' });
+    
+    // Date range
+    let dateRangeText = '';
+    if (clientRevenueStartDate && clientRevenueEndDate) {
+      dateRangeText = `${format(clientRevenueStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(clientRevenueEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
+    }
+    
+    if (dateRangeText) {
+      doc.setFontSize(12);
+      doc.text(dateRangeText, pageWidth / 2, 30, { align: 'center' });
+    }
+    
+    let yPosition = 50;
+    
+    try {
+      // Capture Pie Chart
+      if (revenueByClientChartRef.current) {
+        const chartCanvas = await html2canvas(revenueByClientChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true
+        });
+        const chartImgData = chartCanvas.toDataURL('image/png');
+        
+        doc.setFontSize(14);
+        doc.text(language === 'fr' ? 'Distribution des revenus' : 'Revenue Distribution', 20, yPosition);
+        yPosition += 10;
+        
+        const imgWidth = pageWidth - 40;
+        const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
+        
+        doc.addImage(chartImgData, 'PNG', 20, yPosition, imgWidth, Math.min(imgHeight, 120));
+        yPosition += Math.min(imgHeight, 120) + 20;
+      }
+    } catch (error) {
+      console.error('Error capturing charts:', error);
+    }
+    
+    // Add client summary table
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    const tableData = clientRevenueData.clientData.slice(0, 10).map(client => [
+      client.clientName,
+      new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(client.totalInvoiced),
+      client.percentageOfTotal.toFixed(1) + '%'
+    ]);
+    
+    autoTable(doc, {
+      head: [[
+        language === 'fr' ? 'Client' : 'Client',
+        language === 'fr' ? 'Facturé' : 'Invoiced',
+        language === 'fr' ? '% du Total' : '% of Total'
+      ]],
+      body: tableData,
+      startY: yPosition,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+    
+    const filename = `${language === 'fr' ? 'revenus-par-client-graphiques' : 'revenue-by-client-charts'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+    logExport('revenue_by_client_charts', 'pdf', language === 'fr' ? 'Téléchargement PDF graphiques revenus par client' : 'Revenue by client charts PDF download');
   };
 
   // Export functions for taxes
@@ -3453,7 +3588,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {/* Export Button for Revenue by Client */}
+                {/* Export Buttons for Revenue by Client */}
                 {clientRevenueData && clientRevenueData.clientData.length > 0 && (clientRevenueStartDate || clientRevenueEndDate) && (
                   <div className="flex justify-end gap-2">
                     <Button
@@ -3466,14 +3601,46 @@ const Reports = () => {
                       <Download className="h-4 w-4" />
                       PDF
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportRevenueByClientToExcel}
+                      disabled={clientRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Excel
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportRevenueByClientChartsToPDF}
+                      disabled={clientRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      {language === 'fr' ? 'Graphiques' : 'Charts'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEmailDialogOpen('revenue_by_client')}
+                      disabled={clientRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      {language === 'fr' ? 'Courriel' : 'Email'}
+                    </Button>
                   </div>
                 )}
 
-                <RevenueByClientReport
-                  startDate={clientRevenueStartDate}
-                  endDate={clientRevenueEndDate}
-                  companyId={clientRevenueCompanyId && clientRevenueCompanyId !== 'all' ? clientRevenueCompanyId : undefined}
-                />
+                <div ref={revenueByClientChartRef}>
+                  <RevenueByClientReport
+                    startDate={clientRevenueStartDate}
+                    endDate={clientRevenueEndDate}
+                    companyId={clientRevenueCompanyId && clientRevenueCompanyId !== 'all' ? clientRevenueCompanyId : undefined}
+                  />
+                </div>
               </TabsContent>
 
               {/* By Product Tab */}
@@ -5668,6 +5835,56 @@ const Reports = () => {
           const tableData = clients.map(c => [c.name, c.email || '-', c.phone || '-']);
           autoTable(doc, { head: [['Nom', 'Email', 'Téléphone']], body: tableData, startY: 40 });
           return doc.output('blob');
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'revenue_by_client'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="revenue_by_client"
+        reportTitle={language === 'fr' ? 'Revenus par client' : 'Revenue by Client'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!clientRevenueData || clientRevenueData.clientData.length === 0) return null;
+          
+          // Get invoice details for each client
+          const clientInvoices = invoices
+            .filter(inv => {
+              if (clientRevenueStartDate || clientRevenueEndDate) {
+                const invoiceDate = new Date(inv.issue_date);
+                if (clientRevenueStartDate && invoiceDate < clientRevenueStartDate) return false;
+                if (clientRevenueEndDate && invoiceDate > clientRevenueEndDate) return false;
+              }
+              if (clientRevenueCompanyId && clientRevenueCompanyId !== 'all') {
+                const client = clients.find(c => c.id === inv.client_id);
+                if (client?.company_id !== clientRevenueCompanyId) return false;
+              }
+              return ['sent', 'paid', 'overdue'].includes(inv.status);
+            })
+            .map(inv => ({
+              invoice_number: inv.invoice_number,
+              issue_date: inv.issue_date,
+              total: Number(inv.total),
+              status: inv.status,
+              client_id: inv.client_id || ''
+            }));
+
+          const companyFilterName = clientRevenueCompanyId && clientRevenueCompanyId !== 'all'
+            ? companies.find(c => c.id === clientRevenueCompanyId)?.name
+            : undefined;
+
+          const blob = await generateRevenueByClientPdf({
+            clientRevenueData,
+            startDate: clientRevenueStartDate,
+            endDate: clientRevenueEndDate,
+            companyFilterName,
+            invoiceDetails: clientInvoices,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
         }}
       />
     </div>
