@@ -1685,9 +1685,105 @@ Cordialement,
                         </AccordionItem>
                       </Accordion>
 
-                      <div className="pt-4">
+                      <div className="pt-4 flex gap-2">
                         <Button onClick={handleSaveEmailTemplates} disabled={isSavingTemplates}>
                           {isSavingTemplates ? (language === "fr" ? "Sauvegarde..." : "Saving...") : (language === "fr" ? "Sauvegarder les modèles" : "Save Templates")}
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setEmailTemplates({
+                              ...emailTemplates,
+                              invoice_email_subject_en: 'Invoice {invoice_number} from {company_name}',
+                              invoice_email_subject_fr: 'Facture {invoice_number} de {company_name}',
+                              invoice_email_message_en: `Dear {client_name},
+
+Please find attached your invoice {invoice_number} dated {issue_date}.
+
+Amount due: {total}
+Due date: {due_date}
+
+Thank you for your business!
+
+Best regards,
+{company_name}`,
+                              invoice_email_message_fr: `Cher(e) {client_name},
+
+Veuillez trouver ci-joint votre facture {invoice_number} datée du {issue_date}.
+
+Montant dû: {total}
+Date d'échéance: {due_date}
+
+Merci pour votre confiance!
+
+Cordialement,
+{company_name}`,
+                              overdue_email_subject_en: 'Payment Overdue - Invoice {invoice_number}',
+                              overdue_email_subject_fr: 'Paiement en retard - Facture {invoice_number}',
+                              overdue_email_message_en: `Dear {client_name},
+
+This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+
+Original amount: {total}
+Due date: {due_date}
+Days overdue: {days_overdue}
+
+Please remit payment at your earliest convenience to avoid any late fees.
+
+If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+{company_name}`,
+                              overdue_email_message_fr: `Cher(e) {client_name},
+
+Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+
+Montant initial: {total}
+Date d'échéance: {due_date}
+Jours de retard: {days_overdue}
+
+Veuillez effectuer le paiement dès que possible pour éviter des frais de retard.
+
+Si vous avez déjà effectué le paiement, veuillez ignorer cet avis.
+
+Merci de votre attention rapide à cette question.
+
+Cordialement,
+{company_name}`,
+                              payment_confirmation_email_subject_en: 'Payment Confirmation - Invoice {invoice_number}',
+                              payment_confirmation_email_subject_fr: 'Confirmation de paiement - Facture {invoice_number}',
+                              payment_confirmation_email_message_en: `Dear {client_name},
+
+This confirms that we have received your payment for invoice {invoice_number}.
+
+Amount paid: {total}
+Payment date: {payment_date}
+
+Thank you for your prompt payment!
+
+Best regards,
+{company_name}`,
+                              payment_confirmation_email_message_fr: `Cher(e) {client_name},
+
+Ceci confirme que nous avons bien reçu votre paiement pour la facture {invoice_number}.
+
+Montant payé: {total}
+Date de paiement: {payment_date}
+
+Merci pour votre paiement rapide!
+
+Cordialement,
+{company_name}`
+                            });
+                            toast({
+                              title: language === "fr" ? "Modèles réinitialisés" : "Templates reset",
+                              description: language === "fr" ? "Les modèles d'emails ont été réinitialisés. N'oubliez pas de sauvegarder." : "Email templates have been reset. Don't forget to save.",
+                            });
+                          }}
+                        >
+                          {language === "fr" ? "Réinitialiser" : "Reset to Defaults"}
                         </Button>
                       </div>
                     </>
