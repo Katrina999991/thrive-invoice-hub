@@ -7379,13 +7379,40 @@ const Reports = () => {
         }}
       />
 
-      {/* Email dialog for All Clients list */}
+      {/* Email dialog for All Clients list (Global Clients Report) */}
       <EmailReportDialog
         open={emailDialogOpen === 'clients_all'}
         onOpenChange={(open) => !open && setEmailDialogOpen(null)}
         reportType="clients_all"
-        reportTitle={language === 'fr' ? 'Liste des clients' : 'Clients List'}
+        reportTitle={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
         pdfBlob={null}
+        defaultSubject={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
+        defaultMessage={(() => {
+          const companyName = companies.length === 1 
+            ? companies[0].name 
+            : (language === 'fr' ? 'Toutes les entreprises' : 'All Companies');
+          
+          let dateInfo = '';
+          if (createdFromDate || createdToDate) {
+            if (createdFromDate && createdToDate) {
+              dateInfo = language === 'fr' 
+                ? `\nPériode de création: ${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}`
+                : `\nCreation date range: ${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}`;
+            } else if (createdFromDate) {
+              dateInfo = language === 'fr'
+                ? `\nPériode de création: Depuis le ${format(createdFromDate, 'dd/MM/yyyy')}`
+                : `\nCreation date range: From ${format(createdFromDate, 'dd/MM/yyyy')}`;
+            } else if (createdToDate) {
+              dateInfo = language === 'fr'
+                ? `\nPériode de création: Jusqu'au ${format(createdToDate, 'dd/MM/yyyy')}`
+                : `\nCreation date range: Until ${format(createdToDate, 'dd/MM/yyyy')}`;
+            }
+          }
+          
+          return language === 'fr'
+            ? `Veuillez trouver ci-joint le rapport complet des clients généré depuis GestionFlow.\n\nEntreprise: ${companyName}${dateInfo}\n\nCe rapport inclut la liste complète des clients et les clients regroupés par entreprise.`
+            : `Please find attached the complete Clients Report generated from GestionFlow.\n\nCompany: ${companyName}${dateInfo}\n\nThis report includes the full clients list and clients grouped by company.`;
+        })()}
         onGeneratePdf={async () => {
           if (!clients || filteredClientsByDate.length === 0) return null;
           
