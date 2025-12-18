@@ -24,7 +24,14 @@ import {
   ArrowRight,
   RefreshCcw,
   BadgePercent,
-  HelpCircle
+  HelpCircle,
+  Clock,
+  Shield,
+  Tags,
+  Package,
+  Palette,
+  History,
+  UsersRound
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
@@ -173,10 +180,12 @@ const Pricing = () => {
             { text: "1 company", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
             { text: "15 invoices per month", icon: "FileText" },
-            { text: "10 expenses per month", icon: "Receipt" },
-            { text: "Email invoice sending", icon: "Mail" },
-            { text: "1 invoice template (Classic - blue)", icon: "FileText" },
-            { text: "Revenue report", icon: "BarChart3" }
+            { text: "15 expenses per month", icon: "Receipt" },
+            { text: "PDF invoices & quotes (with GestionFlow branding)", icon: "FileText" },
+            { text: "Classic invoice design", icon: "FileText" },
+            { text: "Revenue report", icon: "BarChart3" },
+            { text: "Time tracking", icon: "Clock" },
+            { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
         premium: {
@@ -189,12 +198,17 @@ const Pricing = () => {
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
-            { text: "Unlimited invoices", icon: "FileText" },
-            { text: "Unlimited expenses", icon: "Receipt" },
-            { text: "PDF invoice download", icon: "FileText" },
-            { text: "2 invoice templates (Classic + Modern)", icon: "FileText" },
-            { text: "Category management (products, services, expenses)", icon: "BarChart3" },
-            { text: "Reports: revenue + taxes", icon: "BarChart3" }
+            { text: "Unlimited invoices & expenses", icon: "FileText" },
+            { text: "PDF invoices & quotes", icon: "FileText" },
+            { text: "Classic + Modern designs", icon: "Palette" },
+            { text: "Saved invoice & quote body messages", icon: "Mail" },
+            { text: "Product, service & expense categories", icon: "Tags" },
+            { text: "Inventory management", icon: "Package" },
+            { text: "Automatic stock updates on sales", icon: "RefreshCcw" },
+            { text: "Tax reports", icon: "BarChart3" },
+            { text: "Stripe payments", icon: "CreditCard" },
+            { text: "Time tracking", icon: "Clock" },
+            { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
         pro: {
@@ -204,12 +218,12 @@ const Pricing = () => {
           stripeNote: "Optimize your payment costs as your business grows",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
-            { text: "Unlimited clients", icon: "Users" },
-            { text: "Unlimited invoices", icon: "FileText" },
-            { text: "Unlimited expenses", icon: "Receipt" },
-            { text: "All invoice templates", icon: "FileText" },
-            { text: "All reports", icon: "BarChart3" },
-            { text: "Full email customization", icon: "Mail" }
+            { text: "All invoice & quote designs", icon: "Palette" },
+            { text: "Advanced document customization", icon: "FileText" },
+            { text: "Advanced inventory reports (stock value, sales by product)", icon: "Package" },
+            { text: "Audit logs (unlimited history)", icon: "History" },
+            { text: "Priority support", icon: "UsersRound" },
+            { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         }
       }
@@ -256,10 +270,12 @@ const Pricing = () => {
             { text: "1 entreprise", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
             { text: "15 factures par mois", icon: "FileText" },
-            { text: "10 dépenses par mois", icon: "Receipt" },
-            { text: "Envoi de factures par courriel", icon: "Mail" },
-            { text: "1 modèle de facture (Classique – bleu)", icon: "FileText" },
-            { text: "Rapport de revenus", icon: "BarChart3" }
+            { text: "15 dépenses par mois", icon: "Receipt" },
+            { text: "Factures et devis PDF (avec signature GestionFlow)", icon: "FileText" },
+            { text: "Design de facture classique", icon: "FileText" },
+            { text: "Rapport de revenus", icon: "BarChart3" },
+            { text: "Suivi des heures", icon: "Clock" },
+            { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
         premium: {
@@ -272,12 +288,17 @@ const Pricing = () => {
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
-            { text: "Factures illimitées", icon: "FileText" },
-            { text: "Dépenses illimitées", icon: "Receipt" },
-            { text: "Téléchargement PDF des factures", icon: "FileText" },
-            { text: "2 modèles de factures (Classique + Moderne)", icon: "FileText" },
-            { text: "Gestion des catégories (produits, services, dépenses)", icon: "BarChart3" },
-            { text: "Rapports : revenus + taxes", icon: "BarChart3" }
+            { text: "Factures et dépenses illimitées", icon: "FileText" },
+            { text: "Factures et devis PDF", icon: "FileText" },
+            { text: "Designs classique + moderne", icon: "Palette" },
+            { text: "Messages de facture et devis personnalisés", icon: "Mail" },
+            { text: "Catégories (produits, services, dépenses)", icon: "Tags" },
+            { text: "Gestion des stocks", icon: "Package" },
+            { text: "Mise à jour automatique des stocks sur ventes", icon: "RefreshCcw" },
+            { text: "Rapports fiscaux", icon: "BarChart3" },
+            { text: "Paiements Stripe", icon: "CreditCard" },
+            { text: "Suivi des heures", icon: "Clock" },
+            { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
         pro: {
@@ -287,12 +308,12 @@ const Pricing = () => {
           stripeNote: "Optimisez vos coûts de paiement à mesure que votre activité grandit",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
-            { text: "Clients illimités", icon: "Users" },
-            { text: "Factures illimitées", icon: "FileText" },
-            { text: "Dépenses illimitées", icon: "Receipt" },
-            { text: "Tous les modèles de factures", icon: "FileText" },
-            { text: "Tous les rapports", icon: "BarChart3" },
-            { text: "Personnalisation complète des courriels", icon: "Mail" }
+            { text: "Tous les designs de factures et devis", icon: "Palette" },
+            { text: "Personnalisation avancée des documents", icon: "FileText" },
+            { text: "Rapports d'inventaire avancés (valeur stock, ventes par produit)", icon: "Package" },
+            { text: "Audit logs (historique illimité)", icon: "History" },
+            { text: "Support prioritaire", icon: "UsersRound" },
+            { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         }
       }
@@ -321,6 +342,15 @@ const Pricing = () => {
       case 'Receipt': return <Receipt className={iconClass} />;
       case 'Mail': return <Mail className={iconClass} />;
       case 'BarChart3': return <BarChart3 className={iconClass} />;
+      case 'Clock': return <Clock className={iconClass} />;
+      case 'Shield': return <Shield className={iconClass} />;
+      case 'Tags': return <Tags className={iconClass} />;
+      case 'Package': return <Package className={iconClass} />;
+      case 'RefreshCcw': return <RefreshCcw className={iconClass} />;
+      case 'CreditCard': return <CreditCard className={iconClass} />;
+      case 'Palette': return <Palette className={iconClass} />;
+      case 'History': return <History className={iconClass} />;
+      case 'UsersRound': return <UsersRound className={iconClass} />;
       default: return <Check className={iconClass} />;
     }
   };
