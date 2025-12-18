@@ -2441,7 +2441,7 @@ Best regards,
                   <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)} disabled={!planLimits?.pdf_export}>
+                  <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)}>
                     <Download className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => openEmailDialog(invoice)}>
@@ -2555,16 +2555,12 @@ Best regards,
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => downloadInvoicePDF(invoice)}
-                                disabled={!planLimits?.pdf_export}
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{!planLimits?.pdf_export 
-                                ? (language === 'fr' ? 'Téléchargement PDF disponible avec un plan Premium ou Pro' : 'PDF download available with Premium or Pro plan')
-                                : (language === 'fr' ? 'Télécharger en PDF' : 'Download PDF')
-                              }</p>
+                              <p>{language === 'fr' ? 'Télécharger en PDF' : 'Download PDF'}</p>
                             </TooltipContent>
                           </Tooltip>
 
