@@ -2321,163 +2321,281 @@ const Reports = () => {
     logExport('expenses_by_company', 'pdf', language === 'fr' ? 'Téléchargement PDF dépenses par compagnie' : 'Expenses by company PDF download');
   };
 
-  const exportExpensesToExcel = () => {
+  // Excel export - By Period (detailed list)
+  const exportExpensesByPeriodToExcel = () => {
     if (!expenseReportData) return;
     
     const wb = XLSX.utils.book_new();
     const dateLocale = language === 'fr' ? fr : enUS;
     
-    // Summary sheet
-    const summaryData = [
-      [getReportTranslation('expensesReport', language)],
+    // Get filter names
+    const companyFilterName = expenseFilterType === 'company' && expenseSelectedCompanyId
+      ? companies.find(c => c.id === expenseSelectedCompanyId)?.name || ''
+      : '';
+    
+    // Header info
+    const headerData: (string | number)[][] = [
+      [language === 'fr' ? 'Dépenses par période' : 'Expenses by Period'],
       [''],
-      [getReportTranslation('generatedOn', language), format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })],
-      ...(expenseStartDate && expenseEndDate ? [[getReportTranslation('period', language), `${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`]] : []),
-      [''],
-      [getReportTranslation('totalExpenses', language), expenseReportData.totalExpenses],
-      [`${getStatusLabel('paid', language)} ${getReportTranslation('expensesReport', language)}`, expenseReportData.totalPaidExpenses],
-      [`${getStatusLabel('pending', language)} ${getReportTranslation('expensesReport', language)}`, expenseReportData.totalUnpaidExpenses],
+      [language === 'fr' ? 'Généré le' : 'Generated on', format(new Date(), 'dd/MM/yyyy HH:mm', { locale: dateLocale })],
     ];
     
-    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summaryWS, getReportTranslation('summary', language));
-    
-    // Expenses by Category sheet
-    if (expenseReportData.expensesByCategory.length > 0) {
-      const categoryData = [
-        [getReportTranslation('expensesByCategory', language)],
-        [''],
-        [getReportTranslation('category', language), getReportTranslation('totalInvoices', language), getReportTranslation('amount', language), getReportTranslation('avgPerInvoice', language)],
-        ...expenseReportData.expensesByCategory.map(category => [
-          category.category,
-          category.count,
-          category.total_amount,
-          category.total_amount / category.count
-        ])
-      ];
-      
-      const categoryWS = XLSX.utils.aoa_to_sheet(categoryData);
-      XLSX.utils.book_append_sheet(wb, categoryWS, getReportTranslation('category', language));
+    if (expenseStartDate && expenseEndDate) {
+      headerData.push([language === 'fr' ? 'Période' : 'Period', `${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`]);
+    }
+    if (companyFilterName) {
+      headerData.push([language === 'fr' ? 'Entreprise' : 'Company', companyFilterName]);
     }
     
-    // Expenses by Company sheet
-    if (expenseReportData.expensesByCompany.length > 0) {
-      const companyData = [
-        [getReportTranslation('expensesByCompany', language)],
-        [''],
-        [getReportTranslation('company', language), getReportTranslation('totalInvoices', language), getReportTranslation('amount', language), getReportTranslation('avgPerInvoice', language)],
-        ...expenseReportData.expensesByCompany.map(company => [
-          company.company_name,
-          company.count,
-          company.total_amount,
-          company.total_amount / company.count
-        ])
-      ];
-      
-      const companyWS = XLSX.utils.aoa_to_sheet(companyData);
-      XLSX.utils.book_append_sheet(wb, companyWS, getReportTranslation('company', language));
-    }
+    // Summary
+    headerData.push(
+      [''],
+      [language === 'fr' ? 'RÉSUMÉ' : 'SUMMARY', ''],
+      [language === 'fr' ? 'Total des dépenses' : 'Total Expenses', expenseReportData.totalExpenses],
+      [language === 'fr' ? 'Dépenses payées' : 'Paid Expenses', expenseReportData.totalPaidExpenses],
+      [language === 'fr' ? 'Dépenses impayées' : 'Unpaid Expenses', expenseReportData.totalUnpaidExpenses],
+      ['']
+    );
     
-    // Detailed Expenses with Taxes sheet
-    if (expenseReportData.expenseDetails.length > 0) {
-      const detailData = [
-        ['Detailed Expenses with Taxes'],
-        [''],
-        ['Date', 'Description', 'Category', 'Company', 'Vendor', 'Amount', 'Tax Details', 'Total Taxes', 'Total with Taxes', 'Status'],
-        ...expenseReportData.expenseDetails.map(expense => {
-          const taxLines = (expense.taxes || []).map((tax: any) => {
-            // Use the stored amount directly if it exists, otherwise calculate it
-            let amount = 0;
-            if (typeof tax?.amount === 'number') {
-              // Use the stored amount directly (user-entered value)
-              amount = Number(tax.amount);
-            } else if (typeof tax?.percentage === 'number') {
-              // Fallback: calculate from percentage if amount not stored
-              amount = Number(expense.amount) * Number(tax.percentage) / 100;
-            } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
-              // Fallback: calculate from type/value format
-              amount = Number(expense.amount) * Number(tax.value) / 100;
-            } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
-              // Fallback: use value if type is amount
-              amount = Number(tax.value);
-            }
-            
-            const label = typeof tax?.percentage === 'number'
-              ? `${tax.name} (${tax.percentage}%)`
-              : (tax?.type === 'percentage' && typeof tax?.value === 'number')
-                ? `${tax.name} (${tax.value}%)`
-                : `${tax.name}`;
-            return { label, amount };
-          });
-          const totalTaxes = taxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
-          const totalWithTaxes = Number(expense.amount) + totalTaxes;
-          const taxesDetail = taxLines.length
-            ? taxLines.map((t: any) => `${t.label}: $${(t.amount || 0).toFixed(2)}`).join('; ')
-            : '-';
-          
-          return [
-            format(new Date(expense.expense_date), 'dd/MM/yyyy'),
-            expense.description,
-            expense.category,
-            expense.company_name || '-',
-            expense.vendor || '-',
-            Number(expense.amount),
-            taxesDetail,
-            totalTaxes,
-            totalWithTaxes,
-            expense.status === 'paid' ? 'Paid' : 'Unpaid'
-          ];
-        })
-      ];
-      
-      const detailWS = XLSX.utils.aoa_to_sheet(detailData);
-      XLSX.utils.book_append_sheet(wb, detailWS, 'Detailed Expenses');
-    }
+    // Detailed table headers
+    headerData.push([
+      language === 'fr' ? 'Date' : 'Date',
+      language === 'fr' ? 'Description' : 'Description',
+      language === 'fr' ? 'Catégorie' : 'Category',
+      language === 'fr' ? 'Entreprise' : 'Company',
+      language === 'fr' ? 'Fournisseur' : 'Vendor',
+      language === 'fr' ? 'Montant' : 'Amount',
+      language === 'fr' ? 'Taxes' : 'Taxes',
+      language === 'fr' ? 'Total' : 'Total',
+      language === 'fr' ? 'Statut' : 'Status'
+    ]);
     
-    // Tax Summary by Type sheet
-    const taxTotalsByType: { [key: string]: number } = {};
-    expenseReportData.expenseDetails.forEach(expense => {
-      (expense.taxes || []).forEach((tax: any) => {
-        // Use the stored amount directly if it exists, otherwise calculate it
-        let amount = 0;
-        if (typeof tax?.amount === 'number') {
-          // Use the stored amount directly (user-entered value)
-          amount = Number(tax.amount);
-        } else if (typeof tax?.percentage === 'number') {
-          // Fallback: calculate from percentage if amount not stored
-          amount = Number(expense.amount) * Number(tax.percentage) / 100;
-        } else if (tax?.type === 'percentage' && typeof tax?.value === 'number') {
-          // Fallback: calculate from type/value format
-          amount = Number(expense.amount) * Number(tax.value) / 100;
-        } else if (tax?.type === 'amount' && typeof tax?.value === 'number') {
-          // Fallback: use value if type is amount
-          amount = Number(tax.value);
-        }
-        const taxName = tax?.name || 'Unknown Tax';
-        taxTotalsByType[taxName] = (taxTotalsByType[taxName] || 0) + amount;
-      });
+    // Sort by date ascending
+    const sortedExpenses = [...expenseReportData.expenseDetails].sort((a, b) => 
+      new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime()
+    );
+    
+    let totalAmount = 0;
+    let totalTaxes = 0;
+    let grandTotal = 0;
+    
+    sortedExpenses.forEach(expense => {
+      const expenseTaxes = (expense.taxes || []).reduce((sum, tax) => sum + (tax.amount || 0), 0);
+      const expenseTotal = expense.amount + expenseTaxes;
+      
+      totalAmount += expense.amount;
+      totalTaxes += expenseTaxes;
+      grandTotal += expenseTotal;
+      
+      headerData.push([
+        format(new Date(expense.expense_date), 'dd/MM/yyyy'),
+        expense.description,
+        expense.category,
+        expense.company_name || '-',
+        expense.vendor || '-',
+        expense.amount,
+        expenseTaxes,
+        expenseTotal,
+        expense.status === 'paid' ? (language === 'fr' ? 'Payée' : 'Paid') : (language === 'fr' ? 'Impayée' : 'Unpaid')
+      ]);
     });
     
-    if (Object.keys(taxTotalsByType).length > 0) {
-      const taxSummaryData = [
-        ['Tax Summary by Type'],
-        [''],
-        ['Tax Type', 'Total Amount'],
-        ...Object.entries(taxTotalsByType).map(([taxName, total]) => [
-          taxName,
-          total
-        ]),
-        [''],
-        ['Total Taxes', Object.values(taxTotalsByType).reduce((sum, val) => sum + val, 0)]
-      ];
-      
-      const taxSummaryWS = XLSX.utils.aoa_to_sheet(taxSummaryData);
-      XLSX.utils.book_append_sheet(wb, taxSummaryWS, 'Tax Summary');
+    // Totals row
+    headerData.push([
+      'TOTAL', '', '', '', '',
+      totalAmount,
+      totalTaxes,
+      grandTotal,
+      ''
+    ]);
+    
+    const ws = XLSX.utils.aoa_to_sheet(headerData);
+    XLSX.utils.book_append_sheet(wb, ws, language === 'fr' ? 'Dépenses par période' : 'Expenses by Period');
+    
+    let filename = language === 'fr' ? 'depenses-par-periode' : 'expenses-by-period';
+    if (expenseStartDate && expenseEndDate) {
+      filename += `-${format(expenseStartDate, 'yyyy-MM-dd')}-${format(expenseEndDate, 'yyyy-MM-dd')}`;
+    }
+    filename += '.xlsx';
+    
+    XLSX.writeFile(wb, filename);
+    logExport('expenses-by-period', 'excel', language === 'fr' ? 'Export Excel dépenses par période' : 'Expenses by period Excel export');
+  };
+
+  // Excel export - By Category
+  const exportExpensesByCategoryToExcel = () => {
+    if (!expenseReportData) return;
+    
+    const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    const companyFilterName = expenseFilterType === 'company' && expenseSelectedCompanyId
+      ? companies.find(c => c.id === expenseSelectedCompanyId)?.name || ''
+      : '';
+    
+    const headerData: (string | number)[][] = [
+      [language === 'fr' ? 'Dépenses par catégorie' : 'Expenses by Category'],
+      [''],
+      [language === 'fr' ? 'Généré le' : 'Generated on', format(new Date(), 'dd/MM/yyyy HH:mm', { locale: dateLocale })],
+    ];
+    
+    if (expenseStartDate && expenseEndDate) {
+      headerData.push([language === 'fr' ? 'Période' : 'Period', `${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`]);
+    }
+    if (companyFilterName) {
+      headerData.push([language === 'fr' ? 'Entreprise' : 'Company', companyFilterName]);
     }
     
-    const filename = `${getReportTranslation('expenseReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    // Summary
+    headerData.push(
+      [''],
+      [language === 'fr' ? 'RÉSUMÉ' : 'SUMMARY', ''],
+      [language === 'fr' ? 'Total des dépenses' : 'Total Expenses', expenseReportData.totalExpenses],
+      [language === 'fr' ? 'Nombre de catégories' : 'Number of Categories', expenseReportData.expensesByCategory.length],
+      ['']
+    );
+    
+    // Table headers
+    headerData.push([
+      language === 'fr' ? 'Catégorie' : 'Category',
+      language === 'fr' ? 'Nombre' : 'Count',
+      language === 'fr' ? 'Montant total' : 'Total Amount',
+      language === 'fr' ? 'Montant moyen' : 'Average Amount',
+      language === 'fr' ? '% du total' : '% of Total'
+    ]);
+    
+    // Sort by total amount descending
+    const sortedCategories = [...expenseReportData.expensesByCategory].sort((a, b) => b.total_amount - a.total_amount);
+    
+    let totalCount = 0;
+    sortedCategories.forEach(cat => {
+      const percentage = expenseReportData.totalExpenses > 0 
+        ? ((cat.total_amount / expenseReportData.totalExpenses) * 100).toFixed(1) + '%'
+        : '0%';
+      totalCount += cat.count;
+      
+      headerData.push([
+        cat.category,
+        cat.count,
+        cat.total_amount,
+        cat.total_amount / cat.count,
+        percentage
+      ]);
+    });
+    
+    // Totals row
+    headerData.push([
+      'TOTAL',
+      totalCount,
+      expenseReportData.totalExpenses,
+      totalCount > 0 ? expenseReportData.totalExpenses / totalCount : 0,
+      '100%'
+    ]);
+    
+    const ws = XLSX.utils.aoa_to_sheet(headerData);
+    XLSX.utils.book_append_sheet(wb, ws, language === 'fr' ? 'Par catégorie' : 'By Category');
+    
+    let filename = language === 'fr' ? 'depenses-par-categorie' : 'expenses-by-category';
+    if (expenseStartDate && expenseEndDate) {
+      filename += `-${format(expenseStartDate, 'yyyy-MM-dd')}-${format(expenseEndDate, 'yyyy-MM-dd')}`;
+    }
+    filename += '.xlsx';
+    
     XLSX.writeFile(wb, filename);
-    logExport('expenses', 'excel', language === 'fr' ? 'Export Excel rapport dépenses' : 'Expenses report Excel export');
+    logExport('expenses-by-category', 'excel', language === 'fr' ? 'Export Excel dépenses par catégorie' : 'Expenses by category Excel export');
+  };
+
+  // Excel export - All Expenses Detail
+  const exportAllExpensesToExcel = () => {
+    if (!expenseReportData) return;
+    
+    const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    const companyFilterName = expenseFilterType === 'company' && expenseSelectedCompanyId
+      ? companies.find(c => c.id === expenseSelectedCompanyId)?.name || ''
+      : '';
+    
+    const headerData: (string | number)[][] = [
+      [language === 'fr' ? 'Détail de toutes les dépenses' : 'All Expenses Detail'],
+      [''],
+      [language === 'fr' ? 'Généré le' : 'Generated on', format(new Date(), 'dd/MM/yyyy HH:mm', { locale: dateLocale })],
+    ];
+    
+    if (expenseStartDate && expenseEndDate) {
+      headerData.push([language === 'fr' ? 'Période' : 'Period', `${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`]);
+    } else {
+      headerData.push([language === 'fr' ? 'Période' : 'Period', language === 'fr' ? 'Toutes les périodes' : 'All periods']);
+    }
+    if (companyFilterName) {
+      headerData.push([language === 'fr' ? 'Entreprise' : 'Company', companyFilterName]);
+    }
+    
+    headerData.push(['']);
+    
+    // Table headers
+    headerData.push([
+      language === 'fr' ? 'Date' : 'Date',
+      language === 'fr' ? 'Description' : 'Description',
+      language === 'fr' ? 'Catégorie' : 'Category',
+      language === 'fr' ? 'Entreprise' : 'Company',
+      language === 'fr' ? 'Fournisseur' : 'Vendor',
+      language === 'fr' ? 'Montant' : 'Amount',
+      language === 'fr' ? 'Taxes' : 'Taxes',
+      language === 'fr' ? 'Total' : 'Total',
+      language === 'fr' ? 'Statut' : 'Status'
+    ]);
+    
+    // Sort by date ascending
+    const sortedExpenses = [...expenseReportData.expenseDetails].sort((a, b) => 
+      new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime()
+    );
+    
+    let totalAmount = 0;
+    let totalTaxes = 0;
+    let grandTotal = 0;
+    
+    sortedExpenses.forEach(expense => {
+      const expenseTaxes = (expense.taxes || []).reduce((sum, tax) => sum + (tax.amount || 0), 0);
+      const expenseTotal = expense.amount + expenseTaxes;
+      
+      totalAmount += expense.amount;
+      totalTaxes += expenseTaxes;
+      grandTotal += expenseTotal;
+      
+      headerData.push([
+        format(new Date(expense.expense_date), 'dd/MM/yyyy'),
+        expense.description,
+        expense.category,
+        expense.company_name || '-',
+        expense.vendor || '-',
+        expense.amount,
+        expenseTaxes,
+        expenseTotal,
+        expense.status === 'paid' ? (language === 'fr' ? 'Payée' : 'Paid') : (language === 'fr' ? 'Impayée' : 'Unpaid')
+      ]);
+    });
+    
+    // Totals row
+    headerData.push([
+      'TOTAL', '', '', '', '',
+      totalAmount,
+      totalTaxes,
+      grandTotal,
+      ''
+    ]);
+    
+    const ws = XLSX.utils.aoa_to_sheet(headerData);
+    XLSX.utils.book_append_sheet(wb, ws, language === 'fr' ? 'Toutes les dépenses' : 'All Expenses');
+    
+    let filename = language === 'fr' ? 'detail-toutes-depenses' : 'all-expenses-detail';
+    if (expenseStartDate && expenseEndDate) {
+      filename += `-${format(expenseStartDate, 'yyyy-MM-dd')}-${format(expenseEndDate, 'yyyy-MM-dd')}`;
+    }
+    filename += '.xlsx';
+    
+    XLSX.writeFile(wb, filename);
+    logExport('all-expenses', 'excel', language === 'fr' ? 'Export Excel toutes les dépenses' : 'All expenses Excel export');
   };
 
   // Export functions for product profits
@@ -4476,9 +4594,17 @@ const Reports = () => {
                   <Download className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Toutes (PDF)' : 'All (PDF)'}
                 </Button>
-                <Button onClick={exportExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                <Button onClick={exportExpensesByPeriodToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Excel
+                  {language === 'fr' ? 'Par période (Excel)' : 'By Period (Excel)'}
+                </Button>
+                <Button onClick={exportExpensesByCategoryToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Par catégorie (Excel)' : 'By Category (Excel)'}
+                </Button>
+                <Button onClick={exportAllExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Toutes (Excel)' : 'All (Excel)'}
                 </Button>
                 <Button onClick={() => setEmailDialogOpen('expenses')} variant="outline" size="sm" disabled={!expenseReportData}>
                   <Mail className="w-4 h-4 mr-2" />
