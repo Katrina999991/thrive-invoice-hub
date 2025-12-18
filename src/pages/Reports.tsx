@@ -3614,16 +3614,6 @@ const Reports = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={exportRevenueByClientChartsToPDF}
-                      disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      {language === 'fr' ? 'Graphiques' : 'Charts'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_client')}
                       disabled={clientRevenueLoading}
                       className="flex items-center gap-2"
