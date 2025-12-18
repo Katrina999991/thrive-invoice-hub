@@ -146,22 +146,20 @@ const Pricing = () => {
       billingType: "Billing:",
       monthly: "Monthly",
       yearly: "Yearly",
-      nextRenewal: "Next renewal:",
+      nextRenewal: "Next billing date:",
       manageSubscription: "Manage Subscription",
       saveYearly: "Save about 2 months with annual subscription",
       saveYearlyShort: "Save ~2 months",
       currentPlan: "Current Plan",
       upgradeTo: "Upgrade to",
-      downgradeTo: "Downgrade to",
+      switchToFree: "Switch to Free",
       perMonth: "/month",
       perYear: "/year",
-      rulesTitle: "Plan Change Rules",
-      upgradeRule: "When upgrading (Free → Premium, Premium → Pro):",
-      upgradeEffect1: "The new plan takes effect immediately",
-      upgradeEffect2: "The amount is prorated based on the remaining time in your billing cycle",
-      downgradeRule: "When downgrading (Pro → Premium, Premium → Free):",
-      downgradeEffect1: "Your current plan stays active until the end of the billing cycle",
-      downgradeEffect2: "The new plan automatically applies at the next renewal",
+      billingRulesTitle: "Billing Rules",
+      billingRule1: "Upgrades take effect immediately.",
+      billingRule2: "Charges are prorated automatically.",
+      billingRule3: "Downgrades take effect at the end of the current billing cycle.",
+      billingRule4: "Switching to the Free plan acts as subscription cancellation.",
       noCommitment: "No long-term commitment. You can change plans at any time.",
       securePayments: "All payments are processed securely via Stripe.",
       cancelAnytime: "No long-term commitment. Change your plan at any time.",
@@ -177,17 +175,16 @@ const Pricing = () => {
         free: {
           name: "Free",
           description: "Ideal to discover GestionFlow and start your business",
-          stripeInfo: "Stripe Payments (+2% GestionFlow fee)",
+          stripeInfo: "Stripe Payments (+2% GestionFlow processing fee)",
           stripeInfoShort: "+2% GestionFlow fee",
           noInventory: "Inventory management not included",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
-            { text: "15 invoices per month", icon: "FileText" },
-            { text: "15 expenses per month", icon: "Receipt" },
+            { text: "15 invoices / month", icon: "FileText" },
             { text: "Quotes included", icon: "FileCheck" },
-            { text: "PDF invoices & quotes (with GestionFlow branding)", icon: "FileText" },
-            { text: "Classic invoice design", icon: "FileText" },
+            { text: "PDF invoices & quotes (GestionFlow branding)", icon: "FileText" },
+            { text: "Classic design", icon: "Palette" },
             { text: "Revenue report", icon: "BarChart3" },
             { text: "Time tracking", icon: "Clock" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
@@ -198,7 +195,7 @@ const Pricing = () => {
           description: "The best balance for freelancers and small businesses",
           popular: "⭐ Most Popular",
           chosenBy: "Chosen by most of our users",
-          stripeInfo: "Stripe Payments (+1% GestionFlow fee)",
+          stripeInfo: "Stripe Payments (+1% GestionFlow processing fee)",
           stripeInfoShort: "+1% GestionFlow fee",
           stripeNote: "Pay less fees on every payment received",
           features: [
@@ -220,7 +217,7 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Built for growing businesses and multi-company management",
-          stripeInfo: "Stripe Payments (+0.5% GestionFlow fee)",
+          stripeInfo: "Stripe Payments (+0.5% GestionFlow processing fee)",
           stripeInfoShort: "+0.5% GestionFlow fee",
           stripeNote: "Optimize your payment costs as your business grows",
           features: [
@@ -228,7 +225,7 @@ const Pricing = () => {
             { text: "Unlimited clients, invoices & quotes", icon: "Users" },
             { text: "All invoice & quote designs", icon: "Palette" },
             { text: "Advanced document customization", icon: "FileText" },
-            { text: "Advanced inventory reports (stock value, sales by product)", icon: "Package" },
+            { text: "Advanced inventory reports", icon: "Package" },
             { text: "Audit logs (unlimited history)", icon: "History" },
             { text: "Priority support", icon: "UsersRound" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
@@ -236,7 +233,9 @@ const Pricing = () => {
         }
       },
       stripeFeesTitle: "Stripe Payments & Fees",
-      stripeFeesDesc: "Payments are processed securely via Stripe. Standard Stripe processing fees apply. GestionFlow adds an additional processing fee based on your plan:",
+      stripeFeesDesc: "Payments are processed securely via Stripe.",
+      stripeFeesDesc2: "Stripe charges standard processing fees.",
+      stripeFeesDesc3: "GestionFlow adds an additional processing fee based on your plan:",
       stripeFeesFree: "Free: +2%",
       stripeFeesPremium: "Premium: +1%",
       stripeFeesPro: "Pro: +0.5%",
@@ -248,22 +247,20 @@ const Pricing = () => {
       billingType: "Facturation :",
       monthly: "Mensuel",
       yearly: "Annuel",
-      nextRenewal: "Prochain renouvellement :",
+      nextRenewal: "Prochaine date de facturation :",
       manageSubscription: "Gérer mon abonnement",
       saveYearly: "Économisez environ 2 mois avec l'abonnement annuel",
       saveYearlyShort: "Économisez ~2 mois",
       currentPlan: "Plan actuel",
       upgradeTo: "Passer à",
-      downgradeTo: "Rétrograder vers",
+      switchToFree: "Passer au Gratuit",
       perMonth: "/mois",
       perYear: "/an",
-      rulesTitle: "Règles de changement de plan",
-      upgradeRule: "Lors d'un upgrade (Gratuit → Premium, Premium → Pro) :",
-      upgradeEffect1: "Le nouveau plan prend effet immédiatement",
-      upgradeEffect2: "Le montant est ajusté au prorata en fonction du temps restant dans le cycle de facturation",
-      downgradeRule: "Lors d'un downgrade (Pro → Premium, Premium → Gratuit) :",
-      downgradeEffect1: "Le plan actuel reste actif jusqu'à la fin du cycle de facturation",
-      downgradeEffect2: "Le nouveau plan s'applique automatiquement au prochain renouvellement",
+      billingRulesTitle: "Règles de facturation",
+      billingRule1: "Les upgrades prennent effet immédiatement.",
+      billingRule2: "Les frais sont ajustés au prorata automatiquement.",
+      billingRule3: "Les downgrades prennent effet à la fin du cycle de facturation actuel.",
+      billingRule4: "Passer au plan Gratuit équivaut à une annulation d'abonnement.",
       noCommitment: "Aucun engagement à long terme. Vous pouvez changer de plan à tout moment.",
       securePayments: "Tous les paiements sont traités de manière sécurisée via Stripe.",
       cancelAnytime: "Aucun engagement à long terme. Changez de plan à tout moment.",
@@ -285,11 +282,10 @@ const Pricing = () => {
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
-            { text: "15 factures par mois", icon: "FileText" },
-            { text: "15 dépenses par mois", icon: "Receipt" },
+            { text: "15 factures / mois", icon: "FileText" },
             { text: "Devis inclus", icon: "FileCheck" },
             { text: "Factures et devis PDF (avec signature GestionFlow)", icon: "FileText" },
-            { text: "Design de facture classique", icon: "FileText" },
+            { text: "Design classique", icon: "Palette" },
             { text: "Rapport de revenus", icon: "BarChart3" },
             { text: "Suivi des heures", icon: "Clock" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
@@ -330,7 +326,7 @@ const Pricing = () => {
             { text: "Clients, factures et devis illimités", icon: "Users" },
             { text: "Tous les designs de factures et devis", icon: "Palette" },
             { text: "Personnalisation avancée des documents", icon: "FileText" },
-            { text: "Rapports d'inventaire avancés (valeur stock, ventes par produit)", icon: "Package" },
+            { text: "Rapports d'inventaire avancés", icon: "Package" },
             { text: "Audit logs (historique illimité)", icon: "History" },
             { text: "Support prioritaire", icon: "UsersRound" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
@@ -338,7 +334,9 @@ const Pricing = () => {
         }
       },
       stripeFeesTitle: "Paiements Stripe et frais",
-      stripeFeesDesc: "Les paiements sont traités de manière sécurisée via Stripe. Les frais de traitement standard de Stripe s'appliquent. GestionFlow ajoute des frais de traitement supplémentaires selon votre plan :",
+      stripeFeesDesc: "Les paiements sont traités de manière sécurisée via Stripe.",
+      stripeFeesDesc2: "Les frais de traitement standard de Stripe s'appliquent.",
+      stripeFeesDesc3: "GestionFlow ajoute des frais de traitement supplémentaires selon votre plan :",
       stripeFeesFree: "Gratuit : +2 %",
       stripeFeesPremium: "Premium : +1 %",
       stripeFeesPro: "Pro : +0,5 %",
@@ -424,9 +422,20 @@ const Pricing = () => {
       };
     }
 
+    // For Free plan, use "Switch to Free" instead of "Downgrade to Free"
+    if (planType === 'free') {
+      return { 
+        text: t.switchToFree, 
+        variant: 'outline' as const, 
+        disabled: false,
+        icon: <ArrowDown className="h-4 w-4 mr-2" />,
+        isUpgrade: false
+      };
+    }
+
     const planName = getPlanData(planType).name;
     return { 
-      text: `${t.downgradeTo} ${planName}`, 
+      text: `${t.upgradeTo} ${planName}`, 
       variant: 'outline' as const, 
       disabled: false,
       icon: <ArrowDown className="h-4 w-4 mr-2" />,
@@ -682,54 +691,33 @@ const Pricing = () => {
         </Alert>
       )}
 
-      {/* Plan Change Rules Section */}
+      {/* Billing Rules Section */}
       <Card className="mb-8 border-muted-foreground/20">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Info className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">{t.rulesTitle}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t.billingRulesTitle}</h3>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Upgrade Rules */}
-          <div className="space-y-2">
-            <p className="font-medium text-foreground flex items-center gap-2">
-              <ArrowUp className="h-4 w-4 text-green-500" />
-              {t.upgradeRule}
-            </p>
-            <ul className="ml-6 space-y-1">
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-green-500">→</span>
-                {t.upgradeEffect1}
-              </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-green-500">→</span>
-                {t.upgradeEffect2}
-              </li>
-            </ul>
-          </div>
-
-          {/* Downgrade Rules */}
-          <div className="space-y-2">
-            <p className="font-medium text-foreground flex items-center gap-2">
-              <ArrowDown className="h-4 w-4 text-amber-500" />
-              {t.downgradeRule}
-            </p>
-            <ul className="ml-6 space-y-1">
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-amber-500">→</span>
-                {t.downgradeEffect1}
-              </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-amber-500">→</span>
-                {t.downgradeEffect2}
-              </li>
-            </ul>
-          </div>
-
-          <p className="text-sm text-muted-foreground italic pt-2 border-t">
-            {t.noCommitment}
-          </p>
+        <CardContent className="space-y-3">
+          <ul className="space-y-2">
+            <li className="flex items-start gap-2 text-sm text-foreground">
+              <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+              {t.billingRule1}
+            </li>
+            <li className="flex items-start gap-2 text-sm text-foreground">
+              <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+              {t.billingRule2}
+            </li>
+            <li className="flex items-start gap-2 text-sm text-foreground">
+              <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              {t.billingRule3}
+            </li>
+            <li className="flex items-start gap-2 text-sm text-foreground">
+              <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              {t.billingRule4}
+            </li>
+          </ul>
         </CardContent>
       </Card>
 
@@ -772,7 +760,11 @@ const Pricing = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{t.stripeFeesDesc}</p>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">{t.stripeFeesDesc}</p>
+            <p className="text-sm text-muted-foreground">{t.stripeFeesDesc2}</p>
+            <p className="text-sm text-muted-foreground">{t.stripeFeesDesc3}</p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-3 rounded-lg bg-muted/50 border border-muted-foreground/10 text-center">
               <p className="text-sm font-medium text-foreground">{t.stripeFeesFree}</p>
