@@ -25,12 +25,12 @@ import {
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
-import dashboardPreview from "@/assets/dashboard-preview-fr.jpg";
-import dashboardPreviewEn from "@/assets/dashboard-preview-en.jpg";
+import dashboardPreview from "@/assets/dashboard-preview-fr-new.jpg";
+import dashboardPreviewEn from "@/assets/dashboard-preview-en-new.jpg";
 import categoriesPreview from "@/assets/dashboard-preview-categories.jpg";
-import invoicesPreview from "@/assets/dashboard-preview-invoices.jpg";
+import invoicesPreview from "@/assets/invoices-preview-fr.jpg";
 import categoriesPreviewEn from "@/assets/dashboard-preview-categories-en.jpg";
-import invoicesPreviewEn from "@/assets/dashboard-preview-invoices-en.jpg";
+import invoicesPreviewEn from "@/assets/invoices-preview-en.jpg";
 import timeTrackingPreview from "@/assets/dashboard-preview-time-tracking.jpg";
 import reportsPreview from "@/assets/dashboard-preview-reports.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
