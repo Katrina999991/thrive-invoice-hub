@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,13 +36,14 @@ export const EmailReportDialog = ({
   const { user, username } = useAuth();
   const [recipient, setRecipient] = useState(user?.email || "");
   const [subject, setSubject] = useState("");
-  
+  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Reset subject when dialog opens with new report title
+  // Reset subject and message when dialog opens
   useEffect(() => {
     if (open) {
       setSubject(defaultSubject || reportTitle);
+      setMessage("");
     }
   }, [open, reportTitle, defaultSubject]);
 
@@ -97,7 +99,7 @@ export const EmailReportDialog = ({
           recipientEmail: recipient,
           reportTitle: subject,
           reportType,
-          message: defaultMessage || undefined,
+          message: message || undefined,
           pdfBase64,
           language,
         },
@@ -176,6 +178,21 @@ export const EmailReportDialog = ({
               placeholder={language === 'fr' ? 'Objet du courriel' : 'Email subject'}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="message">
+              {language === 'fr' ? 'Message (optionnel)' : 'Message (optional)'}
+            </Label>
+            <Textarea
+              id="message"
+              placeholder={language === 'fr' 
+                ? 'Ajoutez un message personnalisé...' 
+                : 'Add a custom message...'}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
             />
           </div>
         </div>
