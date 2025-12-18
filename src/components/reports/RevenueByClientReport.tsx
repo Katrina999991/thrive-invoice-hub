@@ -12,7 +12,7 @@ interface RevenueByClientReportProps {
   companyId?: string;
 }
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const COLORS = ['#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
 
 const translations = {
   en: {
@@ -194,8 +194,8 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
                   <Tooltip 
                     formatter={(value: number) => formatCurrency(value)}
                     contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
                       borderRadius: '8px'
                     }}
                   />

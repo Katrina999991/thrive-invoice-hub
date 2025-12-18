@@ -12,7 +12,7 @@ interface RevenueByProductReportProps {
   companyId?: string;
 }
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const COLORS = ['#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
 
 const translations = {
   en: {
@@ -175,24 +175,24 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis 
                     type="number" 
                     tickFormatter={(value) => formatCurrency(value)}
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke="#6b7280"
                   />
                   <YAxis 
                     type="category" 
                     dataKey="name" 
                     width={150}
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke="#6b7280"
                   />
                   <Tooltip 
                     formatter={(value: number) => formatCurrency(value)}
                     labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
                     contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
                       borderRadius: '8px'
                     }}
                   />
