@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useReports, type RevenueByPeriod } from "@/hooks/useReports";
 import { useTaxReports } from "@/hooks/useTaxReports";
 import { useSalesReport } from "@/hooks/useSalesReport";
@@ -3742,7 +3743,7 @@ const Reports = () => {
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="period" />
                               <YAxis />
-                              <Tooltip 
+                              <RechartsTooltip 
                                 formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
                                 labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
                               />
@@ -3762,7 +3763,7 @@ const Reports = () => {
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="period" />
                               <YAxis />
-                              <Tooltip 
+                              <RechartsTooltip 
                                 formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
                               />
                               <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
@@ -4222,7 +4223,7 @@ const Reports = () => {
                         fontSize={12}
                       />
                       <YAxis />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value: any) => [
                           new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
                           language === 'fr' ? 'Revenu' : 'Revenue'
@@ -4374,7 +4375,7 @@ const Reports = () => {
                         fontSize={12}
                       />
                       <YAxis />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
                         labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
                       />
@@ -4581,48 +4582,122 @@ const Reports = () => {
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
               </div>
               
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={exportExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <Download className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Par période (PDF)' : 'By Period (PDF)'}
-                  </Button>
-                  <Button onClick={exportExpensesByCategoryToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <Download className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Par catégorie (PDF)' : 'By Category (PDF)'}
-                  </Button>
-                  <Button onClick={exportAllExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <Download className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Toutes (PDF)' : 'All (PDF)'}
-                  </Button>
+              <div className="flex flex-col gap-3">
+                {/* PDF Exports */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide min-w-[50px]">PDF</span>
+                  <div className="h-4 w-px bg-border" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Par période' : 'By Period'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter le rapport en PDF' : 'Export report as PDF'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportExpensesByCategoryToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Par catégorie' : 'By Category'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter le rapport en PDF' : 'Export report as PDF'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportAllExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Toutes' : 'All'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter le rapport en PDF' : 'Export report as PDF'}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={exportExpensesByPeriodToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Par période (Excel)' : 'By Period (Excel)'}
-                  </Button>
-                  <Button onClick={exportExpensesByCategoryToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Par catégorie (Excel)' : 'By Category (Excel)'}
-                  </Button>
-                  <Button onClick={exportAllExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Toutes (Excel)' : 'All (Excel)'}
-                  </Button>
+
+                {/* Excel Exports */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide min-w-[50px]">Excel</span>
+                  <div className="h-4 w-px bg-border" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportExpensesByPeriodToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Par période' : 'By Period'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter le rapport en Excel' : 'Export report as Excel'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportExpensesByCategoryToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Par catégorie' : 'By Category'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter le rapport en Excel' : 'Export report as Excel'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={exportAllExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Toutes' : 'All'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Exporter le rapport en Excel' : 'Export report as Excel'}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => setEmailDialogOpen('expenses-period')} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Par période (Courriel)' : 'By Period (Email)'}
-                  </Button>
-                  <Button onClick={() => setEmailDialogOpen('expenses-category')} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Par catégorie (Courriel)' : 'By Category (Email)'}
-                  </Button>
-                  <Button onClick={() => setEmailDialogOpen('expenses-all')} variant="outline" size="sm" disabled={!expenseReportData}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Toutes (Courriel)' : 'All (Email)'}
-                  </Button>
+
+                {/* Email Exports */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide min-w-[50px]">{language === 'fr' ? 'Courriel' : 'Email'}</span>
+                  <div className="h-4 w-px bg-border" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={() => setEmailDialogOpen('expenses-period')} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <Mail className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Par période' : 'By Period'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Envoyer le rapport par courriel' : 'Send report by email'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={() => setEmailDialogOpen('expenses-category')} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <Mail className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Par catégorie' : 'By Category'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Envoyer le rapport par courriel' : 'Send report by email'}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={() => setEmailDialogOpen('expenses-all')} variant="outline" size="sm" disabled={!expenseReportData}>
+                        <Mail className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Toutes' : 'All'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {language === 'fr' ? 'Envoyer le rapport par courriel' : 'Send report by email'}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -4771,7 +4846,7 @@ const Reports = () => {
                           height={80}
                         />
                         <YAxis />
-                        <Tooltip 
+                        <RechartsTooltip 
                           formatter={(value: number) => [
                             new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
                             'Amount'
@@ -4816,7 +4891,7 @@ const Reports = () => {
                           height={80}
                         />
                         <YAxis />
-                        <Tooltip 
+                        <RechartsTooltip 
                           formatter={(value: number) => [
                             new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
                             'Amount'
