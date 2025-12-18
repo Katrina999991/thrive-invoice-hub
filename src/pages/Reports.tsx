@@ -2651,6 +2651,7 @@ const Reports = () => {
       planType: planLimits?.plan_type || 'free',
       hideBranding: hidePdfBranding,
       includedStatuses: selectedSalesStatuses,
+      language: language as 'fr' | 'en',
     });
     logExport('sales', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport ventes' : 'Sales report PDF download');
   };
@@ -5971,6 +5972,7 @@ const Reports = () => {
             planType: planLimits?.plan_type || 'free',
             hideBranding: hidePdfBranding,
             includedStatuses: selectedSalesStatuses,
+            language: language as 'fr' | 'en',
           });
           return blob as Blob;
         }}
