@@ -21,6 +21,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useReminderLogs } from "@/hooks/useReminderLogs";
 import { useAuth } from "@/hooks/useAuth";
+import { RevenueByClientReport } from "@/components/reports/RevenueByClientReport";
+import { RevenueByProductReport } from "@/components/reports/RevenueByProductReport";
 import { useState, useMemo, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
@@ -207,6 +209,15 @@ const Reports = () => {
   const [expenseSelectedCategory, setExpenseSelectedCategory] = useState<string>('');
   const [expenseStartDate, setExpenseStartDate] = useState<Date | undefined>();
   const [expenseEndDate, setExpenseEndDate] = useState<Date | undefined>();
+  
+  // États pour le sous-onglet revenue et les nouveaux rapports By Client / By Product
+  const [revenueSubTab, setRevenueSubTab] = useState<'period' | 'client' | 'product'>('period');
+  const [clientRevenueStartDate, setClientRevenueStartDate] = useState<Date | undefined>();
+  const [clientRevenueEndDate, setClientRevenueEndDate] = useState<Date | undefined>();
+  const [clientRevenueCompanyId, setClientRevenueCompanyId] = useState<string>('');
+  const [productRevenueStartDate, setProductRevenueStartDate] = useState<Date | undefined>();
+  const [productRevenueEndDate, setProductRevenueEndDate] = useState<Date | undefined>();
+  const [productRevenueCompanyId, setProductRevenueCompanyId] = useState<string>('');
   
   const { reportData: expenseReportDataRaw, loading: expenseLoading } = useExpenseReports(
     expenseStartDate, 
@@ -2807,14 +2818,24 @@ const Reports = () => {
               <p className="text-muted-foreground">{t("reports.revenue.description")}</p>
             </div>
 
-            <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
-              setActiveTab(value);
-            }}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
-                <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
-                <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
+            {/* Revenue Sub-tabs: By Period, By Client, By Product */}
+            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
+                <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
+                <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
               </TabsList>
+
+              {/* By Period Tab - Existing functionality */}
+              <TabsContent value="period" className="space-y-4">
+                <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
+                  setActiveTab(value);
+                }}>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
+                    <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
+                    <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
+                  </TabsList>
               
               <TabsContent value="custom" className="space-y-4">
                 <Card>
@@ -3087,317 +3108,388 @@ const Reports = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
+                </Tabs>
+
+                {/* Boutons Clear spécifiques à chaque onglet */}
+                {activeTab === 'custom' && (customStartDate || customEndDate) && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCustomStartDate(undefined);
+                        setCustomEndDate(undefined);
+                      }}
+                    >
+                      {getReportTranslation('clearCustomRange', language)}
+                    </Button>
+                  </div>
+                )}
+
+                {activeTab === 'month' && selectedMonth && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedMonth(undefined);
+                      }}
+                    >
+                      {getReportTranslation('clearMonth', language)}
+                    </Button>
+                  </div>
+                )}
+
+                {activeTab === 'year' && (selectedYear || yearRangeStart || yearRangeEnd) && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedYear(undefined);
+                        setYearRangeStart(undefined);
+                        setYearRangeEnd(undefined);
+                      }}
+                    >
+                      {getReportTranslation('clearYearSelection', language)}
+                    </Button>
+                  </div>
+                )}
+
+                {loading && (
+                  <Card>
+                    <CardContent className="flex justify-center items-center h-96">
+                      <p>Loading data...</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {error && (
+                  <Card>
+                    <CardContent className="flex justify-center items-center h-96">
+                      <p className="text-destructive">Error: {error}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {!loading && !error && realRevenueData && (startDate || endDate) && (
+                  <>
+                    {/* Export buttons */}
+                    <div className="flex justify-end gap-2 mb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportToPDF}
+                        disabled={!realRevenueData || !chartData.length}
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportToExcel}
+                        disabled={!realRevenueData || !chartData.length}
+                        className="flex items-center gap-2"
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        Excel
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadChartsAsPDF}
+                        disabled={!realRevenueData || !chartData.length}
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        {language === 'fr' ? 'Graphiques PDF' : 'Charts PDF'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEmailDialogOpen('revenue')}
+                        disabled={!realRevenueData || !chartData.length}
+                        className="flex items-center gap-2"
+                      >
+                        <Mail className="h-4 w-4" />
+                        {language === 'fr' ? 'Courriel' : 'Email'}
+                      </Button>
+                    </div>
+
+                    {/* Summary Cards */}
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">{t("reports.revenue.totalRevenue")}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">
+                            {new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(realRevenueData.totalRevenue)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">{t("reports.revenue.totalPeriods")}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">
+                            {viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">{t("reports.revenue.averageRevenue")}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">
+                            {new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(
+                              realRevenueData.totalRevenue / Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length)
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* View Mode Toggle */}
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant={viewMode === 'monthly' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('monthly')}
+                      >
+                        {t("reports.revenue.monthly")}
+                      </Button>
+                      <Button
+                        variant={viewMode === 'yearly' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('yearly')}
+                      >
+                        {t("reports.revenue.yearly")}
+                      </Button>
+                    </div>
+
+                    {/* Charts */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>
+                            {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[300px]" ref={barChartRef}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="period" />
+                              <YAxis />
+                              <Tooltip 
+                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                              />
+                              <Bar dataKey="revenue" fill="hsl(var(--primary))" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[300px]" ref={lineChartRef}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="period" />
+                              <YAxis />
+                              <Tooltip 
+                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                              />
+                              <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Invoice List */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t("reports.revenue.invoiceList")}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {invoices && invoices.filter((invoice: any) => {
+                          if (invoice.status !== 'paid') return false;
+                          if (!startDate && !endDate) return true;
+                          const invoiceDate = new Date(invoice.issue_date);
+                          if (startDate && invoiceDate < startDate) return false;
+                          if (endDate && invoiceDate > endDate) return false;
+                          if (filterType === 'company' && selectedCompanyId) {
+                            return invoice.clients?.company_id === selectedCompanyId;
+                          }
+                          if (filterType === 'client' && selectedClientId) {
+                            return invoice.client_id === selectedClientId;
+                          }
+                          return true;
+                        }).length > 0 ? (
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>{t("reports.revenue.invoiceNumber")}</TableHead>
+                                <TableHead>{t("reports.revenue.client")}</TableHead>
+                                <TableHead>{t("reports.revenue.date")}</TableHead>
+                                <TableHead className="text-right">{t("reports.revenue.total")}</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {invoices.filter((invoice: any) => {
+                                if (invoice.status !== 'paid') return false;
+                                if (!startDate && !endDate) return true;
+                                const invoiceDate = new Date(invoice.issue_date);
+                                if (startDate && invoiceDate < startDate) return false;
+                                if (endDate && invoiceDate > endDate) return false;
+                                if (filterType === 'company' && selectedCompanyId) {
+                                  return invoice.clients?.company_id === selectedCompanyId;
+                                }
+                                if (filterType === 'client' && selectedClientId) {
+                                  return invoice.client_id === selectedClientId;
+                                }
+                                return true;
+                              }).map((invoice: any) => (
+                                <TableRow key={invoice.id}>
+                                  <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                                  <TableCell>{invoice.clients?.name || '-'}</TableCell>
+                                  <TableCell>{format(new Date(invoice.issue_date), 'dd/MM/yyyy')}</TableCell>
+                                  <TableCell className="text-right">
+                                    {new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(invoice.total)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <div className="text-center text-muted-foreground py-8">
+                            {t("reports.revenue.noInvoices")}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+
+                {!loading && !error && (!startDate && !endDate) && (
+                  <Card>
+                    <CardContent className="flex justify-center items-center h-96">
+                      <div className="text-center">
+                        <p className="text-lg font-medium">{t("reports.revenue.noPeriodSelected")}</p>
+                        <p className="text-muted-foreground">
+                          {t("reports.revenue.selectPeriod")}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* By Client Tab */}
+              <TabsContent value="client" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{language === 'fr' ? 'Filtres' : 'Filters'}</CardTitle>
+                    <CardDescription>
+                      {language === 'fr' 
+                        ? 'Sélectionnez une période pour analyser les revenus par client'
+                        : 'Select a period to analyze revenue by client'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <DateRangePicker
+                      startDate={clientRevenueStartDate}
+                      endDate={clientRevenueEndDate}
+                      onStartDateChange={setClientRevenueStartDate}
+                      onEndDateChange={setClientRevenueEndDate}
+                      t={t}
+                    />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
+                        <Select value={clientRevenueCompanyId} onValueChange={setClientRevenueCompanyId}>
+                          <SelectTrigger className="bg-background">
+                            <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-lg z-50">
+                            <SelectItem value="all">{language === 'fr' ? 'Toutes les entreprises' : 'All companies'}</SelectItem>
+                            {companies.map((company) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {company.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <RevenueByClientReport
+                  startDate={clientRevenueStartDate}
+                  endDate={clientRevenueEndDate}
+                  companyId={clientRevenueCompanyId && clientRevenueCompanyId !== 'all' ? clientRevenueCompanyId : undefined}
+                />
+              </TabsContent>
+
+              {/* By Product Tab */}
+              <TabsContent value="product" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{language === 'fr' ? 'Filtres' : 'Filters'}</CardTitle>
+                    <CardDescription>
+                      {language === 'fr' 
+                        ? 'Sélectionnez une période pour analyser les revenus par produit/service'
+                        : 'Select a period to analyze revenue by product/service'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <DateRangePicker
+                      startDate={productRevenueStartDate}
+                      endDate={productRevenueEndDate}
+                      onStartDateChange={setProductRevenueStartDate}
+                      onEndDateChange={setProductRevenueEndDate}
+                      t={t}
+                    />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
+                        <Select value={productRevenueCompanyId} onValueChange={setProductRevenueCompanyId}>
+                          <SelectTrigger className="bg-background">
+                            <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-lg z-50">
+                            <SelectItem value="all">{language === 'fr' ? 'Toutes les entreprises' : 'All companies'}</SelectItem>
+                            {companies.map((company) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {company.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <RevenueByProductReport
+                  startDate={productRevenueStartDate}
+                  endDate={productRevenueEndDate}
+                  companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
+                />
+              </TabsContent>
             </Tabs>
-
-            {/* Boutons Clear spécifiques à chaque onglet */}
-            {activeTab === 'custom' && (customStartDate || customEndDate) && (
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setCustomStartDate(undefined);
-                    setCustomEndDate(undefined);
-                  }}
-                >
-                  {getReportTranslation('clearCustomRange', language)}
-                </Button>
-              </div>
-            )}
-
-            {activeTab === 'month' && selectedMonth && (
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedMonth(undefined);
-                  }}
-                >
-                  {getReportTranslation('clearMonth', language)}
-                </Button>
-              </div>
-            )}
-
-            {activeTab === 'year' && (selectedYear || yearRangeStart || yearRangeEnd) && (
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedYear(undefined);
-                    setYearRangeStart(undefined);
-                    setYearRangeEnd(undefined);
-                  }}
-                >
-                  {getReportTranslation('clearYearSelection', language)}
-                </Button>
-              </div>
-            )}
           </div>
-
-          {loading && (
-            <Card>
-              <CardContent className="flex justify-center items-center h-96">
-                <p>Loading data...</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {error && (
-            <Card>
-              <CardContent className="flex justify-center items-center h-96">
-                <p className="text-destructive">Error: {error}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {!loading && !error && realRevenueData && (startDate || endDate) && (
-            <>
-              {/* Export buttons */}
-              <div className="flex justify-end gap-2 mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportToPDF}
-                  disabled={!realRevenueData || !chartData.length}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportToExcel}
-                  disabled={!realRevenueData || !chartData.length}
-                  className="flex items-center gap-2"
-                >
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Excel
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEmailDialogOpen('revenue')}
-                  disabled={!realRevenueData || !chartData.length}
-                  className="flex items-center gap-2"
-                >
-                  <Mail className="h-4 w-4" />
-                  {language === 'fr' ? 'Courriel' : 'Email'}
-                </Button>
-              </div>
-
-              {/* Statistics Cards */}
-              <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{t('reports.revenue.totalRevenue')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('en-US').format(realRevenueData.totalRevenue)}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t('reports.revenue.paidInvoicesOnly')}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {viewMode === 'monthly' ? t('reports.revenue.numberOfMonths') : t('reports.revenue.numberOfYears')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t('reports.revenue.withRevenue')}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{t('reports.revenue.averageRevenue')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('en-US').format(
-                        realRevenueData.totalRevenue / 
-                        Math.max(1, viewMode === 'monthly' ? realRevenueData.monthlyData.length : realRevenueData.yearlyData.length)
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {viewMode === 'monthly' ? t('reports.revenue.perMonth') : t('reports.revenue.perYear')}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Bouton de téléchargement des graphiques */}
-              {chartData.length > 0 && (
-                <div className="flex justify-end mb-4">
-                  <Button onClick={downloadChartsAsPDF} variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    {t('reports.revenue.downloadCharts')}
-                  </Button>
-                </div>
-              )}
-
-              {/* Graphiques des revenus */}
-              {chartData.length > 0 && (
-                <div className="space-y-4 mb-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div ref={barChartRef}>
-                        <BarChart width={600} height={300} data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="period" />
-                          <YAxis />
-                          <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
-                          <Bar dataKey="revenue" fill="#22c55e" minPointSize={5} />
-                        </BarChart>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div ref={lineChartRef}>
-                        <LineChart width={600} height={300} data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="period" />
-                          <YAxis />
-                          <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} $`, 'Revenus']} />
-                          <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                        </LineChart>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-
-              {/* Detailed Table */}
-              {chartData.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("reports.revenue.detailsByPeriod")}</CardTitle>
-                    <CardDescription>
-                      {t("reports.revenue.detailedDataBy")} {viewMode === 'monthly' ? t("reports.revenue.month") : t("reports.revenue.year")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2">{t("reports.revenue.period")}</th>
-                            <th className="text-right py-2">{t("reports.revenue.revenue")}</th>
-                            <th className="text-right py-2">{t("reports.revenue.numberOfInvoices")}</th>
-                            <th className="text-right py-2">{t("reports.revenue.averageRevenuePerInvoice")}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {chartData.map((item, index) => (
-                            <tr key={index} className="border-b">
-                              <td className="py-2">{item.period}</td>
-                              <td className="text-right py-2 font-medium">
-                                {new Intl.NumberFormat('en-US').format(item.revenue)}
-                              </td>
-                              <td className="text-right py-2">{item.invoiceCount}</td>
-                              <td className="text-right py-2">
-                                {new Intl.NumberFormat('en-US').format(item.revenue / item.invoiceCount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Invoices Table */}
-              {filteredInvoices.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('reports.revenue.invoicesList')}</CardTitle>
-                    <CardDescription>
-                      {t('reports.revenue.invoicesListDescription')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('reports.revenue.invoiceNumber')}</TableHead>
-                          <TableHead>{t('reports.revenue.clientName')}</TableHead>
-                          <TableHead>{t('reports.revenue.issueDate')}</TableHead>
-                          <TableHead className="text-right">{t('reports.revenue.totalAmount')}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredInvoices.map((invoice) => (
-                          <TableRow key={invoice.id}>
-                            <TableCell className="font-medium">
-                              {invoice.invoice_number}
-                            </TableCell>
-                            <TableCell>
-                              {(invoice as any).clients?.name || 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                              }).format(Number(invoice.total))}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              )}
-
-              {chartData.length === 0 && (
-                <Card>
-                  <CardContent className="flex justify-center items-center h-96">
-                    <div className="text-center">
-                      <p className="text-lg font-medium">No revenue data</p>
-                      <p className="text-muted-foreground">
-                        Create and pay some invoices to see data appear here.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-
-          {!loading && !error && (!startDate && !endDate) && (
-            <Card>
-              <CardContent className="flex justify-center items-center h-96">
-                <div className="text-center">
-                  <p className="text-lg font-medium">{t("reports.revenue.noPeriodSelected")}</p>
-                  <p className="text-muted-foreground">
-                    {t("reports.revenue.selectPeriod")}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
 
