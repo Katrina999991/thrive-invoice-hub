@@ -44,6 +44,8 @@ import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 import { generateSalesReportPdf } from "@/lib/salesReportPdf";
 import { generateRevenueReportPdf } from "@/lib/revenueReportPdf";
+import { generateRevenueByClientPdf } from "@/lib/revenueByClientPdf";
+import { useRevenueByClient } from "@/hooks/useRevenueByClient";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { logAuditEvent } from "@/lib/auditLogger";
 
@@ -220,6 +222,13 @@ const Reports = () => {
   const [productRevenueEndDate, setProductRevenueEndDate] = useState<Date | undefined>();
   const [productRevenueCompanyId, setProductRevenueCompanyId] = useState<string>('');
   
+  // Hook for Revenue by Client data
+  const { clientRevenueData, loading: clientRevenueLoading } = useRevenueByClient(
+    clientRevenueStartDate,
+    clientRevenueEndDate,
+    clientRevenueCompanyId && clientRevenueCompanyId !== 'all' ? clientRevenueCompanyId : undefined
+  );
+
   const { reportData: expenseReportDataRaw, loading: expenseLoading } = useExpenseReports(
     expenseStartDate, 
     expenseEndDate, 
@@ -697,6 +706,54 @@ const Reports = () => {
     });
     
     logExport('revenue', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport revenus' : 'Revenue report PDF download');
+  };
+
+  // Export Revenue by Client to PDF
+  const exportRevenueByClientToPDF = async () => {
+    if (!clientRevenueData || clientRevenueData.clientData.length === 0) return;
+    
+    // Get invoice details for each client
+    const clientInvoices = invoices
+      .filter(inv => {
+        // Filter by date range
+        if (clientRevenueStartDate || clientRevenueEndDate) {
+          const invoiceDate = new Date(inv.issue_date);
+          if (clientRevenueStartDate && invoiceDate < clientRevenueStartDate) return false;
+          if (clientRevenueEndDate && invoiceDate > clientRevenueEndDate) return false;
+        }
+        // Filter by company if selected
+        if (clientRevenueCompanyId && clientRevenueCompanyId !== 'all') {
+          const client = clients.find(c => c.id === inv.client_id);
+          if (client?.company_id !== clientRevenueCompanyId) return false;
+        }
+        // Only include invoices with valid statuses
+        return ['sent', 'paid', 'overdue'].includes(inv.status);
+      })
+      .map(inv => ({
+        invoice_number: inv.invoice_number,
+        issue_date: inv.issue_date,
+        total: Number(inv.total),
+        status: inv.status,
+        client_id: inv.client_id || ''
+      }));
+
+    // Get company filter name
+    const companyFilterName = clientRevenueCompanyId && clientRevenueCompanyId !== 'all'
+      ? companies.find(c => c.id === clientRevenueCompanyId)?.name
+      : undefined;
+
+    await generateRevenueByClientPdf({
+      clientRevenueData,
+      startDate: clientRevenueStartDate,
+      endDate: clientRevenueEndDate,
+      companyFilterName,
+      invoiceDetails: clientInvoices,
+      language: language as 'fr' | 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding
+    });
+
+    logExport('revenue_by_client', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport revenus par client' : 'Revenue by client report PDF download');
   };
 
   // Export functions for taxes
@@ -3395,6 +3452,22 @@ const Reports = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Export Button for Revenue by Client */}
+                {clientRevenueData && clientRevenueData.clientData.length > 0 && (clientRevenueStartDate || clientRevenueEndDate) && (
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportRevenueByClientToPDF}
+                      disabled={clientRevenueLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      PDF
+                    </Button>
+                  </div>
+                )}
 
                 <RevenueByClientReport
                   startDate={clientRevenueStartDate}
