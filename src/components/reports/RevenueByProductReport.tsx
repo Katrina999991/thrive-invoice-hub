@@ -171,9 +171,8 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
             </CardTitle>
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis 
@@ -202,8 +201,7 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
                     ))}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
-            </div>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       )}
