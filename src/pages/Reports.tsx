@@ -48,6 +48,7 @@ import { generateRevenueByClientPdf } from "@/lib/revenueByClientPdf";
 import { generateRevenueByProductPdf } from "@/lib/revenueByProductPdf";
 import { generateStockStatusPdf, type StockProduct } from "@/lib/stockStatusPdf";
 import { generateStockValuePdf, type StockValueProduct } from "@/lib/stockValuePdf";
+import { generateExpensesPeriodPdf } from "@/lib/expensesPeriodPdf";
 import { useRevenueByClient } from "@/hooks/useRevenueByClient";
 import { useRevenueByProduct } from "@/hooks/useRevenueByProduct";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -1813,44 +1814,39 @@ const Reports = () => {
   const exportExpensesToPDF = async () => {
     if (!expenseReportData) return;
     
+    // Get filter names for the PDF
+    let companyFilterName: string | undefined;
+    let categoryFilterName: string | undefined;
+    
+    if (expenseFilterType === 'company' && expenseSelectedCompanyId) {
+      companyFilterName = companies.find(c => c.id === expenseSelectedCompanyId)?.name;
+    } else if (expenseFilterType === 'category' && expenseSelectedCategory) {
+      categoryFilterName = expenseSelectedCategory;
+    }
+    
+    await generateExpensesPeriodPdf({
+      reportData: expenseReportData,
+      startDate: expenseStartDate,
+      endDate: expenseEndDate,
+      companyName: companies?.[0]?.name,
+      companyFilterName,
+      categoryFilterName,
+      language: language as 'fr' | 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding,
+      returnBlob: false
+    });
+    
+    logExport('expenses', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport dépenses' : 'Expenses report PDF download');
+  };
+
+  // Legacy export function kept for chart-based exports
+  const exportExpensesLegacyPDF = async () => {
+    if (!expenseReportData) return;
+    
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const dateLocale = language === 'fr' ? fr : enUS;
-    
-    // Title
-    doc.setFontSize(20);
-    doc.text(getReportTranslation('expensesReport', language), pageWidth / 2, 20, { align: 'center' });
-    
-    // Date range
-    doc.setFontSize(12);
-    let dateRangeText = getReportTranslation('generatedOn', language) + ': ' + format(new Date(), 'dd/MM/yyyy', { locale: dateLocale });
-    if (expenseStartDate && expenseEndDate) {
-      dateRangeText = `${getReportTranslation('period', language)}: ${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
-    } else if (expenseStartDate) {
-      dateRangeText = `${getReportTranslation('since', language)}: ${format(expenseStartDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
-    } else if (expenseEndDate) {
-      dateRangeText = `${getReportTranslation('until', language)}: ${format(expenseEndDate, 'dd/MM/yyyy', { locale: dateLocale })}`;
-    }
-    doc.text(dateRangeText, pageWidth / 2, 35, { align: 'center' });
-    
-    // Filter info
-    let filterText = getReportTranslation('all', language);
-    if (expenseFilterType === 'company' && expenseSelectedCompanyId) {
-      const company = companies.find(c => c.id === expenseSelectedCompanyId);
-      filterText = `${getReportTranslation('company', language)}: ${company?.name || getReportTranslation('unknown', language)}`;
-    } else if (expenseFilterType === 'category' && expenseSelectedCategory) {
-      filterText = `${getReportTranslation('category', language)}: ${expenseSelectedCategory}`;
-    }
-    doc.setFontSize(11);
-    doc.text(`${getReportTranslation('filter', language)}: ${filterText}`, pageWidth / 2, 45, { align: 'center' });
-    
-    // Summary
-    doc.setFontSize(14);
-    doc.text(getReportTranslation('summary', language), 20, 65);
-    doc.setFontSize(12);
-    doc.text(`${getReportTranslation('totalExpenses', language)}: $${expenseReportData.totalExpenses.toFixed(2)}`, 20, 80);
-    doc.text(`${getStatusLabel('paid', language)} ${getReportTranslation('expensesReport', language)}: $${expenseReportData.totalPaidExpenses.toFixed(2)}`, 20, 90);
-    doc.text(`${getStatusLabel('pending', language)} ${getReportTranslation('expensesReport', language)}: $${expenseReportData.totalUnpaidExpenses.toFixed(2)}`, 20, 100);
     
     let yPosition = 120;
     
@@ -6060,16 +6056,34 @@ const Reports = () => {
         open={emailDialogOpen === 'expenses'}
         onOpenChange={(open) => !open && setEmailDialogOpen(null)}
         reportType="expenses"
-        reportTitle={language === 'fr' ? 'Rapport des dépenses' : 'Expenses Report'}
+        reportTitle={language === 'fr' ? 'Dépenses par période' : 'Expenses by Period'}
         pdfBlob={null}
         onGeneratePdf={async () => {
           if (!expenseReportData) return null;
-          const doc = new jsPDF();
-          doc.setFontSize(20);
-          doc.text(language === 'fr' ? 'Rapport des dépenses' : 'Expenses Report', doc.internal.pageSize.width / 2, 20, { align: 'center' });
-          const tableData = expenseReportData.expenseDetails.map(e => [e.description, e.category, `$${e.amount.toFixed(2)}`]);
-          autoTable(doc, { head: [['Description', 'Catégorie', 'Montant']], body: tableData, startY: 40 });
-          return doc.output('blob');
+          
+          // Get filter names for the PDF
+          let companyFilterName: string | undefined;
+          let categoryFilterName: string | undefined;
+          
+          if (expenseFilterType === 'company' && expenseSelectedCompanyId) {
+            companyFilterName = companies.find(c => c.id === expenseSelectedCompanyId)?.name;
+          } else if (expenseFilterType === 'category' && expenseSelectedCategory) {
+            categoryFilterName = expenseSelectedCategory;
+          }
+          
+          const blob = await generateExpensesPeriodPdf({
+            reportData: expenseReportData,
+            startDate: expenseStartDate,
+            endDate: expenseEndDate,
+            companyName: companies?.[0]?.name,
+            companyFilterName,
+            categoryFilterName,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
         }}
       />
 
