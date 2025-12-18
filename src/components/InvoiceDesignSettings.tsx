@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 
 const COLOR_PRESETS = [
   { value: "blue", color: "bg-blue-600", label: { en: "Blue", fr: "Bleu" } },
@@ -63,6 +64,7 @@ const LOGO_SIZES = [
 export function InvoiceDesignSettings() {
   const { language } = useLanguage();
   const { planLimits } = useSubscription();
+  const navigate = useNavigate();
   
   const [invoiceTemplate, setInvoiceTemplate] = useState<string>("classic");
   const [invoiceColor, setInvoiceColor] = useState<string>("blue");
@@ -375,7 +377,7 @@ export function InvoiceDesignSettings() {
                   ? "Passez au plan Pro pour débloquer la personnalisation complète des documents."
                   : "Upgrade to Pro to unlock full document customization."}
               </p>
-              <Button variant="outline" className="mt-4" size="sm">
+              <Button variant="outline" className="mt-4" size="sm" onClick={() => navigate("/dashboard/pricing")}>
                 {language === "fr" ? "Voir les plans" : "View Plans"}
               </Button>
             </div>
