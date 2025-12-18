@@ -657,8 +657,8 @@ Cordialement,
       // Build template data based on plan restrictions
       const templateData: Record<string, string> = {};
       
-      // Pro-only email templates
-      if (planLimits?.plan_type === 'pro') {
+      // Email templates - Premium and Pro can save
+      if (planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') {
         templateData.invoice_email_subject_en = emailTemplates.invoice_email_subject_en;
         templateData.invoice_email_subject_fr = emailTemplates.invoice_email_subject_fr;
         templateData.invoice_email_message_en = emailTemplates.invoice_email_message_en;
@@ -1467,6 +1467,231 @@ Cordialement,
                       {isSavingTemplates ? (language === "fr" ? "Sauvegarde..." : "Saving...") : (language === "fr" ? "Sauvegarder les messages" : "Save Messages")}
                     </Button>
                   </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Email Templates Card - Premium and Pro only */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              {language === "fr" ? "Modèles d'emails" : "Email Templates"}
+              <Badge variant="secondary">Premium</Badge>
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" ? "Personnalisez les modèles d'emails envoyés à vos clients." : "Customize the email templates sent to your clients."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Helper text for Free users */}
+              {planLimits?.plan_type === 'free' && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <p className="text-sm text-muted-foreground">
+                    {language === "fr" 
+                      ? "Passez à Premium pour personnaliser vos modèles d'emails." 
+                      : "Upgrade to Premium to customize your email templates."}
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => navigate("/pricing")}
+                  >
+                    {language === "fr" ? "Voir les forfaits" : "View Plans"}
+                  </Button>
+                </div>
+              )}
+
+              {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
+                <>
+                  <div className="space-y-2">
+                    <Label>{language === "fr" ? "Sélectionner l'entreprise" : "Select Company"}</Label>
+                    <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === "fr" ? "Choisir une entreprise" : "Choose a company"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {selectedCompanyId && (
+                    <>
+                      {/* Variables Info */}
+                      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                        <p className="text-xs font-medium text-foreground mb-1">
+                          {language === "fr" ? "Variables disponibles" : "Available placeholders"}:
+                        </p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {"{invoice_number}"}, {"{company_name}"}, {"{client_name}"}, {"{total}"}, {"{due_date}"}, {"{issue_date}"}, {"{days_overdue}"}, {"{payment_date}"}
+                        </p>
+                      </div>
+
+                      {/* Invoice Email Template */}
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="invoice-email">
+                          <AccordionTrigger>
+                            {language === "fr" ? "Email de facture" : "Invoice Email"}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-4 pt-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="invoice_email_subject_en">{language === "fr" ? "Sujet (Anglais)" : "Subject (English)"}</Label>
+                                  <Input
+                                    id="invoice_email_subject_en"
+                                    value={emailTemplates.invoice_email_subject_en}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_en: e.target.value})}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="invoice_email_subject_fr">{language === "fr" ? "Sujet (Français)" : "Subject (French)"}</Label>
+                                  <Input
+                                    id="invoice_email_subject_fr"
+                                    value={emailTemplates.invoice_email_subject_fr}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_subject_fr: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="invoice_email_message_en">{language === "fr" ? "Message (Anglais)" : "Message (English)"}</Label>
+                                  <Textarea
+                                    id="invoice_email_message_en"
+                                    rows={6}
+                                    value={emailTemplates.invoice_email_message_en}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_en: e.target.value})}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="invoice_email_message_fr">{language === "fr" ? "Message (Français)" : "Message (French)"}</Label>
+                                  <Textarea
+                                    id="invoice_email_message_fr"
+                                    rows={6}
+                                    value={emailTemplates.invoice_email_message_fr}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, invoice_email_message_fr: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+
+                        {/* Overdue Email Template */}
+                        <AccordionItem value="overdue-email">
+                          <AccordionTrigger>
+                            {language === "fr" ? "Email de rappel (retard)" : "Overdue Reminder Email"}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-4 pt-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="overdue_email_subject_en">{language === "fr" ? "Sujet (Anglais)" : "Subject (English)"}</Label>
+                                  <Input
+                                    id="overdue_email_subject_en"
+                                    value={emailTemplates.overdue_email_subject_en}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_en: e.target.value})}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="overdue_email_subject_fr">{language === "fr" ? "Sujet (Français)" : "Subject (French)"}</Label>
+                                  <Input
+                                    id="overdue_email_subject_fr"
+                                    value={emailTemplates.overdue_email_subject_fr}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_subject_fr: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="overdue_email_message_en">{language === "fr" ? "Message (Anglais)" : "Message (English)"}</Label>
+                                  <Textarea
+                                    id="overdue_email_message_en"
+                                    rows={8}
+                                    value={emailTemplates.overdue_email_message_en}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_en: e.target.value})}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="overdue_email_message_fr">{language === "fr" ? "Message (Français)" : "Message (French)"}</Label>
+                                  <Textarea
+                                    id="overdue_email_message_fr"
+                                    rows={8}
+                                    value={emailTemplates.overdue_email_message_fr}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, overdue_email_message_fr: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+
+                        {/* Payment Confirmation Email Template */}
+                        <AccordionItem value="payment-confirmation-email">
+                          <AccordionTrigger>
+                            {language === "fr" ? "Email de confirmation de paiement" : "Payment Confirmation Email"}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-4 pt-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="payment_confirmation_email_subject_en">{language === "fr" ? "Sujet (Anglais)" : "Subject (English)"}</Label>
+                                  <Input
+                                    id="payment_confirmation_email_subject_en"
+                                    value={emailTemplates.payment_confirmation_email_subject_en}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_en: e.target.value})}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="payment_confirmation_email_subject_fr">{language === "fr" ? "Sujet (Français)" : "Subject (French)"}</Label>
+                                  <Input
+                                    id="payment_confirmation_email_subject_fr"
+                                    value={emailTemplates.payment_confirmation_email_subject_fr}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_subject_fr: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="payment_confirmation_email_message_en">{language === "fr" ? "Message (Anglais)" : "Message (English)"}</Label>
+                                  <Textarea
+                                    id="payment_confirmation_email_message_en"
+                                    rows={6}
+                                    value={emailTemplates.payment_confirmation_email_message_en}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_en: e.target.value})}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="payment_confirmation_email_message_fr">{language === "fr" ? "Message (Français)" : "Message (French)"}</Label>
+                                  <Textarea
+                                    id="payment_confirmation_email_message_fr"
+                                    rows={6}
+                                    value={emailTemplates.payment_confirmation_email_message_fr}
+                                    onChange={(e) => setEmailTemplates({...emailTemplates, payment_confirmation_email_message_fr: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+
+                      <div className="pt-4">
+                        <Button onClick={handleSaveEmailTemplates} disabled={isSavingTemplates}>
+                          {isSavingTemplates ? (language === "fr" ? "Sauvegarde..." : "Saving...") : (language === "fr" ? "Sauvegarder les modèles" : "Save Templates")}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
