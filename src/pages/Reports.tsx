@@ -4609,9 +4609,19 @@ const Reports = () => {
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Toutes (Excel)' : 'All (Excel)'}
                   </Button>
-                  <Button onClick={() => setEmailDialogOpen('expenses')} variant="outline" size="sm" disabled={!expenseReportData}>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={() => setEmailDialogOpen('expenses-period')} variant="outline" size="sm" disabled={!expenseReportData}>
                     <Mail className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Courriel' : 'Email'}
+                    {language === 'fr' ? 'Par période (Courriel)' : 'By Period (Email)'}
+                  </Button>
+                  <Button onClick={() => setEmailDialogOpen('expenses-category')} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Par catégorie (Courriel)' : 'By Category (Email)'}
+                  </Button>
+                  <Button onClick={() => setEmailDialogOpen('expenses-all')} variant="outline" size="sm" disabled={!expenseReportData}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Toutes (Courriel)' : 'All (Email)'}
                   </Button>
                 </div>
               </div>
@@ -6233,15 +6243,14 @@ const Reports = () => {
       />
 
       <EmailReportDialog
-        open={emailDialogOpen === 'expenses'}
+        open={emailDialogOpen === 'expenses-period'}
         onOpenChange={(open) => !open && setEmailDialogOpen(null)}
-        reportType="expenses"
+        reportType="expenses-period"
         reportTitle={language === 'fr' ? 'Dépenses par période' : 'Expenses by Period'}
         pdfBlob={null}
         onGeneratePdf={async () => {
           if (!expenseReportData) return null;
           
-          // Get filter names for the PDF
           let companyFilterName: string | undefined;
           let categoryFilterName: string | undefined;
           
@@ -6258,6 +6267,62 @@ const Reports = () => {
             companyName: companies?.[0]?.name,
             companyFilterName,
             categoryFilterName,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'expenses-category'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="expenses-category"
+        reportTitle={language === 'fr' ? 'Dépenses par catégorie' : 'Expenses by Category'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!expenseReportData) return null;
+          
+          const companyFilterName = expenseFilterType === 'company' && expenseSelectedCompanyId
+            ? companies.find(c => c.id === expenseSelectedCompanyId)?.name
+            : undefined;
+          
+          const blob = await generateExpensesByCategoryPdf({
+            reportData: expenseReportData,
+            startDate: expenseStartDate,
+            endDate: expenseEndDate,
+            companyName: companies?.[0]?.name,
+            companyFilterName,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'expenses-all'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="expenses-all"
+        reportTitle={language === 'fr' ? 'Détail de toutes les dépenses' : 'All Expenses Detail'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!expenseReportData) return null;
+          
+          const companyFilterName = expenseFilterType === 'company' && expenseSelectedCompanyId
+            ? companies.find(c => c.id === expenseSelectedCompanyId)?.name
+            : undefined;
+          
+          const blob = await generateAllExpensesPdf({
+            reportData: expenseReportData,
+            startDate: expenseStartDate,
+            endDate: expenseEndDate,
+            companyName: companies?.[0]?.name,
+            companyFilterName,
             language: language as 'fr' | 'en',
             planType: planLimits?.plan_type || 'free',
             hideBranding: hidePdfBranding,
