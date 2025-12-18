@@ -1779,60 +1779,277 @@ const Reports = () => {
     logExport('all_clients', 'excel', language === 'fr' ? 'Export Excel tous les clients' : 'All clients Excel export');
   };
 
-  // Export company-specific clients functions
+  // Export company-specific clients functions (grouped PDF for all companies)
   const exportCompanyClientsToPDF = (company: any) => {
-    const companyClients = clients.filter(client => client.company_id === company.id);
-    
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     
-    // Title
-    doc.setFontSize(20);
-    doc.text(language === 'fr' ? "Clients par entreprise" : "Clients by Company", pageWidth / 2, 20, { align: 'center' });
+    // Get the first company for header (or use a generic name if multiple)
+    const mainCompanyName = companies.length === 1 
+      ? companies[0].name 
+      : (language === 'fr' ? 'Toutes les entreprises' : 'All Companies');
     
-    // Subtitle with company name
-    doc.setFontSize(14);
-    doc.text(company.name, pageWidth / 2, 30, { align: 'center' });
+    // Helper function to get last invoice date
+    const getLastInvoiceDateForClient = (clientId: string) => {
+      const clientInvoices = invoices?.filter((inv: any) => inv.client_id === clientId) || [];
+      if (clientInvoices.length === 0) return null;
+      const sortedInvoices = clientInvoices.sort((a: any, b: any) => 
+        new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime()
+      );
+      return sortedInvoices[0]?.issue_date;
+    };
     
-    // Date generated
-    doc.setFontSize(12);
-    doc.text(`${language === 'fr' ? 'Généré le' : 'Generated on'}: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 40, { align: 'center' });
+    // Sort companies alphabetically
+    const sortedCompanies = [...companies].sort((a, b) => 
+      a.name.localeCompare(b.name, language === 'fr' ? 'fr' : 'en')
+    );
     
-    // Summary
-    doc.setFontSize(14);
-    doc.text(language === 'fr' ? 'Résumé' : 'Summary', 20, 60);
-    doc.setFontSize(10);
-    doc.text(`${language === 'fr' ? 'Entreprise' : 'Company'}: ${company.name}`, 20, 70);
-    doc.text(`${language === 'fr' ? 'Nombre de clients' : 'Number of clients'}: ${companyClients.length}`, 20, 80);
+    // Get clients without company
+    const clientsWithoutCompany = filteredClientsByDate
+      .filter(client => !client.company_id)
+      .sort((a, b) => a.name.localeCompare(b.name, language === 'fr' ? 'fr' : 'en'));
     
-    if (companyClients.length > 0) {
-      const companyClientsData = companyClients.map(client => [
-        client.name,
-        client.email || 'N/A',
-        client.phone || 'N/A',
-        client.contact_person || 'N/A'
-      ]);
+    let yPosition = 15;
+    let isFirstPage = true;
+    
+    // Function to add header
+    const addHeader = () => {
+      yPosition = 15;
+      
+      // Company name
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.text(mainCompanyName, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
+      
+      // Report title
+      doc.setFontSize(20);
+      doc.setTextColor(0, 0, 0);
+      doc.text(language === 'fr' ? "Clients par entreprise" : "Clients by Company", pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
+      
+      // Date range filter (if applied)
+      if (createdFromDate || createdToDate) {
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        let dateRangeText = language === 'fr' ? 'Période de création: ' : 'Creation period: ';
+        if (createdFromDate && createdToDate) {
+          dateRangeText += `${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}`;
+        } else if (createdFromDate) {
+          dateRangeText += `${language === 'fr' ? 'Depuis le' : 'From'} ${format(createdFromDate, 'dd/MM/yyyy')}`;
+        } else if (createdToDate) {
+          dateRangeText += `${language === 'fr' ? "Jusqu'au" : 'Until'} ${format(createdToDate, 'dd/MM/yyyy')}`;
+        }
+        doc.text(dateRangeText, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 6;
+      }
+      
+      // Generated date
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      doc.text(
+        `${language === 'fr' ? 'Généré le' : 'Generated on'}: ${format(new Date(), language === 'fr' ? 'dd MMMM yyyy, HH:mm' : 'MMMM dd, yyyy, HH:mm', { locale: language === 'fr' ? fr : enUS })}`,
+        pageWidth / 2, 
+        yPosition, 
+        { align: 'center' }
+      );
+      yPosition += 15;
+    };
+    
+    // Function to add footer on all pages
+    const addFooter = () => {
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        
+        // Page number - right
+        doc.text(
+          `${language === 'fr' ? 'Page' : 'Page'} ${i} / ${pageCount}`,
+          pageWidth - 20,
+          pageHeight - 10,
+          { align: 'right' }
+        );
+        
+        // Branding - left (only if branding not hidden)
+        if (!hidePdfBranding) {
+          doc.text(
+            'Generated with GestionFlow',
+            20,
+            pageHeight - 10,
+            { align: 'left' }
+          );
+        }
+      }
+    };
+    
+    // Add first page header
+    addHeader();
+    
+    // Process each company
+    sortedCompanies.forEach((comp, companyIndex) => {
+      const companyClients = filteredClientsByDate
+        .filter(client => client.company_id === comp.id)
+        .sort((a, b) => a.name.localeCompare(b.name, language === 'fr' ? 'fr' : 'en'));
+      
+      if (companyClients.length === 0) return;
+      
+      // Check if we need a new page (leave room for company header + at least one row)
+      if (yPosition > pageHeight - 80 && !isFirstPage) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      isFirstPage = false;
+      
+      // Company section header
+      doc.setFillColor(59, 130, 246);
+      doc.rect(15, yPosition - 5, pageWidth - 30, 10, 'F');
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+      doc.text(comp.name, 20, yPosition + 2);
+      doc.setFontSize(10);
+      doc.text(
+        `${companyClients.length} ${companyClients.length > 1 ? 'clients' : 'client'}`,
+        pageWidth - 20,
+        yPosition + 2,
+        { align: 'right' }
+      );
+      yPosition += 12;
+      
+      // Clients table for this company
+      const tableData = companyClients.map(client => {
+        const lastInvoiceDate = getLastInvoiceDateForClient(client.id);
+        return [
+          client.name,
+          client.email || '-',
+          client.phone || '-',
+          client.contact_person || '-',
+          format(new Date(client.created_at), 'dd/MM/yyyy'),
+          lastInvoiceDate ? format(new Date(lastInvoiceDate), 'dd/MM/yyyy') : (language === 'fr' ? 'Aucune' : 'None')
+        ];
+      });
       
       autoTable(doc, {
         head: [[
           language === 'fr' ? 'Nom du client' : 'Client Name',
           'Email',
           language === 'fr' ? 'Téléphone' : 'Phone',
-          'Contact'
+          'Contact',
+          language === 'fr' ? 'Création' : 'Created',
+          language === 'fr' ? 'Dern. facture' : 'Last Invoice'
         ]],
-        body: companyClientsData,
-        startY: 100,
+        body: tableData,
+        startY: yPosition,
         theme: 'striped',
-        headStyles: { fillColor: [34, 197, 94] },
-        styles: { fontSize: 10 }
+        headStyles: { 
+          fillColor: [100, 116, 139],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8
+        },
+        styles: { 
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: 'linebreak'
+        },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 22 },
+          5: { cellWidth: 22 }
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250]
+        },
+        margin: { left: 15, right: 15 }
       });
-    } else {
-      doc.text(language === 'fr' ? 'Aucun client pour cette entreprise' : 'No clients for this company', 20, 100);
+      
+      yPosition = (doc as any).lastAutoTable.finalY + 15;
+    });
+    
+    // Add clients without company section
+    if (clientsWithoutCompany.length > 0) {
+      // Check if we need a new page
+      if (yPosition > pageHeight - 80) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      // Section header
+      doc.setFillColor(107, 114, 128);
+      doc.rect(15, yPosition - 5, pageWidth - 30, 10, 'F');
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+      doc.text(language === 'fr' ? 'Sans entreprise' : 'No Company', 20, yPosition + 2);
+      doc.setFontSize(10);
+      doc.text(
+        `${clientsWithoutCompany.length} ${clientsWithoutCompany.length > 1 ? 'clients' : 'client'}`,
+        pageWidth - 20,
+        yPosition + 2,
+        { align: 'right' }
+      );
+      yPosition += 12;
+      
+      const tableData = clientsWithoutCompany.map(client => {
+        const lastInvoiceDate = getLastInvoiceDateForClient(client.id);
+        return [
+          client.name,
+          client.email || '-',
+          client.phone || '-',
+          client.contact_person || '-',
+          format(new Date(client.created_at), 'dd/MM/yyyy'),
+          lastInvoiceDate ? format(new Date(lastInvoiceDate), 'dd/MM/yyyy') : (language === 'fr' ? 'Aucune' : 'None')
+        ];
+      });
+      
+      autoTable(doc, {
+        head: [[
+          language === 'fr' ? 'Nom du client' : 'Client Name',
+          'Email',
+          language === 'fr' ? 'Téléphone' : 'Phone',
+          'Contact',
+          language === 'fr' ? 'Création' : 'Created',
+          language === 'fr' ? 'Dern. facture' : 'Last Invoice'
+        ]],
+        body: tableData,
+        startY: yPosition,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [100, 116, 139],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8
+        },
+        styles: { 
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: 'linebreak'
+        },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 22 },
+          5: { cellWidth: 22 }
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250]
+        },
+        margin: { left: 15, right: 15 }
+      });
     }
     
-    const filename = `${language === 'fr' ? 'clients-par-entreprise' : 'clients-by-company'}-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    // Add footers to all pages
+    addFooter();
+    
+    const filename = `${language === 'fr' ? 'clients-par-entreprise' : 'clients-by-company'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
-    logExport('company_clients', 'pdf', language === 'fr' ? `Téléchargement PDF clients de ${company.name}` : `Company clients PDF download - ${company.name}`);
+    logExport('clients_by_company', 'pdf', language === 'fr' ? 'Téléchargement PDF clients par entreprise' : 'Clients by company PDF download');
   };
 
   const exportCompanyClientsToExcel = (company: any) => {
