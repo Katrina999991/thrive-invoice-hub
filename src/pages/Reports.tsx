@@ -1600,29 +1600,35 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text("Tous les clients", pageWidth / 2, 20, { align: 'center' });
+    doc.text(language === 'fr' ? "Liste des clients" : "Clients List", pageWidth / 2, 20, { align: 'center' });
     
     // Date generated
     doc.setFontSize(12);
-    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`${language === 'fr' ? 'Généré le' : 'Generated on'}: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Résumé', 20, 50);
+    doc.text(language === 'fr' ? 'Résumé' : 'Summary', 20, 50);
     doc.setFontSize(10);
-    doc.text(`Nombre total de clients: ${clients.length}`, 20, 60);
+    doc.text(`${language === 'fr' ? 'Nombre total de clients' : 'Total clients'}: ${clients.length}`, 20, 60);
     
     // All clients table
     const allClientsData = clients.map(client => [
       client.name,
-      client.companies?.name || 'Aucune compagnie',
+      client.companies?.name || (language === 'fr' ? 'Aucune entreprise' : 'No company'),
       client.email || 'N/A',
       client.phone || 'N/A',
       client.contact_person || 'N/A'
     ]);
     
     autoTable(doc, {
-      head: [['Nom du client', 'Compagnie', 'Email', 'Téléphone', 'Contact']],
+      head: [[
+        language === 'fr' ? 'Nom du client' : 'Client Name',
+        language === 'fr' ? 'Entreprise' : 'Company',
+        'Email',
+        language === 'fr' ? 'Téléphone' : 'Phone',
+        'Contact'
+      ]],
       body: allClientsData,
       startY: 80,
       theme: 'striped',
@@ -1630,7 +1636,7 @@ const Reports = () => {
       styles: { fontSize: 9 }
     });
     
-    const filename = `tous-les-clients-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${language === 'fr' ? 'liste-clients' : 'clients-list'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
     logExport('all_clients', 'pdf', language === 'fr' ? 'Téléchargement PDF tous les clients' : 'All clients PDF download');
   };
@@ -1669,18 +1675,22 @@ const Reports = () => {
     
     // Title
     doc.setFontSize(20);
-    doc.text(`Clients de ${company.name}`, pageWidth / 2, 20, { align: 'center' });
+    doc.text(language === 'fr' ? "Clients par entreprise" : "Clients by Company", pageWidth / 2, 20, { align: 'center' });
+    
+    // Subtitle with company name
+    doc.setFontSize(14);
+    doc.text(company.name, pageWidth / 2, 30, { align: 'center' });
     
     // Date generated
     doc.setFontSize(12);
-    doc.text(`Généré le: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`${language === 'fr' ? 'Généré le' : 'Generated on'}: ${format(new Date(), 'dd/MM/yyyy')}`, pageWidth / 2, 40, { align: 'center' });
     
     // Summary
     doc.setFontSize(14);
-    doc.text('Résumé', 20, 50);
+    doc.text(language === 'fr' ? 'Résumé' : 'Summary', 20, 60);
     doc.setFontSize(10);
-    doc.text(`Compagnie: ${company.name}`, 20, 60);
-    doc.text(`Nombre de clients: ${companyClients.length}`, 20, 70);
+    doc.text(`${language === 'fr' ? 'Entreprise' : 'Company'}: ${company.name}`, 20, 70);
+    doc.text(`${language === 'fr' ? 'Nombre de clients' : 'Number of clients'}: ${companyClients.length}`, 20, 80);
     
     if (companyClients.length > 0) {
       const companyClientsData = companyClients.map(client => [
@@ -1691,18 +1701,23 @@ const Reports = () => {
       ]);
       
       autoTable(doc, {
-        head: [['Nom du client', 'Email', 'Téléphone', 'Contact']],
+        head: [[
+          language === 'fr' ? 'Nom du client' : 'Client Name',
+          'Email',
+          language === 'fr' ? 'Téléphone' : 'Phone',
+          'Contact'
+        ]],
         body: companyClientsData,
-        startY: 90,
+        startY: 100,
         theme: 'striped',
         headStyles: { fillColor: [34, 197, 94] },
         styles: { fontSize: 10 }
       });
     } else {
-      doc.text('Aucun client pour cette compagnie', 20, 90);
+      doc.text(language === 'fr' ? 'Aucun client pour cette entreprise' : 'No clients for this company', 20, 100);
     }
     
-    const filename = `clients-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${language === 'fr' ? 'clients-par-entreprise' : 'clients-by-company'}-${company.name.replace(/[^a-zA-Z0-9]/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
     logExport('company_clients', 'pdf', language === 'fr' ? `Téléchargement PDF clients de ${company.name}` : `Company clients PDF download - ${company.name}`);
   };
