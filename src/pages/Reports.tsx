@@ -49,6 +49,8 @@ import { generateRevenueByProductPdf } from "@/lib/revenueByProductPdf";
 import { generateStockStatusPdf, type StockProduct } from "@/lib/stockStatusPdf";
 import { generateStockValuePdf, type StockValueProduct } from "@/lib/stockValuePdf";
 import { generateExpensesPeriodPdf } from "@/lib/expensesPeriodPdf";
+import { generateExpensesByCategoryPdf } from "@/lib/expensesByCategoryPdf";
+import { generateAllExpensesPdf } from "@/lib/allExpensesPdf";
 import { useRevenueByClient } from "@/hooks/useRevenueByClient";
 import { useRevenueByProduct } from "@/hooks/useRevenueByProduct";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -1837,7 +1839,47 @@ const Reports = () => {
       returnBlob: false
     });
     
-    logExport('expenses', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport dépenses' : 'Expenses report PDF download');
+    logExport('expenses_period', 'pdf', language === 'fr' ? 'Téléchargement PDF dépenses par période' : 'Expenses by period PDF download');
+  };
+
+  // Export expenses by category PDF
+  const exportExpensesByCategoryToPDF = async () => {
+    if (!expenseReportData) return;
+    
+    let companyFilterName: string | undefined;
+    if (expenseFilterType === 'company' && expenseSelectedCompanyId) {
+      companyFilterName = companies.find(c => c.id === expenseSelectedCompanyId)?.name;
+    }
+    
+    await generateExpensesByCategoryPdf({
+      reportData: expenseReportData,
+      startDate: expenseStartDate,
+      endDate: expenseEndDate,
+      companyName: companies?.[0]?.name,
+      companyFilterName,
+      language: language as 'fr' | 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding,
+      returnBlob: false
+    });
+    
+    logExport('expenses_category', 'pdf', language === 'fr' ? 'Téléchargement PDF dépenses par catégorie' : 'Expenses by category PDF download');
+  };
+
+  // Export all expenses PDF (no date filter)
+  const exportAllExpensesToPDF = async () => {
+    if (!expenseReportData) return;
+    
+    await generateAllExpensesPdf({
+      reportData: expenseReportData,
+      companyName: companies?.[0]?.name,
+      language: language as 'fr' | 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding,
+      returnBlob: false
+    });
+    
+    logExport('all_expenses', 'pdf', language === 'fr' ? 'Téléchargement PDF toutes les dépenses' : 'All expenses PDF download');
   };
 
   // Legacy export function kept for chart-based exports
@@ -4421,10 +4463,18 @@ const Reports = () => {
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
               </div>
               
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={exportExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
                   <Download className="w-4 h-4 mr-2" />
-                  PDF
+                  {language === 'fr' ? 'Par période (PDF)' : 'By Period (PDF)'}
+                </Button>
+                <Button onClick={exportExpensesByCategoryToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Par catégorie (PDF)' : 'By Category (PDF)'}
+                </Button>
+                <Button onClick={exportAllExpensesToPDF} variant="outline" size="sm" disabled={!expenseReportData}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Toutes (PDF)' : 'All (PDF)'}
                 </Button>
                 <Button onClick={exportExpensesToExcel} variant="outline" size="sm" disabled={!expenseReportData}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
