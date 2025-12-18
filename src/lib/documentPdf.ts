@@ -1,0 +1,700 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+// ============= UNIFIED PDF DESIGN SYSTEM =============
+// This library generates PDFs for both invoices and quotes
+// with identical visual templates. Only document-specific
+// text and labels differ between the two document types.
+
+// Color presets (RGB values for jsPDF)
+export const COLOR_PRESETS: Record<string, { primary: [number, number, number]; light: [number, number, number] }> = {
+  blue: { primary: [37, 99, 235], light: [219, 234, 254] },
+  green: { primary: [22, 163, 74], light: [220, 252, 231] },
+  purple: { primary: [147, 51, 234], light: [243, 232, 255] },
+  orange: { primary: [234, 88, 12], light: [255, 237, 213] },
+  yellow: { primary: [202, 138, 4], light: [254, 249, 195] },
+  gray: { primary: [75, 85, 99], light: [243, 244, 246] }
+};
+
+export type TemplateType = 'classic' | 'modern' | 'professional' | 'creative';
+export type DocumentType = 'invoice' | 'quote';
+
+export interface DocumentItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  notes?: string | null;
+  product_taxes?: Array<{ name: string; type?: 'percentage' | 'amount'; value?: number; percentage?: number }>;
+}
+
+export interface DocumentData {
+  document_number: string;
+  issue_date: string;
+  due_date?: string | null;      // For invoices
+  expiry_date?: string | null;   // For quotes
+  subtotal: number;
+  tax_amount: number;
+  total: number;
+  terms?: string | null;
+  notes?: string | null;
+  items: DocumentItem[];
+  status?: string;
+}
+
+export interface ClientData {
+  name: string;
+  email?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  contact_person?: string | null;
+  notes?: string | null;
+  language?: string | null;
+}
+
+export interface CompanyData {
+  name: string;
+  logo_url?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  street_address?: string | null;
+  city?: string | null;
+  province_state?: string | null;
+  postal_code?: string | null;
+  tax_id?: string | null;
+  taxes?: Array<{ name: string; percentage: number }> | null;
+  // Body and footer messages
+  invoice_body_message_en?: string | null;
+  invoice_body_message_fr?: string | null;
+  invoice_footer_message?: string | null;
+  invoice_footer_message_en?: string | null;
+  invoice_footer_message_fr?: string | null;
+  quote_body_message_en?: string | null;
+  quote_body_message_fr?: string | null;
+  quote_footer_message_en?: string | null;
+  quote_footer_message_fr?: string | null;
+}
+
+export interface DocumentPdfOptions {
+  documentType: DocumentType;
+  document: DocumentData;
+  client?: ClientData | null;
+  company?: CompanyData | null;
+  language: 'fr' | 'en';
+  template?: TemplateType;
+  colorPreset?: string;
+  customColor?: { primary: [number, number, number]; light: [number, number, number] };
+  hideBranding?: boolean;
+  customFooterText?: string;
+  returnBlob?: boolean;
+}
+
+// Translations for both document types
+const getTranslations = (language: 'fr' | 'en', documentType: DocumentType, isClientFrench?: boolean) => {
+  const lang = isClientFrench !== undefined ? (isClientFrench ? 'fr' : 'en') : language;
+  
+  const common = {
+    fr: {
+      billTo: 'Facturer à :',
+      preparedFor: 'Préparé pour',
+      issueDate: "Date d'émission",
+      description: 'Description',
+      qty: 'Qté',
+      unitPrice: 'Prix unitaire',
+      total: 'Total',
+      subtotal: 'Sous-total',
+      tax: 'Taxes',
+      notes: 'Notes',
+      terms: 'Conditions',
+      thankYou: 'Merci pour votre confiance !',
+      branding: 'Créé avec GestionFlow',
+      phone: 'Téléphone',
+      email: 'Courriel',
+      website: 'Site web',
+      status: 'Statut'
+    },
+    en: {
+      billTo: 'Bill To:',
+      preparedFor: 'Prepared for',
+      issueDate: 'Issue Date',
+      description: 'Description',
+      qty: 'Qty',
+      unitPrice: 'Unit Price',
+      total: 'Total',
+      subtotal: 'Subtotal',
+      tax: 'Taxes',
+      notes: 'Notes',
+      terms: 'Terms',
+      thankYou: 'Thank you for your business!',
+      branding: 'Created with GestionFlow',
+      phone: 'Phone',
+      email: 'Email',
+      website: 'Website',
+      status: 'Status'
+    }
+  };
+
+  const documentSpecific = {
+    invoice: {
+      fr: {
+        title: 'FACTURE',
+        documentNumber: 'Facture',
+        secondaryDate: "Date d'échéance",
+        termsLabel: 'Conditions de paiement'
+      },
+      en: {
+        title: 'INVOICE',
+        documentNumber: 'Invoice',
+        secondaryDate: 'Due Date',
+        termsLabel: 'Payment Terms'
+      }
+    },
+    quote: {
+      fr: {
+        title: 'DEVIS',
+        documentNumber: 'Devis',
+        secondaryDate: "Valide jusqu'au",
+        termsLabel: 'Conditions'
+      },
+      en: {
+        title: 'QUOTE',
+        documentNumber: 'Quote',
+        secondaryDate: 'Valid Until',
+        termsLabel: 'Terms & Conditions'
+      }
+    }
+  };
+
+  return {
+    ...common[lang],
+    ...documentSpecific[documentType][lang]
+  };
+};
+
+// Load company logo
+async function loadLogo(logoUrl: string): Promise<{ data: string; format: string; width: number; height: number } | null> {
+  try {
+    const response = await fetch(logoUrl);
+    if (!response.ok) return null;
+    
+    const blob = await response.blob();
+    let format = 'PNG';
+    if (blob.type.includes('jpeg') || blob.type.includes('jpg')) format = 'JPEG';
+    else if (blob.type.includes('gif')) format = 'GIF';
+    else if (blob.type.includes('webp')) format = 'WEBP';
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      const img = new Image();
+      
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        img.onload = () => {
+          resolve({ data: dataUrl, format, width: img.naturalWidth, height: img.naturalHeight });
+        };
+        img.onerror = () => resolve({ data: dataUrl, format, width: 100, height: 100 });
+        img.src = dataUrl;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+// Main PDF generation function
+export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<Blob | void> {
+  const {
+    documentType,
+    document,
+    client,
+    company,
+    language,
+    template = 'classic',
+    colorPreset = 'blue',
+    customColor,
+    hideBranding = false,
+    customFooterText,
+    returnBlob = false
+  } = options;
+
+  // Determine if client prefers French
+  const isClientFrench = client?.language === 'french';
+  const t = getTranslations(language, documentType, isClientFrench);
+  
+  // Get color based on preset or custom
+  const selectedColor = customColor || COLOR_PRESETS[colorPreset] || COLOR_PRESETS.blue;
+  
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const contentWidth = pageWidth - margin * 2;
+
+  doc.setFont('helvetica');
+
+  // ========== HEADER SECTION ==========
+  let headerHeight = 20;
+  
+  // Company Logo (right side)
+  if (company?.logo_url) {
+    try {
+      const logoResult = await loadLogo(company.logo_url);
+      if (logoResult) {
+        const logoMaxWidth = 40;
+        const logoMaxHeight = 20;
+        const imgRatio = logoResult.width / logoResult.height;
+        
+        let logoWidth = logoMaxWidth;
+        let logoHeight = logoMaxWidth / imgRatio;
+        
+        if (logoHeight > logoMaxHeight) {
+          logoHeight = logoMaxHeight;
+          logoWidth = logoMaxHeight * imgRatio;
+        }
+        
+        const logoX = pageWidth - margin - logoWidth;
+        doc.addImage(logoResult.data, logoResult.format, logoX, headerHeight - 5, logoWidth, logoHeight, undefined, 'FAST');
+      }
+    } catch (e) {
+      console.error('Error adding logo to PDF:', e);
+    }
+  }
+  
+  // Company Info (left side)
+  if (company) {
+    // Creative template has special company name styling
+    if (template === 'creative') {
+      doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+      const companyNameWidth = doc.getStringUnitWidth(company.name) * 12 / doc.internal.scaleFactor;
+      const boxPadding = 8;
+      const boxWidth = companyNameWidth + boxPadding;
+      doc.roundedRect(margin - 2, headerHeight - 5, boxWidth, 8, 2, 2, 'F');
+      
+      const textX = margin - 2 + (boxWidth / 2);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(company.name, textX, headerHeight, { align: 'center' });
+    } else {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(company.name, margin, headerHeight);
+    }
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    
+    let yPos = headerHeight + 9;
+    if (company.street_address) {
+      doc.text(company.street_address, margin, yPos);
+      yPos += 5;
+    }
+    if (company.city || company.province_state) {
+      doc.text(`${company.city || ''}, ${company.province_state || ''} ${company.postal_code || ''}`.trim(), margin, yPos);
+      yPos += 5;
+    }
+    if (company.tax_id) {
+      doc.text(company.tax_id, margin, yPos);
+    }
+  }
+  
+  // Header separator line (not for creative or modern)
+  if (template !== 'creative' && template !== 'modern') {
+    if (template === 'classic') {
+      doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+    } else {
+      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+      doc.setDrawColor(mediumR, mediumG, mediumB);
+    }
+    doc.setLineWidth(0.5);
+    doc.line(margin, 40, pageWidth - margin, 40);
+  }
+
+  // ========== CLIENT & DOCUMENT INFO SECTION ==========
+  const clientInfoY = 50;
+  let nextY = clientInfoY;
+  
+  if (client) {
+    // Background box for modern and creative templates
+    const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0) + (client.notes ? 5 : 0);
+    
+    if (template === 'modern') {
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(margin, clientInfoY - 3, contentWidth, boxHeight, 2, 2, 'F');
+    } else if (template === 'creative') {
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(margin, clientInfoY - 3, contentWidth, boxHeight, 2, 2, 'F');
+      doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, clientInfoY - 3, contentWidth, boxHeight, 2, 2, 'S');
+    }
+    
+    const textYOffset = (template === 'creative' || template === 'modern') ? 2 : 0;
+    const leftMargin = (template === 'creative' || template === 'modern') ? margin + 4 : margin;
+    const rightMargin = (template === 'creative' || template === 'modern') ? margin + 4 : margin;
+    
+    // "Bill To" / "Prepared For" label
+    doc.setFontSize(11);
+    if (template === 'professional') {
+      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+      doc.setTextColor(mediumR, mediumG, mediumB);
+    } else {
+      doc.setTextColor(40, 40, 40);
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.text(t.billTo, leftMargin, clientInfoY + textYOffset);
+    
+    // Document title and number (right side, aligned with Bill To)
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    if (template === 'professional') {
+      const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+      const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+      const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+      doc.setTextColor(mediumR, mediumG, mediumB);
+    } else {
+      doc.setTextColor(40, 40, 40);
+    }
+    const docTitle = `${t.documentNumber} ${document.document_number}`;
+    const titleWidth = doc.getTextWidth(docTitle);
+    doc.text(docTitle, pageWidth - rightMargin - titleWidth, clientInfoY + textYOffset);
+    
+    // Issue date
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    const issueDateText = `${t.issueDate}: ${document.issue_date}`;
+    const issueDateWidth = doc.getTextWidth(issueDateText);
+    doc.text(issueDateText, pageWidth - rightMargin - issueDateWidth, clientInfoY + 6 + textYOffset);
+    
+    // Secondary date (due date for invoices, expiry date for quotes)
+    const secondaryDate = documentType === 'invoice' ? document.due_date : document.expiry_date;
+    if (secondaryDate) {
+      const secondaryDateText = `${t.secondaryDate}: ${secondaryDate}`;
+      const secondaryDateWidth = doc.getTextWidth(secondaryDateText);
+      doc.text(secondaryDateText, pageWidth - rightMargin - secondaryDateWidth, clientInfoY + 12 + textYOffset);
+    }
+    
+    // Client details
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    
+    nextY = clientInfoY + 7 + textYOffset;
+    doc.text(client.name, leftMargin, nextY);
+    nextY += 5;
+    
+    if (client.contact_person) {
+      doc.text(client.contact_person, leftMargin, nextY);
+      nextY += 5;
+    }
+    if (client.address) {
+      doc.text(client.address, leftMargin, nextY);
+      nextY += 5;
+    }
+    if (client.notes) {
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      doc.text(client.notes, leftMargin, nextY);
+      nextY += 5;
+    }
+  }
+
+  // ========== ITEMS TABLE ==========
+  const startY = nextY + 15;
+  
+  // Line above table for classic template
+  if (template === 'classic') {
+    doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+    doc.setLineWidth(0.5);
+    doc.line(margin, startY - 5, pageWidth - margin, startY - 5);
+  }
+  
+  const tableHeaders = [t.description, t.qty, t.unitPrice, t.total];
+  const tableData: string[][] = [];
+  
+  // Add items
+  document.items.forEach(item => {
+    tableData.push([
+      item.description,
+      item.quantity.toString(),
+      `$${item.unit_price.toFixed(2)}`,
+      `$${item.total.toFixed(2)}`
+    ]);
+    
+    // Add item notes if present
+    if (item.notes) {
+      tableData.push([`      ${t.notes}: ${item.notes}`, '', '', '']);
+    }
+  });
+  
+  // Add totals
+  tableData.push(['', '', `${t.subtotal}:`, `$${document.subtotal.toFixed(2)}`]);
+  
+  // Add individual taxes if company has multiple taxes
+  if (company?.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
+    company.taxes.forEach((tax) => {
+      const taxAmount = document.subtotal * (tax.percentage / 100);
+      tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
+    });
+  } else if (document.tax_amount > 0) {
+    tableData.push(['', '', `${t.tax}:`, `$${document.tax_amount.toFixed(2)}`]);
+  }
+  
+  tableData.push(['', '', `${t.total}:`, `$${document.total.toFixed(2)}`]);
+  
+  // Table theme based on template
+  const tableTheme = template === 'professional' ? 'grid' : 
+                    template === 'modern' ? 'plain' : 
+                    template === 'classic' ? 'grid' : 'plain';
+  
+  autoTable(doc, {
+    head: [tableHeaders],
+    body: tableData,
+    startY: startY,
+    theme: tableTheme,
+    tableWidth: template === 'modern' ? 170 : 'auto',
+    margin: { left: margin, right: margin },
+    styles: {
+      fontSize: 10,
+      cellPadding: template === 'professional' ? 3 : template === 'modern' ? 2 : template === 'classic' ? 2 : 3,
+      lineColor: [240, 240, 240],
+      lineWidth: 0.5,
+    },
+    headStyles: {
+      fillColor: undefined,
+      textColor: [40, 40, 40],
+      fontStyle: 'bold',
+      fontSize: template === 'professional' ? 11 : 10,
+      cellPadding: 4,
+      lineWidth: 0.5,
+    },
+    columnStyles: {
+      0: { cellWidth: template === 'modern' ? 70 : 'auto' },
+      1: { halign: 'center', cellWidth: template === 'modern' ? 25 : 'auto' },
+      2: { halign: 'right', cellWidth: template === 'modern' ? 30 : 'auto' },
+      3: { halign: 'right', fontStyle: 'bold', cellWidth: template === 'modern' ? 45 : 'auto' },
+    },
+    bodyStyles: {
+      textColor: [60, 60, 60],
+      fillColor: undefined,
+    },
+    didParseCell: function(data: any) {
+      // Remove fills for custom backgrounds
+      if ((template === 'modern' || template === 'classic') && data.section === 'head') {
+        data.cell.styles.fillColor = undefined;
+        data.cell.styles.lineWidth = 0;
+      }
+      
+      // Style last row (total)
+      if (data.section === 'body') {
+        const isLastRow = data.row.index === data.table.body.length - 1;
+        
+        if (template === 'modern' && isLastRow) {
+          data.cell.styles.fillColor = undefined;
+          data.cell.styles.textColor = [255, 255, 255];
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fontSize = 10;
+          data.cell.styles.cellPadding = 4;
+          data.cell.styles.lineWidth = 0;
+        }
+        
+        if (template === 'classic' && isLastRow) {
+          data.cell.styles.textColor = selectedColor.primary;
+          data.cell.styles.fontStyle = 'bold';
+        }
+        
+        if (template === 'creative' && isLastRow) {
+          data.cell.styles.fillColor = undefined;
+          data.cell.styles.textColor = [255, 255, 255];
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fontSize = 10;
+          data.cell.styles.cellPadding = 5;
+          data.cell.styles.lineWidth = 0;
+        } else if (template === 'creative') {
+          data.cell.styles.lineColor = [240, 240, 240];
+        }
+      }
+      
+      if (template === 'creative' && data.section === 'head') {
+        data.cell.styles.fillColor = undefined;
+        data.cell.styles.lineWidth = 0;
+      }
+    },
+    willDrawCell: function(data: any) {
+      // Draw rounded backgrounds
+      if ((template === 'modern' || template === 'classic') && data.section === 'head' && data.column.index === 0) {
+        let totalWidth = 0;
+        if (data.table?.columns) {
+          data.table.columns.forEach((col: any) => { totalWidth += col.width; });
+        }
+        const startX = (data.table as any)?.pageStartX || margin;
+        const radius = template === 'classic' ? 1.5 : 2;
+        
+        data.doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+        data.doc.roundedRect(startX, data.cell.y, totalWidth, data.row.height, radius, radius, 'F');
+      }
+      
+      // Total row backgrounds for creative and modern
+      if ((template === 'creative' || template === 'modern') && data.section === 'body') {
+        const isLastRow = data.row.index === data.table.body.length - 1;
+        if (isLastRow && data.column.index === 0) {
+          let totalWidth = 0;
+          if (data.table?.columns) {
+            data.table.columns.forEach((col: any) => { totalWidth += col.width; });
+          }
+          const startX = (data.table as any)?.pageStartX || margin;
+          
+          data.doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+          data.doc.roundedRect(startX, data.cell.y, totalWidth, data.row.height, 2, 2, 'F');
+        }
+      }
+    },
+    didDrawCell: function(data: any) {
+      // Line above total for professional template
+      if (template === 'professional' && data.section === 'body') {
+        const isLastRow = data.row.index === data.table.body.length - 1;
+        const isLastColumn = data.column.index === data.table.columns.length - 1;
+        
+        if (isLastRow && isLastColumn) {
+          let tableWidth = 0;
+          if (data.table?.columns) {
+            tableWidth = data.table.columns.reduce((sum: number, col: any) => sum + (col?.width || 0), 0);
+          }
+          const startX = (data.table as any)?.pageStartX || margin;
+          
+          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
+          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
+          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
+          data.doc.setDrawColor(mediumR, mediumG, mediumB);
+          data.doc.setLineWidth(0.5);
+          data.doc.line(startX, data.cell.y, startX + tableWidth, data.cell.y);
+        }
+      }
+    }
+  });
+
+  // ========== NOTES, TERMS & FOOTER ==========
+  const tableEndY = (doc as any).lastAutoTable?.finalY || startY + 100;
+  
+  // Notes section
+  if (document.notes) {
+    const finalY = tableEndY + 20;
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${t.notes}:`, margin, finalY);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const splitNotes = doc.splitTextToSize(document.notes, contentWidth);
+    doc.text(splitNotes, margin, finalY + 10);
+  }
+  
+  // Body message (document-type specific)
+  const hasNotes = !!document.notes;
+  const bodyMessage = documentType === 'invoice'
+    ? (isClientFrench ? company?.invoice_body_message_fr || company?.invoice_body_message_en : company?.invoice_body_message_en || company?.invoice_body_message_fr)
+    : (isClientFrench ? company?.quote_body_message_fr || company?.quote_body_message_en : company?.quote_body_message_en || company?.quote_body_message_fr);
+  
+  if (bodyMessage) {
+    let offset = hasNotes ? 40 : 20;
+    const finalY = tableEndY + offset;
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.setFont('helvetica', 'normal');
+    const splitBody = doc.splitTextToSize(bodyMessage, contentWidth);
+    doc.text(splitBody, margin, finalY);
+  }
+  
+  // Terms section
+  if (document.terms) {
+    const hasBodyMessage = !!bodyMessage;
+    let offset = 20;
+    if (hasNotes && hasBodyMessage) offset = 80;
+    else if (hasNotes || hasBodyMessage) offset = 50;
+    
+    const finalY = tableEndY + offset;
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${t.termsLabel}:`, margin, finalY);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const splitTerms = doc.splitTextToSize(document.terms, contentWidth);
+    doc.text(splitTerms, margin, finalY + 10);
+  }
+  
+  // Footer section
+  const footerMessage = documentType === 'invoice'
+    ? (isClientFrench ? company?.invoice_footer_message_fr || company?.invoice_footer_message : company?.invoice_footer_message_en || company?.invoice_footer_message)
+    : (isClientFrench ? company?.quote_footer_message_fr || company?.quote_footer_message_en : company?.quote_footer_message_en || company?.quote_footer_message_fr);
+  
+  const shouldRenderFooter = !!footerMessage && footerMessage.trim() !== (bodyMessage?.trim() || '');
+  
+  // Decorative footer elements
+  if (template === 'modern') {
+    doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
+    doc.rect(0, pageHeight - 30, pageWidth, 30, 'F');
+  } else if (template === 'professional') {
+    doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+    doc.setLineWidth(2);
+    doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
+  }
+  
+  // Footer text
+  doc.setFontSize(8);
+  if (template === 'creative') {
+    doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+  } else {
+    doc.setTextColor(100, 100, 100);
+  }
+  
+  if (shouldRenderFooter) {
+    doc.text(footerMessage!, margin, pageHeight - 20);
+  } else if (customFooterText) {
+    doc.text(customFooterText, margin, pageHeight - 20);
+  } else {
+    doc.text(t.thankYou, margin, pageHeight - 20);
+  }
+  
+  // Branding (if not hidden)
+  if (!hideBranding) {
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text(t.branding, pageWidth - margin, pageHeight - 10, { align: 'right' });
+  }
+
+  // Return blob or save file
+  const filename = documentType === 'invoice' 
+    ? `invoice-${document.document_number}.pdf`
+    : `quote-${document.document_number}.pdf`;
+  
+  if (returnBlob) {
+    return doc.output('blob');
+  } else {
+    doc.save(filename);
+  }
+}
+
+// Convenience functions for backward compatibility
+export async function generateInvoicePdf(options: Omit<DocumentPdfOptions, 'documentType'> & { invoice: DocumentData }): Promise<Blob | void> {
+  return generateDocumentPdf({
+    ...options,
+    documentType: 'invoice',
+    document: options.invoice
+  });
+}
+
+export async function generateQuotePdfUnified(options: Omit<DocumentPdfOptions, 'documentType'> & { quote: DocumentData }): Promise<Blob | void> {
+  return generateDocumentPdf({
+    ...options,
+    documentType: 'quote',
+    document: options.quote
+  });
+}

@@ -24,8 +24,6 @@ import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -614,728 +612,106 @@ const Invoices = () => {
     }
   };
 
-  const downloadInvoicePDF = async (invoice: Invoice, emailType?: "new" | "overdue" | "payment_confirmation") => {
+  const downloadInvoicePDF = async (invoice: Invoice) => {
     try {
+      const { generateDocumentPdf, COLOR_PRESETS } = await import('@/lib/documentPdf');
+      
       // Get template and color settings from localStorage
-      const invoiceTemplate = localStorage.getItem("invoice-template") || "classic";
-      const invoiceColor = localStorage.getItem("invoice-color") || "blue";
-      
-      // Define color mappings (RGB values for jsPDF)
-      const colorMap: Record<string, { primary: [number, number, number], light: [number, number, number] }> = {
-        blue: { primary: [37, 99, 235], light: [219, 234, 254] },
-        green: { primary: [22, 163, 74], light: [220, 252, 231] },
-        purple: { primary: [147, 51, 234], light: [243, 232, 255] },
-        orange: { primary: [234, 88, 12], light: [255, 237, 213] },
-        yellow: { primary: [202, 138, 4], light: [254, 249, 195] },
-        gray: { primary: [75, 85, 99], light: [243, 244, 246] }
-      };
-      
-      const selectedColor = colorMap[invoiceColor] || colorMap.blue;
+      const template = (localStorage.getItem("invoice-template") || "classic") as 'classic' | 'modern' | 'professional' | 'creative';
+      const colorPreset = localStorage.getItem("invoice-color") || "blue";
+      const customColorHex = localStorage.getItem("invoice-custom-color") || "#2563eb";
+      const hideBranding = localStorage.getItem("hide-pdf-branding") === "true" && planLimits?.plan_type === 'pro';
       
       // Find client and company information
       const client = clients.find(c => c.id === invoice.client_id);
       const company = companies.find(c => c.id === client?.company_id);
-      console.log("[PDF] Company for invoice:", company?.name, {
-        invoice_body_message_en: (company as any)?.invoice_body_message_en,
-        invoice_body_message_fr: (company as any)?.invoice_body_message_fr
+      
+      // Prepare custom color if needed
+      let customColor: { primary: [number, number, number]; light: [number, number, number] } | undefined;
+      if (colorPreset === "custom") {
+        const hexToRgb = (hex: string): [number, number, number] => {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [37, 99, 235];
+        };
+        const primary = hexToRgb(customColorHex);
+        customColor = {
+          primary,
+          light: [
+            Math.min(255, Math.floor(primary[0] + (255 - primary[0]) * 0.85)),
+            Math.min(255, Math.floor(primary[1] + (255 - primary[1]) * 0.85)),
+            Math.min(255, Math.floor(primary[2] + (255 - primary[2]) * 0.85))
+          ]
+        };
+      }
+      
+      // Convert invoice items to document items
+      const items = (invoice.invoice_items || []).map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.total,
+        notes: item.notes,
+        product_taxes: item.product_taxes as any
+      }));
+      
+      // Generate PDF using unified system
+      await generateDocumentPdf({
+        documentType: 'invoice',
+        document: {
+          document_number: invoice.invoice_number,
+          issue_date: invoice.issue_date,
+          due_date: invoice.due_date,
+          subtotal: invoice.subtotal,
+          tax_amount: invoice.tax_amount,
+          total: invoice.total,
+          terms: invoice.terms,
+          notes: invoice.notes,
+          status: invoice.status,
+          items
+        },
+        client: client ? {
+          name: client.name,
+          email: client.email,
+          address: client.address,
+          phone: client.phone,
+          contact_person: client.contact_person,
+          notes: client.notes,
+          language: client.language
+        } : null,
+        company: company ? {
+          name: company.name,
+          logo_url: company.logo_url,
+          email: company.email,
+          phone: company.phone,
+          street_address: company.street_address,
+          city: company.city,
+          province_state: company.province_state,
+          postal_code: company.postal_code,
+          tax_id: company.tax_id,
+          taxes: company.taxes as any,
+          invoice_body_message_en: (company as any).invoice_body_message_en,
+          invoice_body_message_fr: (company as any).invoice_body_message_fr,
+          invoice_footer_message: company.invoice_footer_message,
+          invoice_footer_message_en: (company as any).invoice_footer_message_en,
+          invoice_footer_message_fr: (company as any).invoice_footer_message_fr
+        } : null,
+        language: language as 'fr' | 'en',
+        template,
+        colorPreset: customColor ? undefined : colorPreset,
+        customColor,
+        hideBranding
       });
-      
-      // Create new PDF document
-      const doc = new jsPDF();
-      
-      // Set font
-      doc.setFont('helvetica');
-      
-      // Header with logo
-      doc.setFontSize(20);
-      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-      
-      // Define translations based on client language
-      const isClientFrench = client?.language === 'french';
-      const translations = isClientFrench ? {
-        invoice: 'FACTURE',
-        billTo: 'Facturer à :',
-        invoiceNumber: 'Numéro de facture',
-        issueDate: 'Date d\'émission',
-        dueDate: 'Date d\'échéance',
-        status: 'Statut',
-        description: 'Description',
-        qty: 'Qté',
-        unitPrice: 'Prix unitaire',
-        total: 'Total',
-        subtotal: 'Sous-total',
-        tax: 'Taxe',
-        notes: 'Notes',
-        terms: 'Conditions',
-        thankYou: 'Merci pour votre confiance !',
-        phone: 'Téléphone',
-        email: 'Courriel',
-        website: 'Site web'
-      } : {
-        invoice: 'INVOICE',
-        billTo: 'Bill To:',
-        invoiceNumber: 'Invoice Number',
-        issueDate: 'Issue Date',
-        dueDate: 'Due Date',
-        status: 'Status',
-        description: 'Description',
-        qty: 'Qty',
-        unitPrice: 'Unit Price',
-        total: 'Total',
-        subtotal: 'Subtotal',
-        tax: 'Tax',
-        notes: 'Notes',
-        terms: 'Terms',
-        thankYou: 'Thank you for your business!',
-        phone: 'Phone',
-        email: 'Email',
-        website: 'Website'
-      };
-      
-      // Header section - Left: Company name and address, Right: Logo
-      let headerHeight = 20;
-      
-      // Right side - Company Logo
-      if (company?.logo_url) {
-        try {
-          // Load image to get natural dimensions
-          const img = new Image();
-          img.src = company.logo_url;
-          
-          // Wait for image to load to get its dimensions
-          await new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-          
-          // Calculate dimensions maintaining aspect ratio
-          const logoMaxWidth = 40;
-          const logoMaxHeight = 20;
-          const imgRatio = img.naturalWidth / img.naturalHeight;
-          
-          let logoWidth = logoMaxWidth;
-          let logoHeight = logoMaxWidth / imgRatio;
-          
-          // If height exceeds max, scale by height instead
-          if (logoHeight > logoMaxHeight) {
-            logoHeight = logoMaxHeight;
-            logoWidth = logoMaxHeight * imgRatio;
-          }
-          
-          const logoX = 210 - 20 - logoWidth; // Right aligned
-          doc.addImage(company.logo_url, 'PNG', logoX, headerHeight - 5, logoWidth, logoHeight, undefined, 'FAST');
-        } catch (error) {
-          console.error('Error adding logo to PDF:', error);
-        }
-      }
-      
-      // Left side - Company Name and Address
-      if (company) {
-        // Add rounded background box for creative template
-        if (invoiceTemplate === 'creative') {
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          const companyNameWidth = doc.getStringUnitWidth(company.name) * 12 / doc.internal.scaleFactor;
-          const boxPadding = 8;
-          const boxWidth = companyNameWidth + boxPadding;
-          doc.roundedRect(18, headerHeight - 5, boxWidth, 8, 2, 2, 'F');
-          
-          // Center text in the box
-          const textX = 18 + (boxWidth / 2);
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.text(company.name, textX, headerHeight, { align: 'center' });
-        } else {
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.text(company.name, 20, headerHeight);
-        }
-        
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100, 100, 100);
-        
-      let yPos = headerHeight + 9;
-      if (company.street_address) {
-        doc.text(company.street_address, 20, yPos);
-        yPos += 5;
-      }
-      if (company.city && company.province_state) {
-        doc.text(`${company.city}, ${company.province_state} ${company.postal_code || ''}`, 20, yPos);
-        yPos += 5;
-      }
-      if (company.tax_id) {
-        doc.text(`${company.tax_id}`, 20, yPos);
-        yPos += 5;
-      }
-      }
-      
-      // Invoice Number and Date will be positioned at the same level as "Bill To" later
-      
-      // Separator line after header (not for creative or modern template)
-      if (invoiceTemplate !== 'creative' && invoiceTemplate !== 'modern') {
-        if (invoiceTemplate === 'classic') {
-          // Use the same light color as the line below client info
-          doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-        } else {
-          // Use a medium shade between light and primary for other templates
-          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-          doc.setDrawColor(mediumR, mediumG, mediumB);
-        }
-        doc.setLineWidth(0.5);
-        doc.line(20, 40, 190, 40);
-      }
-      
-      // Only show status for payment confirmations
-      if (emailType === "payment_confirmation") {
-        doc.setFontSize(10);
-        doc.setTextColor(40, 40, 40);
-        doc.text(`${translations.status}: ${invoice.status.toUpperCase()}`, 20, 50);
-      }
-      
-      // Client information
-      const clientInfoY = emailType === "payment_confirmation" ? 60 : 50;
-      let nextY = clientInfoY;
-      if (client) {
-        // Add background box for modern and creative templates
-        if (invoiceTemplate === 'modern') {
-          doc.setFillColor(245, 245, 245); // Light gray background
-          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0) + (client.notes ? 5 : 0);
-          doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
-        } else if (invoiceTemplate === 'creative') {
-          // Add gray background with light colored border for creative template
-          const boxHeight = 20 + (client.contact_person ? 5 : 0) + (client.address ? 5 : 0) + (client.notes ? 5 : 0);
-          
-          // Fill with light gray
-          doc.setFillColor(245, 245, 245);
-          doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'F');
-          
-          // Add light colored border
-          doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          doc.setLineWidth(0.5);
-          doc.roundedRect(20, clientInfoY - 3, 170, boxHeight, 2, 2, 'S');
-        }
-        
-        const textYOffset = invoiceTemplate === 'creative' ? 2 : invoiceTemplate === 'modern' ? 2 : 0;
-        
-        doc.setFontSize(11);
-        // Use medium shade color for "Bill To" in professional template (same as separator line)
-        if (invoiceTemplate === 'professional') {
-          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-          doc.setTextColor(mediumR, mediumG, mediumB);
-        } else {
-          doc.setTextColor(40, 40, 40);
-        }
-        doc.setFont('helvetica', 'bold');
-        const leftMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
-        const rightMargin = (invoiceTemplate === 'creative' || invoiceTemplate === 'modern') ? 24 : 20;
-        doc.text(translations.billTo, leftMargin, clientInfoY + textYOffset);
-        
-        // Right side - Invoice Number and Date (aligned with Bill To)
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        // Use same color as "Bill To" for professional template
-        if (invoiceTemplate === 'professional') {
-          const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-          const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-          const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-          doc.setTextColor(mediumR, mediumG, mediumB);
-        } else {
-          doc.setTextColor(40, 40, 40);
-        }
-        const invoiceTitle = `${translations.invoice} ${invoice.invoice_number}`;
-        const titleWidth = doc.getTextWidth(invoiceTitle);
-        doc.text(invoiceTitle, 210 - rightMargin - titleWidth, clientInfoY + textYOffset);
-        
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100, 100, 100);
-        const issueDateText = `${translations.issueDate}: ${invoice.issue_date}`;
-        const issueDateWidth = doc.getTextWidth(issueDateText);
-        doc.text(issueDateText, 210 - rightMargin - issueDateWidth, clientInfoY + 6 + textYOffset);
-        
-        // Add due date below issue date
-        if (invoice.due_date) {
-          const dueDateText = `${translations.dueDate}: ${invoice.due_date}`;
-          const dueDateWidth = doc.getTextWidth(dueDateText);
-          doc.text(dueDateText, 210 - rightMargin - dueDateWidth, clientInfoY + 12 + textYOffset);
-        }
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        
-        nextY = clientInfoY + 7 + textYOffset;
-        doc.text(client.name, leftMargin, nextY);
-        nextY += 5;
-        
-        if (client.contact_person) {
-          doc.text(client.contact_person, leftMargin, nextY);
-          nextY += 5;
-        }
-        if (client.address) {
-          doc.text(client.address, leftMargin, nextY);
-          nextY += 5;
-        }
-        if (client.notes) {
-          doc.setFontSize(9);
-          doc.setTextColor(120, 120, 120);
-          doc.text(client.notes, leftMargin, nextY);
-          nextY += 5;
-          doc.setFontSize(10);
-          doc.setTextColor(60, 60, 60);
-        }
-      }
-      
-      // Items table - add some space after client info
-      const startY = nextY + 15;
-      
-      // Add line above table for classic template
-      if (invoiceTemplate === 'classic') {
-        doc.setDrawColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-        doc.setLineWidth(0.5);
-        doc.line(20, startY - 5, 190, startY - 5);
-      }
-      
-      const tableHeaders = [translations.description, translations.qty, translations.unitPrice, translations.total];
-      const tableData: any[] = [];
-      
-      // Add invoice items (if available)
-      if (invoice.invoice_items && invoice.invoice_items.length > 0) {
-        invoice.invoice_items.forEach(item => {
-          tableData.push([
-            item.description,
-            item.quantity.toString(),
-            `$${item.unit_price.toFixed(2)}`,
-            `$${item.total.toFixed(2)}`
-          ]);
-          
-          // Add item notes if they exist
-          if (item.notes) {
-            tableData.push([
-              `      ${translations.notes}: ${item.notes}`,
-              '',
-              '',
-              ''
-            ]);
-          }
-        });
-      } else {
-        // If no items available, show totals only
-        tableData.push(['Invoice items not available', '', '', '']);
-      }
-      
-      // Add subtotal, individual taxes, and total rows
-      tableData.push(['', '', `${translations.subtotal}:`, `$${invoice.subtotal.toFixed(2)}`]);
-      
-      // Add individual taxes if company has multiple taxes
-      if (company?.taxes && Array.isArray(company.taxes) && company.taxes.length > 0) {
-        company.taxes.forEach((tax: any) => {
-          const taxAmount = invoice.subtotal * (tax.percentage / 100);
-          tableData.push(['', '', `${tax.name} (${tax.percentage}%):`, `$${taxAmount.toFixed(2)}`]);
-        });
-      } else if (invoice.tax_amount > 0) {
-        // Fallback to generic tax if no specific taxes are configured
-        tableData.push(['', '', `${translations.tax}:`, `$${invoice.tax_amount.toFixed(2)}`]);
-      }
-      
-      tableData.push(['', '', `${translations.total}:`, `$${invoice.total.toFixed(2)}`]);
-      
-      // Use autoTable for better table formatting
-      const tableTheme = invoiceTemplate === 'professional' ? 'grid' : 
-                        invoiceTemplate === 'modern' ? 'plain' : 
-                        invoiceTemplate === 'classic' ? 'grid' : 
-                        invoiceTemplate === 'creative' ? 'plain' : 'plain';
-      
-      autoTable(doc, {
-        head: [tableHeaders],
-        body: tableData,
-        startY: startY,
-        theme: tableTheme,
-        tableWidth: invoiceTemplate === 'modern' ? 170 : 'auto',
-        margin: invoiceTemplate === 'modern' ? { left: 20, right: 20 } : { left: 20, right: 20 },
-        styles: {
-          fontSize: 10,
-          cellPadding: invoiceTemplate === 'professional' ? 3 : invoiceTemplate === 'modern' ? 2 : invoiceTemplate === 'classic' ? 2 : 3,
-          lineColor: [240, 240, 240],
-          lineWidth: 0.5,
-        },
-        headStyles: {
-          fillColor: undefined,
-          textColor: [40, 40, 40],
-          fontStyle: 'bold',
-          fontSize: invoiceTemplate === 'professional' ? 11 : invoiceTemplate === 'modern' ? 10 : 10,
-          cellPadding: invoiceTemplate === 'modern' ? 4 : 4,
-          lineWidth: 0.5,
-        },
-        alternateRowStyles: undefined,
-        columnStyles: {
-          0: { cellWidth: invoiceTemplate === 'modern' ? 70 : 'auto' },
-          1: { halign: 'center', cellWidth: invoiceTemplate === 'modern' ? 25 : 'auto' },
-          2: { halign: 'right', cellWidth: invoiceTemplate === 'modern' ? 30 : 'auto' },
-          3: { halign: 'right', fontStyle: 'bold', cellWidth: invoiceTemplate === 'modern' ? 45 : 'auto' },
-        },
-        bodyStyles: {
-          textColor: [60, 60, 60],
-          fillColor: undefined,
-        },
-        didParseCell: function(data: any) {
-          // Remove fills so custom rounded backgrounds (drawn in willDrawCell) are fully visible
-          if ((invoiceTemplate === 'modern' || invoiceTemplate === 'classic') && data.section === 'head') {
-            data.cell.styles.fillColor = undefined;
-            data.cell.styles.lineWidth = 0;
-          }
-          if (invoiceTemplate === 'modern' && data.section === 'body') {
-            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-            const isLastRow = data.row.index === bodyLen - 1;
-            if (isLastRow) {
-              data.cell.styles.fillColor = undefined;
-              data.cell.styles.textColor = [255, 255, 255];
-              data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 10;
-              data.cell.styles.cellPadding = 4;
-              data.cell.styles.lineWidth = 0;
-            }
-          }
-          // Style the last row for classic template
-          if (invoiceTemplate === 'classic' && data.section === 'body') {
-            const isLastRow = data.row.index === data.table.body.length - 1;
-            if (isLastRow) {
-              data.cell.styles.textColor = selectedColor.primary;
-              data.cell.styles.fontStyle = 'bold';
-            }
-          }
-          // Style for creative template - total row with colored background
-          if (invoiceTemplate === 'creative' && data.section === 'body') {
-            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-            const isLastRow = data.row.index === bodyLen - 1;
-            if (isLastRow) {
-              // Don't set fillColor here, it will be drawn in willDrawCell
-              data.cell.styles.fillColor = undefined;
-              data.cell.styles.textColor = [255, 255, 255];
-              data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 10;
-              data.cell.styles.cellPadding = 5;
-              data.cell.styles.lineWidth = 0;
-            } else {
-              data.cell.styles.lineColor = [240, 240, 240];
-            }
-          }
-          // Remove header background for creative template
-          if (invoiceTemplate === 'creative' && data.section === 'head') {
-            data.cell.styles.fillColor = undefined;
-            data.cell.styles.lineWidth = 0;
-          }
-        },
-        willDrawCell: function(data: any) {
-          // Draw rounded background for modern template header row
-          if (invoiceTemplate === 'modern' && data.section === 'head') {
-            // Draw once per row only on the first column
-            if (data.column.index === 0) {
-              const doc = data.doc;
-              
-              // Calculate total width by summing column widths
-              let totalWidth = 0;
-              if (data.table && data.table.columns) {
-                data.table.columns.forEach((col: any) => {
-                  totalWidth += col.width;
-                });
-              }
-              
-              const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-              const y = data.cell.y;
-              const height = data.row.height;
-              
-              // Draw rounded rectangle with light colored background
-              doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-              doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
-            }
-          }
-          
-          // Draw rounded background for classic template header row
-          if (invoiceTemplate === 'classic' && data.section === 'head') {
-            // Draw once per row only on the first column
-            if (data.column.index === 0) {
-              const doc = data.doc;
-              
-              // Calculate total width by summing column widths
-              let totalWidth = 0;
-              if (data.table && data.table.columns) {
-                data.table.columns.forEach((col: any) => {
-                  totalWidth += col.width;
-                });
-              }
-              
-              const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-              const y = data.cell.y;
-              const height = data.row.height;
-              
-              // Draw rounded rectangle with light colored background
-              doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-              doc.roundedRect(startX, y, totalWidth, height, 1.5, 1.5, 'F');
-            }
-          }
-          
-          // Draw rounded background for creative template total row
-          if (invoiceTemplate === 'creative' && data.section === 'body') {
-            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-            const isLastRow = data.row.index === bodyLen - 1;
-            
-            // Draw once per row only on the first column
-            if (isLastRow && data.column.index === 0) {
-              const doc = data.doc;
-              
-              // Calculate total width by summing column widths
-              let totalWidth = 0;
-              if (data.table && data.table.columns) {
-                data.table.columns.forEach((col: any) => {
-                  totalWidth += col.width;
-                });
-              }
-              
-              const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-              const y = data.cell.y;
-              const height = data.row.height;
-              
-              // Draw rounded rectangle with colored background
-              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
-            }
-          }
-          
-          // Draw rounded background for modern template total row
-          if (invoiceTemplate === 'modern' && data.section === 'body') {
-            const bodyLen = (data.table && data.table.body) ? data.table.body.length : 0;
-            const isLastRow = data.row.index === bodyLen - 1;
-            
-            // Draw once per row only on the first column
-            if (isLastRow && data.column.index === 0) {
-              const doc = data.doc;
-              
-              // Calculate total width by summing column widths
-              let totalWidth = 0;
-              if (data.table && data.table.columns) {
-                data.table.columns.forEach((col: any) => {
-                  totalWidth += col.width;
-                });
-              }
-              
-              const startX = data.table && (data.table as any).pageStartX ? (data.table as any).pageStartX : 20;
-              const y = data.cell.y;
-              const height = data.row.height;
-              
-              // Draw rounded rectangle with colored background
-              doc.setFillColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-              doc.roundedRect(startX, y, totalWidth, height, 2, 2, 'F');
-            }
-          }
-        },
-        didDrawCell: function(data: any) {
-          // Add line above total row for professional template
-          // Draw only after the last cell of the last row is rendered
-          if (invoiceTemplate === 'professional' && data.section === 'body') {
-            const bodyLen = data.table && data.table.body ? data.table.body.length : 0;
-            const colLen = data.table && data.table.columns ? data.table.columns.length : 0;
-            const isLastRow = bodyLen > 0 && data.row.index === bodyLen - 1;
-            const isLastColumn = colLen > 0 && data.column.index === colLen - 1;
-            
-            // Draw line only when rendering the last cell of the total row
-            if (isLastRow && isLastColumn) {
-              const doc = data.doc;
-              
-              // Calculate table width from columns
-              let tableWidth = 0;
-              if (data.table && Array.isArray(data.table.columns)) {
-                tableWidth = data.table.columns.reduce((sum: number, col: any) => sum + (col?.width || 0), 0);
-              }
-              
-              // Get start X position
-              const startX = (data.table && typeof (data.table as any).pageStartX === 'number')
-                ? (data.table as any).pageStartX
-                : 20;
-              
-              const lineY = data.cell.y;
-              
-              if (typeof startX === 'number' && tableWidth > 0 && typeof lineY === 'number') {
-                // Use a medium shade between light and primary
-                const mediumR = Math.floor((selectedColor.light[0] + selectedColor.primary[0]) / 2);
-                const mediumG = Math.floor((selectedColor.light[1] + selectedColor.primary[1]) / 2);
-                const mediumB = Math.floor((selectedColor.light[2] + selectedColor.primary[2]) / 2);
-                doc.setDrawColor(mediumR, mediumG, mediumB);
-                doc.setLineWidth(0.5);
-                doc.line(startX, lineY, startX + tableWidth, lineY);
-              }
-            }
-          }
-        },
-        didDrawPage: function(data: any) {
-          // Footer elements will be drawn on last page only
-        }
-      });
-      
-      // Get final Y position after table
-      const tableEndY = (doc as any).lastAutoTable?.finalY || (doc as any).autoTable?.previous?.finalY || startY + 100;
-      
-      // Add notes if available
-      if (invoice.notes) {
-        const finalY = tableEndY + 20;
-        doc.setFontSize(12);
-        doc.setTextColor(40, 40, 40);
-        doc.text(`${translations.notes}:`, 20, finalY);
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        const splitNotes = doc.splitTextToSize(invoice.notes, 170);
-        doc.text(splitNotes, 20, finalY + 10);
-      }
-      
-      // Add invoice body message if available (appears after table)
-      if (company && ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr)) {
-        const hasNotes = !!invoice.notes;
-        const hasTerms = !!invoice.terms;
-        let offset = 20;
-        if (hasNotes && hasTerms) offset = 60;
-        else if (hasNotes || hasTerms) offset = 40;
-        
-        const finalY = tableEndY + offset;
-        const bodyMessage = client?.language === 'french'
-          ? ((company as any).invoice_body_message_fr || (company as any).invoice_body_message_en)
-          : ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr);
-        
-        if (bodyMessage) {
-          console.log("[PDF] Body message used:", bodyMessage);
-          doc.setFontSize(10);
-          doc.setTextColor(80, 80, 80);
-          doc.setFont('helvetica', 'normal');
-          const splitBody = doc.splitTextToSize(bodyMessage, 170);
-          doc.text(splitBody, 20, finalY);
-        }
-      }
-      
-      // Add terms if available
-      if (invoice.terms) {
-        const hasNotes = !!invoice.notes;
-        const hasBodyMessage = !!(company && ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr));
-        let offset = 20;
-        if (hasNotes && hasBodyMessage) offset = 80;
-        else if (hasNotes || hasBodyMessage) offset = 50;
-        else if (hasNotes) offset = 40;
-        
-        const finalY = tableEndY + offset;
-        doc.setFontSize(12);
-        doc.setTextColor(40, 40, 40);
-        doc.text(`${translations.terms}:`, 20, finalY);
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        const splitTerms = doc.splitTextToSize(invoice.terms, 170);
-        doc.text(splitTerms, 20, finalY + 10);
-      }
-      
-      // Add footer message from company settings on last page only
-      if (company?.invoice_footer_message) {
-        const hasNotes = !!invoice.notes;
-        const hasTerms = !!invoice.terms;
-        const hasBodyMessage = !!(company && ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr));
-        let offset = 20;
-        if (hasNotes && hasTerms && hasBodyMessage) offset = 100;
-        else if ((hasNotes && hasTerms) || (hasNotes && hasBodyMessage) || (hasTerms && hasBodyMessage)) offset = 70;
-        else if (hasNotes || hasTerms || hasBodyMessage) offset = 50;
-        
-        const finalY = tableEndY + offset;
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        
-        // Use client language to determine which footer message to use
-        const footerMessage = client?.language === 'french' 
-          ? ((company as any).invoice_footer_message_fr || company.invoice_footer_message)
-          : ((company as any).invoice_footer_message_en || company.invoice_footer_message);
-        
-        // If footer equals body message, avoid duplicate rendering
-        const bodyMessageForCompare = client?.language === 'french'
-          ? ((company as any).invoice_body_message_fr || (company as any).invoice_body_message_en)
-          : ((company as any).invoice_body_message_en || (company as any).invoice_body_message_fr);
-        const shouldRenderFooter = !!footerMessage && footerMessage.trim().length > 0 &&
-          footerMessage.trim() !== (bodyMessageForCompare?.trim() || '');
-        
-        // Check if we have enough space, otherwise add new page
-        if (finalY > pageHeight - 40) {
-          doc.addPage();
-          // Add decorative footer on new page
-          if (invoiceTemplate === 'modern') {
-            doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-            doc.rect(0, pageHeight - 30, 210, 30, 'F');
-          } else if (invoiceTemplate === 'professional') {
-            doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-            doc.setLineWidth(2);
-            doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-          }
-          // Add footer message at bottom
-          if (shouldRenderFooter) {
-            doc.setFontSize(8);
-            doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                            invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                            invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-            doc.text(footerMessage, 20, pageHeight - 20);
-          }
-        } else {
-          // Add decorative footer elements on last page
-          if (invoiceTemplate === 'modern') {
-            doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-            doc.rect(0, pageHeight - 30, 210, 30, 'F');
-          } else if (invoiceTemplate === 'professional') {
-            doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-            doc.setLineWidth(2);
-            doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-          }
-          
-          // Add footer message at bottom of last page
-          if (shouldRenderFooter) {
-            doc.setFontSize(8);
-            doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                            invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                            invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-            doc.text(footerMessage, 20, pageHeight - 20);
-          }
-        }
-      } else {
-        // If no footer message, still add decorative footer and thank you text on last page
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        
-        // Add decorative footer elements
-        if (invoiceTemplate === 'modern') {
-          doc.setFillColor(selectedColor.light[0], selectedColor.light[1], selectedColor.light[2]);
-          doc.rect(0, pageHeight - 30, 210, 30, 'F');
-        } else if (invoiceTemplate === 'professional') {
-          doc.setDrawColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
-          doc.setLineWidth(2);
-          doc.line(20, pageHeight - 25, 190, pageHeight - 25);
-        }
-        
-        doc.setFontSize(8);
-        doc.setTextColor(invoiceTemplate === 'creative' ? selectedColor.primary[0] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[1] : 100, 
-                        invoiceTemplate === 'creative' ? selectedColor.primary[2] : 100);
-        doc.text(translations.thankYou, 20, pageHeight - 20);
-      }
-      
-      // Save the PDF
-      doc.save(`invoice-${invoice.invoice_number}.pdf`);
       
       toast({
-        title: "Success",
-        description: "Invoice PDF downloaded successfully!",
+        title: language === 'fr' ? "Succès" : "Success",
+        description: language === 'fr' ? "PDF de la facture téléchargé avec succès !" : "Invoice PDF downloaded successfully!"
       });
       
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
-        title: "Error",
-        description: "Failed to generate PDF. Please try again.",
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de générer le PDF. Veuillez réessayer." : "Failed to generate PDF. Please try again.",
         variant: "destructive"
       });
     }
