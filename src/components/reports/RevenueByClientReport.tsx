@@ -173,9 +173,8 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
             </CardTitle>
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={chartData}
@@ -201,8 +200,7 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
                   />
                   <Legend />
                 </PieChart>
-              </ResponsiveContainer>
-            </div>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       )}
