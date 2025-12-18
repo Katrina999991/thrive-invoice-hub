@@ -3284,9 +3284,9 @@ const Reports = () => {
                             {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[300px]" ref={barChartRef}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData}>
+                        <CardContent ref={barChartRef}>
+                          <div className="w-full overflow-x-auto">
+                            <BarChart width={400} height={300} data={chartData}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="period" />
                               <YAxis />
@@ -3294,9 +3294,9 @@ const Reports = () => {
                                 formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
                                 labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
                               />
-                              <Bar dataKey="revenue" fill="hsl(var(--primary))" />
+                              <Bar dataKey="revenue" fill="#3b82f6" />
                             </BarChart>
-                          </ResponsiveContainer>
+                          </div>
                         </CardContent>
                       </Card>
 
@@ -3304,18 +3304,18 @@ const Reports = () => {
                         <CardHeader>
                           <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[300px]" ref={lineChartRef}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                        <CardContent ref={lineChartRef}>
+                          <div className="w-full overflow-x-auto">
+                            <LineChart width={400} height={300} data={chartData}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="period" />
                               <YAxis />
                               <Tooltip 
                                 formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
                               />
-                              <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
+                              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
                             </LineChart>
-                          </ResponsiveContainer>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
