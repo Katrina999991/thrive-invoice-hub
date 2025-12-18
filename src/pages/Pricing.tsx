@@ -31,7 +31,9 @@ import {
   Package,
   Palette,
   History,
-  UsersRound
+  UsersRound,
+  FileCheck,
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
@@ -175,12 +177,15 @@ const Pricing = () => {
         free: {
           name: "Free",
           description: "Ideal to discover GestionFlow and start your business",
-          stripeInfo: "💳 Stripe Payments — 2%",
+          stripeInfo: "Stripe Payments (+2% GestionFlow fee)",
+          stripeInfoShort: "+2% GestionFlow fee",
+          noInventory: "Inventory management not included",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
             { text: "15 invoices per month", icon: "FileText" },
             { text: "15 expenses per month", icon: "Receipt" },
+            { text: "Quotes included", icon: "FileCheck" },
             { text: "PDF invoices & quotes (with GestionFlow branding)", icon: "FileText" },
             { text: "Classic invoice design", icon: "FileText" },
             { text: "Revenue report", icon: "BarChart3" },
@@ -193,12 +198,14 @@ const Pricing = () => {
           description: "The best balance for freelancers and small businesses",
           popular: "⭐ Most Popular",
           chosenBy: "Chosen by most of our users",
-          stripeInfo: "💳 Stripe Payments — 1%",
+          stripeInfo: "Stripe Payments (+1% GestionFlow fee)",
+          stripeInfoShort: "+1% GestionFlow fee",
           stripeNote: "Pay less fees on every payment received",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
-            { text: "Unlimited invoices & expenses", icon: "FileText" },
+            { text: "Unlimited invoices & quotes", icon: "FileText" },
+            { text: "Unlimited expenses", icon: "Receipt" },
             { text: "PDF invoices & quotes", icon: "FileText" },
             { text: "Classic + Modern designs", icon: "Palette" },
             { text: "Saved invoice & quote body messages", icon: "Mail" },
@@ -206,7 +213,6 @@ const Pricing = () => {
             { text: "Inventory management", icon: "Package" },
             { text: "Automatic stock updates on sales", icon: "RefreshCcw" },
             { text: "Tax reports", icon: "BarChart3" },
-            { text: "Stripe payments", icon: "CreditCard" },
             { text: "Time tracking", icon: "Clock" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
@@ -214,10 +220,12 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Built for growing businesses and multi-company management",
-          stripeInfo: "💳 Stripe Payments — 0.5%",
+          stripeInfo: "Stripe Payments (+0.5% GestionFlow fee)",
+          stripeInfoShort: "+0.5% GestionFlow fee",
           stripeNote: "Optimize your payment costs as your business grows",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
+            { text: "Unlimited clients, invoices & quotes", icon: "Users" },
             { text: "All invoice & quote designs", icon: "Palette" },
             { text: "Advanced document customization", icon: "FileText" },
             { text: "Advanced inventory reports (stock value, sales by product)", icon: "Package" },
@@ -226,7 +234,13 @@ const Pricing = () => {
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         }
-      }
+      },
+      stripeFeesTitle: "Stripe Payments & Fees",
+      stripeFeesDesc: "Payments are processed securely via Stripe. Standard Stripe processing fees apply. GestionFlow adds an additional processing fee based on your plan:",
+      stripeFeesFree: "Free: +2%",
+      stripeFeesPremium: "Premium: +1%",
+      stripeFeesPro: "Pro: +0.5%",
+      switchToFreeWarning: "Switching to the Free plan will disable paid features at the end of your billing cycle."
     },
     fr: {
       pageTitle: "Votre abonnement",
@@ -265,12 +279,15 @@ const Pricing = () => {
         free: {
           name: "Gratuit",
           description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
-          stripeInfo: "💳 Paiements Stripe — 2 %",
+          stripeInfo: "Paiements Stripe (+2 % frais GestionFlow)",
+          stripeInfoShort: "+2 % frais GestionFlow",
+          noInventory: "Gestion des stocks non incluse",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
             { text: "15 factures par mois", icon: "FileText" },
             { text: "15 dépenses par mois", icon: "Receipt" },
+            { text: "Devis inclus", icon: "FileCheck" },
             { text: "Factures et devis PDF (avec signature GestionFlow)", icon: "FileText" },
             { text: "Design de facture classique", icon: "FileText" },
             { text: "Rapport de revenus", icon: "BarChart3" },
@@ -283,12 +300,14 @@ const Pricing = () => {
           description: "Le meilleur équilibre pour freelances et petites entreprises",
           popular: "⭐ Le plus populaire",
           chosenBy: "Choisi par la majorité de nos utilisateurs",
-          stripeInfo: "💳 Paiements Stripe — 1 %",
+          stripeInfo: "Paiements Stripe (+1 % frais GestionFlow)",
+          stripeInfoShort: "+1 % frais GestionFlow",
           stripeNote: "Réduisez vos frais sur chaque paiement encaissé",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
-            { text: "Factures et dépenses illimitées", icon: "FileText" },
+            { text: "Factures et devis illimités", icon: "FileText" },
+            { text: "Dépenses illimitées", icon: "Receipt" },
             { text: "Factures et devis PDF", icon: "FileText" },
             { text: "Designs classique + moderne", icon: "Palette" },
             { text: "Messages de facture et devis personnalisés", icon: "Mail" },
@@ -296,7 +315,6 @@ const Pricing = () => {
             { text: "Gestion des stocks", icon: "Package" },
             { text: "Mise à jour automatique des stocks sur ventes", icon: "RefreshCcw" },
             { text: "Rapports fiscaux", icon: "BarChart3" },
-            { text: "Paiements Stripe", icon: "CreditCard" },
             { text: "Suivi des heures", icon: "Clock" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
@@ -304,10 +322,12 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
-          stripeInfo: "💳 Paiements Stripe — 0,5 %",
+          stripeInfo: "Paiements Stripe (+0,5 % frais GestionFlow)",
+          stripeInfoShort: "+0,5 % frais GestionFlow",
           stripeNote: "Optimisez vos coûts de paiement à mesure que votre activité grandit",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
+            { text: "Clients, factures et devis illimités", icon: "Users" },
             { text: "Tous les designs de factures et devis", icon: "Palette" },
             { text: "Personnalisation avancée des documents", icon: "FileText" },
             { text: "Rapports d'inventaire avancés (valeur stock, ventes par produit)", icon: "Package" },
@@ -316,7 +336,13 @@ const Pricing = () => {
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         }
-      }
+      },
+      stripeFeesTitle: "Paiements Stripe et frais",
+      stripeFeesDesc: "Les paiements sont traités de manière sécurisée via Stripe. Les frais de traitement standard de Stripe s'appliquent. GestionFlow ajoute des frais de traitement supplémentaires selon votre plan :",
+      stripeFeesFree: "Gratuit : +2 %",
+      stripeFeesPremium: "Premium : +1 %",
+      stripeFeesPro: "Pro : +0,5 %",
+      switchToFreeWarning: "Passer au plan Gratuit désactivera les fonctionnalités payantes à la fin de votre cycle de facturation."
     }
   };
 
@@ -351,8 +377,15 @@ const Pricing = () => {
       case 'Palette': return <Palette className={iconClass} />;
       case 'History': return <History className={iconClass} />;
       case 'UsersRound': return <UsersRound className={iconClass} />;
+      case 'FileCheck': return <FileCheck className={iconClass} />;
       default: return <Check className={iconClass} />;
     }
+  };
+
+  const getCurrentPlanStripeInfo = () => {
+    const currentType = planLimits?.plan_type ?? 'free';
+    const planData = getPlanData(currentType);
+    return 'stripeInfoShort' in planData ? (planData as any).stripeInfoShort : '';
   };
 
   const getPlanData = (planType: string) => {
@@ -458,6 +491,12 @@ const Pricing = () => {
                 </span>
               </div>
             )}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
+              <CreditCard className="h-4 w-4 text-primary" />
+              <span>
+                {language === 'fr' ? 'Paiements Stripe : frais standard Stripe' : 'Stripe payments: standard Stripe fees'} {getCurrentPlanStripeInfo()}
+              </span>
+            </div>
           </div>
           
           {hasActiveStripeSubscription && (
@@ -581,14 +620,23 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+
+                {/* No Inventory for Free Plan */}
+                {plan.plan_type === 'free' && 'noInventory' in planData && (
+                  <div className="mt-3 flex items-center gap-3 text-muted-foreground/70">
+                    <X className="h-4 w-4 shrink-0" />
+                    <span className="text-sm">{(planData as any).noInventory}</span>
+                  </div>
+                )}
                 
                 {/* Stripe Info */}
                 <div className="mt-6 pt-4 border-t border-border">
-                  <p className={`text-sm font-bold ${isPremium || isPro ? 'text-primary' : 'text-muted-foreground'}`}>
+                  <p className={`text-sm font-medium flex items-center gap-2 ${isPremium || isPro ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <CreditCard className="h-4 w-4" />
                     {planData.stripeInfo}
                   </p>
                   {'stripeNote' in planData && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground mt-1 ml-6">
                       {(planData as typeof t.plans.premium).stripeNote}
                     </p>
                   )}
@@ -715,6 +763,30 @@ const Pricing = () => {
         </CardContent>
       </Card>
 
+      {/* Stripe Payments & Fees Section */}
+      <Card className="mb-8 border-primary/20 bg-primary/5">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">{t.stripeFeesTitle}</h3>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">{t.stripeFeesDesc}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3 rounded-lg bg-muted/50 border border-muted-foreground/10 text-center">
+              <p className="text-sm font-medium text-foreground">{t.stripeFeesFree}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
+              <p className="text-sm font-medium text-primary">{t.stripeFeesPremium}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
+              <p className="text-sm font-medium text-primary">{t.stripeFeesPro}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* FAQ Section */}
       <Card className="mb-8">
         <CardHeader>
@@ -828,14 +900,14 @@ const Pricing = () => {
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-primary shrink-0" />
                   <span className="font-medium">
-                    {language === 'fr' ? 'Comment fonctionnent les paiements Stripe ?' : 'How do Stripe payments work?'}
+                    {language === 'fr' ? 'Comment fonctionnent les paiements Stripe et les frais ?' : 'How do Stripe payments and fees work?'}
                   </span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pl-6">
                 {language === 'fr'
-                  ? "Tous les paiements sont traités de manière sécurisée via Stripe."
-                  : "All payments are processed securely through Stripe."}
+                  ? "Les paiements sont traités de manière sécurisée via Stripe. Les frais de traitement standard de Stripe s'appliquent. GestionFlow ajoute des frais supplémentaires selon votre plan : Gratuit +2 %, Premium +1 %, Pro +0,5 %."
+                  : "Payments are processed securely via Stripe. Standard Stripe processing fees apply. GestionFlow adds an additional fee based on your plan: Free +2%, Premium +1%, Pro +0.5%."}
               </AccordionContent>
             </AccordionItem>
 
@@ -843,13 +915,13 @@ const Pricing = () => {
             <AccordionItem value="faq-8">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span className="font-medium">
-                  {language === 'fr' ? 'Pourquoi les frais Stripe diminuent-ils selon le plan ?' : 'Why do Stripe fees decrease based on the plan?'}
+                  {language === 'fr' ? 'Pourquoi les frais GestionFlow diminuent-ils selon le plan ?' : 'Why do GestionFlow fees decrease based on the plan?'}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 {language === 'fr'
-                  ? "Les plans Premium et Pro offrent des frais Stripe réduits afin de soutenir les entreprises qui encaissent des volumes plus élevés."
-                  : "Premium and Pro plans offer reduced Stripe fees to support businesses that process higher volumes."}
+                  ? "Les plans Premium et Pro offrent des frais GestionFlow réduits afin de soutenir les entreprises qui encaissent des volumes plus élevés. Les frais standard Stripe s'appliquent toujours en plus."
+                  : "Premium and Pro plans offer reduced GestionFlow fees to support businesses that process higher volumes. Standard Stripe fees always apply in addition."}
               </AccordionContent>
             </AccordionItem>
 
