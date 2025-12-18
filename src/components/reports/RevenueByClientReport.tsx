@@ -17,8 +17,10 @@ const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3
 const translations = {
   en: {
     title: 'Revenue by Client',
-    totalRevenue: 'Total Revenue',
+    totalRevenue: 'Total Invoiced',
+    totalRevenueHelp: 'Total amount from all invoices (paid + unpaid)',
     totalPaid: 'Total Paid',
+    totalPaidHelp: 'Amount actually received from clients',
     totalInvoices: 'Total Invoices',
     topClients: 'Top Clients',
     clientName: 'Client Name',
@@ -28,12 +30,15 @@ const translations = {
     percentage: '% of Total',
     noData: 'No data available for the selected period',
     selectPeriod: 'Select a date range to view client revenue data',
-    distribution: 'Revenue Distribution'
+    distribution: 'Revenue Distribution',
+    distributionDesc: 'Top 5 clients by invoiced amount'
   },
   fr: {
     title: 'Revenus par client',
-    totalRevenue: 'Revenus totaux',
-    totalPaid: 'Total payé',
+    totalRevenue: 'Total facturé',
+    totalRevenueHelp: 'Montant total de toutes les factures (payées + impayées)',
+    totalPaid: 'Total encaissé',
+    totalPaidHelp: 'Montant réellement reçu des clients',
     totalInvoices: 'Total factures',
     topClients: 'Meilleurs clients',
     clientName: 'Nom du client',
@@ -43,7 +48,8 @@ const translations = {
     percentage: '% du total',
     noData: 'Aucune donnée disponible pour la période sélectionnée',
     selectPeriod: 'Sélectionnez une plage de dates pour voir les revenus par client',
-    distribution: 'Distribution des revenus'
+    distribution: 'Distribution des revenus',
+    distributionDesc: 'Top 5 clients par montant facturé'
   }
 };
 
@@ -121,6 +127,7 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
               <div>
                 <p className="text-sm text-muted-foreground">{t.totalRevenue}</p>
                 <p className="text-2xl font-bold">{formatCurrency(clientRevenueData.totalRevenue)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.totalRevenueHelp}</p>
               </div>
             </div>
           </CardContent>
@@ -134,7 +141,8 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t.totalPaid}</p>
-                <p className="text-2xl font-bold">{formatCurrency(clientRevenueData.totalPaid)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(clientRevenueData.totalPaid)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.totalPaidHelp}</p>
               </div>
             </div>
           </CardContent>
@@ -155,7 +163,7 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
         </Card>
       </div>
 
-      {/* Chart */}
+      {/* Chart - Only show if there's data */}
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
@@ -163,6 +171,7 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
               <Users className="h-5 w-5" />
               {t.distribution}
             </CardTitle>
+            <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">

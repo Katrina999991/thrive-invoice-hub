@@ -18,6 +18,7 @@ const translations = {
   en: {
     title: 'Revenue by Product/Service',
     totalRevenue: 'Total Revenue',
+    totalRevenueHelp: 'Total amount from all invoices containing products/services',
     totalQuantity: 'Total Quantity Sold',
     uniqueProducts: 'Unique Products',
     topProducts: 'Top Products/Services',
@@ -28,11 +29,13 @@ const translations = {
     percentage: '% of Total',
     noData: 'No data available for the selected period',
     selectPeriod: 'Select a date range to view product revenue data',
-    distribution: 'Revenue by Product'
+    distribution: 'Revenue by Product',
+    distributionDesc: 'Top 10 products/services by revenue'
   },
   fr: {
     title: 'Revenus par produit/service',
     totalRevenue: 'Revenus totaux',
+    totalRevenueHelp: 'Montant total des factures contenant des produits/services',
     totalQuantity: 'Quantité totale vendue',
     uniqueProducts: 'Produits uniques',
     topProducts: 'Meilleurs produits/services',
@@ -43,7 +46,8 @@ const translations = {
     percentage: '% du total',
     noData: 'Aucune donnée disponible pour la période sélectionnée',
     selectPeriod: 'Sélectionnez une plage de dates pour voir les revenus par produit',
-    distribution: 'Revenus par produit'
+    distribution: 'Revenus par produit',
+    distributionDesc: 'Top 10 produits/services par revenu'
   }
 };
 
@@ -121,7 +125,8 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t.totalRevenue}</p>
-                <p className="text-2xl font-bold">{formatCurrency(productRevenueData.totalRevenue)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(productRevenueData.totalRevenue)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.totalRevenueHelp}</p>
               </div>
             </div>
           </CardContent>
@@ -156,7 +161,7 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
         </Card>
       </div>
 
-      {/* Chart */}
+      {/* Chart - Only show if there's data */}
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
@@ -164,6 +169,7 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
               <TrendingUp className="h-5 w-5" />
               {t.distribution}
             </CardTitle>
+            <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
