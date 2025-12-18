@@ -647,7 +647,9 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
   }
   
-  // Footer text
+  // Footer text - CENTERED
+  const centerX = pageWidth / 2;
+  
   doc.setFontSize(8);
   if (template === 'creative') {
     doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
@@ -656,18 +658,18 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
   }
   
   if (shouldRenderFooter) {
-    doc.text(footerMessage!, margin, pageHeight - 20);
+    doc.text(footerMessage!, centerX, pageHeight - 20, { align: 'center' });
   } else if (customFooterText) {
-    doc.text(customFooterText, margin, pageHeight - 20);
+    doc.text(customFooterText, centerX, pageHeight - 20, { align: 'center' });
   } else {
-    doc.text(t.thankYou, margin, pageHeight - 20);
+    doc.text(t.thankYou, centerX, pageHeight - 20, { align: 'center' });
   }
   
-  // Branding (if not hidden)
+  // Branding (if not hidden) - CENTERED below the thank you message
   if (!hideBranding) {
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
-    doc.text(t.branding, pageWidth - margin, pageHeight - 10, { align: 'right' });
+    doc.text(t.branding, centerX, pageHeight - 12, { align: 'center' });
   }
 
   // Return blob or save file
