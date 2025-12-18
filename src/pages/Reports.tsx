@@ -7387,11 +7387,32 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
         pdfBlob={null}
         defaultSubject={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
-        defaultMessage={
-          language === 'fr'
-            ? `Veuillez trouver ci-joint le rapport complet des clients généré depuis GestionFlow.\n\nEntreprise: ${companies?.length === 1 ? companies[0].name : 'Toutes les entreprises'}${createdFromDate && createdToDate ? `\nPériode de création: ${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}` : createdFromDate ? `\nPériode de création: Depuis le ${format(createdFromDate, 'dd/MM/yyyy')}` : createdToDate ? `\nPériode de création: Jusqu'au ${format(createdToDate, 'dd/MM/yyyy')}` : ''}\n\nCe rapport inclut la liste complète des clients et les clients regroupés par entreprise.`
-            : `Please find attached the complete Clients Report generated from GestionFlow.\n\nCompany: ${companies?.length === 1 ? companies[0].name : 'All Companies'}${createdFromDate && createdToDate ? `\nCreation date range: ${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}` : createdFromDate ? `\nCreation date range: From ${format(createdFromDate, 'dd/MM/yyyy')}` : createdToDate ? `\nCreation date range: Until ${format(createdToDate, 'dd/MM/yyyy')}` : ''}\n\nThis report includes the full clients list and clients grouped by company.`
-        }
+        defaultMessage={(() => {
+          const companyName = companies.length === 1 
+            ? companies[0].name 
+            : (language === 'fr' ? 'Toutes les entreprises' : 'All Companies');
+          
+          let dateInfo = '';
+          if (createdFromDate || createdToDate) {
+            if (createdFromDate && createdToDate) {
+              dateInfo = language === 'fr' 
+                ? `\nPériode de création: ${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}`
+                : `\nCreation date range: ${format(createdFromDate, 'dd/MM/yyyy')} - ${format(createdToDate, 'dd/MM/yyyy')}`;
+            } else if (createdFromDate) {
+              dateInfo = language === 'fr'
+                ? `\nPériode de création: Depuis le ${format(createdFromDate, 'dd/MM/yyyy')}`
+                : `\nCreation date range: From ${format(createdFromDate, 'dd/MM/yyyy')}`;
+            } else if (createdToDate) {
+              dateInfo = language === 'fr'
+                ? `\nPériode de création: Jusqu'au ${format(createdToDate, 'dd/MM/yyyy')}`
+                : `\nCreation date range: Until ${format(createdToDate, 'dd/MM/yyyy')}`;
+            }
+          }
+          
+          return language === 'fr'
+            ? `Veuillez trouver ci-joint le rapport complet des clients généré depuis GestionFlow.\n\nEntreprise: ${companyName}${dateInfo}\n\nCe rapport inclut la liste complète des clients et les clients regroupés par entreprise.`
+            : `Please find attached the complete Clients Report generated from GestionFlow.\n\nCompany: ${companyName}${dateInfo}\n\nThis report includes the full clients list and clients grouped by company.`;
+        })()}
         onGeneratePdf={async () => {
           if (!clients || filteredClientsByDate.length === 0) return null;
           
