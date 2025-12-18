@@ -56,60 +56,28 @@ export const generateSalesReportPdf = async (options: SalesReportPdfOptions): Pr
   let pageNumber = 1;
   const totalPages = { value: 1 }; // Will be updated after generating all content
   
-  // Déterminer si on affiche le branding selon le plan
-  const showFullBranding = planType === 'free';
-  const showDiscreteBranding = planType === 'premium';
-  const canHideBranding = planType === 'pro' && hideBranding;
+  // Determine branding based on hideBranding option
+  const showBranding = !hideBranding;
   
   // Helper function to add footer
   const addFooter = (currentPage: number, total: number) => {
     doc.setFontSize(8);
     doc.setTextColor(...COLORS.gray);
     
-    // Left: Software name (selon le plan)
-    if (!canHideBranding) {
-      if (showFullBranding) {
-        doc.text("Rapport généré avec GestionFlow", margin, pageHeight - 10);
-      } else if (showDiscreteBranding) {
-        doc.text("GestionFlow", margin, pageHeight - 10);
-      } else {
-        // Pro sans hideBranding: texte discret
-        doc.text("GestionFlow", margin, pageHeight - 10);
-      }
+    // Left: Software name (only if branding enabled)
+    if (showBranding) {
+      doc.text("Généré avec GestionFlow", margin, pageHeight - 10);
     }
     
     // Center: Page number
     doc.text(`Page ${currentPage} sur ${total}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-    
-    // Right: Auto-generated mention (seulement si branding visible)
-    if (!canHideBranding) {
-      doc.text("Document généré automatiquement", pageWidth - margin, pageHeight - 10, { align: 'right' });
-    }
     
     // Reset text color
     doc.setTextColor(...COLORS.dark);
   };
 
   // ===== HEADER SECTION =====
-  // Logo/Branding (left side) - selon le plan
-  if (showFullBranding) {
-    // Free: Logo complet avec fond coloré
-    doc.setFillColor(...COLORS.primary);
-    doc.roundedRect(margin, yPosition, 40, 12, 2, 2, 'F');
-    doc.setTextColor(...COLORS.white);
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text("GestionFlow", margin + 20, yPosition + 8, { align: 'center' });
-  } else if (showDiscreteBranding || (planType === 'pro' && !hideBranding)) {
-    // Premium/Pro: Texte simple sans fond
-    doc.setTextColor(...COLORS.gray);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text("GestionFlow", margin, yPosition + 8);
-  }
-  // Pro avec hideBranding: rien du tout
-  
-  // Report title (right side)
+  // Report title
   doc.setTextColor(...COLORS.dark);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
