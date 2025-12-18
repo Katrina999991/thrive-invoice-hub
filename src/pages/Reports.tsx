@@ -47,6 +47,7 @@ import { generateRevenueReportPdf } from "@/lib/revenueReportPdf";
 import { generateRevenueByClientPdf } from "@/lib/revenueByClientPdf";
 import { generateRevenueByProductPdf } from "@/lib/revenueByProductPdf";
 import { generateStockStatusPdf, type StockProduct } from "@/lib/stockStatusPdf";
+import { generateStockValuePdf, type StockValueProduct } from "@/lib/stockValuePdf";
 import { useRevenueByClient } from "@/hooks/useRevenueByClient";
 import { useRevenueByProduct } from "@/hooks/useRevenueByProduct";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -1166,6 +1167,110 @@ const Reports = () => {
     });
     
     logExport('stock_status', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport état des stocks' : 'Stock status PDF download');
+  };
+  
+  // Export function for Stock Value PDF
+  const exportStockValueToPDF = async () => {
+    const productsToExport = filteredInventoryProducts || [];
+    
+    if (!productsToExport || productsToExport.length === 0) {
+      setShowNoProductsDialog(true);
+      return;
+    }
+    
+    // Get company filter name
+    let companyFilterName: string | undefined;
+    if (productFilterType === 'company' && productSelectedCompanyId) {
+      companyFilterName = companies?.find(c => c.id === productSelectedCompanyId)?.name;
+    }
+    
+    // Prepare products for the PDF (only products with quantity > 0)
+    const stockValueProducts: StockValueProduct[] = productsToExport
+      .filter(p => (p.quantity || 0) > 0)
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        category: p.category,
+        quantity: p.quantity || 0,
+        cost: p.cost || 0,
+      }));
+    
+    await generateStockValuePdf({
+      products: stockValueProducts,
+      companyName: companies?.[0]?.name,
+      companyFilterName,
+      language: language === 'fr' ? 'fr' : 'en',
+      planType: planLimits?.plan_type || 'free',
+      hideBranding: hidePdfBranding,
+    });
+    
+    logExport('stock_value', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport valeur du stock' : 'Stock value PDF download');
+  };
+  
+  // Export Stock Value to Excel
+  const exportStockValueToExcel = () => {
+    const productsToExport = filteredInventoryProducts || [];
+    
+    if (!productsToExport || productsToExport.length === 0) {
+      setShowNoProductsDialog(true);
+      return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Filter products with stock
+    const stockedProducts = productsToExport.filter(p => (p.quantity || 0) > 0);
+    
+    // Calculate totals
+    const totalQuantity = stockedProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
+    const totalValue = stockedProducts.reduce((sum, p) => sum + ((p.quantity || 0) * (p.cost || 0)), 0);
+    const averageCost = totalQuantity > 0 ? totalValue / totalQuantity : 0;
+    
+    // Summary sheet
+    const summaryData = [
+      [language === 'fr' ? 'Rapport Valeur du Stock' : 'Stock Value Report'],
+      [''],
+      [language === 'fr' ? 'Date du rapport:' : 'Report date:', format(new Date(), 'dd/MM/yyyy')],
+      [language === 'fr' ? 'Valeur totale du stock:' : 'Total inventory value:', '$' + totalValue.toFixed(2)],
+      [language === 'fr' ? 'Nombre de produits:' : 'Total products:', stockedProducts.length],
+      [language === 'fr' ? 'Quantité totale:' : 'Total quantity:', totalQuantity],
+      [language === 'fr' ? 'Coût moyen par unité:' : 'Average cost per unit:', '$' + averageCost.toFixed(2)],
+    ];
+    
+    const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWS, language === 'fr' ? 'Résumé' : 'Summary');
+    
+    // Stock value details sheet
+    const headers = language === 'fr' 
+      ? ['Produit', 'SKU', 'Catégorie', 'Quantité', 'Coût unitaire', 'Valeur totale']
+      : ['Product', 'SKU', 'Category', 'Quantity', 'Unit Cost', 'Total Value'];
+    
+    const detailsData = [
+      headers,
+      ...stockedProducts
+        .sort((a, b) => ((b.quantity || 0) * (b.cost || 0)) - ((a.quantity || 0) * (a.cost || 0)))
+        .map(product => [
+          product.name,
+          product.sku || '-',
+          product.category || '-',
+          product.quantity || 0,
+          product.cost || 0,
+          (product.quantity || 0) * (product.cost || 0)
+        ]),
+      // Totals row
+      [language === 'fr' ? 'TOTAL' : 'TOTAL', '', '', totalQuantity, '', totalValue]
+    ];
+    
+    const detailsWS = XLSX.utils.aoa_to_sheet(detailsData);
+    XLSX.utils.book_append_sheet(wb, detailsWS, language === 'fr' ? 'Détails' : 'Details');
+    
+    const filename = language === 'fr' 
+      ? `rapport-valeur-stock-${format(new Date(), 'yyyy-MM-dd')}.xlsx`
+      : `stock-value-report-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    
+    XLSX.writeFile(wb, filename);
+    logExport('stock_value', 'excel', language === 'fr' ? 'Export Excel rapport valeur du stock' : 'Stock value report Excel export');
   };
   
   // Legacy export function (kept for backward compatibility with other parts)
@@ -4194,6 +4299,22 @@ const Reports = () => {
                     : 'Estimate the value of your inventory assets'}
                 </p>
               </div>
+              
+              {/* Export Buttons */}
+              <div className="flex space-x-2">
+                <Button onClick={exportStockValueToPDF} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button onClick={exportStockValueToExcel} variant="outline" size="sm">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm">
+                  <Mail className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Courriel' : 'Email'}
+                </Button>
+              </div>
             </div>
 
             {/* Stock Value Summary */}
@@ -5882,6 +6003,46 @@ const Reports = () => {
           
           const blob = await generateStockStatusPdf({
             products: stockProducts,
+            companyName: companies?.[0]?.name,
+            companyFilterName,
+            language: language as 'fr' | 'en',
+            planType: planLimits?.plan_type || 'free',
+            hideBranding: hidePdfBranding,
+            returnBlob: true
+          });
+          return blob as Blob;
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'stock_value'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="stock_value"
+        reportTitle={language === 'fr' ? 'Valeur du stock' : 'Stock Value'}
+        pdfBlob={null}
+        onGeneratePdf={async () => {
+          if (!filteredInventoryProducts || filteredInventoryProducts.length === 0) return null;
+          
+          // Get company filter name
+          let companyFilterName: string | undefined;
+          if (productFilterType === 'company' && productSelectedCompanyId) {
+            companyFilterName = companies?.find(c => c.id === productSelectedCompanyId)?.name;
+          }
+          
+          // Prepare products for the PDF (only products with quantity > 0)
+          const stockValueProducts: StockValueProduct[] = filteredInventoryProducts
+            .filter(p => (p.quantity || 0) > 0)
+            .map(p => ({
+              id: p.id,
+              name: p.name,
+              sku: p.sku,
+              category: p.category,
+              quantity: p.quantity || 0,
+              cost: p.cost || 0,
+            }));
+          
+          const blob = await generateStockValuePdf({
+            products: stockValueProducts,
             companyName: companies?.[0]?.name,
             companyFilterName,
             language: language as 'fr' | 'en',
