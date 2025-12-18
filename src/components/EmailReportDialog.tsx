@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,16 +35,15 @@ export const EmailReportDialog = ({
   const { user, username } = useAuth();
   const [recipient, setRecipient] = useState(user?.email || "");
   const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  
   const [sending, setSending] = useState(false);
 
-  // Reset subject and message when dialog opens with new report title
+  // Reset subject when dialog opens with new report title
   useEffect(() => {
     if (open) {
       setSubject(defaultSubject || reportTitle);
-      setMessage(defaultMessage || "");
     }
-  }, [open, reportTitle, defaultSubject, defaultMessage]);
+  }, [open, reportTitle, defaultSubject]);
 
   const handleSend = async () => {
     if (!recipient) {
@@ -99,7 +97,7 @@ export const EmailReportDialog = ({
           recipientEmail: recipient,
           reportTitle: subject,
           reportType,
-          message: message || undefined,
+          message: defaultMessage || undefined,
           pdfBase64,
           language,
         },
@@ -127,7 +125,6 @@ export const EmailReportDialog = ({
           : `Report sent to ${recipient}`
       );
       onOpenChange(false);
-      setMessage("");
     } catch (error) {
       console.error("Error sending report email:", error);
       toast.error(
@@ -179,21 +176,6 @@ export const EmailReportDialog = ({
               placeholder={language === 'fr' ? 'Objet du courriel' : 'Email subject'}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="message">
-              {language === 'fr' ? 'Message (optionnel)' : 'Message (optional)'}
-            </Label>
-            <Textarea
-              id="message"
-              placeholder={language === 'fr' 
-                ? 'Ajoutez un message personnalisé...' 
-                : 'Add a custom message...'}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={3}
             />
           </div>
         </div>
