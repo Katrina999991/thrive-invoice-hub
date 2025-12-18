@@ -2827,7 +2827,7 @@ const Reports = () => {
               </TabsList>
 
               {/* By Period Tab - Existing functionality */}
-              <TabsContent value="period" className="space-y-4">
+              <TabsContent value="period" className="space-y-6">
                 <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
                   setActiveTab(value);
                 }}>
@@ -2841,7 +2841,7 @@ const Reports = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("reports.revenue.customDateRange")}</CardTitle>
-                    <CardDescription>Select a specific date range for revenue analysis</CardDescription>
+                    <CardDescription>{language === 'fr' ? 'Sélectionnez une plage de dates spécifique pour analyser les revenus' : 'Select a specific date range for revenue analysis'}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <DateRangePicker
@@ -3232,7 +3232,11 @@ const Reports = () => {
                       </Card>
                       <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">{t("reports.revenue.totalPeriods")}</CardTitle>
+                          <CardTitle className="text-sm font-medium">
+                            {viewMode === 'monthly' 
+                              ? t("reports.revenue.numberOfMonths")
+                              : t("reports.revenue.numberOfYears")}
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold">
@@ -3319,7 +3323,8 @@ const Reports = () => {
                     {/* Invoice List */}
                     <Card>
                       <CardHeader>
-                        <CardTitle>{t("reports.revenue.invoiceList")}</CardTitle>
+                        <CardTitle>{t("reports.revenue.invoicesList")}</CardTitle>
+                        <CardDescription>{t("reports.revenue.invoicesListDescription")}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         {invoices && invoices.filter((invoice: any) => {
@@ -3342,7 +3347,7 @@ const Reports = () => {
                                 <TableHead>{t("reports.revenue.invoiceNumber")}</TableHead>
                                 <TableHead>{t("reports.revenue.client")}</TableHead>
                                 <TableHead>{t("reports.revenue.date")}</TableHead>
-                                <TableHead className="text-right">{t("reports.revenue.total")}</TableHead>
+                                <TableHead className="text-right">{t("reports.revenue.totalAmount")}</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
