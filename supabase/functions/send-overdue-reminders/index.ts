@@ -50,7 +50,8 @@ serve(async (req) => {
             overdue_email_subject_fr,
             overdue_email_message,
             overdue_email_message_en,
-            overdue_email_message_fr
+            overdue_email_message_fr,
+            user_id
           )
         )
       `)
@@ -168,9 +169,35 @@ Best regards,
       const clientEmails = client.email.split(",").map((e: string) => e.trim());
 
       try {
+        // Get user info for Reply-To and display name
+        let userEmail: string | null = null;
+        let userName: string | null = null;
+        
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(invoice.user_id);
+        if (!userError && userData?.user) {
+          userEmail = userData.user.email || null;
+          
+          // Try to get display name from profiles
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, username')
+            .eq('user_id', invoice.user_id)
+            .single();
+          
+          userName = profile?.display_name || profile?.username || null;
+        }
+        
+        // Build the from address with user name
+        const fromDomain = resendFrom.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
+        const displayName = userName 
+          ? `${userName} via GestionFlow`
+          : `${company.name} via GestionFlow`;
+        const fromAddress = `${displayName} <${fromDomain}>`;
+
         // Send email via Resend
         const { data: emailData, error: emailError } = await resend.emails.send({
-          from: resendFrom,
+          from: fromAddress,
+          replyTo: userEmail || undefined,
           to: clientEmails,
           subject: emailSubject,
           html: emailMessage.replace(/\n/g, "<br>"),

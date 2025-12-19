@@ -40,14 +40,23 @@ serve(async (req) => {
       reportType, 
       message, 
       pdfBase64, 
-      language 
-    } = await req.json() as SendReportEmailRequest;
+      language,
+      senderEmail,
+      senderName
+    } = await req.json() as SendReportEmailRequest & { senderEmail?: string; senderName?: string };
 
-    logStep("Request data", { recipientEmail, reportTitle, reportType, language });
+    logStep("Request data", { recipientEmail, reportTitle, reportType, language, senderEmail, senderName });
 
     // Validate inputs
     if (!recipientEmail || !reportTitle || !pdfBase64) {
       throw new Error("Missing required fields");
+    }
+
+    // Validate sender email
+    if (!senderEmail) {
+      throw new Error(language === 'fr' 
+        ? "Impossible d'envoyer le courriel : votre compte n'a pas d'adresse courriel valide."
+        : "Cannot send email: your account does not have a valid email address.");
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -57,6 +66,14 @@ serve(async (req) => {
 
     const isFrench = language === 'fr';
     const resend = new Resend(resendApiKey);
+    
+    // Build the from address with sender name
+    const baseFromEmail = fromEmail;
+    const fromDomain = baseFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
+    const displayName = senderName 
+      ? `${senderName} via GestionFlow`
+      : 'GestionFlow';
+    const fromAddress = `${displayName} <${fromDomain}>`;
 
     // Generate filename
     const date = new Date().toISOString().split('T')[0];
@@ -160,9 +177,10 @@ serve(async (req) => {
 
     logStep("PDF base64 length", { length: pdfBase64.length });
 
-    // Send email with PDF attachment - pass base64 string directly to Resend
+    // Send email with PDF attachment
     const emailResult = await resend.emails.send({
-      from: fromEmail,
+      from: fromAddress,
+      replyTo: senderEmail,
       to: [recipientEmail],
       subject: subject,
       html: emailHtml,
