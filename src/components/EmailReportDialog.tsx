@@ -20,6 +20,7 @@ interface EmailReportDialogProps {
   onGeneratePdf: () => Promise<Blob | null>;
   defaultSubject?: string;
   defaultMessage?: string;
+  companyName?: string;
 }
 
 export const EmailReportDialog = ({
@@ -31,6 +32,7 @@ export const EmailReportDialog = ({
   onGeneratePdf,
   defaultSubject,
   defaultMessage,
+  companyName,
 }: EmailReportDialogProps) => {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
@@ -114,7 +116,7 @@ export const EmailReportDialog = ({
           pdfBase64,
           language,
           senderEmail: user.email,
-          senderName: username || user.email?.split('@')[0] || undefined,
+          senderName: companyName || username || user.email?.split('@')[0] || undefined,
         },
       });
 
