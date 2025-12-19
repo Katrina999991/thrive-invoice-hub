@@ -10,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Send, Loader2, Mail } from "lucide-react";
 
+// Admin user ID - only this user can send product updates
+const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
+
 export function ProductUpdateEmailSection() {
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -17,6 +20,11 @@ export function ProductUpdateEmailSection() {
   const [subject, setSubject] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+
+  // Only show for admin user
+  if (!user || user.id !== ADMIN_USER_ID) {
+    return null;
+  }
 
   const handleSendUpdate = async () => {
     if (!subject.trim() || !title.trim() || !content.trim()) {
