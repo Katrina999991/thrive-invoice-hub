@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import logoLight from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
+import companiesPreviewEn from "@/assets/companies-preview-en.jpg";
+import companiesPreviewFr from "@/assets/companies-preview-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 
@@ -490,11 +492,23 @@ const Software = () => {
                     )}
                   </div>
                   <div className="flex-1 w-full">
-                    <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                      <CardContent className="p-12 flex items-center justify-center">
-                        <Icon className="h-32 w-32 text-primary/30" />
-                      </CardContent>
-                    </Card>
+                    {index === 0 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? companiesPreviewFr : companiesPreviewEn} 
+                            alt={language === 'fr' ? "Gestion multi-entreprises" : "Multi-company management"}
+                            className="w-full h-auto rounded-lg"
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                        <CardContent className="p-12 flex items-center justify-center">
+                          <Icon className="h-32 w-32 text-primary/30" />
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </div>
               );
