@@ -11,6 +11,7 @@ import {
 import logoLight from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
 import PublicNavigation from "@/components/PublicNavigation";
+import Footer from "@/components/Footer";
 
 const translations = {
   fr: {
@@ -584,12 +585,7 @@ const Software = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 border-t border-border">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <p>{t.footer.replace('{year}', new Date().getFullYear().toString())}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
