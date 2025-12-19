@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown, FileSpreadsheet, Mail } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown, FileSpreadsheet, Mail, X, CheckCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -84,6 +84,11 @@ const Invoices = () => {
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
+
+  // Bulk selection state
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+  const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<string>("");
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
@@ -567,6 +572,68 @@ const Invoices = () => {
     });
     setIsDialogOpen(true);
     setEditingItemIndex(null);
+  };
+
+  // Bulk selection handlers
+  const toggleInvoiceSelection = (invoiceId: string) => {
+    setSelectedInvoices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(invoiceId)) {
+        newSet.delete(invoiceId);
+      } else {
+        newSet.add(invoiceId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAllInvoices = () => {
+    if (selectedInvoices.size === filteredInvoices.length) {
+      setSelectedInvoices(new Set());
+    } else {
+      setSelectedInvoices(new Set(filteredInvoices.map(inv => inv.id)));
+    }
+  };
+
+  const handleBulkStatusChange = async () => {
+    if (selectedInvoices.size === 0 || !bulkStatus) return;
+    
+    for (const invoiceId of selectedInvoices) {
+      const updates: any = { status: bulkStatus };
+      const invoice = invoices.find(inv => inv.id === invoiceId);
+      if (invoice?.status === "paid" && bulkStatus !== "paid") {
+        updates.paid_at = null;
+      }
+      await updateInvoice(invoiceId, updates);
+    }
+    
+    toast({
+      title: language === "fr" ? "Succès" : "Success",
+      description: language === "fr" 
+        ? `${selectedInvoices.size} facture(s) mise(s) à jour` 
+        : `${selectedInvoices.size} invoice(s) updated`
+    });
+    
+    setSelectedInvoices(new Set());
+    setBulkStatusDialogOpen(false);
+    setBulkStatus("");
+  };
+
+  const handleBulkArchive = async () => {
+    if (selectedInvoices.size === 0) return;
+    
+    for (const invoiceId of selectedInvoices) {
+      await archiveInvoice(invoiceId, !showArchived);
+    }
+    
+    toast({
+      title: language === "fr" ? "Succès" : "Success",
+      description: language === "fr" 
+        ? `${selectedInvoices.size} facture(s) ${showArchived ? "désarchivée(s)" : "archivée(s)"}` 
+        : `${selectedInvoices.size} invoice(s) ${showArchived ? "unarchived" : "archived"}`
+    });
+    
+    setSelectedInvoices(new Set());
   };
 
   const filteredInvoices = invoices.filter(invoice => {
@@ -2029,10 +2096,46 @@ Best regards,
 
       <Card>
         <CardHeader className="p-4 md:p-6">
-          <CardTitle className="text-base md:text-lg">{t("invoices.listTitle")}</CardTitle>
-          <CardDescription className="text-xs md:text-sm">
-            {t("invoices.listDesc")}
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-base md:text-lg">{t("invoices.listTitle")}</CardTitle>
+              <CardDescription className="text-xs md:text-sm">
+                {t("invoices.listDesc")}
+              </CardDescription>
+            </div>
+            {selectedInvoices.size > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">
+                  {selectedInvoices.size} {language === "fr" ? "sélectionné(s)" : "selected"}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setBulkStatusDialogOpen(true)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {language === "fr" ? "Statut" : "Status"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleBulkArchive}
+                >
+                  {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                  {showArchived 
+                    ? (language === "fr" ? "Désarchiver" : "Unarchive")
+                    : (language === "fr" ? "Archiver" : "Archive")}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedInvoices(new Set())}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
           {/* Mobile Card View */}
@@ -2110,6 +2213,12 @@ Best regards,
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedInvoices.size === filteredInvoices.length && filteredInvoices.length > 0}
+                      onCheckedChange={toggleSelectAllInvoices}
+                    />
+                  </TableHead>
                   <TableHead>{t("invoices.tableInvoiceNumber")}</TableHead>
                   <TableHead>{t("invoices.tableClient")}</TableHead>
                   <TableHead>{t("invoices.tableAmount")}</TableHead>
@@ -2123,6 +2232,12 @@ Best regards,
               <TableBody>
                 {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedInvoices.has(invoice.id)}
+                        onCheckedChange={() => toggleInvoiceSelection(invoice.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                     <TableCell>
                       {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown Client'}
@@ -2550,6 +2665,46 @@ Best regards,
         onGeneratePdf={generateInvoiceReportPdfBlob}
         defaultSubject={language === "fr" ? "Rapport des Factures" : "Invoice Report"}
       />
+
+      {/* Bulk Status Change Dialog */}
+      <Dialog open={bulkStatusDialogOpen} onOpenChange={setBulkStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === "fr" ? "Modifier le statut" : "Change Status"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "fr" 
+                ? `Modifier le statut pour ${selectedInvoices.size} facture(s) sélectionnée(s)`
+                : `Change status for ${selectedInvoices.size} selected invoice(s)`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{language === "fr" ? "Statut" : "Status"}</Label>
+              <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder={language === "fr" ? "Sélectionner un statut" : "Select a status"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                  <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                  <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                  <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setBulkStatusDialogOpen(false)}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button onClick={handleBulkStatusChange} disabled={!bulkStatus}>
+              {language === "fr" ? "Appliquer" : "Apply"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
