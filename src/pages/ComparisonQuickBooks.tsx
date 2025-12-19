@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Check, X, AlertCircle, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import PublicNavigation from "@/components/PublicNavigation";
+import Footer from "@/components/Footer";
 import { useSEO } from "@/hooks/useSEO";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -289,12 +290,7 @@ const ComparisonQuickBooks = () => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8 mt-16">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>{t.footer}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
