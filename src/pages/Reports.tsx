@@ -1019,7 +1019,7 @@ const Reports = () => {
     logExport('revenue_by_product', 'excel', language === 'fr' ? 'Export Excel rapport revenus par produit' : 'Revenue by product report Excel export');
   };
 
-  // Export functions for taxes
+  // Export functions for taxes - Full Taxes Report (mirrors entire Taxes tab UI)
   const exportTaxesToPDF = () => {
     if (!taxData) return;
     
@@ -1027,100 +1027,309 @@ const Reports = () => {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const dateLocale = language === 'fr' ? fr : enUS;
+    const margin = 15;
+    let pageNumber = 1;
     
-    // Title
-    doc.setFontSize(20);
-    doc.text(getReportTranslation('taxReport', language), pageWidth / 2, 20, { align: 'center' });
+    // Get company name for header
+    const companyName = taxSelectedCompany && taxSelectedCompany !== 'all'
+      ? companies.find(c => c.id === taxSelectedCompany)?.name || ''
+      : (language === 'fr' ? 'Toutes les entreprises' : 'All Companies');
     
-    // Date generated
+    const addFooter = () => {
+      // Add GestionFlow branding footer if not hidden
+      if (!hidePdfBranding) {
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          language === 'fr' ? 'Genere avec GestionFlow' : 'Generated with GestionFlow',
+          pageWidth / 2,
+          pageHeight - 18,
+          { align: 'center' }
+        );
+      }
+      
+      // Add page number
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`${pageNumber}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+    };
+    
+    // ========== HEADER ==========
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(language === 'fr' ? 'Rapport de taxes' : 'Taxes Report', pageWidth / 2, 25, { align: 'center' });
+    
     doc.setFontSize(12);
-    doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
-    
-    // Company filter
-    let yOffset = 40;
-    if (taxSelectedCompany && taxSelectedCompany !== 'all') {
-      const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
-      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, yOffset, { align: 'center' });
-      yOffset += 10;
-    }
+    doc.setFont('helvetica', 'normal');
+    doc.text(companyName, pageWidth / 2, 35, { align: 'center' });
     
     // Date range
+    let yOffset = 45;
     if (taxEffectiveStart && taxEffectiveEnd) {
-      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, yOffset, { align: 'center' });
-      yOffset += 15;
-    } else {
-      yOffset += 5;
+      doc.setFontSize(10);
+      doc.text(
+        `${language === 'fr' ? 'Periode' : 'Period'}: ${format(taxEffectiveStart, 'dd MMMM yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd MMMM yyyy', { locale: dateLocale })}`,
+        pageWidth / 2,
+        yOffset,
+        { align: 'center' }
+      );
+      yOffset += 8;
     }
     
-    // Summary section
-    doc.setFontSize(14);
-    doc.text(getReportTranslation('taxSummary', language), 20, yOffset + 10);
-    
-    doc.setFontSize(11);
-    yOffset += 22;
-    doc.text(`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
-    
+    // Generated date
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
-    yOffset += 6;
-    doc.text(getReportTranslation('netPayableDescription', language), 20, yOffset);
+    doc.text(
+      `${language === 'fr' ? 'Genere le' : 'Generated on'}: ${format(new Date(), 'dd MMMM yyyy, HH:mm', { locale: dateLocale })}`,
+      pageWidth / 2,
+      yOffset,
+      { align: 'center' }
+    );
     doc.setTextColor(0, 0, 0);
     
-    doc.setFontSize(10);
-    yOffset += 12;
-    doc.text(`${getReportTranslation('collectedTaxes', language)}: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    yOffset += 5;
-    doc.text(`(${getReportTranslation('collectedTaxesDescription', language)})`, 20, yOffset);
-    doc.setTextColor(0, 0, 0);
+    yOffset += 18;
     
-    doc.setFontSize(10);
+    // ========== TAX SUMMARY SECTION ==========
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(language === 'fr' ? 'Resume des taxes' : 'Tax Summary', margin, yOffset);
     yOffset += 10;
-    doc.text(`${getReportTranslation('taxCredits', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    yOffset += 5;
-    doc.text(`(${getReportTranslation('taxCreditsDescription', language)})`, 20, yOffset);
+    
+    // Net Amount Payable box
+    doc.setFillColor(240, 249, 255); // Light blue background
+    doc.roundedRect(margin, yOffset, pageWidth - (margin * 2), 35, 3, 3, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      language === 'fr' ? 'Montant net a remettre' : 'Net Amount Payable',
+      margin + 5,
+      yOffset + 10
+    );
+    
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(59, 130, 246); // Blue
+    doc.text(
+      taxData.totalTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+      margin + 5,
+      yOffset + 22
+    );
     doc.setTextColor(0, 0, 0);
     
-    yOffset += 15;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      language === 'fr' 
+        ? 'Taxes collectees sur les ventes moins les credits de taxes sur les depenses' 
+        : 'Taxes collected on revenue minus tax credits from expenses',
+      margin + 5,
+      yOffset + 30
+    );
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
     
-    // Tax breakdown table
+    yOffset += 45;
+    
+    // Collected Taxes & Tax Credits side by side
+    const boxWidth = (pageWidth - (margin * 2) - 10) / 2;
+    
+    // Collected Taxes box (green)
+    doc.setFillColor(240, 253, 244); // Light green
+    doc.roundedRect(margin, yOffset, boxWidth, 40, 3, 3, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(language === 'fr' ? 'Taxes collectees' : 'Collected Taxes', margin + 5, yOffset + 10);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      language === 'fr' ? 'Collectees sur les factures payees' : 'Collected from paid invoices',
+      margin + 5,
+      yOffset + 18
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(34, 197, 94); // Green
+    doc.text(
+      taxData.totalInvoiceTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+      margin + 5,
+      yOffset + 32
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    // Tax Credits box (orange)
+    doc.setFillColor(255, 247, 237); // Light orange
+    doc.roundedRect(margin + boxWidth + 10, yOffset, boxWidth, 40, 3, 3, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(language === 'fr' ? 'Credits de taxes' : 'Tax Credits', margin + boxWidth + 15, yOffset + 10);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      language === 'fr' ? 'Credits recuperables sur les depenses' : 'Recoverable credits from expenses',
+      margin + boxWidth + 15,
+      yOffset + 18
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(249, 115, 22); // Orange
+    doc.text(
+      taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+      margin + boxWidth + 15,
+      yOffset + 32
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    yOffset += 55;
+    
+    // ========== TOTALS BY TAX TYPE ==========
     if (taxData.taxSummary.length > 0) {
-      const taxSummaryData = taxData.taxSummary.map(tax => [
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(language === 'fr' ? 'Totaux par type de taxe' : 'Totals by Tax Type', margin, yOffset);
+      yOffset += 10;
+      
+      // Create tax type cards
+      taxData.taxSummary.forEach((tax, index) => {
+        // Check if we need a new page
+        if (yOffset > pageHeight - 70) {
+          addFooter();
+          doc.addPage();
+          pageNumber++;
+          yOffset = 20;
+        }
+        
+        // Tax type box
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, yOffset, pageWidth - (margin * 2), 35, 3, 3, 'F');
+        
+        // Tax name and net amount
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(tax.name, margin + 5, yOffset + 10);
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(language === 'fr' ? 'Montant du' : 'Amount Owed', pageWidth - margin - 45, yOffset + 8);
+        doc.setTextColor(0, 0, 0);
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(
+          tax.netAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+          pageWidth - margin - 5,
+          yOffset + 10,
+          { align: 'right' }
+        );
+        
+        // Collected and Credits
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        
+        // Collected
+        doc.setTextColor(34, 197, 94);
+        doc.text(
+          `${language === 'fr' ? 'Collectees' : 'Collected'}: ${tax.invoiceAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
+          margin + 5,
+          yOffset + 22
+        );
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+          `(${tax.invoiceCount || 0} ${(tax.invoiceCount || 0) > 1 ? (language === 'fr' ? 'factures' : 'invoices') : (language === 'fr' ? 'facture' : 'invoice')})`,
+          margin + 5,
+          yOffset + 30
+        );
+        
+        // Credits
+        doc.setTextColor(249, 115, 22);
+        doc.text(
+          `${language === 'fr' ? 'Credits' : 'Credits'}: ${tax.expenseAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
+          margin + 80,
+          yOffset + 22
+        );
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+          `(${tax.expenseCount || 0} ${(tax.expenseCount || 0) > 1 ? (language === 'fr' ? 'depenses' : 'expenses') : (language === 'fr' ? 'depense' : 'expense')})`,
+          margin + 80,
+          yOffset + 30
+        );
+        doc.setTextColor(0, 0, 0);
+        
+        yOffset += 42;
+      });
+    }
+    
+    // ========== SUMMARY TABLE ==========
+    if (taxData.taxSummary.length > 0) {
+      // Check if we need a new page
+      if (yOffset > pageHeight - 80) {
+        addFooter();
+        doc.addPage();
+        pageNumber++;
+        yOffset = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(language === 'fr' ? 'Tableau recapitulatif' : 'Summary Table', margin, yOffset);
+      yOffset += 8;
+      
+      const summaryTableData = taxData.taxSummary.map(tax => [
         tax.name,
-        tax.invoiceAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-        tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
-        tax.netAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
+        `${tax.invoiceAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}\n(${tax.invoiceCount || 0} ${(tax.invoiceCount || 0) > 1 ? (language === 'fr' ? 'factures' : 'invoices') : (language === 'fr' ? 'facture' : 'invoice')})`,
+        `${tax.expenseAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}\n(${tax.expenseCount || 0} ${(tax.expenseCount || 0) > 1 ? (language === 'fr' ? 'depenses' : 'expenses') : (language === 'fr' ? 'depense' : 'expense')})`,
+        tax.netAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })
+      ]);
+      
+      // Add totals row
+      const totalInvoiceCount = taxData.taxSummary.reduce((sum, t) => sum + (t.invoiceCount || 0), 0);
+      const totalExpenseCount = taxData.taxSummary.reduce((sum, t) => sum + (t.expenseCount || 0), 0);
+      summaryTableData.push([
+        'TOTAL',
+        `${taxData.totalInvoiceTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}\n(${totalInvoiceCount} ${totalInvoiceCount > 1 ? (language === 'fr' ? 'factures' : 'invoices') : (language === 'fr' ? 'facture' : 'invoice')})`,
+        `${taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}\n(${totalExpenseCount} ${totalExpenseCount > 1 ? (language === 'fr' ? 'depenses' : 'expenses') : (language === 'fr' ? 'depense' : 'expense')})`,
+        taxData.totalTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })
       ]);
       
       autoTable(doc, {
         head: [[
-          getReportTranslation('taxType', language), 
-          getReportTranslation('collectedTaxes', language),
-          getReportTranslation('taxCredits', language),
-          getReportTranslation('netPayable', language)
+          language === 'fr' ? 'Type de taxe' : 'Tax Type',
+          language === 'fr' ? 'Taxes collectees' : 'Collected Taxes',
+          language === 'fr' ? 'Credits de taxes' : 'Tax Credits',
+          language === 'fr' ? 'Montant net a remettre' : 'Net Amount Payable'
         ]],
-        body: taxSummaryData,
+        body: summaryTableData,
         startY: yOffset,
         theme: 'striped',
         headStyles: { fillColor: [59, 130, 246] },
-        styles: { fontSize: 8 }
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          1: { textColor: [34, 197, 94] },
+          2: { textColor: [249, 115, 22] },
+          3: { fontStyle: 'bold' }
+        },
+        didParseCell: (data) => {
+          if (data.row.index === summaryTableData.length - 1) {
+            data.cell.styles.fillColor = [229, 231, 235];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
       });
     }
     
-    // Add GestionFlow branding footer if not hidden
-    if (!hidePdfBranding) {
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(
-        language === 'fr' ? 'Généré avec GestionFlow' : 'Generated with GestionFlow',
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-    }
+    // Add footer
+    addFooter();
     
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
@@ -1128,7 +1337,7 @@ const Reports = () => {
       : '';
     const filename = `${getReportTranslation('taxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
-    logExport('taxes', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport taxes' : 'Tax report PDF download');
+    logExport('taxes', 'pdf', language === 'fr' ? 'Telechargement PDF rapport taxes' : 'Tax report PDF download');
   };
 
   const exportTaxesToExcel = () => {
