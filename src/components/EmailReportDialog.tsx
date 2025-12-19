@@ -21,6 +21,7 @@ interface EmailReportDialogProps {
   defaultSubject?: string;
   defaultMessage?: string;
   companyName?: string;
+  companyEmail?: string;
 }
 
 export const EmailReportDialog = ({
@@ -33,6 +34,7 @@ export const EmailReportDialog = ({
   defaultSubject,
   defaultMessage,
   companyName,
+  companyEmail,
 }: EmailReportDialogProps) => {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
@@ -95,12 +97,13 @@ export const EmailReportDialog = ({
       reader.readAsDataURL(pdf);
       const pdfBase64 = await base64Promise;
 
-      // Validate that user has an email
-      if (!user?.email) {
+      // Validate that we have a reply-to email
+      const replyToEmail = companyEmail || user?.email;
+      if (!replyToEmail) {
         toast.error(
           language === 'fr' 
-            ? "Impossible d'envoyer le courriel : votre compte n'a pas d'adresse courriel valide."
-            : "Cannot send email: your account does not have a valid email address."
+            ? "Impossible d'envoyer le courriel : aucune adresse courriel valide trouvée."
+            : "Cannot send email: no valid email address found."
         );
         setSending(false);
         return;
@@ -115,8 +118,10 @@ export const EmailReportDialog = ({
           message: message || undefined,
           pdfBase64,
           language,
-          senderEmail: user.email,
-          senderName: companyName || username || user.email?.split('@')[0] || undefined,
+          senderEmail: user?.email,
+          senderName: username || user?.email?.split('@')[0] || undefined,
+          companyName: companyName || undefined,
+          companyEmail: companyEmail || undefined,
         },
       });
 

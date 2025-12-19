@@ -12,6 +12,10 @@ interface SendReportEmailRequest {
   message?: string;
   pdfBase64: string;
   language: string;
+  senderEmail?: string;
+  senderName?: string;
+  companyName?: string;
+  companyEmail?: string;
 }
 
 const logStep = (step: string, details?: any) => {
@@ -42,21 +46,24 @@ serve(async (req) => {
       pdfBase64, 
       language,
       senderEmail,
-      senderName
-    } = await req.json() as SendReportEmailRequest & { senderEmail?: string; senderName?: string };
+      senderName,
+      companyName,
+      companyEmail
+    } = await req.json() as SendReportEmailRequest;
 
-    logStep("Request data", { recipientEmail, reportTitle, reportType, language, senderEmail, senderName });
+    logStep("Request data", { recipientEmail, reportTitle, reportType, language, companyName, companyEmail });
 
     // Validate inputs
     if (!recipientEmail || !reportTitle || !pdfBase64) {
       throw new Error("Missing required fields");
     }
 
-    // Validate sender email
-    if (!senderEmail) {
+    // Validate sender email (prefer company email, fallback to sender email)
+    const replyToEmail = companyEmail || senderEmail;
+    if (!replyToEmail) {
       throw new Error(language === 'fr' 
-        ? "Impossible d'envoyer le courriel : votre compte n'a pas d'adresse courriel valide."
-        : "Cannot send email: your account does not have a valid email address.");
+        ? "Impossible d'envoyer le courriel : aucune adresse courriel valide trouvée."
+        : "Cannot send email: no valid email address found.");
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,13 +74,59 @@ serve(async (req) => {
     const isFrench = language === 'fr';
     const resend = new Resend(resendApiKey);
     
-    // Build the from address with sender name
-    const baseFromEmail = fromEmail;
-    const fromDomain = baseFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
-    const displayName = senderName 
-      ? `${senderName} via GestionFlow`
-      : 'GestionFlow';
-    const fromAddress = `${displayName} <${fromDomain}>`;
+    // Check if company email domain is verified in Resend
+    let fromAddress: string;
+    const defaultFromEmail = fromEmail;
+    const defaultDomain = defaultFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
+    const displayName = companyName || senderName;
+    
+    if (companyEmail) {
+      const companyDomain = companyEmail.split('@')[1];
+      
+      try {
+        // Check verified domains in Resend
+        const domainsResponse = await fetch('https://api.resend.com/domains', {
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+          },
+        });
+        
+        if (domainsResponse.ok) {
+          const domainsData = await domainsResponse.json();
+          const verifiedDomains = domainsData.data?.filter((d: any) => d.status === 'verified').map((d: any) => d.name) || [];
+          
+          logStep('Verified domains check', { verifiedDomains, companyDomain });
+          
+          if (verifiedDomains.includes(companyDomain)) {
+            // Company domain is verified - use company email directly
+            fromAddress = displayName ? `${displayName} <${companyEmail}>` : companyEmail;
+            logStep('Using verified company email as sender', { fromAddress });
+          } else {
+            // Domain not verified - use app domain with company/sender name
+            fromAddress = displayName 
+              ? `${displayName} via GestionFlow <${defaultDomain}>`
+              : `GestionFlow <${defaultDomain}>`;
+            logStep('Using app domain with company name', { fromAddress });
+          }
+        } else {
+          // API error - fallback to app domain
+          logStep('Could not check Resend domains, using fallback');
+          fromAddress = displayName 
+            ? `${displayName} via GestionFlow <${defaultDomain}>`
+            : `GestionFlow <${defaultDomain}>`;
+        }
+      } catch (error) {
+        logStep('Error checking Resend domains', { error });
+        fromAddress = displayName 
+          ? `${displayName} via GestionFlow <${defaultDomain}>`
+          : `GestionFlow <${defaultDomain}>`;
+      }
+    } else {
+      // No company email - use app domain
+      fromAddress = displayName 
+        ? `${displayName} via GestionFlow <${defaultDomain}>`
+        : `GestionFlow <${defaultDomain}>`;
+    }
 
     // Generate filename
     const date = new Date().toISOString().split('T')[0];
@@ -180,7 +233,7 @@ serve(async (req) => {
     // Send email with PDF attachment
     const emailResult = await resend.emails.send({
       from: fromAddress,
-      replyTo: senderEmail,
+      replyTo: replyToEmail,
       to: [recipientEmail],
       subject: subject,
       html: emailHtml,

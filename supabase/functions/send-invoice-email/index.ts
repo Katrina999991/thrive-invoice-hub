@@ -348,13 +348,17 @@ const handler = async (req: Request): Promise<Response> => {
       hideBranding: hidePdfBranding
     });
 
-    // Validate user email before sending
-    if (!userEmail) {
-      console.error('No user email found - cannot send email');
+    // Get company email for Reply-To and potential sending
+    const companyEmail = company.email;
+    
+    // Validate that we have a reply-to email (prefer company email, fallback to user email)
+    const replyToEmail = companyEmail || userEmail;
+    if (!replyToEmail) {
+      console.error('No email found for Reply-To');
       return new Response(
         JSON.stringify({ error: isFrench 
-          ? "Impossible d'envoyer le courriel : votre compte n'a pas d'adresse courriel valide."
-          : "Cannot send email: your account does not have a valid email address." }),
+          ? "Impossible d'envoyer le courriel : aucune adresse courriel valide trouvée."
+          : "Cannot send email: no valid email address found." }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -362,16 +366,56 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    // Build the from address with company name
-    const baseFromEmail = Deno.env.get('RESEND_FROM') || 'GestionFlow <noreply@gestionflow.net>';
-    const fromDomain = baseFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
-    const displayName = `${company.name} via GestionFlow`;
-    const fromAddress = `${displayName} <${fromDomain}>`;
+    // Check if company email domain is verified in Resend
+    let fromAddress: string;
+    const defaultFromEmail = Deno.env.get('RESEND_FROM') || 'GestionFlow <noreply@gestionflow.net>';
+    const defaultDomain = defaultFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
+    
+    if (companyEmail) {
+      const companyDomain = companyEmail.split('@')[1];
+      
+      try {
+        // Check verified domains in Resend
+        const domainsResponse = await fetch('https://api.resend.com/domains', {
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+          },
+        });
+        
+        if (domainsResponse.ok) {
+          const domainsData = await domainsResponse.json();
+          const verifiedDomains = domainsData.data?.filter((d: any) => d.status === 'verified').map((d: any) => d.name) || [];
+          
+          console.log('Verified domains:', verifiedDomains);
+          console.log('Company domain:', companyDomain);
+          
+          if (verifiedDomains.includes(companyDomain)) {
+            // Company domain is verified - use company email directly
+            fromAddress = `${company.name} <${companyEmail}>`;
+            console.log('Using verified company email as sender:', fromAddress);
+          } else {
+            // Domain not verified - use app domain with company name
+            fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+            console.log('Using app domain with company name:', fromAddress);
+          }
+        } else {
+          // API error - fallback to app domain
+          console.log('Could not check Resend domains, using fallback');
+          fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+        }
+      } catch (error) {
+        console.error('Error checking Resend domains:', error);
+        fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+      }
+    } else {
+      // No company email - use app domain
+      fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+    }
     
     // Send email using Resend
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: fromAddress,
-      replyTo: userEmail,
+      replyTo: replyToEmail,
       to: emailsToSend,
       cc: ccEmails && ccEmails.length > 0 ? ccEmails : undefined,
       subject: emailSubject,
