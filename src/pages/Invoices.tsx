@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown, FileSpreadsheet } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown, FileSpreadsheet, Mail } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +23,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Client = Tables<"clients">;
@@ -82,6 +83,7 @@ const Invoices = () => {
   // Limit dialog state
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [newInvoice, setNewInvoice] = useState({
@@ -881,6 +883,54 @@ const Invoices = () => {
         description: language === 'fr' ? "Impossible de générer le fichier Excel." : "Failed to generate Excel file.",
         variant: "destructive"
       });
+    }
+  };
+
+  const generateInvoiceReportPdfBlob = async (): Promise<Blob | null> => {
+    try {
+      const { generateInvoiceReportPdf } = await import('@/lib/invoiceReportPdf');
+      
+      const hideBranding = localStorage.getItem("hide-pdf-branding") === "true" && planLimits?.plan_type === 'pro';
+      
+      const reportData = filteredInvoices.map(invoice => ({
+        invoice_number: invoice.invoice_number,
+        client_name: clients.find(c => c.id === invoice.client_id)?.name || 'Unknown',
+        issue_date: invoice.issue_date,
+        due_date: invoice.due_date,
+        total: invoice.total,
+        status: invoice.status
+      }));
+
+      let companyName: string | undefined;
+      if (filterType === 'company' && filterValue && filterValue !== 'all') {
+        companyName = companies.find(c => c.id === filterValue)?.name;
+      }
+
+      let clientName: string | undefined;
+      if (filterType === 'client' && filterValue && filterValue !== 'all') {
+        clientName = clients.find(c => c.id === filterValue)?.name;
+      }
+
+      let statusFilter: string | undefined;
+      if (filterType === 'status' && filterValue && filterValue !== 'all') {
+        statusFilter = filterValue;
+      }
+
+      const blob = await generateInvoiceReportPdf({
+        invoices: reportData,
+        grandTotal: totalAmount,
+        companyName,
+        clientName,
+        statusFilter,
+        language: language as 'fr' | 'en',
+        hideBranding,
+        returnBlob: true
+      });
+
+      return blob || null;
+    } catch (error) {
+      console.error('Error generating report PDF blob:', error);
+      return null;
     }
   };
 
@@ -1955,6 +2005,15 @@ Best regards,
             <FileSpreadsheet className="h-4 w-4 md:mr-2" />
             <span className="hidden md:inline">Excel</span>
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsReportEmailDialogOpen(true)}
+            className="col-span-1"
+            title={language === "fr" ? "Envoyer par courriel" : "Send by Email"}
+          >
+            <Mail className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">{language === "fr" ? "Courriel" : "Email"}</span>
+          </Button>
         </div>
       </div>
 
@@ -2470,6 +2529,17 @@ Best regards,
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Invoice Report Email Dialog */}
+      <EmailReportDialog
+        open={isReportEmailDialogOpen}
+        onOpenChange={setIsReportEmailDialogOpen}
+        reportType="invoice-report"
+        reportTitle={language === "fr" ? "Rapport des Factures" : "Invoice Report"}
+        pdfBlob={null}
+        onGeneratePdf={generateInvoiceReportPdfBlob}
+        defaultSubject={language === "fr" ? "Rapport des Factures" : "Invoice Report"}
+      />
     </div>
   );
 };
