@@ -1024,6 +1024,7 @@ const Reports = () => {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     const dateLocale = language === 'fr' ? fr : enUS;
     
     // Title
@@ -1035,25 +1036,54 @@ const Reports = () => {
     doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
     
     // Company filter
+    let yOffset = 40;
     if (taxSelectedCompany && taxSelectedCompany !== 'all') {
       const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
-      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, 40, { align: 'center' });
+      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, yOffset, { align: 'center' });
+      yOffset += 10;
     }
     
     // Date range
     if (taxEffectiveStart && taxEffectiveEnd) {
-      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, 50, { align: 'center' });
+      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, yOffset, { align: 'center' });
+      yOffset += 15;
+    } else {
+      yOffset += 5;
     }
     
-    // Summary
+    // Summary section
     doc.setFontSize(14);
-    doc.text(getReportTranslation('taxSummary', language), 20, 70);
-    doc.setFontSize(10);
-    doc.text(`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 80);
-    doc.text(`${getReportTranslation('revenueTaxes', language)}: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 88);
-    doc.text(`${getReportTranslation('expenseTaxes', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, 96);
+    doc.text(getReportTranslation('taxSummary', language), 20, yOffset + 10);
     
-    let yPosition = 110;
+    doc.setFontSize(11);
+    yOffset += 22;
+    doc.text(`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    yOffset += 6;
+    doc.text(getReportTranslation('netPayableDescription', language), 20, yOffset);
+    doc.setTextColor(0, 0, 0);
+    
+    doc.setFontSize(10);
+    yOffset += 12;
+    doc.text(`${getReportTranslation('collectedTaxes', language)}: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    yOffset += 5;
+    doc.text(`(${getReportTranslation('collectedTaxesDescription', language)})`, 20, yOffset);
+    doc.setTextColor(0, 0, 0);
+    
+    doc.setFontSize(10);
+    yOffset += 10;
+    doc.text(`${getReportTranslation('taxCredits', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    yOffset += 5;
+    doc.text(`(${getReportTranslation('taxCreditsDescription', language)})`, 20, yOffset);
+    doc.setTextColor(0, 0, 0);
+    
+    yOffset += 15;
     
     // Tax breakdown table
     if (taxData.taxSummary.length > 0) {
@@ -1067,19 +1097,30 @@ const Reports = () => {
       autoTable(doc, {
         head: [[
           getReportTranslation('taxType', language), 
-          getReportTranslation('revenueTaxes', language),
-          getReportTranslation('expenseTaxes', language),
+          getReportTranslation('collectedTaxes', language),
+          getReportTranslation('taxCredits', language),
           getReportTranslation('netPayable', language)
         ]],
         body: taxSummaryData,
-        startY: yPosition,
+        startY: yOffset,
         theme: 'striped',
         headStyles: { fillColor: [59, 130, 246] },
         styles: { fontSize: 8 }
       });
-      
-      yPosition = (doc as any).lastAutoTable.finalY + 20;
     }
+    
+    // Add GestionFlow branding footer if not hidden
+    if (!hidePdfBranding) {
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        language === 'fr' ? 'Généré avec GestionFlow' : 'Generated with GestionFlow',
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+    
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
@@ -1095,12 +1136,12 @@ const Reports = () => {
     const wb = XLSX.utils.book_new();
     const dateLocale = language === 'fr' ? fr : enUS;
     
-    // Summary sheet
+    // Summary sheet with updated labels
     const summaryData = [
       [
         getReportTranslation('taxName', language), 
-        getReportTranslation('revenueTaxes', language),
-        getReportTranslation('expenseTaxes', language),
+        getReportTranslation('collectedTaxes', language),
+        getReportTranslation('taxCredits', language),
         getReportTranslation('netPayable', language)
       ],
       ...taxData.taxSummary.map(tax => [
@@ -1119,10 +1160,17 @@ const Reports = () => {
       taxEffectiveStart && taxEffectiveEnd 
         ? [`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd/MM/yyyy', { locale: dateLocale })}`]
         : [],
-      [`${getReportTranslation('totalTax', language)}: ${taxData.totalTaxAmount}`],
-      [`${getReportTranslation('revenueTaxes', language)}: ${taxData.totalInvoiceTaxAmount}`],
-      [`${getReportTranslation('expenseTaxes', language)}: ${taxData.totalExpenseTaxAmount}`],
-      [`${getReportTranslation('netPayable', language)} (${getReportTranslation('revenueTaxes', language)} - ${getReportTranslation('expenseTaxes', language)}): ${taxData.totalTaxAmount}`],
+      [],
+      [getReportTranslation('taxSummary', language)],
+      [`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount}`],
+      [getReportTranslation('netPayableDescription', language)],
+      [],
+      [`${getReportTranslation('collectedTaxes', language)}: ${taxData.totalInvoiceTaxAmount}`],
+      [`(${getReportTranslation('collectedTaxesDescription', language)})`],
+      [],
+      [`${getReportTranslation('taxCredits', language)}: ${taxData.totalExpenseTaxAmount}`],
+      [`(${getReportTranslation('taxCreditsDescription', language)})`],
+      [],
       [],
       ...summaryData
     ].filter(row => row.length > 0));
