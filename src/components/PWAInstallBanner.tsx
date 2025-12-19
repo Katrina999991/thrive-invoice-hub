@@ -10,20 +10,50 @@ interface BeforeInstallPromptEvent extends Event {
 
 const STORAGE_KEY = "pwa-install-banner-dismissed";
 
+// Global variable to capture the event before React mounts
+let deferredPromptGlobal: BeforeInstallPromptEvent | null = null;
+
+// Capture the event as early as possible
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e: Event) => {
+    e.preventDefault();
+    deferredPromptGlobal = e as BeforeInstallPromptEvent;
+    console.log("PWA: beforeinstallprompt event captured globally");
+  });
+}
+
 export function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
+    console.log("PWA Banner: Component mounted");
+    
     // Check if already dismissed
     const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (dismissed) return;
+    if (dismissed) {
+      console.log("PWA Banner: Already dismissed");
+      return;
+    }
 
     // Check if already installed (standalone mode)
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      console.log("PWA Banner: Already installed (standalone mode)");
+      return;
+    }
 
+    // Check if we already captured the event globally
+    if (deferredPromptGlobal) {
+      console.log("PWA Banner: Using globally captured event");
+      setDeferredPrompt(deferredPromptGlobal);
+      setShowBanner(true);
+      return;
+    }
+
+    // Listen for future events
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log("PWA Banner: beforeinstallprompt event received");
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowBanner(true);
