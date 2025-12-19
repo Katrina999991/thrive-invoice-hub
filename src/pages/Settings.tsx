@@ -49,6 +49,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { z } from "zod";
 import { ContactForm } from "@/components/ContactForm";
 import { useEncryption } from "@/hooks/useEncryption";
+import { useEmailPreferences } from "@/hooks/useEmailPreferences";
 
 export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
@@ -56,6 +57,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const { canUseFeature, planLimits } = useSubscription();
   const { encryptFields, decryptFields } = useEncryption();
+  const { preferences: emailPreferences, loading: emailPreferencesLoading, updatePreference: updateEmailPreference } = useEmailPreferences();
   const [theme, setTheme] = useState<string>("default");
   const [darkMode, setDarkMode] = useState<string>("light");
   const [username, setUsername] = useState<string>("");
@@ -1836,6 +1838,176 @@ Cordialement,
           </CardContent>
         </Card>
 
+        {/* Email Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              {language === "fr" ? "Préférences d'emails" : "Email Preferences"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" 
+                ? "Gérez les notifications que vous recevez par email. Certains emails essentiels ne peuvent pas être désactivés."
+                : "Manage the notifications you receive by email. Some essential emails cannot be disabled."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Essential Emails Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="font-medium">
+                    {language === "fr" ? "Emails essentiels" : "Essential Emails"}
+                  </h3>
+                  <Badge variant="secondary" className="text-xs">
+                    {language === "fr" ? "Toujours activés" : "Always enabled"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {language === "fr" 
+                    ? "Ces emails sont nécessaires au bon fonctionnement de votre compte et ne peuvent pas être désactivés."
+                    : "These emails are necessary for your account to function properly and cannot be disabled."}
+                </p>
+                <div className="space-y-2 pl-6">
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="text-sm font-medium">{language === "fr" ? "Alertes de sécurité" : "Security alerts"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Connexions inhabituelles, changements de mot de passe" : "Unusual logins, password changes"}
+                      </p>
+                    </div>
+                    <Switch checked={true} disabled />
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="text-sm font-medium">{language === "fr" ? "Authentification" : "Authentication"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Réinitialisation de mot de passe, vérification" : "Password reset, verification"}
+                      </p>
+                    </div>
+                    <Switch checked={true} disabled />
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="text-sm font-medium">{language === "fr" ? "Actions déclenchées" : "Triggered actions"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Envoi de factures, rapports demandés" : "Sending invoices, requested reports"}
+                      </p>
+                    </div>
+                    <Switch checked={true} disabled />
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Updates Section */}
+              <div className="space-y-3 pt-4 border-t">
+                <h3 className="font-medium">
+                  {language === "fr" ? "Mises à jour produit" : "Product Updates"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {language === "fr" 
+                    ? "Restez informé des nouvelles fonctionnalités et améliorations."
+                    : "Stay informed about new features and improvements."}
+                </p>
+                {emailPreferencesLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">
+                      {language === "fr" ? "Chargement..." : "Loading..."}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pl-6">
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium">{language === "fr" ? "Nouvelles fonctionnalités" : "New features"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Annonces de nouvelles fonctionnalités" : "Announcements of new features"}
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={emailPreferences?.product_updates ?? true} 
+                        onCheckedChange={(checked) => updateEmailPreference('product_updates', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium">{language === "fr" ? "Changements importants" : "Important changes"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Changements de plateforme importants" : "Important platform changes"}
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={emailPreferences?.platform_changes ?? true} 
+                        onCheckedChange={(checked) => updateEmailPreference('platform_changes', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium">{language === "fr" ? "Maintenance planifiée" : "Scheduled maintenance"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Notifications de maintenance" : "Maintenance notifications"}
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={emailPreferences?.maintenance_notifications ?? true} 
+                        onCheckedChange={(checked) => updateEmailPreference('maintenance_notifications', checked)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Summary Emails Section */}
+              <div className="space-y-3 pt-4 border-t">
+                <h3 className="font-medium">
+                  {language === "fr" ? "Emails de résumé" : "Summary Emails"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {language === "fr" 
+                    ? "Recevez des résumés périodiques de votre activité."
+                    : "Receive periodic summaries of your activity."}
+                </p>
+                {emailPreferencesLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">
+                      {language === "fr" ? "Chargement..." : "Loading..."}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pl-6">
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium">{language === "fr" ? "Résumé hebdomadaire" : "Weekly summary"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Résumé de votre activité de la semaine" : "Summary of your weekly activity"}
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={emailPreferences?.weekly_summary ?? false} 
+                        onCheckedChange={(checked) => updateEmailPreference('weekly_summary', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="text-sm font-medium">{language === "fr" ? "Résumé mensuel" : "Monthly summary"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Résumé de performance du mois" : "Monthly performance summary"}
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={emailPreferences?.monthly_summary ?? false} 
+                        onCheckedChange={(checked) => updateEmailPreference('monthly_summary', checked)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <MFASecuritySection />
 

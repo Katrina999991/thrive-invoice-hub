@@ -363,6 +363,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          maintenance_notifications: boolean
+          monthly_summary: boolean
+          platform_changes: boolean
+          product_updates: boolean
+          updated_at: string
+          user_id: string
+          weekly_summary: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          maintenance_notifications?: boolean
+          monthly_summary?: boolean
+          platform_changes?: boolean
+          product_updates?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_summary?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          maintenance_notifications?: boolean
+          monthly_summary?: boolean
+          platform_changes?: boolean
+          product_updates?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_summary?: boolean
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
