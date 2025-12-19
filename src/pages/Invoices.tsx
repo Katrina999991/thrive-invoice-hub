@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown, FileSpreadsheet } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -767,6 +767,118 @@ const Invoices = () => {
       toast({
         title: language === 'fr' ? "Erreur" : "Error",
         description: language === 'fr' ? "Impossible de générer le rapport. Veuillez réessayer." : "Failed to generate report. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const downloadInvoiceReportExcel = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      
+      // Get filter names for the report header
+      let companyName = language === 'fr' ? 'Toutes les entreprises' : 'All Companies';
+      let clientName = '';
+      let statusFilter = '';
+
+      if (filterType === 'company' && filterValue && filterValue !== 'all') {
+        companyName = companies.find(c => c.id === filterValue)?.name || companyName;
+      }
+      if (filterType === 'client' && filterValue && filterValue !== 'all') {
+        clientName = clients.find(c => c.id === filterValue)?.name || '';
+      }
+      if (filterType === 'status' && filterValue && filterValue !== 'all') {
+        const statusLabels: Record<string, Record<string, string>> = {
+          fr: { draft: 'Brouillon', sent: 'Envoyé', paid: 'Payé', overdue: 'En retard' },
+          en: { draft: 'Draft', sent: 'Sent', paid: 'Paid', overdue: 'Overdue' }
+        };
+        statusFilter = statusLabels[language]?.[filterValue] || filterValue;
+      }
+
+      // Build header rows
+      const headerRows: (string | number)[][] = [
+        [language === 'fr' ? 'Rapport des Factures' : 'Invoice Report'],
+        [`${language === 'fr' ? 'Entreprise' : 'Company'}: ${companyName}`],
+      ];
+
+      if (clientName) {
+        headerRows.push([`${language === 'fr' ? 'Client' : 'Client'}: ${clientName}`]);
+      }
+      if (statusFilter) {
+        headerRows.push([`${language === 'fr' ? 'Statut' : 'Status'}: ${statusFilter}`]);
+      }
+
+      const generatedDate = new Date().toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
+      headerRows.push([`${language === 'fr' ? 'Généré le' : 'Generated on'}: ${generatedDate}`]);
+      headerRows.push([]); // Empty row before table
+
+      // Column headers
+      const columnHeaders = language === 'fr' 
+        ? ['N° Facture', 'Client', 'Date d\'émission', 'Date d\'échéance', 'Montant', 'Statut']
+        : ['Invoice #', 'Client', 'Issue Date', 'Due Date', 'Amount', 'Status'];
+
+      // Data rows
+      const statusLabels: Record<string, Record<string, string>> = {
+        fr: { draft: 'Brouillon', sent: 'Envoyé', paid: 'Payé', overdue: 'En retard' },
+        en: { draft: 'Draft', sent: 'Sent', paid: 'Paid', overdue: 'Overdue' }
+      };
+
+      const dataRows = filteredInvoices.map(invoice => [
+        invoice.invoice_number,
+        clients.find(c => c.id === invoice.client_id)?.name || 'Unknown',
+        invoice.issue_date,
+        invoice.due_date || (language === 'fr' ? 'N/A' : 'N/A'),
+        invoice.total,
+        statusLabels[language]?.[invoice.status] || invoice.status
+      ]);
+
+      // Grand total row
+      const grandTotalRow = [
+        '',
+        '',
+        '',
+        language === 'fr' ? 'Total Général' : 'Grand Total',
+        totalAmount,
+        ''
+      ];
+
+      // Combine all rows
+      const allRows = [
+        ...headerRows,
+        columnHeaders,
+        ...dataRows,
+        grandTotalRow
+      ];
+
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 15 }, // Invoice #
+        { wch: 25 }, // Client
+        { wch: 15 }, // Issue Date
+        { wch: 15 }, // Due Date
+        { wch: 12 }, // Amount
+        { wch: 12 }, // Status
+      ];
+
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, language === 'fr' ? 'Factures' : 'Invoices');
+
+      // Download
+      XLSX.writeFile(wb, 'Invoice Report.xlsx');
+
+      toast({
+        title: language === 'fr' ? "Succès" : "Success",
+        description: language === 'fr' ? "Rapport Excel téléchargé avec succès !" : "Excel report downloaded successfully!"
+      });
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de générer le fichier Excel." : "Failed to generate Excel file.",
         variant: "destructive"
       });
     }
@@ -1829,9 +1941,19 @@ Best regards,
             variant="outline"
             onClick={downloadInvoiceReportPDF}
             className="col-span-1"
+            title={language === "fr" ? "Exporter en PDF" : "Export as PDF"}
           >
-            <FileDown className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">{language === "fr" ? "Exporter" : "Export"}</span>
+            <FileDown className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">PDF</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={downloadInvoiceReportExcel}
+            className="col-span-1"
+            title={language === "fr" ? "Exporter en Excel" : "Export as Excel"}
+          >
+            <FileSpreadsheet className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Excel</span>
           </Button>
         </div>
       </div>
