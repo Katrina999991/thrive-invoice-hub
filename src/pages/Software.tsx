@@ -12,6 +12,8 @@ import logoLight from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
 import companiesPreviewEn from "@/assets/companies-preview-en.jpg";
 import companiesPreviewFr from "@/assets/companies-preview-fr.jpg";
+import clientsPreviewEn from "@/assets/clients-preview-en.jpg";
+import clientsPreviewFr from "@/assets/clients-preview-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 
@@ -498,6 +500,16 @@ const Software = () => {
                           <img 
                             src={language === 'fr' ? companiesPreviewFr : companiesPreviewEn} 
                             alt={language === 'fr' ? "Gestion multi-entreprises" : "Multi-company management"}
+                            className="w-full h-auto rounded-lg"
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 1 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? clientsPreviewFr : clientsPreviewEn} 
+                            alt={language === 'fr' ? "Gestion des clients" : "Client management"}
                             className="w-full h-auto rounded-lg"
                           />
                         </CardContent>
