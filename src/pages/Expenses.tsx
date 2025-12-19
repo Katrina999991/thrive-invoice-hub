@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2 } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -70,6 +70,8 @@ const Expenses = () => {
   const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
   const [bulkCompanyDialogOpen, setBulkCompanyDialogOpen] = useState(false);
   const [bulkCompanyId, setBulkCompanyId] = useState<string>("");
+  const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<string>("");
 
   const handleAddExpenseClick = () => {
     if (isLimitReached('expenses')) {
@@ -237,6 +239,25 @@ const Expenses = () => {
     setSelectedExpenses(new Set());
     setBulkCompanyDialogOpen(false);
     setBulkCompanyId("");
+  };
+
+  const handleBulkStatusChange = async () => {
+    if (selectedExpenses.size === 0 || !bulkStatus) return;
+    
+    for (const expenseId of selectedExpenses) {
+      await updateExpense(expenseId, { status: bulkStatus });
+    }
+    
+    toast({
+      title: language === "fr" ? "Succès" : "Success",
+      description: language === "fr" 
+        ? `${selectedExpenses.size} dépense(s) mise(s) à jour` 
+        : `${selectedExpenses.size} expense(s) updated`
+    });
+    
+    setSelectedExpenses(new Set());
+    setBulkStatusDialogOpen(false);
+    setBulkStatus("");
   };
 
   const getStatusColor = (status: string) => {
@@ -617,7 +638,15 @@ const Expenses = () => {
                   onClick={() => setBulkCompanyDialogOpen(true)}
                 >
                   <Building2 className="h-4 w-4 mr-2" />
-                  {language === "fr" ? "Modifier compagnie" : "Change company"}
+                  {language === "fr" ? "Compagnie" : "Company"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setBulkStatusDialogOpen(true)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {language === "fr" ? "Statut" : "Status"}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -757,6 +786,44 @@ const Expenses = () => {
               {language === "fr" ? "Annuler" : "Cancel"}
             </Button>
             <Button onClick={handleBulkCompanyChange}>
+              {language === "fr" ? "Appliquer" : "Apply"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Status Change Dialog */}
+      <Dialog open={bulkStatusDialogOpen} onOpenChange={setBulkStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === "fr" ? "Modifier le statut" : "Change Status"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "fr" 
+                ? `Modifier le statut pour ${selectedExpenses.size} dépense(s) sélectionnée(s)`
+                : `Change status for ${selectedExpenses.size} selected expense(s)`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{language === "fr" ? "Statut" : "Status"}</Label>
+              <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder={language === "fr" ? "Sélectionner un statut" : "Select a status"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
+                  <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setBulkStatusDialogOpen(false)}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button onClick={handleBulkStatusChange} disabled={!bulkStatus}>
               {language === "fr" ? "Appliquer" : "Apply"}
             </Button>
           </div>
