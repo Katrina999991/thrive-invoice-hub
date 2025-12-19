@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -28,7 +28,8 @@ const Expenses = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
-  const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses();
+  const [showArchived, setShowArchived] = useState(false);
+  const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses(showArchived);
   const { categories, loading: categoriesLoading } = useCategories();
   const { companies, loading: companiesLoading } = useCompanies();
   const { isLimitReached } = useSubscription();
@@ -264,14 +265,14 @@ const Expenses = () => {
     if (selectedExpenses.size === 0) return;
     
     for (const expenseId of selectedExpenses) {
-      await updateExpense(expenseId, { is_archived: true });
+      await updateExpense(expenseId, { is_archived: !showArchived });
     }
     
     toast({
       title: language === "fr" ? "Succès" : "Success",
       description: language === "fr" 
-        ? `${selectedExpenses.size} dépense(s) archivée(s)` 
-        : `${selectedExpenses.size} expense(s) archived`
+        ? `${selectedExpenses.size} dépense(s) ${showArchived ? "désarchivée(s)" : "archivée(s)"}` 
+        : `${selectedExpenses.size} expense(s) ${showArchived ? "unarchived" : "archived"}`
     });
     
     setSelectedExpenses(new Set());
@@ -325,10 +326,19 @@ const Expenses = () => {
             {t("expenses.subtitle")}
           </p>
         </div>
-        <Button onClick={handleAddExpenseClick} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          {t("expenses.addButton")}
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button
+            variant={showArchived ? "default" : "outline"}
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+            <span className="hidden sm:inline">{showArchived ? (language === "fr" ? "Actives" : "Active") : (language === "fr" ? "Archivées" : "Archived")}</span>
+          </Button>
+          <Button onClick={handleAddExpenseClick} className="flex-1 sm:flex-none">
+            <Plus className="h-4 w-4 mr-2" />
+            {t("expenses.addButton")}
+          </Button>
+        </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh]">
@@ -670,8 +680,10 @@ const Expenses = () => {
                   size="sm"
                   onClick={handleBulkArchive}
                 >
-                  <Archive className="h-4 w-4 mr-2" />
-                  {language === "fr" ? "Archiver" : "Archive"}
+                  {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                  {showArchived 
+                    ? (language === "fr" ? "Désarchiver" : "Unarchive")
+                    : (language === "fr" ? "Archiver" : "Archive")}
                 </Button>
                 <Button 
                   variant="ghost" 
