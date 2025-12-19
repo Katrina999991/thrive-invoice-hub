@@ -31,7 +31,7 @@ const translations = {
       submit: "Envoyer le message",
       sending: "Envoi en cours..."
     },
-    success: "Message envoyé avec succès ! Nous vous répondrons bientôt.",
+    success: "Votre message a été envoyé avec succès.",
     error: "Une erreur est survenue. Veuillez réessayer.",
     back: "Retour"
   },
@@ -54,7 +54,7 @@ const translations = {
       submit: "Send Message",
       sending: "Sending..."
     },
-    success: "Message sent successfully! We'll get back to you soon.",
+    success: "Your message has been sent successfully.",
     error: "An error occurred. Please try again.",
     back: "Back"
   }
