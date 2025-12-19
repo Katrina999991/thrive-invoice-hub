@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -712,6 +712,61 @@ const Invoices = () => {
       toast({
         title: language === 'fr' ? "Erreur" : "Error",
         description: language === 'fr' ? "Impossible de générer le PDF. Veuillez réessayer." : "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const downloadInvoiceReportPDF = async () => {
+    try {
+      const { generateInvoiceReportPdf } = await import('@/lib/invoiceReportPdf');
+      
+      const hideBranding = localStorage.getItem("hide-pdf-branding") === "true" && planLimits?.plan_type === 'pro';
+      
+      // Prepare invoice data for the report
+      const reportData = filteredInvoices.map(invoice => ({
+        invoice_number: invoice.invoice_number,
+        client_name: clients.find(c => c.id === invoice.client_id)?.name || 'Unknown',
+        issue_date: invoice.issue_date,
+        due_date: invoice.due_date,
+        total: invoice.total,
+        status: invoice.status
+      }));
+
+      // Get filter names for the report header
+      let companyName: string | undefined;
+      let clientName: string | undefined;
+      let statusFilter: string | undefined;
+
+      if (filterType === 'company' && filterValue && filterValue !== 'all') {
+        companyName = companies.find(c => c.id === filterValue)?.name;
+      }
+      if (filterType === 'client' && filterValue && filterValue !== 'all') {
+        clientName = clients.find(c => c.id === filterValue)?.name;
+      }
+      if (filterType === 'status' && filterValue && filterValue !== 'all') {
+        statusFilter = filterValue;
+      }
+
+      await generateInvoiceReportPdf({
+        invoices: reportData,
+        grandTotal: totalAmount,
+        companyName,
+        clientName,
+        statusFilter,
+        language: language as 'fr' | 'en',
+        hideBranding
+      });
+
+      toast({
+        title: language === 'fr' ? "Succès" : "Success",
+        description: language === 'fr' ? "Rapport des factures téléchargé avec succès !" : "Invoice report downloaded successfully!"
+      });
+    } catch (error) {
+      console.error('Error generating report PDF:', error);
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de générer le rapport. Veuillez réessayer." : "Failed to generate report. Please try again.",
         variant: "destructive"
       });
     }
@@ -1765,10 +1820,18 @@ Best regards,
           <Button
             variant={showArchived ? "default" : "outline"}
             onClick={() => setShowArchived(!showArchived)}
-            className="col-span-2 md:col-span-1"
+            className="col-span-1"
           >
             {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
             <span className="hidden sm:inline">{showArchived ? (language === "fr" ? "Actives" : "Active") : (language === "fr" ? "Archivées" : "Archived")}</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={downloadInvoiceReportPDF}
+            className="col-span-1"
+          >
+            <FileDown className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">{language === "fr" ? "Exporter" : "Export"}</span>
           </Button>
         </div>
       </div>
