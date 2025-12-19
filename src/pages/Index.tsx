@@ -326,7 +326,9 @@ const Index = () => {
           software: "Logiciel",
           pricing: "Tarifs",
           company: "Entreprise",
+          about: "À propos",
           contact: "Contact",
+          legal: "Légal",
           privacy: "Politique de confidentialité",
           terms: "Conditions d'utilisation"
         },
@@ -571,7 +573,9 @@ const Index = () => {
           software: "Software",
           pricing: "Pricing",
           company: "Company",
+          about: "About",
           contact: "Contact",
+          legal: "Legal",
           privacy: "Privacy Policy",
           terms: "Terms of Service"
         },
@@ -1141,6 +1145,14 @@ const Index = () => {
               <h4 className="font-semibold text-foreground mb-4">{t.footer.links.company}</h4>
               <ul className="space-y-2">
                 <li>
+                  <button 
+                    onClick={() => navigate('/about')}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t.footer.links.about}
+                  </button>
+                </li>
+                <li>
                   <a 
                     href="mailto:info@gestionflow.net"
                     className="text-muted-foreground hover:text-foreground transition-colors"
@@ -1148,6 +1160,13 @@ const Index = () => {
                     {t.footer.links.contact}
                   </a>
                 </li>
+              </ul>
+            </div>
+
+            {/* Legal Links */}
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">{t.footer.links.legal}</h4>
+              <ul className="space-y-2">
                 <li>
                   <button 
                     onClick={() => navigate('/privacy')}
