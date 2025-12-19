@@ -150,9 +150,7 @@ const StockManagement = () => {
         const totalCost = editingProduct.cost * addedQuantity;
         
         await createExpense({
-          description: language === 'fr' 
-            ? `Achat de stock: ${editingProduct.name} (${addedQuantity} ${editingProduct.unit || 'unités'})`
-            : `Stock purchase: ${editingProduct.name} (${addedQuantity} ${editingProduct.unit || 'units'})`,
+          description: `${editingProduct.name} (${addedQuantity} ${editingProduct.unit || (language === 'fr' ? 'unités' : 'units')})`,
           amount: totalCost,
           category: "Products",
           expense_date: today,
