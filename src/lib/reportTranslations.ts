@@ -81,6 +81,13 @@ export const reportTranslations = {
     taxCreditsDescription: 'Recoverable tax credits from expenses',
     revenueTaxes: 'Revenue Taxes',
     expenseTaxes: 'Expense Taxes',
+    taxesCollectedSales: 'Taxes Collected (Sales)',
+    taxesCollectedSalesDesc: 'Taxes collected from paid invoices',
+    taxesCollectedSalesFile: 'taxes-collected-sales',
+    invoiceNumber: 'Invoice Number',
+    invoiceDate: 'Invoice Date',
+    taxCollected: 'Tax Collected',
+    totalTaxCollected: 'Total Tax Collected',
     
     // Table headers - Sales
     soldQuantity: 'Sold Quantity',
@@ -247,6 +254,13 @@ export const reportTranslations = {
     taxCreditsDescription: 'Crédits de taxes récupérables sur les dépenses',
     revenueTaxes: 'Taxes des revenus',
     expenseTaxes: 'Taxes des dépenses',
+    taxesCollectedSales: 'Taxes collectées (Ventes)',
+    taxesCollectedSalesDesc: 'Taxes collectées sur les factures payées',
+    taxesCollectedSalesFile: 'taxes-collectees-ventes',
+    invoiceNumber: 'Numéro de facture',
+    invoiceDate: 'Date de facture',
+    taxCollected: 'Taxe collectée',
+    totalTaxCollected: 'Total des taxes collectées',
     
     // Table headers - Sales
     soldQuantity: 'Quantité vendue',
