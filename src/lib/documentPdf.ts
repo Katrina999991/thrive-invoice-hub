@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadLogo, calculatePdfLogoDimensions, LOGO_SIZES, type LogoData } from './logoUtils';
 
 // ============= UNIFIED PDF DESIGN SYSTEM =============
 // This library generates PDFs for both invoices and quotes
@@ -171,37 +172,7 @@ const getTranslations = (language: 'fr' | 'en', documentType: DocumentType, isCl
   };
 };
 
-// Load company logo
-async function loadLogo(logoUrl: string): Promise<{ data: string; format: string; width: number; height: number } | null> {
-  try {
-    const response = await fetch(logoUrl);
-    if (!response.ok) return null;
-    
-    const blob = await response.blob();
-    let format = 'PNG';
-    if (blob.type.includes('jpeg') || blob.type.includes('jpg')) format = 'JPEG';
-    else if (blob.type.includes('gif')) format = 'GIF';
-    else if (blob.type.includes('webp')) format = 'WEBP';
-
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      const img = new Image();
-      
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        img.onload = () => {
-          resolve({ data: dataUrl, format, width: img.naturalWidth, height: img.naturalHeight });
-        };
-        img.onerror = () => resolve({ data: dataUrl, format, width: 100, height: 100 });
-        img.src = dataUrl;
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
+// Logo loading is now handled by logoUtils.ts
 
 // Main PDF generation function
 export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<Blob | void> {
@@ -278,28 +249,32 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     }
   } else {
     // Non-creative templates: Original header layout
-    // Company Logo (right side)
+    // Company Logo (right side) - using centralized logo utility
     if (company?.logo_url) {
       try {
         const logoResult = await loadLogo(company.logo_url);
         if (logoResult) {
-          const logoMaxWidth = 40;
-          const logoMaxHeight = 20;
-          const imgRatio = logoResult.width / logoResult.height;
+          // Use centralized sizing - contain behavior, no upscaling
+          const logoDims = calculatePdfLogoDimensions(logoResult, 'invoice');
           
-          let logoWidth = logoMaxWidth;
-          let logoHeight = logoMaxWidth / imgRatio;
+          // Position logo at right side, vertically centered in header area
+          const logoX = pageWidth - margin - logoDims.width;
+          const logoY = headerHeight - 5;
           
-          if (logoHeight > logoMaxHeight) {
-            logoHeight = logoMaxHeight;
-            logoWidth = logoMaxHeight * imgRatio;
-          }
-          
-          const logoX = pageWidth - margin - logoWidth;
-          doc.addImage(logoResult.data, logoResult.format, logoX, headerHeight - 5, logoWidth, logoHeight, undefined, 'FAST');
+          doc.addImage(
+            logoResult.data, 
+            logoResult.format, 
+            logoX, 
+            logoY, 
+            logoDims.width, 
+            logoDims.height, 
+            undefined, 
+            'FAST'
+          );
         }
       } catch (e) {
         console.error('Error adding logo to PDF:', e);
+        // Fallback: company name is always displayed, so no additional action needed
       }
     }
     

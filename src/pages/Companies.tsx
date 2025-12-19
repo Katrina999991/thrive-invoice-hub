@@ -1326,11 +1326,11 @@ Best regards,
                 <Label htmlFor="logo">{t("companies.logo")}</Label>
                 <div className="flex items-center space-x-4">
                   {newCompany.logo_url && (
-                    <div className="relative w-16 h-16 border rounded-lg overflow-hidden group">
+                    <div className="relative w-16 h-16 border rounded-lg overflow-hidden group flex items-center justify-center bg-muted/30">
                       <img 
                         src={newCompany.logo_url} 
                         alt={t("companies.currentLogo")} 
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full w-auto h-auto object-contain"
                       />
                       <Button
                         type="button"
@@ -1504,16 +1504,20 @@ Best regards,
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                       {company.logo_url ? (
                         <img 
                           src={company.logo_url} 
                           alt={`${company.name} logo`}
-                          className="w-full h-full object-cover"
+                          className="max-w-full max-h-full w-auto h-auto object-contain"
+                          onError={(e) => {
+                            // Fallback to icon if logo fails to load
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement?.querySelector('.logo-fallback')?.classList.remove('hidden');
+                          }}
                         />
-                      ) : (
-                        <Building2 className="h-5 w-5 text-primary" />
-                      )}
+                      ) : null}
+                      <Building2 className={`h-5 w-5 text-primary logo-fallback ${company.logo_url ? 'hidden' : ''}`} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
