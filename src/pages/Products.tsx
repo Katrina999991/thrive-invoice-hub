@@ -139,7 +139,7 @@ const Products = () => {
         const totalCost = itemData.cost * quantity;
         
         await createExpense({
-          description: `Achat de produit: ${itemData.name} (${quantity} ${itemData.unit})`,
+          description: `${itemData.name} (${quantity} ${itemData.unit})`,
           amount: totalCost,
           category: "Products",
           expense_date: today,
