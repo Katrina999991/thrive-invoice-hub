@@ -7074,38 +7074,6 @@ const Reports = () => {
               </Card>
             )}
 
-            {/* Export buttons - Net Tax Report */}
-            {taxData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{getReportTranslation('netTaxReport', language)}</CardTitle>
-                  <CardDescription>{getReportTranslation('netTaxReportDesc', language)}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={exportNetTaxReportToPDF} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.taxSummary.length === 0}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button 
-                      onClick={exportNetTaxReportToExcel} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.taxSummary.length === 0}
-                    >
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Excel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Export buttons - Taxes Paid on Expenses Only */}
             {taxData && (
               <Card>
@@ -7129,6 +7097,38 @@ const Reports = () => {
                       variant="outline" 
                       size="sm"
                       disabled={!taxData || taxData.totalExpenseTaxAmount === 0}
+                    >
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Excel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Export buttons - Net Tax Report */}
+            {taxData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{getReportTranslation('netTaxReport', language)}</CardTitle>
+                  <CardDescription>{getReportTranslation('netTaxReportDesc', language)}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={exportNetTaxReportToPDF} 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!taxData || taxData.taxSummary.length === 0}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button 
+                      onClick={exportNetTaxReportToExcel} 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!taxData || taxData.taxSummary.length === 0}
                     >
                       <FileSpreadsheet className="mr-2 h-4 w-4" />
                       Excel
