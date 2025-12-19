@@ -7107,7 +7107,7 @@ const Reports = () => {
             )}
 
             {/* Export buttons - Taxes Paid on Expenses Only */}
-            {taxData && taxData.totalExpenseTaxAmount > 0 && (
+            {taxData && (
               <Card>
                 <CardHeader>
                   <CardTitle>{getReportTranslation('taxesPaidExpenses', language)}</CardTitle>
