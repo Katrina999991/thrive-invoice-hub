@@ -577,12 +577,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    // Build the from address with user name
+    // Build the from address with company name
     const baseFromEmail = Deno.env.get("RESEND_FROM") || "GestionFlow <noreply@gestionflow.net>";
     const fromDomain = baseFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
-    const displayName = userName 
-      ? `${userName} via GestionFlow`
-      : `${company.name} via GestionFlow`;
+    const displayName = `${company.name} via GestionFlow`;
     const fromAddress = `${displayName} <${fromDomain}>`;
     
     // Always add a response button at the end of the email

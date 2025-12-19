@@ -187,11 +187,9 @@ Best regards,
           userName = profile?.display_name || profile?.username || null;
         }
         
-        // Build the from address with user name
+        // Build the from address with company name
         const fromDomain = resendFrom.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
-        const displayName = userName 
-          ? `${userName} via GestionFlow`
-          : `${company.name} via GestionFlow`;
+        const displayName = `${company.name} via GestionFlow`;
         const fromAddress = `${displayName} <${fromDomain}>`;
 
         // Send email via Resend
