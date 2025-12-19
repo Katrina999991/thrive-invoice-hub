@@ -35,6 +35,7 @@ import ComparisonQuickBooks from "./pages/ComparisonQuickBooks";
 import ComparisonWave from "./pages/ComparisonWave";
 import ComparisonFreshBooks from "./pages/ComparisonFreshBooks";
 import QuoteResponse from "./pages/QuoteResponse";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => {
                 <Route path="/comparison/wave" element={<ComparisonWave />} />
                 <Route path="/comparison/freshbooks" element={<ComparisonFreshBooks />} />
                 <Route path="/quote/:token" element={<QuoteResponse />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/dashboard" element={
