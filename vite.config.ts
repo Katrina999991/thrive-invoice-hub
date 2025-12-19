@@ -46,7 +46,6 @@ export default defineConfig(({ mode }) => ({
             src: 'screenshot-mobile.png',
             sizes: '576x1024',
             type: 'image/png',
-            form_factor: 'narrow',
             label: 'GestionFlow - Tableau de bord mobile'
           }
         ]
