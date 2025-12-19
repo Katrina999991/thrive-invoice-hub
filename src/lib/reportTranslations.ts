@@ -96,6 +96,13 @@ export const reportTranslations = {
     taxPaid: 'Tax Paid',
     totalTaxPaid: 'Total Tax Paid',
     numberOfExpenses: 'Number of Expenses',
+    netTaxReport: 'Net Tax Report',
+    netTaxReportDesc: 'Taxes collected minus expense tax credits',
+    netTaxReportFile: 'net-tax-report',
+    netTaxExplanation: 'Collected taxes minus expense tax credits',
+    collected: 'Collected',
+    credits: 'Credits',
+    netPayableAmount: 'Net Payable',
     
     // Table headers - Sales
     soldQuantity: 'Sold Quantity',
@@ -277,6 +284,13 @@ export const reportTranslations = {
     taxPaid: 'Taxe payée',
     totalTaxPaid: 'Total des taxes payées',
     numberOfExpenses: 'Nombre de dépenses',
+    netTaxReport: 'Rapport des taxes nettes',
+    netTaxReportDesc: 'Taxes collectées moins crédits de taxes',
+    netTaxReportFile: 'rapport-taxes-nettes',
+    netTaxExplanation: 'Taxes collectées moins crédits de taxes',
+    collected: 'Collectées',
+    credits: 'Crédits',
+    netPayableAmount: 'Net à remettre',
     
     // Table headers - Sales
     soldQuantity: 'Quantité vendue',

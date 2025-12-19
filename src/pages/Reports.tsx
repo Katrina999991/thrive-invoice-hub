@@ -1511,6 +1511,182 @@ const Reports = () => {
     logExport('taxes_paid_expenses', 'excel', language === 'fr' ? 'Export Excel rapport taxes dépenses' : 'Taxes paid on expenses Excel export');
   };
 
+  // Export functions for Net Tax Report (Collected - Credits = Net)
+  const exportNetTaxReportToPDF = () => {
+    if (!taxData) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const dateLocale = language === 'fr' ? fr : enUS;
+    let pageNumber = 1;
+    
+    const addPageNumber = () => {
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`${pageNumber}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+    };
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text(getReportTranslation('netTaxReport', language), pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Company filter
+    let yOffset = 40;
+    if (taxSelectedCompany && taxSelectedCompany !== 'all') {
+      const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
+      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, yOffset, { align: 'center' });
+      yOffset += 10;
+    }
+    
+    // Date range
+    if (taxEffectiveStart && taxEffectiveEnd) {
+      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, yOffset, { align: 'center' });
+      yOffset += 15;
+    } else {
+      yOffset += 5;
+    }
+    
+    // Summary section
+    doc.setFontSize(14);
+    doc.text(getReportTranslation('taxSummary', language), 20, yOffset + 10);
+    
+    // Net Amount Payable (main value)
+    doc.setFontSize(12);
+    yOffset += 25;
+    doc.text(`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    
+    // Explanation line
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    yOffset += 6;
+    doc.text(getReportTranslation('netTaxExplanation', language), 20, yOffset);
+    doc.setTextColor(0, 0, 0);
+    
+    // Collected Taxes
+    doc.setFontSize(10);
+    yOffset += 14;
+    doc.text(`${getReportTranslation('collectedTaxes', language)}: ${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    
+    // Tax Credits
+    yOffset += 8;
+    doc.text(`${getReportTranslation('taxCredits', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    
+    yOffset += 18;
+    
+    // Net breakdown table by tax type
+    if (taxData.taxSummary.length > 0) {
+      doc.setFontSize(12);
+      doc.text(language === 'fr' ? 'Répartition par type de taxe' : 'Breakdown by Tax Type', 20, yOffset);
+      yOffset += 8;
+      
+      const netTaxData = taxData.taxSummary.map(tax => [
+        tax.name,
+        tax.invoiceAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+        tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' }),
+        tax.netAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
+      ]);
+      
+      autoTable(doc, {
+        head: [[
+          getReportTranslation('taxType', language),
+          getReportTranslation('collected', language),
+          getReportTranslation('credits', language),
+          getReportTranslation('netPayableAmount', language)
+        ]],
+        body: netTaxData,
+        startY: yOffset,
+        theme: 'striped',
+        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 9 }
+      });
+      
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+    
+    // Add GestionFlow branding footer if not hidden
+    if (!hidePdfBranding) {
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        language === 'fr' ? 'Généré avec GestionFlow' : 'Generated with GestionFlow',
+        pageWidth / 2,
+        pageHeight - 20,
+        { align: 'center' }
+      );
+    }
+    
+    // Add page number
+    addPageNumber();
+    
+    // Generate filename and save
+    const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `${getReportTranslation('netTaxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+    logExport('net_tax_report', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport taxes nettes' : 'Net tax report PDF download');
+  };
+
+  const exportNetTaxReportToExcel = () => {
+    if (!taxData) return;
+    
+    const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Net tax breakdown data
+    const breakdownData = [
+      [
+        getReportTranslation('taxType', language),
+        getReportTranslation('collected', language),
+        getReportTranslation('credits', language),
+        getReportTranslation('netPayableAmount', language)
+      ],
+      ...taxData.taxSummary.map(tax => [
+        tax.name,
+        tax.invoiceAmount,
+        tax.expenseAmount,
+        tax.netAmount
+      ])
+    ];
+    
+    const summaryWs = XLSX.utils.aoa_to_sheet([
+      [getReportTranslation('netTaxReport', language)],
+      [`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`],
+      taxSelectedCompany && taxSelectedCompany !== 'all' 
+        ? [`${getReportTranslation('company', language)}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`]
+        : [getReportTranslation('allCompanies', language)],
+      taxEffectiveStart && taxEffectiveEnd 
+        ? [`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd/MM/yyyy', { locale: dateLocale })}`]
+        : [],
+      [],
+      [getReportTranslation('taxSummary', language)],
+      [`${getReportTranslation('netPayable', language)}: ${taxData.totalTaxAmount}`],
+      [getReportTranslation('netTaxExplanation', language)],
+      [],
+      [`${getReportTranslation('collectedTaxes', language)}: ${taxData.totalInvoiceTaxAmount}`],
+      [`${getReportTranslation('taxCredits', language)}: ${taxData.totalExpenseTaxAmount}`],
+      [],
+      [],
+      ...breakdownData
+    ].filter(row => row.length > 0));
+    
+    XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
+    
+    // Generate filename and save
+    const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `${getReportTranslation('netTaxReportFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    logExport('net_tax_report', 'excel', language === 'fr' ? 'Export Excel rapport taxes nettes' : 'Net tax report Excel export');
+  };
+
   // Export functions for products - Stock Status PDF
   const exportStockStatusToPDF = async () => {
     const productsToExport = filteredInventoryProducts || [];
@@ -6921,6 +7097,38 @@ const Reports = () => {
                       variant="outline" 
                       size="sm"
                       disabled={!taxData || taxData.totalExpenseTaxAmount === 0}
+                    >
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Excel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Export buttons - Net Tax Report */}
+            {taxData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{getReportTranslation('netTaxReport', language)}</CardTitle>
+                  <CardDescription>{getReportTranslation('netTaxReportDesc', language)}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={exportNetTaxReportToPDF} 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!taxData || taxData.taxSummary.length === 0}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button 
+                      onClick={exportNetTaxReportToExcel} 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!taxData || taxData.taxSummary.length === 0}
                     >
                       <FileSpreadsheet className="mr-2 h-4 w-4" />
                       Excel
