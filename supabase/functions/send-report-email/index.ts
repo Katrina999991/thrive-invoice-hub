@@ -51,19 +51,19 @@ serve(async (req) => {
       companyEmail
     } = await req.json() as SendReportEmailRequest;
 
-    logStep("Request data", { recipientEmail, reportTitle, reportType, language, companyName, companyEmail });
+    logStep("Request data", { recipientEmail, reportTitle, reportType, language, senderName, senderEmail });
 
     // Validate inputs
     if (!recipientEmail || !reportTitle || !pdfBase64) {
       throw new Error("Missing required fields");
     }
 
-    // Validate sender email (prefer company email, fallback to sender email)
-    const replyToEmail = companyEmail || senderEmail;
+    // For reports: use user email as reply-to
+    const replyToEmail = senderEmail;
     if (!replyToEmail) {
       throw new Error(language === 'fr' 
-        ? "Impossible d'envoyer le courriel : aucune adresse courriel valide trouvée."
-        : "Cannot send email: no valid email address found.");
+        ? "Impossible d'envoyer le courriel : aucune adresse courriel utilisateur trouvée."
+        : "Cannot send email: no user email address found.");
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,59 +74,16 @@ serve(async (req) => {
     const isFrench = language === 'fr';
     const resend = new Resend(resendApiKey);
     
-    // Check if company email domain is verified in Resend
-    let fromAddress: string;
+    // For reports: always use app domain with user's name as display name
     const defaultFromEmail = fromEmail;
     const defaultDomain = defaultFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
-    const displayName = companyName || senderName;
     
-    if (companyEmail) {
-      const companyDomain = companyEmail.split('@')[1];
-      
-      try {
-        // Check verified domains in Resend
-        const domainsResponse = await fetch('https://api.resend.com/domains', {
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-          },
-        });
-        
-        if (domainsResponse.ok) {
-          const domainsData = await domainsResponse.json();
-          const verifiedDomains = domainsData.data?.filter((d: any) => d.status === 'verified').map((d: any) => d.name) || [];
-          
-          logStep('Verified domains check', { verifiedDomains, companyDomain });
-          
-          if (verifiedDomains.includes(companyDomain)) {
-            // Company domain is verified - use company email directly
-            fromAddress = displayName ? `${displayName} <${companyEmail}>` : companyEmail;
-            logStep('Using verified company email as sender', { fromAddress });
-          } else {
-            // Domain not verified - use app domain with company/sender name
-            fromAddress = displayName 
-              ? `${displayName} via GestionFlow <${defaultDomain}>`
-              : `GestionFlow <${defaultDomain}>`;
-            logStep('Using app domain with company name', { fromAddress });
-          }
-        } else {
-          // API error - fallback to app domain
-          logStep('Could not check Resend domains, using fallback');
-          fromAddress = displayName 
-            ? `${displayName} via GestionFlow <${defaultDomain}>`
-            : `GestionFlow <${defaultDomain}>`;
-        }
-      } catch (error) {
-        logStep('Error checking Resend domains', { error });
-        fromAddress = displayName 
-          ? `${displayName} via GestionFlow <${defaultDomain}>`
-          : `GestionFlow <${defaultDomain}>`;
-      }
-    } else {
-      // No company email - use app domain
-      fromAddress = displayName 
-        ? `${displayName} via GestionFlow <${defaultDomain}>`
-        : `GestionFlow <${defaultDomain}>`;
-    }
+    // Display name is the user's name (senderName)
+    const fromAddress = senderName 
+      ? `${senderName} via GestionFlow <${defaultDomain}>`
+      : `GestionFlow <${defaultDomain}>`;
+    
+    logStep('Report email sender config', { fromAddress, replyToEmail });
 
     // Generate filename
     const date = new Date().toISOString().split('T')[0];
