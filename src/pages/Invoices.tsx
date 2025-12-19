@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, FileDown, FileSpreadsheet, Mail, X, CheckCircle } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -2063,33 +2063,6 @@ Best regards,
           >
             {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
             <span className="hidden sm:inline">{showArchived ? (language === "fr" ? "Actives" : "Active") : (language === "fr" ? "Archivées" : "Archived")}</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={downloadInvoiceReportPDF}
-            className="col-span-1"
-            title={language === "fr" ? "Exporter en PDF" : "Export as PDF"}
-          >
-            <FileDown className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">PDF</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={downloadInvoiceReportExcel}
-            className="col-span-1"
-            title={language === "fr" ? "Exporter en Excel" : "Export as Excel"}
-          >
-            <FileSpreadsheet className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Excel</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsReportEmailDialogOpen(true)}
-            className="col-span-1"
-            title={language === "fr" ? "Envoyer par courriel" : "Send by Email"}
-          >
-            <Mail className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">{language === "fr" ? "Courriel" : "Email"}</span>
           </Button>
         </div>
       </div>
