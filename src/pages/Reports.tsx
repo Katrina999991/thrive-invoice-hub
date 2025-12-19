@@ -6324,7 +6324,7 @@ const Reports = () => {
                           {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
                         </p>
                         <p className="text-xs text-muted-foreground mb-2">
-                          {language === 'fr' ? 'Crédits de taxes sur les dépenses' : 'Tax credits from expenses'}
+                          {language === 'fr' ? 'Crédits de taxes récupérables sur les dépenses' : 'Recoverable tax credits from expenses'}
                         </p>
                         <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                           {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { 
