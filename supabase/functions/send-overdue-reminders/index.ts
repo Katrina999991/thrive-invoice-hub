@@ -169,33 +169,52 @@ Best regards,
       const clientEmails = client.email.split(",").map((e: string) => e.trim());
 
       try {
-        // Get user info for Reply-To and display name
-        let userEmail: string | null = null;
-        let userName: string | null = null;
+        // Get company email for Reply-To
+        const companyEmail = company.email;
+        const replyToEmail = companyEmail || undefined;
         
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(invoice.user_id);
-        if (!userError && userData?.user) {
-          userEmail = userData.user.email || null;
+        // Check if company email domain is verified in Resend
+        let fromAddress: string;
+        const defaultDomain = resendFrom.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
+        
+        if (companyEmail) {
+          const companyDomain = companyEmail.split('@')[1];
           
-          // Try to get display name from profiles
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('display_name, username')
-            .eq('user_id', invoice.user_id)
-            .single();
-          
-          userName = profile?.display_name || profile?.username || null;
+          try {
+            // Check verified domains in Resend
+            const domainsResponse = await fetch('https://api.resend.com/domains', {
+              headers: {
+                'Authorization': `Bearer ${resendApiKey}`,
+              },
+            });
+            
+            if (domainsResponse.ok) {
+              const domainsData = await domainsResponse.json();
+              const verifiedDomains = domainsData.data?.filter((d: any) => d.status === 'verified').map((d: any) => d.name) || [];
+              
+              if (verifiedDomains.includes(companyDomain)) {
+                // Company domain is verified - use company email directly
+                fromAddress = `${company.name} <${companyEmail}>`;
+                console.log(`Using verified company email as sender for invoice ${invoice.invoice_number}`);
+              } else {
+                // Domain not verified - use app domain with company name
+                fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+              }
+            } else {
+              fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+            }
+          } catch (error) {
+            console.error('Error checking Resend domains:', error);
+            fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
+          }
+        } else {
+          fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
         }
-        
-        // Build the from address with company name
-        const fromDomain = resendFrom.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
-        const displayName = `${company.name} via GestionFlow`;
-        const fromAddress = `${displayName} <${fromDomain}>`;
 
         // Send email via Resend
         const { data: emailData, error: emailError } = await resend.emails.send({
           from: fromAddress,
-          replyTo: userEmail || undefined,
+          replyTo: replyToEmail,
           to: clientEmails,
           subject: emailSubject,
           html: emailMessage.replace(/\n/g, "<br>"),

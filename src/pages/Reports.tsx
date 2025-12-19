@@ -8384,6 +8384,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Rapport des revenus' : 'Revenue Report'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!realRevenueData || !chartData.length) return null;
           const doc = new jsPDF();
@@ -8402,6 +8403,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Ventes par produit' : 'Sales by Product'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!salesData) return null;
           const blob = await generateSalesReportPdf({
@@ -8427,6 +8429,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'État des stocks' : 'Stock Status'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!filteredInventoryProducts || filteredInventoryProducts.length === 0) return null;
           
@@ -8466,6 +8469,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Valeur du stock' : 'Stock Value'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!filteredInventoryProducts || filteredInventoryProducts.length === 0) return null;
           
@@ -8507,6 +8511,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Dépenses par période' : 'Expenses by Period'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!expenseReportData) return null;
           
@@ -8542,6 +8547,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Dépenses par catégorie' : 'Expenses by Category'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!expenseReportData) return null;
           
@@ -8571,6 +8577,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Détail de toutes les dépenses' : 'All Expenses Detail'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!expenseReportData) return null;
           
@@ -8600,6 +8607,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Rapport Liste des clients' : 'Clients List Report'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!clients || clients.length === 0) return null;
           
@@ -8770,6 +8778,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Revenus par client' : 'Revenue by Client'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!clientRevenueData || clientRevenueData.clientData.length === 0) return null;
           
@@ -8821,6 +8830,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Revenus par produit/service' : 'Revenue by Product/Service'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         onGeneratePdf={async () => {
           if (!productRevenueData || productRevenueData.productData.length === 0) return null;
           
@@ -8878,6 +8888,7 @@ const Reports = () => {
         reportTitle={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
         pdfBlob={null}
         companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
         defaultSubject={language === 'fr' ? 'Rapport des clients' : 'Clients Report'}
         defaultMessage={(() => {
           const companyName = companies.length === 1 
@@ -9078,7 +9089,8 @@ const Reports = () => {
           : (language === 'fr' ? 'Clients par entreprise' : 'Clients by Company')
         }
         companyName={selectedCompanyForEmail?.name || companies?.[0]?.name}
-        defaultSubject={language === 'fr' 
+        companyEmail={selectedCompanyForEmail?.email || companies?.[0]?.email || undefined}
+        defaultSubject={language === 'fr'
           ? `Rapport Clients par entreprise${selectedCompanyForEmail ? ` - ${selectedCompanyForEmail.name}` : ''}`
           : `Clients by Company Report${selectedCompanyForEmail ? ` - ${selectedCompanyForEmail.name}` : ''}`
         }
