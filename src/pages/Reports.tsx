@@ -1348,6 +1348,169 @@ const Reports = () => {
     logExport('taxes_collected_sales', 'excel', language === 'fr' ? 'Export Excel rapport taxes collectées' : 'Taxes collected Excel export');
   };
 
+  // Export functions for Taxes Paid on Expenses - Only expense taxes
+  const exportTaxesPaidToPDF = () => {
+    if (!taxData || taxData.totalExpenseTaxAmount === 0) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text(getReportTranslation('taxesPaidExpenses', language), pageWidth / 2, 20, { align: 'center' });
+    
+    // Date generated
+    doc.setFontSize(12);
+    doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Company filter
+    let yOffset = 40;
+    if (taxSelectedCompany && taxSelectedCompany !== 'all') {
+      const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
+      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, yOffset, { align: 'center' });
+      yOffset += 10;
+    }
+    
+    // Date range
+    if (taxEffectiveStart && taxEffectiveEnd) {
+      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, yOffset, { align: 'center' });
+      yOffset += 15;
+    } else {
+      yOffset += 5;
+    }
+    
+    // Summary section
+    doc.setFontSize(14);
+    doc.text(getReportTranslation('taxSummary', language), 20, yOffset + 10);
+    
+    doc.setFontSize(11);
+    yOffset += 22;
+    doc.text(`${getReportTranslation('totalTaxPaid', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    yOffset += 6;
+    doc.text(getReportTranslation('taxesPaidExpensesDesc', language), 20, yOffset);
+    doc.setTextColor(0, 0, 0);
+    
+    yOffset += 15;
+    
+    // Tax breakdown table by type (only expense taxes)
+    if (taxData.taxSummary.length > 0) {
+      const taxSummaryData = taxData.taxSummary
+        .filter(tax => tax.expenseAmount > 0)
+        .map(tax => [
+          tax.name,
+          (tax.expenseCount || 0).toString(),
+          tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
+        ]);
+      
+      autoTable(doc, {
+        head: [[
+          getReportTranslation('taxType', language), 
+          getReportTranslation('numberOfExpenses', language),
+          getReportTranslation('taxPaid', language)
+        ]],
+        body: taxSummaryData,
+        startY: yOffset,
+        theme: 'striped',
+        headStyles: { fillColor: [249, 115, 22] }, // Orange for expenses
+        styles: { fontSize: 9 }
+      });
+    }
+    
+    // Add page numbers
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `${language === 'fr' ? 'Page' : 'Page'} ${i} / ${pageCount}`,
+        pageWidth - 20,
+        pageHeight - 10,
+        { align: 'right' }
+      );
+    }
+    
+    // Add GestionFlow branding footer if not hidden
+    if (!hidePdfBranding) {
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          language === 'fr' ? 'Généré avec GestionFlow' : 'Generated with GestionFlow',
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: 'center' }
+        );
+      }
+    }
+    
+    // Generate filename and save
+    const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `${getReportTranslation('taxesPaidExpensesFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(filename);
+    logExport('taxes_paid_expenses', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport taxes dépenses' : 'Taxes paid on expenses PDF download');
+  };
+
+  const exportTaxesPaidToExcel = () => {
+    if (!taxData || taxData.totalExpenseTaxAmount === 0) return;
+    
+    const wb = XLSX.utils.book_new();
+    const dateLocale = language === 'fr' ? fr : enUS;
+    
+    // Summary data - only expense taxes
+    const summaryData = [
+      [
+        getReportTranslation('taxName', language), 
+        getReportTranslation('numberOfExpenses', language),
+        getReportTranslation('taxPaid', language)
+      ],
+      ...taxData.taxSummary
+        .filter(tax => tax.expenseAmount > 0)
+        .map(tax => [
+          tax.name,
+          tax.expenseCount || 0,
+          tax.expenseAmount
+        ])
+    ];
+    
+    const summaryWs = XLSX.utils.aoa_to_sheet([
+      [getReportTranslation('taxesPaidExpenses', language)],
+      [`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`],
+      taxSelectedCompany && taxSelectedCompany !== 'all' 
+        ? [`${getReportTranslation('company', language)}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`]
+        : [getReportTranslation('allCompanies', language)],
+      taxEffectiveStart && taxEffectiveEnd 
+        ? [`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd/MM/yyyy', { locale: dateLocale })}`]
+        : [],
+      [],
+      [getReportTranslation('taxSummary', language)],
+      [`${getReportTranslation('totalTaxPaid', language)}: ${taxData.totalExpenseTaxAmount}`],
+      [getReportTranslation('taxesPaidExpensesDesc', language)],
+      [],
+      [],
+      ...summaryData
+    ].filter(row => row.length > 0));
+    
+    XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
+    
+    // Generate filename and save
+    const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    const filename = `${getReportTranslation('taxesPaidExpensesFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    logExport('taxes_paid_expenses', 'excel', language === 'fr' ? 'Export Excel rapport taxes dépenses' : 'Taxes paid on expenses Excel export');
+  };
+
   // Export functions for products - Stock Status PDF
   const exportStockStatusToPDF = async () => {
     const productsToExport = filteredInventoryProducts || [];
@@ -6726,6 +6889,38 @@ const Reports = () => {
                       variant="outline" 
                       size="sm"
                       disabled={!taxData || taxData.totalInvoiceTaxAmount === 0}
+                    >
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Excel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Export buttons - Taxes Paid on Expenses Only */}
+            {taxData && taxData.totalExpenseTaxAmount > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{getReportTranslation('taxesPaidExpenses', language)}</CardTitle>
+                  <CardDescription>{getReportTranslation('taxesPaidExpensesDesc', language)}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={exportTaxesPaidToPDF} 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!taxData || taxData.totalExpenseTaxAmount === 0}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button 
+                      onClick={exportTaxesPaidToExcel} 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!taxData || taxData.totalExpenseTaxAmount === 0}
                     >
                       <FileSpreadsheet className="mr-2 h-4 w-4" />
                       Excel
