@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -73,6 +73,12 @@ const Expenses = () => {
   const [bulkCompanyId, setBulkCompanyId] = useState<string>("");
   const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<string>("");
+
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterCompany, setFilterCompany] = useState<string>("all");
 
   const handleAddExpenseClick = () => {
     if (isLimitReached('expenses')) {
@@ -212,11 +218,25 @@ const Expenses = () => {
     });
   };
 
+  const getFilteredExpenses = () => expenses.filter(expense => {
+    const matchesSearch = searchTerm === "" || 
+      expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (expense.vendor && expense.vendor.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = filterCategory === "all" || expense.category === filterCategory;
+    const matchesStatus = filterStatus === "all" || expense.status === filterStatus;
+    const matchesCompany = filterCompany === "all" || expense.company_id === filterCompany;
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesCompany;
+  });
+
   const toggleSelectAll = () => {
-    if (selectedExpenses.size === expenses.length) {
+    const filtered = getFilteredExpenses();
+    if (selectedExpenses.size === filtered.length) {
       setSelectedExpenses(new Set());
     } else {
-      setSelectedExpenses(new Set(expenses.map(e => e.id)));
+      setSelectedExpenses(new Set(filtered.map(e => e.id)));
     }
   };
 
@@ -286,9 +306,11 @@ const Expenses = () => {
     }
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-  const paidExpenses = expenses.filter(e => e.status === "paid").reduce((sum, expense) => sum + Number(expense.amount), 0);
-  const unpaidExpenses = expenses.filter(e => e.status === "unpaid").reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const filteredExpenses = getFilteredExpenses();
+
+  const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const paidExpenses = filteredExpenses.filter(e => e.status === "paid").reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const unpaidExpenses = filteredExpenses.filter(e => e.status === "unpaid").reduce((sum, expense) => sum + Number(expense.amount), 0);
 
   if (expensesLoading || companiesLoading) {
     return <div>{t("expenses.loading")}</div>;
@@ -697,19 +719,74 @@ const Expenses = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {expenses.length > 0 && (
+          {/* Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 pb-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={language === "fr" ? "Rechercher..." : "Search..."}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder={language === "fr" ? "Catégorie" : "Category"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === "fr" ? "Toutes les catégories" : "All categories"}</SelectItem>
+                {categories.filter(cat => cat.for_expenses).map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    {getCategoryName(category)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder={language === "fr" ? "Statut" : "Status"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === "fr" ? "Tous les statuts" : "All statuses"}</SelectItem>
+                <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
+                <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterCompany} onValueChange={setFilterCompany}>
+              <SelectTrigger>
+                <SelectValue placeholder={language === "fr" ? "Compagnie" : "Company"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === "fr" ? "Toutes les compagnies" : "All companies"}</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {filteredExpenses.length > 0 && (
             <div className="flex items-center gap-2 mb-4 pb-2 border-b">
               <Checkbox
-                checked={selectedExpenses.size === expenses.length && expenses.length > 0}
+                checked={selectedExpenses.size === filteredExpenses.length && filteredExpenses.length > 0}
                 onCheckedChange={toggleSelectAll}
               />
               <span className="text-sm text-muted-foreground">
-                {language === "fr" ? "Tout sélectionner" : "Select all"}
+                {language === "fr" ? "Tout sélectionner" : "Select all"} ({filteredExpenses.length})
               </span>
             </div>
           )}
           <div className="space-y-4">
-            {expenses.map((expense) => (
+            {filteredExpenses.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm || filterCategory !== "all" || filterStatus !== "all" || filterCompany !== "all"
+                  ? (language === "fr" ? "Aucune dépense ne correspond aux filtres" : "No expenses match the filters")
+                  : (language === "fr" ? "Aucune dépense trouvée" : "No expenses found")}
+              </div>
+            ) : filteredExpenses.map((expense) => (
               <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                 <div className="flex items-start gap-3 flex-1">
                   <Checkbox
