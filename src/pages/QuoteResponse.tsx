@@ -324,11 +324,17 @@ const QuoteResponse = () => {
         {company && (
           <div className="text-center mb-8">
             {company.logo_url && (
-              <img
-                src={company.logo_url}
-                alt={company.name}
-                className="h-16 mx-auto mb-4 object-contain"
-              />
+              <div className="h-16 max-w-48 mx-auto mb-4 flex items-center justify-center">
+                <img
+                  src={company.logo_url}
+                  alt={company.name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={(e) => {
+                    // Hide image container if logo fails to load
+                    (e.currentTarget.parentElement as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
             )}
             <h1 className="text-2xl font-bold">{company.name}</h1>
             {company.email && <p className="text-muted-foreground">{company.email}</p>}
