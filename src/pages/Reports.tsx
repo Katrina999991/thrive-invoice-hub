@@ -3793,7 +3793,7 @@ const Reports = () => {
       reportData: expenseReportData,
       startDate: expenseStartDate,
       endDate: expenseEndDate,
-      companyName: companies?.[0]?.name,
+      companyName: companyFilterName,
       companyFilterName,
       categoryFilterName,
       language: language as 'fr' | 'en',
@@ -3818,7 +3818,7 @@ const Reports = () => {
       reportData: expenseReportData,
       startDate: expenseStartDate,
       endDate: expenseEndDate,
-      companyName: companies?.[0]?.name,
+      companyName: companyFilterName,
       companyFilterName,
       language: language as 'fr' | 'en',
       planType: planLimits?.plan_type || 'free',
@@ -3833,9 +3833,14 @@ const Reports = () => {
   const exportAllExpensesToPDF = async () => {
     if (!expenseReportData) return;
     
+    const companyFilterName = expenseFilterType === 'company' && expenseSelectedCompanyId
+      ? companies.find(c => c.id === expenseSelectedCompanyId)?.name
+      : undefined;
+    
     await generateAllExpensesPdf({
       reportData: expenseReportData,
-      companyName: companies?.[0]?.name,
+      companyName: companyFilterName,
+      companyFilterName,
       language: language as 'fr' | 'en',
       planType: planLimits?.plan_type || 'free',
       hideBranding: hidePdfBranding,
@@ -8602,7 +8607,7 @@ const Reports = () => {
             reportData: expenseReportData,
             startDate: expenseStartDate,
             endDate: expenseEndDate,
-            companyName: companies?.[0]?.name,
+            companyName: companyFilterName,
             companyFilterName,
             categoryFilterName,
             language: language as 'fr' | 'en',
@@ -8633,7 +8638,7 @@ const Reports = () => {
             reportData: expenseReportData,
             startDate: expenseStartDate,
             endDate: expenseEndDate,
-            companyName: companies?.[0]?.name,
+            companyName: companyFilterName,
             companyFilterName,
             language: language as 'fr' | 'en',
             planType: planLimits?.plan_type || 'free',
@@ -8663,7 +8668,7 @@ const Reports = () => {
             reportData: expenseReportData,
             startDate: expenseStartDate,
             endDate: expenseEndDate,
-            companyName: companies?.[0]?.name,
+            companyName: companyFilterName,
             companyFilterName,
             language: language as 'fr' | 'en',
             planType: planLimits?.plan_type || 'free',
