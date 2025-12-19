@@ -6,6 +6,7 @@ import { ArrowRight, Users, Building2, Briefcase, Rocket, CheckCircle2 } from "l
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
+import Footer from "@/components/Footer";
 
 const Comparison = () => {
   const navigate = useNavigate();
@@ -249,14 +250,7 @@ const Comparison = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 border-t border-border">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-sm text-muted-foreground">
-            {t.footer.copyright}
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
