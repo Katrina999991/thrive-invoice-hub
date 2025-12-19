@@ -50,7 +50,7 @@ import { z } from "zod";
 import { ContactForm } from "@/components/ContactForm";
 import { useEncryption } from "@/hooks/useEncryption";
 import { useEmailPreferences } from "@/hooks/useEmailPreferences";
-import { ProductUpdateEmailSection } from "@/components/ProductUpdateEmailSection";
+
 
 export default function Settings() {
   const { user, signOut, updateUsername: updateAuthUsername } = useAuth();
@@ -2009,9 +2009,6 @@ Cordialement,
             </div>
           </CardContent>
         </Card>
-
-        {/* Product Update Email - Admin Only */}
-        <ProductUpdateEmailSection />
 
         <MFASecuritySection />
 

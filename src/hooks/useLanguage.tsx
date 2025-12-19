@@ -33,6 +33,7 @@ const translations = {
     "nav.reports": "Reports",
     "nav.pricing": "Pricing",
     "nav.settings": "Settings",
+    "nav.admin": "Admin",
     
     // Dashboard
     "dashboard.title": "Dashboard",
@@ -890,6 +891,7 @@ const translations = {
     "nav.reports": "Rapports",
     "nav.pricing": "Tarification",
     "nav.settings": "Paramètres",
+    "nav.admin": "Admin",
     
     // Dashboard
     "dashboard.title": "Tableau de bord",

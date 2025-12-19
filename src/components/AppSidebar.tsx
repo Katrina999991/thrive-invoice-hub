@@ -14,8 +14,12 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
-  Crown
+  Crown,
+  Shield
 } from "lucide-react";
+
+// Admin user ID - only this user can see admin features
+const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
 
 import {
   Sidebar,
@@ -94,9 +98,15 @@ export function AppSidebar() {
   ];
 
   const settingsItems = [
-    { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null },
-    { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings, requiresFeature: null },
+    { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null, adminOnly: false },
+    { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings, requiresFeature: null, adminOnly: false },
+    { titleKey: "nav.admin", url: "/dashboard/admin", icon: Shield, requiresFeature: null, adminOnly: true },
   ];
+
+  // Filter items based on admin status
+  const visibleSettingsItems = settingsItems.filter(item => 
+    !item.adminOnly || (item.adminOnly && user?.id === ADMIN_USER_ID)
+  );
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return currentPath === "/dashboard";
@@ -168,7 +178,7 @@ export function AppSidebar() {
             <SidebarGroupLabel>{t("nav.system")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {settingsItems.map((item) => (
+                {visibleSettingsItems.map((item) => (
                   <SidebarMenuItem key={item.titleKey}>
                     <SidebarMenuButton asChild>
                       <NavLink 
