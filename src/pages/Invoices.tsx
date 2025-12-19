@@ -855,15 +855,25 @@ const Invoices = () => {
       // Create worksheet
       const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-      // Set column widths
-      ws['!cols'] = [
-        { wch: 15 }, // Invoice #
-        { wch: 25 }, // Client
-        { wch: 15 }, // Issue Date
-        { wch: 15 }, // Due Date
-        { wch: 12 }, // Amount
-        { wch: 12 }, // Status
-      ];
+      // Calculate auto column widths based on content
+      const calculateWidth = (colIndex: number): number => {
+        let maxWidth = columnHeaders[colIndex]?.length || 10;
+        dataRows.forEach(row => {
+          const cellValue = row[colIndex];
+          if (cellValue !== null && cellValue !== undefined) {
+            maxWidth = Math.max(maxWidth, String(cellValue).length);
+          }
+        });
+        return Math.min(maxWidth + 3, 40);
+      };
+
+      ws['!cols'] = columnHeaders.map((_, idx) => ({ wch: calculateWidth(idx) }));
+
+      // Add autofilter to column headers row
+      const headerRowIndex = headerRows.length + 1;
+      const lastCol = String.fromCharCode(65 + columnHeaders.length - 1);
+      const lastRow = allRows.length;
+      ws['!autofilter'] = { ref: `A${headerRowIndex}:${lastCol}${lastRow}` };
 
       // Create workbook
       const wb = XLSX.utils.book_new();
