@@ -1153,12 +1153,12 @@ const Index = () => {
                   </button>
                 </li>
                 <li>
-                  <a 
-                    href="mailto:info@gestionflow.net"
+                  <button 
+                    onClick={() => navigate('/contact')}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {t.footer.links.contact}
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
