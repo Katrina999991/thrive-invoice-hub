@@ -32,22 +32,27 @@ export default defineConfig(({ mode }) => ({
             src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ],
-        screenshots: [
+            purpose: 'any'
+          },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            form_factor: 'wide',
-            label: 'GestionFlow Dashboard'
+            purpose: 'maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: 'screenshot-mobile.png',
+            sizes: '576x1024',
+            type: 'image/png',
+            label: 'GestionFlow - Tableau de bord mobile'
           }
         ]
       },
