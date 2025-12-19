@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -19,6 +19,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ReceiptScanner } from "@/components/ReceiptScanner";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -64,6 +65,11 @@ const Expenses = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  
+  // Bulk selection state
+  const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
+  const [bulkCompanyDialogOpen, setBulkCompanyDialogOpen] = useState(false);
+  const [bulkCompanyId, setBulkCompanyId] = useState<string>("");
 
   const handleAddExpenseClick = () => {
     if (isLimitReached('expenses')) {
@@ -190,6 +196,48 @@ const Expenses = () => {
     setIsDialogOpen(true);
   };
 
+  // Bulk selection handlers
+  const toggleExpenseSelection = (expenseId: string) => {
+    setSelectedExpenses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(expenseId)) {
+        newSet.delete(expenseId);
+      } else {
+        newSet.add(expenseId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedExpenses.size === expenses.length) {
+      setSelectedExpenses(new Set());
+    } else {
+      setSelectedExpenses(new Set(expenses.map(e => e.id)));
+    }
+  };
+
+  const handleBulkCompanyChange = async () => {
+    if (selectedExpenses.size === 0) return;
+    
+    const companyIdToSet = bulkCompanyId === "none" ? null : bulkCompanyId || null;
+    
+    // Update all selected expenses
+    for (const expenseId of selectedExpenses) {
+      await updateExpense(expenseId, { company_id: companyIdToSet });
+    }
+    
+    toast({
+      title: language === "fr" ? "Succès" : "Success",
+      description: language === "fr" 
+        ? `${selectedExpenses.size} dépense(s) mise(s) à jour` 
+        : `${selectedExpenses.size} expense(s) updated`
+    });
+    
+    setSelectedExpenses(new Set());
+    setBulkCompanyDialogOpen(false);
+    setBulkCompanyId("");
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -551,26 +599,70 @@ const Expenses = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("expenses.listTitle")}</CardTitle>
-          <CardDescription>
-            {t("expenses.listDesc")}
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle>{t("expenses.listTitle")}</CardTitle>
+              <CardDescription>
+                {t("expenses.listDesc")}
+              </CardDescription>
+            </div>
+            {selectedExpenses.size > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {selectedExpenses.size} {language === "fr" ? "sélectionné(s)" : "selected"}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setBulkCompanyDialogOpen(true)}
+                >
+                  <Building2 className="h-4 w-4 mr-2" />
+                  {language === "fr" ? "Modifier compagnie" : "Change company"}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedExpenses(new Set())}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
+          {expenses.length > 0 && (
+            <div className="flex items-center gap-2 mb-4 pb-2 border-b">
+              <Checkbox
+                checked={selectedExpenses.size === expenses.length && expenses.length > 0}
+                onCheckedChange={toggleSelectAll}
+              />
+              <span className="text-sm text-muted-foreground">
+                {language === "fr" ? "Tout sélectionner" : "Select all"}
+              </span>
+            </div>
+          )}
           <div className="space-y-4">
             {expenses.map((expense) => (
               <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 className="font-medium">{expense.description}</h3>
-                    <Badge className={getStatusColor(expense.status)}>
-                      {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
-                    </Badge>
+                <div className="flex items-start gap-3 flex-1">
+                  <Checkbox
+                    checked={selectedExpenses.has(expense.id)}
+                    onCheckedChange={() => toggleExpenseSelection(expense.id)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h3 className="font-medium">{expense.description}</h3>
+                      <Badge className={getStatusColor(expense.status)}>
+                        {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
+                      {(expense as any).companies?.name && ` • ${(expense as any).companies.name}`}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
-                    {(expense as any).companies?.name && ` • ${(expense as any).companies.name}`}
-                  </p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                   <div className="text-right">
@@ -626,6 +718,50 @@ const Expenses = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Bulk Company Change Dialog */}
+      <Dialog open={bulkCompanyDialogOpen} onOpenChange={setBulkCompanyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === "fr" ? "Modifier la compagnie" : "Change Company"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "fr" 
+                ? `Modifier la compagnie pour ${selectedExpenses.size} dépense(s) sélectionnée(s)`
+                : `Change company for ${selectedExpenses.size} selected expense(s)`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{language === "fr" ? "Compagnie" : "Company"}</Label>
+              <Select value={bulkCompanyId} onValueChange={setBulkCompanyId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={language === "fr" ? "Sélectionner une compagnie" : "Select a company"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    {language === "fr" ? "Aucune compagnie" : "No company"}
+                  </SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setBulkCompanyDialogOpen(false)}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button onClick={handleBulkCompanyChange}>
+              {language === "fr" ? "Appliquer" : "Apply"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
