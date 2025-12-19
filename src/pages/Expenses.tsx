@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -258,6 +258,23 @@ const Expenses = () => {
     setSelectedExpenses(new Set());
     setBulkStatusDialogOpen(false);
     setBulkStatus("");
+  };
+
+  const handleBulkArchive = async () => {
+    if (selectedExpenses.size === 0) return;
+    
+    for (const expenseId of selectedExpenses) {
+      await updateExpense(expenseId, { is_archived: true });
+    }
+    
+    toast({
+      title: language === "fr" ? "Succès" : "Success",
+      description: language === "fr" 
+        ? `${selectedExpenses.size} dépense(s) archivée(s)` 
+        : `${selectedExpenses.size} expense(s) archived`
+    });
+    
+    setSelectedExpenses(new Set());
   };
 
   const getStatusColor = (status: string) => {
@@ -647,6 +664,14 @@ const Expenses = () => {
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   {language === "fr" ? "Statut" : "Status"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleBulkArchive}
+                >
+                  <Archive className="h-4 w-4 mr-2" />
+                  {language === "fr" ? "Archiver" : "Archive"}
                 </Button>
                 <Button 
                   variant="ghost" 

@@ -373,6 +373,7 @@ export type Database = {
           description: string
           expense_date: string
           id: string
+          is_archived: boolean
           is_billable: boolean | null
           notes: string | null
           receipt_url: string | null
@@ -391,6 +392,7 @@ export type Database = {
           description: string
           expense_date?: string
           id?: string
+          is_archived?: boolean
           is_billable?: boolean | null
           notes?: string | null
           receipt_url?: string | null
@@ -409,6 +411,7 @@ export type Database = {
           description?: string
           expense_date?: string
           id?: string
+          is_archived?: boolean
           is_billable?: boolean | null
           notes?: string | null
           receipt_url?: string | null

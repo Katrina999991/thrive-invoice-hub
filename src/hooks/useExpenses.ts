@@ -30,6 +30,7 @@ export const useExpenses = () => {
           )
         `)
         .eq("user_id", user.id)
+        .eq("is_archived", false)
         .order("expense_date", { ascending: false });
 
       if (error) throw error;
