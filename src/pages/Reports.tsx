@@ -8157,6 +8157,14 @@ const Reports = () => {
                   <FileSpreadsheet className="mr-2 h-4 w-4" />
                   Excel
                 </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEmailDialogOpen('invoices')}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Email
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -8392,6 +8400,71 @@ const Reports = () => {
           doc.text(getReportTranslation('revenueReport', language), doc.internal.pageSize.width / 2, 20, { align: 'center' });
           const tableData = chartData.map(item => [item.period, `$${item.revenue.toFixed(2)}`, item.invoiceCount.toString()]);
           autoTable(doc, { head: [['Période', 'Revenus', 'Factures']], body: tableData, startY: 40 });
+          return doc.output('blob');
+        }}
+      />
+
+      <EmailReportDialog
+        open={emailDialogOpen === 'invoices'}
+        onOpenChange={(open) => !open && setEmailDialogOpen(null)}
+        reportType="invoices"
+        reportTitle={language === 'fr' ? 'Rapport des factures' : 'Invoices Report'}
+        pdfBlob={null}
+        companyName={companies?.[0]?.name}
+        companyEmail={companies?.[0]?.email || undefined}
+        onGeneratePdf={async () => {
+          if (!filteredInvoicesByStatus.length) return null;
+          const doc = new jsPDF();
+          const tr = (key: string) => getReportTranslation(key, language);
+          
+          doc.setFontSize(18);
+          doc.text(tr('invoicesReport'), 14, 22);
+          
+          doc.setFontSize(11);
+          doc.text(`${tr('reportDate')}: ${format(new Date(), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS })}`, 14, 32);
+          
+          const filterText = invoiceStatusFilters.includes('all') 
+            ? tr('allStatuses')
+            : invoiceStatusFilters.map(s => getStatusLabel(s, language)).join(', ');
+          
+          const companyName = invoiceCompanyFilter !== 'all' 
+            ? companies.find(c => c.id === invoiceCompanyFilter)?.name || 'N/A'
+            : tr('allCompanies');
+          
+          const clientName = invoiceClientFilter !== 'all'
+            ? clients.find(c => c.id === invoiceClientFilter)?.name || 'N/A'
+            : tr('allClients');
+          
+          let yPos = 40;
+          doc.text(`${tr('filters')}: ${filterText}`, 14, yPos);
+          yPos += 8;
+          doc.text(`${tr('company')}: ${companyName}`, 14, yPos);
+          yPos += 8;
+          doc.text(`${tr('client')}: ${clientName}`, 14, yPos);
+          yPos += 8;
+          doc.text(`${tr('total')}: $${invoiceGrandTotal.toFixed(2)}`, 14, yPos);
+          
+          const tableData = filteredInvoicesByStatus.map(invoice => {
+            const client = clients.find(c => c.id === invoice.client_id);
+            const statusText = getStatusLabel(invoice.status, language);
+            return [
+              invoice.invoice_number,
+              client?.name || 'N/A',
+              format(new Date(invoice.issue_date), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS }),
+              invoice.due_date ? format(new Date(invoice.due_date), 'dd/MM/yyyy', { locale: language === 'fr' ? fr : enUS }) : 'N/A',
+              `$${Number(invoice.total).toFixed(2)}`,
+              statusText
+            ];
+          });
+          
+          autoTable(doc, {
+            head: [[tr('number'), tr('client'), tr('issueDate'), tr('dueDate'), tr('amount'), tr('status')]],
+            body: tableData,
+            startY: yPos + 8,
+            styles: { fontSize: 9 },
+            headStyles: { fillColor: [66, 139, 202] }
+          });
+          
           return doc.output('blob');
         }}
       />
