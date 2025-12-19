@@ -38,6 +38,7 @@ import { useState, useEffect } from "react";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
 import ImageLightbox from "@/components/ImageLightbox";
+import Footer from "@/components/Footer";
 import {
   Accordion,
   AccordionContent,
@@ -1100,101 +1101,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-muted border-t border-border py-12" role="contentinfo">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row gap-8 mb-8">
-            {/* Logo & Description */}
-            <div className="md:flex-shrink-0">
-              <img 
-                src={currentLogo} 
-                alt="GestionFlow" 
-                className="h-20 mb-4"
-                loading="lazy"
-              />
-              <p className="text-muted-foreground max-w-md">
-                {t.footer.description}
-              </p>
-            </div>
-            
-            {/* Links Columns */}
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-8">
-              {/* Product Links */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-4">{t.footer.links.product}</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <button 
-                      onClick={() => navigate('/software')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t.footer.links.software}
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      onClick={() => navigate('/pricing')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t.footer.links.pricing}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-              
-              {/* Company Links */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-4">{t.footer.links.company}</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <button 
-                      onClick={() => navigate('/about')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t.footer.links.about}
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      onClick={() => navigate('/contact')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t.footer.links.contact}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Legal Links */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-4">{t.footer.links.legal}</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <button 
-                      onClick={() => navigate('/privacy')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t.footer.links.privacy}
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      onClick={() => navigate('/terms')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t.footer.links.terms}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-border pt-8 text-center">
-            <p className="text-muted-foreground text-sm">{t.footer.copyright}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Image Lightbox */}
       <ImageLightbox

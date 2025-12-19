@@ -4,6 +4,7 @@ import PublicNavigation from "@/components/PublicNavigation";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 const translations = {
   fr: {
@@ -165,6 +166,8 @@ const Terms = () => {
           </a>
         </section>
       </main>
+      
+      <Footer />
     </div>
   );
 };

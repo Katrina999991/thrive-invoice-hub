@@ -42,6 +42,7 @@ import logoDark from "@/assets/gestionflow-logo-dark.png";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
+import Footer from "@/components/Footer";
 
 const PublicPricing = () => {
   const navigate = useNavigate();
@@ -795,19 +796,7 @@ const PublicPricing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <img src={footerLogo} alt="GestionFlow Logo" className="h-10 w-auto" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} GestionFlow. {t.footer.rights}
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
