@@ -957,6 +957,7 @@ Best regards,
       // Get template and color settings from localStorage
       const invoiceTemplate = localStorage.getItem("invoice-template") || "classic";
       const invoiceColor = localStorage.getItem("invoice-color") || "blue";
+      const hidePdfBranding = localStorage.getItem("hide-pdf-branding") === "true";
       
       const { error } = await supabase.functions.invoke('send-invoice-email', {
         body: { 
@@ -967,7 +968,8 @@ Best regards,
           selectedEmails,
           ccEmails: ccEmails.filter(email => email.trim() !== ""),
           invoiceTemplate,
-          invoiceColor
+          invoiceColor,
+          hidePdfBranding
         }
       });
 
