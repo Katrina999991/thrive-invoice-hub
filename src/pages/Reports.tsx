@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { applyWorksheetFormatting, formatReportWorksheet, createFormattedSheet } from "@/lib/excelUtils";
 import html2canvas from "html2canvas";
 import { getReportTranslation, getStatusLabel } from "@/lib/reportTranslations";
 import { generateSalesReportPdf } from "@/lib/salesReportPdf";
@@ -799,9 +800,10 @@ const Reports = () => {
     ];
     
     const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
+    formatReportWorksheet(summaryWs, summaryRows.length);
     XLSX.utils.book_append_sheet(wb, summaryWs, language === 'fr' ? 'Résumé' : 'Summary');
     
-    // Client details sheet
+    // Client details sheet with formatting
     const clientHeaders = [
       language === 'fr' ? 'Client' : 'Client',
       language === 'fr' ? 'Facturé' : 'Invoiced',
@@ -818,7 +820,7 @@ const Reports = () => {
       client.percentageOfTotal.toFixed(1) + '%'
     ]);
     
-    const clientWs = XLSX.utils.aoa_to_sheet([clientHeaders, ...clientRows]);
+    const clientWs = createFormattedSheet(clientHeaders, clientRows);
     XLSX.utils.book_append_sheet(wb, clientWs, language === 'fr' ? 'Clients' : 'Clients');
     
     // Generate filename and save
@@ -988,9 +990,10 @@ const Reports = () => {
     ];
     
     const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
+    formatReportWorksheet(summaryWs, summaryRows.length);
     XLSX.utils.book_append_sheet(wb, summaryWs, language === 'fr' ? 'Résumé' : 'Summary');
     
-    // Product details sheet
+    // Product details sheet with formatting
     const productHeaders = [
       language === 'fr' ? 'Produit/Service' : 'Product/Service',
       language === 'fr' ? 'Qté Vendue' : 'Qty Sold',
@@ -1007,7 +1010,7 @@ const Reports = () => {
       product.percentageOfTotal.toFixed(1) + '%'
     ]);
     
-    const productWs = XLSX.utils.aoa_to_sheet([productHeaders, ...productRows]);
+    const productWs = createFormattedSheet(productHeaders, productRows);
     XLSX.utils.book_append_sheet(wb, productWs, language === 'fr' ? 'Produits' : 'Products');
     
     // Generate filename and save
@@ -1385,6 +1388,7 @@ const Reports = () => {
       ...summaryData
     ].filter(row => row.length > 0));
     
+    applyWorksheetFormatting(summaryWs, { headerRowIndex: 15 });
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
@@ -1724,6 +1728,7 @@ const Reports = () => {
       ...summaryData
     ].filter(row => row.length > 0));
     
+    applyWorksheetFormatting(summaryWs, { headerRowIndex: 10 });
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
     
     // Generate filename and save
@@ -2056,6 +2061,7 @@ const Reports = () => {
       ...summaryData
     ].filter(row => row.length > 0));
     
+    applyWorksheetFormatting(summaryWs, { headerRowIndex: 10 });
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
     
     // Generate filename and save
@@ -2493,6 +2499,7 @@ const Reports = () => {
       ...breakdownData
     ].filter(row => row.length > 0));
     
+    applyWorksheetFormatting(summaryWs, { headerRowIndex: 13 });
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
     
     // Generate filename and save
@@ -2611,30 +2618,27 @@ const Reports = () => {
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    applyWorksheetFormatting(summaryWS, { skipAutoFilter: true });
     XLSX.utils.book_append_sheet(wb, summaryWS, language === 'fr' ? 'Résumé' : 'Summary');
     
-    // Stock value details sheet
+    // Stock value details sheet with formatting
     const headers = language === 'fr' 
       ? ['Produit', 'SKU', 'Catégorie', 'Quantité', 'Coût unitaire', 'Valeur totale']
       : ['Product', 'SKU', 'Category', 'Quantity', 'Unit Cost', 'Total Value'];
     
-    const detailsData = [
-      headers,
-      ...stockedProducts
-        .sort((a, b) => ((b.quantity || 0) * (b.cost || 0)) - ((a.quantity || 0) * (a.cost || 0)))
-        .map(product => [
-          product.name,
-          product.sku || '-',
-          product.category || '-',
-          product.quantity || 0,
-          product.cost || 0,
-          (product.quantity || 0) * (product.cost || 0)
-        ]),
-      // Totals row
-      [language === 'fr' ? 'TOTAL' : 'TOTAL', '', '', totalQuantity, '', totalValue]
-    ];
+    const detailsRows = stockedProducts
+      .sort((a, b) => ((b.quantity || 0) * (b.cost || 0)) - ((a.quantity || 0) * (a.cost || 0)))
+      .map(product => [
+        product.name,
+        product.sku || '-',
+        product.category || '-',
+        product.quantity || 0,
+        product.cost || 0,
+        (product.quantity || 0) * (product.cost || 0)
+      ]);
     
-    const detailsWS = XLSX.utils.aoa_to_sheet(detailsData);
+    const totalRowData = [language === 'fr' ? 'TOTAL' : 'TOTAL', '', '', totalQuantity, '', totalValue];
+    const detailsWS = createFormattedSheet(headers, detailsRows, totalRowData);
     XLSX.utils.book_append_sheet(wb, detailsWS, language === 'fr' ? 'Détails' : 'Details');
     
     const filename = language === 'fr' 
@@ -2684,31 +2688,30 @@ const Reports = () => {
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    applyWorksheetFormatting(summaryWS, { skipAutoFilter: true });
     XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
     
-    // Products detail sheet
-    const productsData = [
-      ['Name', 'SKU', 'Category', 'Quantity', 'Cost', 'Price', 'Margin (%)', 'Stock Value', 'Status'],
-      ...productsToExport.map(product => {
-        const margin = product.price && product.cost ? 
-          ((product.price - product.cost) / product.price * 100).toFixed(1) : '0.0';
-        const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
-        
-        return [
-          product.name,
-          product.sku || '-',
-          product.category || '-',
-          product.quantity || 0,
-          product.cost || 0,
-          product.price || 0,
-          parseFloat(margin),
-          parseFloat(stockValue),
-          product.is_active ? 'Active' : 'Inactive'
-        ];
-      })
-    ];
+    // Products detail sheet with formatting
+    const productHeaders = ['Name', 'SKU', 'Category', 'Quantity', 'Cost', 'Price', 'Margin (%)', 'Stock Value', 'Status'];
+    const productRows = productsToExport.map(product => {
+      const margin = product.price && product.cost ? 
+        ((product.price - product.cost) / product.price * 100).toFixed(1) : '0.0';
+      const stockValue = ((product.quantity || 0) * (product.cost || 0)).toFixed(2);
+      
+      return [
+        product.name,
+        product.sku || '-',
+        product.category || '-',
+        product.quantity || 0,
+        product.cost || 0,
+        product.price || 0,
+        parseFloat(margin),
+        parseFloat(stockValue),
+        product.is_active ? 'Active' : 'Inactive'
+      ];
+    });
     
-    const productsWS = XLSX.utils.aoa_to_sheet(productsData);
+    const productsWS = createFormattedSheet(productHeaders, productRows);
     XLSX.utils.book_append_sheet(wb, productsWS, 'Product Details');
     
     const filename = `${getReportTranslation('inventoryReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
@@ -2736,35 +2739,32 @@ const Reports = () => {
     ];
     
     const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+    applyWorksheetFormatting(summaryWS, { skipAutoFilter: true });
     XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
     
-    // Revenue by period sheet
-    const revenueData = [
-      ['Period', 'Revenue', 'Number of Invoices', 'Average Revenue per Invoice'],
-      ...chartData.map(item => [
-        item.period,
-        item.revenue,
-        item.invoiceCount,
-        item.revenue / item.invoiceCount
-      ])
-    ];
+    // Revenue by period sheet with formatting
+    const periodHeaders = ['Period', 'Revenue', 'Number of Invoices', 'Average Revenue per Invoice'];
+    const periodRows = chartData.map(item => [
+      item.period,
+      item.revenue,
+      item.invoiceCount,
+      item.invoiceCount > 0 ? item.revenue / item.invoiceCount : 0
+    ]);
     
-    const revenueWS = XLSX.utils.aoa_to_sheet(revenueData);
+    const revenueWS = createFormattedSheet(periodHeaders, periodRows);
     XLSX.utils.book_append_sheet(wb, revenueWS, 'Revenue by Period');
     
-    // Invoices sheet
+    // Invoices sheet with formatting
     if (filteredInvoices.length > 0) {
-      const invoicesData = [
-        ['Invoice Number', 'Client', 'Issue Date', 'Total Amount'],
-        ...filteredInvoices.map(invoice => [
-          invoice.invoice_number,
-          (invoice as any).clients?.name || 'N/A',
-          format(new Date(invoice.issue_date), 'MMM dd, yyyy'),
-          Number(invoice.total)
-        ])
-      ];
+      const invoiceHeaders = ['Invoice Number', 'Client', 'Issue Date', 'Total Amount'];
+      const invoiceRows = filteredInvoices.map(invoice => [
+        invoice.invoice_number,
+        (invoice as any).clients?.name || 'N/A',
+        format(new Date(invoice.issue_date), 'MMM dd, yyyy'),
+        Number(invoice.total)
+      ]);
       
-      const invoicesWS = XLSX.utils.aoa_to_sheet(invoicesData);
+      const invoicesWS = createFormattedSheet(invoiceHeaders, invoiceRows);
       XLSX.utils.book_append_sheet(wb, invoicesWS, 'Invoices');
     }
     
