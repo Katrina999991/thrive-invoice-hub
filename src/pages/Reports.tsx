@@ -1527,101 +1527,270 @@ const Reports = () => {
   };
 
   // Export functions for Taxes Paid on Expenses - Only expense taxes
-  const exportTaxesPaidToPDF = () => {
+  const exportTaxesPaidToPDF = async () => {
     if (!taxData || taxData.totalExpenseTaxAmount === 0) return;
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const dateLocale = language === 'fr' ? fr : enUS;
+    const margin = 20;
     
-    // Title
-    doc.setFontSize(20);
-    doc.text(getReportTranslation('taxesPaidExpenses', language), pageWidth / 2, 20, { align: 'center' });
+    // Get company name for header
+    const companyName = taxSelectedCompany && taxSelectedCompany !== 'all' 
+      ? companies.find(c => c.id === taxSelectedCompany)?.name 
+      : (language === 'fr' ? 'Toutes les entreprises' : 'All Companies');
     
-    // Date generated
-    doc.setFontSize(12);
-    doc.text(`${getReportTranslation('generatedOn', language)}: ${format(new Date(), 'dd/MM/yyyy', { locale: dateLocale })}`, pageWidth / 2, 30, { align: 'center' });
-    
-    // Company filter
-    let yOffset = 40;
-    if (taxSelectedCompany && taxSelectedCompany !== 'all') {
-      const companyName = companies.find(c => c.id === taxSelectedCompany)?.name;
-      doc.text(`${getReportTranslation('company', language)}: ${companyName}`, pageWidth / 2, yOffset, { align: 'center' });
-      yOffset += 10;
+    // Fetch expense details for the detail table
+    let expenseDetails: any[] = [];
+    try {
+      let query = supabase
+        .from('expenses')
+        .select(`
+          id,
+          description,
+          expense_date,
+          amount,
+          category,
+          vendor,
+          status,
+          taxes,
+          company_id,
+          companies (
+            name
+          )
+        `)
+        .eq('user_id', user?.id || '')
+        .eq('status', 'paid')
+        .neq('taxes', '[]');
+
+      if (taxEffectiveStart) {
+        query = query.gte('expense_date', taxEffectiveStart.toISOString().split('T')[0]);
+      }
+      if (taxEffectiveEnd) {
+        query = query.lte('expense_date', taxEffectiveEnd.toISOString().split('T')[0]);
+      }
+      if (taxSelectedCompany && taxSelectedCompany !== 'all') {
+        query = query.eq('company_id', taxSelectedCompany);
+      }
+
+      const { data } = await query.order('expense_date', { ascending: false });
+      expenseDetails = data || [];
+    } catch (err) {
+      console.error('Error fetching expense details for PDF:', err);
     }
+
+    // Calculate total expense amount (before taxes)
+    const totalExpenseAmount = expenseDetails.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+    
+    // ========== HEADER ==========
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(language === 'fr' ? 'Taxes payees sur les depenses' : 'Taxes Paid on Expenses', pageWidth / 2, 25, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(companyName || '', pageWidth / 2, 35, { align: 'center' });
     
     // Date range
+    let yOffset = 45;
     if (taxEffectiveStart && taxEffectiveEnd) {
-      doc.text(`${getReportTranslation('period', language)}: ${format(taxEffectiveStart, 'dd/MM/yyyy')} - ${format(taxEffectiveEnd, 'dd/MM/yyyy')}`, pageWidth / 2, yOffset, { align: 'center' });
-      yOffset += 15;
-    } else {
-      yOffset += 5;
+      doc.setFontSize(10);
+      doc.text(
+        `${language === 'fr' ? 'Periode' : 'Period'}: ${format(taxEffectiveStart, 'dd MMMM yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd MMMM yyyy', { locale: dateLocale })}`,
+        pageWidth / 2,
+        yOffset,
+        { align: 'center' }
+      );
+      yOffset += 8;
     }
     
-    // Summary section
-    doc.setFontSize(14);
-    doc.text(getReportTranslation('taxSummary', language), 20, yOffset + 10);
-    
-    doc.setFontSize(11);
-    yOffset += 22;
-    doc.text(`${getReportTranslation('totalTaxPaid', language)}: ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}`, 20, yOffset);
-    
+    // Generated date
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
-    yOffset += 6;
-    doc.text(getReportTranslation('taxesPaidExpensesDesc', language), 20, yOffset);
+    doc.text(
+      `${language === 'fr' ? 'Genere le' : 'Generated on'}: ${format(new Date(), 'dd MMMM yyyy, HH:mm', { locale: dateLocale })}`,
+      pageWidth / 2,
+      yOffset,
+      { align: 'center' }
+    );
     doc.setTextColor(0, 0, 0);
     
     yOffset += 15;
     
-    // Tax breakdown table by type (only expense taxes)
+    // ========== SUMMARY SECTION ==========
+    doc.setFillColor(255, 247, 237); // Light orange background
+    doc.roundedRect(margin, yOffset, pageWidth - (margin * 2), 45, 3, 3, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(language === 'fr' ? 'Resume' : 'Summary', margin + 5, yOffset + 10);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    // Total expenses
+    doc.text(
+      `${language === 'fr' ? 'Total des depenses' : 'Total Expenses'}:`,
+      margin + 5,
+      yOffset + 22
+    );
+    doc.setFont('helvetica', 'bold');
+    doc.text(
+      totalExpenseAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+      margin + 70,
+      yOffset + 22
+    );
+    
+    // Total tax credits
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      `${language === 'fr' ? 'Total credits de taxes' : 'Total Tax Credits'}:`,
+      margin + 5,
+      yOffset + 32
+    );
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(249, 115, 22); // Orange
+    doc.text(
+      taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+      margin + 70,
+      yOffset + 32
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    // Number of expenses
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      `${language === 'fr' ? 'Nombre de depenses' : 'Number of Expenses'}: ${expenseDetails.length}`,
+      margin + 5,
+      yOffset + 42
+    );
+    
+    yOffset += 55;
+    
+    // ========== BREAKDOWN BY TAX TYPE ==========
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(language === 'fr' ? 'Repartition par type de taxe' : 'Breakdown by Tax Type', margin, yOffset);
+    yOffset += 8;
+    
     if (taxData.taxSummary.length > 0) {
-      const taxSummaryData = taxData.taxSummary
+      const taxBreakdownData = taxData.taxSummary
         .filter(tax => tax.expenseAmount > 0)
         .map(tax => [
           tax.name,
           (tax.expenseCount || 0).toString(),
-          tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })
+          tax.expenseAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })
         ]);
+      
+      // Add total row
+      taxBreakdownData.push([
+        language === 'fr' ? 'TOTAL' : 'TOTAL',
+        expenseDetails.length.toString(),
+        taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })
+      ]);
       
       autoTable(doc, {
         head: [[
-          getReportTranslation('taxType', language), 
-          getReportTranslation('numberOfExpenses', language),
-          getReportTranslation('taxPaid', language)
+          language === 'fr' ? 'Type de taxe' : 'Tax Type',
+          language === 'fr' ? 'Depenses' : 'Expenses',
+          language === 'fr' ? 'Credit de taxe' : 'Tax Credit'
         ]],
-        body: taxSummaryData,
+        body: taxBreakdownData,
         startY: yOffset,
         theme: 'striped',
-        headStyles: { fillColor: [249, 115, 22] }, // Orange for expenses
-        styles: { fontSize: 9 }
+        headStyles: { fillColor: [249, 115, 22], fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 4 },
+        didParseCell: (data) => {
+          if (data.row.index === taxBreakdownData.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [255, 237, 213];
+          }
+        }
+      });
+      
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+    
+    // ========== EXPENSE DETAILS TABLE ==========
+    if (expenseDetails.length > 0) {
+      // Check if we need a new page
+      if (yOffset > pageHeight - 80) {
+        doc.addPage();
+        yOffset = 25;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(language === 'fr' ? 'Details des depenses' : 'Expense Details', margin, yOffset);
+      yOffset += 8;
+      
+      const expenseTableData = expenseDetails.map(exp => {
+        // Get tax info from expense taxes array
+        const expenseTaxes = (exp.taxes as any[]) || [];
+        const totalTaxAmount = expenseTaxes.reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0);
+        const taxTypes = expenseTaxes.map((t: any) => t.name).join(', ') || '-';
+        
+        // Get translated category name
+        const translatedCategory = getTranslatedCategoryName(exp.category);
+        
+        return [
+          format(new Date(exp.expense_date), 'dd/MM/yyyy'),
+          exp.vendor || '-',
+          translatedCategory,
+          Number(exp.amount || 0).toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+          totalTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+          taxTypes,
+          exp.status === 'paid' ? (language === 'fr' ? 'Paye' : 'Paid') : (language === 'fr' ? 'Non paye' : 'Unpaid')
+        ];
+      });
+      
+      autoTable(doc, {
+        head: [[
+          language === 'fr' ? 'Date' : 'Date',
+          language === 'fr' ? 'Fournisseur' : 'Vendor',
+          language === 'fr' ? 'Categorie' : 'Category',
+          language === 'fr' ? 'Montant' : 'Amount',
+          language === 'fr' ? 'Taxes' : 'Taxes',
+          language === 'fr' ? 'Type' : 'Type',
+          language === 'fr' ? 'Statut' : 'Status'
+        ]],
+        body: expenseTableData,
+        startY: yOffset,
+        theme: 'striped',
+        headStyles: { fillColor: [100, 116, 139], fontStyle: 'bold', fontSize: 8 },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 20 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 25, halign: 'right' },
+          4: { cellWidth: 22, halign: 'right' },
+          5: { cellWidth: 25 },
+          6: { cellWidth: 18 }
+        }
       });
     }
     
-    // Add page numbers
+    // ========== FOOTER ==========
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
+      
+      // Page number (right side)
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
       doc.text(
-        `${language === 'fr' ? 'Page' : 'Page'} ${i} / ${pageCount}`,
-        pageWidth - 20,
+        `Page ${i} / ${pageCount}`,
+        pageWidth - margin,
         pageHeight - 10,
         { align: 'right' }
       );
-    }
-    
-    // Add GestionFlow branding footer if not hidden
-    if (!hidePdfBranding) {
-      const totalPages = doc.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
+      
+      // Branding (center) - only if not hidden
+      if (!hidePdfBranding) {
         doc.text(
-          language === 'fr' ? 'Généré avec GestionFlow' : 'Generated with GestionFlow',
+          language === 'fr' ? 'Genere avec GestionFlow' : 'Generated with GestionFlow',
           pageWidth / 2,
           pageHeight - 10,
           { align: 'center' }
@@ -1633,9 +1802,9 @@ const Reports = () => {
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
       ? `-${companies.find(c => c.id === taxSelectedCompany)?.name?.replace(/\s+/g, '-')}`
       : '';
-    const filename = `${getReportTranslation('taxesPaidExpensesFile', language)}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const filename = `${language === 'fr' ? 'Taxes-Payees-Depenses' : 'Taxes-Paid-Expenses'}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(filename);
-    logExport('taxes_paid_expenses', 'pdf', language === 'fr' ? 'Téléchargement PDF rapport taxes dépenses' : 'Taxes paid on expenses PDF download');
+    logExport('taxes_paid_expenses', 'pdf', language === 'fr' ? 'Telechargement PDF rapport taxes depenses' : 'Taxes paid on expenses PDF download');
   };
 
   const exportTaxesPaidToExcel = () => {
