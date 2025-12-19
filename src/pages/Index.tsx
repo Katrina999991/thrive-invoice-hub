@@ -326,7 +326,9 @@ const Index = () => {
           software: "Logiciel",
           pricing: "Tarifs",
           company: "Entreprise",
-          contact: "Contact"
+          contact: "Contact",
+          privacy: "Politique de confidentialité",
+          terms: "Conditions d'utilisation"
         },
         copyright: "© 2024 GestionFlow. Tous droits réservés."
       }
@@ -569,7 +571,9 @@ const Index = () => {
           software: "Software",
           pricing: "Pricing",
           company: "Company",
-          contact: "Contact"
+          contact: "Contact",
+          privacy: "Privacy Policy",
+          terms: "Terms of Service"
         },
         copyright: "© 2024 GestionFlow. All rights reserved."
       }
@@ -1143,6 +1147,22 @@ const Index = () => {
                   >
                     {t.footer.links.contact}
                   </a>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => navigate('/privacy')}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t.footer.links.privacy}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => navigate('/terms')}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t.footer.links.terms}
+                  </button>
                 </li>
               </ul>
             </div>
