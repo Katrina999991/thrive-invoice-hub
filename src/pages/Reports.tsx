@@ -6298,14 +6298,19 @@ const Reports = () => {
                         })}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {language === 'fr' ? '(Taxes revenus - Taxes dépenses)' : '(Revenue taxes - Expense taxes)'}
+                        {language === 'fr' 
+                          ? 'Taxes collectées sur les ventes moins les crédits de taxes sur les dépenses' 
+                          : 'Taxes collected on revenue minus tax credits from expenses'}
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                       <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">
-                          {language === 'fr' ? 'Taxes des revenus' : 'Revenue Taxes'}
+                          {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {language === 'fr' ? 'Collectées sur les factures payées' : 'Collected from paid invoices'}
                         </p>
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { 
@@ -6316,7 +6321,10 @@ const Reports = () => {
                       </div>
                       <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">
-                          {language === 'fr' ? 'Taxes des dépenses' : 'Expense Taxes'}
+                          {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {language === 'fr' ? 'Crédits de taxes sur les dépenses' : 'Tax credits from expenses'}
                         </p>
                         <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                           {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { 
@@ -6334,9 +6342,9 @@ const Reports = () => {
                           <div key={index} className="p-4 bg-muted/50 rounded-lg">
                             <div className="flex justify-between items-start mb-3">
                               <span className="font-medium text-base">{tax.name}</span>
-                              <div className="text-right">
+                            <div className="text-right">
                                 <div className="text-sm text-muted-foreground mb-1">
-                                  {language === 'fr' ? 'Net à remettre' : 'Net Payable'}
+                                  {language === 'fr' ? 'Montant dû' : 'Amount Owed'}
                                 </div>
                                 <span className="text-xl font-semibold">
                                   {tax.netAmount.toLocaleString('fr-FR', { 
@@ -6349,7 +6357,7 @@ const Reports = () => {
                             <div className="grid grid-cols-2 gap-3 text-sm">
                               <div className="flex flex-col p-2 bg-green-50 dark:bg-green-950/30 rounded">
                                 <span className="text-muted-foreground mb-1">
-                                  {language === 'fr' ? 'Revenus' : 'Revenue'}
+                                  {language === 'fr' ? 'Collectées' : 'Collected'}
                                 </span>
                                 <span className="font-semibold text-green-600 dark:text-green-400">
                                   {tax.invoiceAmount.toLocaleString('fr-FR', { 
@@ -6363,7 +6371,7 @@ const Reports = () => {
                               </div>
                               <div className="flex flex-col p-2 bg-orange-50 dark:bg-orange-950/30 rounded">
                                 <span className="text-muted-foreground mb-1">
-                                  {language === 'fr' ? 'Dépenses' : 'Expenses'}
+                                  {language === 'fr' ? 'Crédits' : 'Credits'}
                                 </span>
                                 <span className="font-semibold text-orange-600 dark:text-orange-400">
                                   {tax.expenseAmount.toLocaleString('fr-FR', { 
@@ -6411,9 +6419,9 @@ const Reports = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t("reports.taxes.taxType")}</TableHead>
-                        <TableHead className="text-right">{language === 'fr' ? 'Taxes revenus' : 'Revenue Taxes'}</TableHead>
-                        <TableHead className="text-right">{language === 'fr' ? 'Taxes dépenses' : 'Expense Taxes'}</TableHead>
-                        <TableHead className="text-right">{language === 'fr' ? 'Net à remettre' : 'Net Payable'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}</TableHead>
+                        <TableHead className="text-right">{language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
