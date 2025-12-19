@@ -4857,7 +4857,8 @@ const Reports = () => {
   const filteredInvoicesByStatus = useMemo(() => {
     if (!invoices) return [];
     
-    let filtered = invoices;
+    // Exclure les factures archivées
+    let filtered = invoices.filter(inv => !inv.is_archived);
     
     // Filtrer par statut
     if (!invoiceStatusFilters.includes('all')) {
