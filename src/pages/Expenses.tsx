@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -351,17 +351,92 @@ const Expenses = () => {
                 </Select>
               </div>
               
-              {/* Dynamic tax fields based on selected company */}
-              {newExpense.company_id && newExpense.taxes.length > 0 && (
-                <div className="space-y-3 p-4 border rounded-md bg-muted/50">
-                  <Label className="text-sm font-semibold">{language === "fr" ? "Taxes" : "Taxes"}</Label>
-                  {newExpense.taxes.map((tax, index) => (
-                    <div key={index} className="space-y-2">
-                      <Label htmlFor={`tax-${index}`} className="text-sm">
-                        {tax.name} ({tax.percentage}%)
+              {/* Taxes Section */}
+              <div className="space-y-3 p-4 border rounded-md bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">{language === "fr" ? "Taxes payées" : "Taxes Paid"}</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setNewExpense({
+                        ...newExpense,
+                        taxes: [...newExpense.taxes, { name: "", percentage: 0, amount: 0 }]
+                      });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    {language === "fr" ? "Ajouter taxe" : "Add Tax"}
+                  </Button>
+                </div>
+                
+                {newExpense.taxes.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {language === "fr" 
+                      ? "Aucune taxe ajoutée. Cliquez sur 'Ajouter taxe' pour inclure TPS, TVQ, etc."
+                      : "No taxes added. Click 'Add Tax' to include GST, PST, etc."}
+                  </p>
+                )}
+                
+                {newExpense.taxes.map((tax, index) => (
+                  <div key={index} className="flex items-end gap-2">
+                    <div className="flex-1 space-y-1">
+                      <Label htmlFor={`tax-name-${index}`} className="text-xs">
+                        {language === "fr" ? "Nom" : "Name"}
+                      </Label>
+                      <Select 
+                        value={tax.name} 
+                        onValueChange={(value) => {
+                          const updatedTaxes = [...newExpense.taxes];
+                          // Find the tax percentage from company taxes if available
+                          const selectedCompany = companies.find(c => c.id === newExpense.company_id);
+                          const companyTaxes = (selectedCompany?.taxes as any[]) || [];
+                          const matchingTax = companyTaxes.find(t => t.name === value);
+                          updatedTaxes[index] = {
+                            ...updatedTaxes[index],
+                            name: value,
+                            percentage: matchingTax?.percentage || updatedTaxes[index].percentage
+                          };
+                          setNewExpense({...newExpense, taxes: updatedTaxes});
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={language === "fr" ? "Sélectionner" : "Select"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TPS">TPS (GST)</SelectItem>
+                          <SelectItem value="TVQ">TVQ (QST)</SelectItem>
+                          <SelectItem value="TVH">TVH (HST)</SelectItem>
+                          <SelectItem value="TVP">TVP (PST)</SelectItem>
+                          <SelectItem value="other">{language === "fr" ? "Autre" : "Other"}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="w-20 space-y-1">
+                      <Label htmlFor={`tax-rate-${index}`} className="text-xs">%</Label>
+                      <Input
+                        id={`tax-rate-${index}`}
+                        type="number"
+                        step="0.01"
+                        placeholder="5"
+                        value={tax.percentage || ""}
+                        onChange={(e) => {
+                          const updatedTaxes = [...newExpense.taxes];
+                          updatedTaxes[index] = {
+                            ...updatedTaxes[index],
+                            percentage: parseFloat(e.target.value) || 0
+                          };
+                          setNewExpense({...newExpense, taxes: updatedTaxes});
+                        }}
+                      />
+                    </div>
+                    <div className="w-24 space-y-1">
+                      <Label htmlFor={`tax-amount-${index}`} className="text-xs">
+                        {language === "fr" ? "Montant" : "Amount"}
                       </Label>
                       <Input
-                        id={`tax-${index}`}
+                        id={`tax-amount-${index}`}
                         type="number"
                         step="0.01"
                         placeholder="0.00"
@@ -376,9 +451,30 @@ const Expenses = () => {
                         }}
                       />
                     </div>
-                  ))}
-                </div>
-              )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        const updatedTaxes = newExpense.taxes.filter((_, i) => i !== index);
+                        setNewExpense({...newExpense, taxes: updatedTaxes});
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                
+                {newExpense.taxes.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>{language === "fr" ? "Total taxes" : "Total Taxes"}</span>
+                      <span>${newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="vendor">{t("expenses.vendor")}</Label>
                 <Input
@@ -476,7 +572,15 @@ const Expenses = () => {
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                  <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
+                  <div className="text-right">
+                    <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
+                    {((expense as any).taxes as any[] || []).length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {language === "fr" ? "Taxes: " : "Taxes: "}
+                        ${((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0).toFixed(2)}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1">
                     <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
                       <SelectTrigger className="w-24 h-8">
