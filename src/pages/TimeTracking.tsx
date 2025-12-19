@@ -821,8 +821,8 @@ export default function TimeTracking() {
           {!activeTimer && (
             <Button variant="outline" onClick={handleOpenStartTimerDialog} className="flex-1 sm:flex-none">
               <Play className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">{language === "fr" ? "Démarrer le pointage" : "Start Timer"}</span>
-              <span className="sm:hidden">{language === "fr" ? "Pointage" : "Timer"}</span>
+              <span className="hidden sm:inline">{language === "fr" ? "Lancer le chronomètre" : "Start Timer"}</span>
+              <span className="sm:hidden">{language === "fr" ? "Chrono" : "Timer"}</span>
             </Button>
           )}
           <Button onClick={handleOpenDialog} className="flex-1 sm:flex-none">
@@ -1427,7 +1427,7 @@ export default function TimeTracking() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {language === "fr" ? "Démarrer le pointage" : "Start Timer"}
+              {language === "fr" ? "Lancer le chronomètre" : "Start Timer"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
