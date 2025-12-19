@@ -10,7 +10,7 @@ type Expense = Tables<"expenses">;
 type ExpenseInsert = TablesInsert<"expenses">;
 type ExpenseUpdate = TablesUpdate<"expenses">;
 
-export const useExpenses = () => {
+export const useExpenses = (showArchived: boolean = false) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, username } = useAuth();
@@ -30,7 +30,7 @@ export const useExpenses = () => {
           )
         `)
         .eq("user_id", user.id)
-        .eq("is_archived", false)
+        .eq("is_archived", showArchived)
         .order("expense_date", { ascending: false });
 
       if (error) throw error;
@@ -206,7 +206,7 @@ export const useExpenses = () => {
 
   useEffect(() => {
     fetchExpenses();
-  }, [user]);
+  }, [user, showArchived]);
 
   return {
     expenses,
