@@ -569,6 +569,7 @@ const Expenses = () => {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
+                    {(expense as any).companies?.name && ` • ${(expense as any).companies.name}`}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
