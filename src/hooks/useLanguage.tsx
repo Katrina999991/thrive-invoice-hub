@@ -860,6 +860,12 @@ const translations = {
     "auth.passwordsDoNotMatch": "Passwords do not match",
     "auth.passwordTooShort": "Password must be at least 6 characters long",
     "auth.cancel": "Cancel",
+    
+    // PWA Install Banner
+    "pwa.install.title": "Install GestionFlow",
+    "pwa.install.description": "Add to your desktop for quick access and offline use.",
+    "pwa.install.button": "Install",
+    "pwa.install.later": "Not now",
   },
   fr: {
     reports: "Rapports",
@@ -1711,6 +1717,12 @@ const translations = {
     "auth.passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
     "auth.passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
     "auth.cancel": "Annuler",
+    
+    // PWA Install Banner
+    "pwa.install.title": "Installer GestionFlow",
+    "pwa.install.description": "Ajoutez à votre bureau pour un accès rapide et une utilisation hors ligne.",
+    "pwa.install.button": "Installer",
+    "pwa.install.later": "Plus tard",
   }
 };
 

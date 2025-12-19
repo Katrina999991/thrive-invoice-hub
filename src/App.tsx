@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import PasswordChangeDialog from "@/components/PasswordChangeDialog";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -49,6 +50,7 @@ const App = () => {
           <LanguageProvider>
             <AuthProvider>
               <PasswordChangeDialog />
+              <PWAInstallBanner />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/software" element={<Software />} />
