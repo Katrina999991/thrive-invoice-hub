@@ -93,6 +93,17 @@ export const EmailReportDialog = ({
       reader.readAsDataURL(pdf);
       const pdfBase64 = await base64Promise;
 
+      // Validate that user has an email
+      if (!user?.email) {
+        toast.error(
+          language === 'fr' 
+            ? "Impossible d'envoyer le courriel : votre compte n'a pas d'adresse courriel valide."
+            : "Cannot send email: your account does not have a valid email address."
+        );
+        setSending(false);
+        return;
+      }
+
       // Send email via edge function
       const { data, error } = await supabase.functions.invoke("send-report-email", {
         body: {
@@ -102,6 +113,8 @@ export const EmailReportDialog = ({
           message: message || undefined,
           pdfBase64,
           language,
+          senderEmail: user.email,
+          senderName: username || user.email?.split('@')[0] || undefined,
         },
       });
 

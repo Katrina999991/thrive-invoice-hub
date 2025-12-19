@@ -142,9 +142,34 @@ const handler = async (req: Request): Promise<Response> => {
     
     const { quoteId, customSubject, customMessage, selectedEmails, ccEmails, hideBranding } = validationResult.data;
 
+    // Get authorization header to identify the user
+    const authHeader = req.headers.get('Authorization');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Get user info for Reply-To and display name
+    let userEmail: string | null = null;
+    let userName: string | null = null;
+    
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      
+      if (!userError && user) {
+        userEmail = user.email || null;
+        
+        // Try to get display name from profiles
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name, username')
+          .eq('user_id', user.id)
+          .single();
+        
+        userName = profile?.display_name || profile?.username || null;
+      }
+    }
 
     // Fetch quote with related data
     const { data: quote, error: quoteError } = await supabase
@@ -541,8 +566,24 @@ const handler = async (req: Request): Promise<Response> => {
     const pdfOutput = doc.output('arraybuffer');
     const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfOutput)));
 
-    // Send email with Resend
-    const fromEmail = Deno.env.get("RESEND_FROM") || "GestionFlow <onboarding@resend.dev>";
+    // Validate user email before sending
+    if (!userEmail) {
+      console.error('No user email found - cannot send email');
+      return new Response(
+        JSON.stringify({ error: isFrench 
+          ? "Impossible d'envoyer le courriel : votre compte n'a pas d'adresse courriel valide."
+          : "Cannot send email: your account does not have a valid email address." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    // Build the from address with user name
+    const baseFromEmail = Deno.env.get("RESEND_FROM") || "GestionFlow <noreply@gestionflow.net>";
+    const fromDomain = baseFromEmail.match(/<(.+)>/)?.[1] || 'noreply@gestionflow.net';
+    const displayName = userName 
+      ? `${userName} via GestionFlow`
+      : `${company.name} via GestionFlow`;
+    const fromAddress = `${displayName} <${fromDomain}>`;
     
     // Always add a response button at the end of the email
     const responseButtonText = isFrench ? 'Répondre au devis' : 'Respond to Quote';
@@ -558,7 +599,8 @@ const handler = async (req: Request): Promise<Response> => {
     `;
     
     const emailPayload: any = {
-      from: fromEmail,
+      from: fromAddress,
+      replyTo: userEmail,
       to: emailsToSend,
       subject: emailSubject,
       html: `
