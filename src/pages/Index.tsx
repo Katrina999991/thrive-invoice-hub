@@ -1103,9 +1103,9 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-muted border-t border-border py-12" role="contentinfo">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="flex flex-col md:flex-row gap-8 mb-8">
             {/* Logo & Description */}
-            <div className="md:col-span-2">
+            <div className="md:flex-shrink-0">
               <img 
                 src={currentLogo} 
                 alt="GestionFlow" 
@@ -1117,73 +1117,76 @@ const Index = () => {
               </p>
             </div>
             
-            {/* Product Links */}
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">{t.footer.links.product}</h4>
-              <ul className="space-y-2">
-                <li>
-                  <button 
-                    onClick={() => navigate('/software')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t.footer.links.software}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => navigate('/pricing')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t.footer.links.pricing}
-                  </button>
-                </li>
-              </ul>
-            </div>
-            
-            {/* Company Links */}
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">{t.footer.links.company}</h4>
-              <ul className="space-y-2">
-                <li>
-                  <button 
-                    onClick={() => navigate('/about')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t.footer.links.about}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => navigate('/contact')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t.footer.links.contact}
-                  </button>
-                </li>
-              </ul>
-            </div>
+            {/* Links Columns */}
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-8">
+              {/* Product Links */}
+              <div>
+                <h4 className="font-semibold text-foreground mb-4">{t.footer.links.product}</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button 
+                      onClick={() => navigate('/software')}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t.footer.links.software}
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigate('/pricing')}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t.footer.links.pricing}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              
+              {/* Company Links */}
+              <div>
+                <h4 className="font-semibold text-foreground mb-4">{t.footer.links.company}</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button 
+                      onClick={() => navigate('/about')}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t.footer.links.about}
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigate('/contact')}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t.footer.links.contact}
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Legal Links */}
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">{t.footer.links.legal}</h4>
-              <ul className="space-y-2">
-                <li>
-                  <button 
-                    onClick={() => navigate('/privacy')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t.footer.links.privacy}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => navigate('/terms')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t.footer.links.terms}
-                  </button>
-                </li>
-              </ul>
+              {/* Legal Links */}
+              <div>
+                <h4 className="font-semibold text-foreground mb-4">{t.footer.links.legal}</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button 
+                      onClick={() => navigate('/privacy')}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t.footer.links.privacy}
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigate('/terms')}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t.footer.links.terms}
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
           
