@@ -29,6 +29,12 @@ import timeTrackingPreviewEn from "@/assets/time-tracking-preview-en.jpg";
 import timeTrackingPreviewFr from "@/assets/time-tracking-preview-fr.jpg";
 import reportsPreviewEn from "@/assets/reports-preview-en.jpg";
 import reportsPreviewFr from "@/assets/reports-preview-fr.jpg";
+import settingsPreview1En from "@/assets/settings-preview-1-en.jpg";
+import settingsPreview1Fr from "@/assets/settings-preview-1-fr.jpg";
+import settingsPreview2En from "@/assets/settings-preview-2-en.jpg";
+import settingsPreview2Fr from "@/assets/settings-preview-2-fr.jpg";
+import settingsPreview3En from "@/assets/settings-preview-3-en.jpg";
+import settingsPreview3Fr from "@/assets/settings-preview-3-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -477,6 +483,18 @@ const Software = () => {
     { 
       src: language === 'fr' ? reportsPreviewFr : reportsPreviewEn, 
       alt: language === 'fr' ? "Rapports" : "Reports" 
+    },
+    { 
+      src: language === 'fr' ? settingsPreview1Fr : settingsPreview1En, 
+      alt: language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance" 
+    },
+    { 
+      src: language === 'fr' ? settingsPreview2Fr : settingsPreview2En, 
+      alt: language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview" 
+    },
+    { 
+      src: language === 'fr' ? settingsPreview3Fr : settingsPreview3En, 
+      alt: language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security" 
     }
   ];
 
@@ -656,6 +674,81 @@ const Software = () => {
                           />
                         </CardContent>
                       </Card>
+                    ) : index === 9 ? (
+                      <div className="w-full">
+                        {/* Desktop: 2-column layout */}
+                        <div className="hidden md:grid md:grid-cols-2 gap-4">
+                          {/* Left: Large primary image */}
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
+                                alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
+                                className="w-full h-full object-cover rounded-lg"
+                                onClick={() => openLightbox(9)}
+                              />
+                            </CardContent>
+                          </Card>
+                          {/* Right: 2x1 grid of smaller images */}
+                          <div className="grid grid-rows-2 gap-4">
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? settingsPreview2Fr : settingsPreview2En} 
+                                  alt={language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview"}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onClick={() => openLightbox(10)}
+                                />
+                              </CardContent>
+                            </Card>
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? settingsPreview3Fr : settingsPreview3En} 
+                                  alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onClick={() => openLightbox(11)}
+                                />
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                        {/* Mobile: Stacked layout */}
+                        <div className="md:hidden space-y-4">
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
+                                alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
+                                className="w-full h-auto rounded-lg"
+                                onClick={() => openLightbox(9)}
+                              />
+                            </CardContent>
+                          </Card>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? settingsPreview2Fr : settingsPreview2En} 
+                                  alt={language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview"}
+                                  className="w-full h-auto rounded-lg"
+                                  onClick={() => openLightbox(10)}
+                                />
+                              </CardContent>
+                            </Card>
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? settingsPreview3Fr : settingsPreview3En} 
+                                  alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
+                                  className="w-full h-auto rounded-lg"
+                                  onClick={() => openLightbox(11)}
+                                />
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
                       <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                         <CardContent className="p-12 flex items-center justify-center">
