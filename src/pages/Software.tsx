@@ -29,6 +29,10 @@ import timeTrackingPreviewEn from "@/assets/time-tracking-preview-en.jpg";
 import timeTrackingPreviewFr from "@/assets/time-tracking-preview-fr.jpg";
 import reportsPreviewEn from "@/assets/reports-preview-en.jpg";
 import reportsPreviewFr from "@/assets/reports-preview-fr.jpg";
+import reportsOverviewEn from "@/assets/reports-overview-en.jpg";
+import reportsOverviewFr from "@/assets/reports-overview-fr.jpg";
+import reportsExpensesEn from "@/assets/reports-expenses-en.jpg";
+import reportsExpensesFr from "@/assets/reports-expenses-fr.jpg";
 import settingsPreview1En from "@/assets/settings-preview-1-en.jpg";
 import settingsPreview1Fr from "@/assets/settings-preview-1-fr.jpg";
 import settingsPreview2En from "@/assets/settings-preview-2-en.jpg";
@@ -483,8 +487,16 @@ const Software = () => {
       alt: language === 'fr' ? "Suivi du temps" : "Time tracking" 
     },
     { 
+      src: language === 'fr' ? reportsOverviewFr : reportsOverviewEn, 
+      alt: language === 'fr' ? "Rapports - Aperçu" : "Reports - Overview" 
+    },
+    { 
       src: language === 'fr' ? reportsPreviewFr : reportsPreviewEn, 
-      alt: language === 'fr' ? "Rapports" : "Reports" 
+      alt: language === 'fr' ? "Rapports - Revenus" : "Reports - Revenue" 
+    },
+    { 
+      src: language === 'fr' ? reportsExpensesFr : reportsExpensesEn, 
+      alt: language === 'fr' ? "Rapports - Dépenses" : "Reports - Expenses" 
     },
     { 
       src: language === 'fr' ? settingsPreview1Fr : settingsPreview1En, 
@@ -670,16 +682,80 @@ const Software = () => {
                         </CardContent>
                       </Card>
                     ) : index === 8 ? (
-                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                        <CardContent className="p-0">
-                          <img 
-                            src={language === 'fr' ? reportsPreviewFr : reportsPreviewEn} 
-                            alt={language === 'fr' ? "Rapports" : "Reports"}
-                            className="w-full h-auto rounded-lg"
-                            onClick={() => openLightbox(8)}
-                          />
-                        </CardContent>
-                      </Card>
+                      <div className="w-full">
+                        {/* Desktop: 2-column layout with primary image on left */}
+                        <div className="hidden md:grid md:grid-cols-2 gap-4">
+                          {/* Left: Primary overview image (larger) */}
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl row-span-2">
+                            <CardContent className="p-0 h-full">
+                              <img 
+                                src={language === 'fr' ? reportsOverviewFr : reportsOverviewEn} 
+                                alt={language === 'fr' ? "Rapports - Aperçu" : "Reports - Overview"}
+                                className="w-full h-full object-cover rounded-lg"
+                                onClick={() => openLightbox(8)}
+                              />
+                            </CardContent>
+                          </Card>
+                          {/* Right: 2 smaller images stacked */}
+                          <div className="grid grid-rows-2 gap-4">
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? reportsPreviewFr : reportsPreviewEn} 
+                                  alt={language === 'fr' ? "Rapports - Revenus" : "Reports - Revenue"}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onClick={() => openLightbox(9)}
+                                />
+                              </CardContent>
+                            </Card>
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? reportsExpensesFr : reportsExpensesEn} 
+                                  alt={language === 'fr' ? "Rapports - Dépenses" : "Reports - Expenses"}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onClick={() => openLightbox(10)}
+                                />
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                        {/* Mobile: stacked layout */}
+                        <div className="md:hidden space-y-4">
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? reportsOverviewFr : reportsOverviewEn} 
+                                alt={language === 'fr' ? "Rapports - Aperçu" : "Reports - Overview"}
+                                className="w-full h-auto rounded-lg"
+                                onClick={() => openLightbox(8)}
+                              />
+                            </CardContent>
+                          </Card>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? reportsPreviewFr : reportsPreviewEn} 
+                                  alt={language === 'fr' ? "Rapports - Revenus" : "Reports - Revenue"}
+                                  className="w-full h-auto rounded-lg"
+                                  onClick={() => openLightbox(9)}
+                                />
+                              </CardContent>
+                            </Card>
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? reportsExpensesFr : reportsExpensesEn} 
+                                  alt={language === 'fr' ? "Rapports - Dépenses" : "Reports - Expenses"}
+                                  className="w-full h-auto rounded-lg"
+                                  onClick={() => openLightbox(10)}
+                                />
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                      </div>
                     ) : index === 9 ? (
                       <div className="w-full">
                         {/* Desktop: 2-column layout */}
@@ -692,7 +768,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
                                   alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(9)}
+                                  onClick={() => openLightbox(11)}
                                 />
                               </CardContent>
                             </Card>
@@ -702,7 +778,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview2Fr : settingsPreview2En} 
                                   alt={language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(10)}
+                                  onClick={() => openLightbox(12)}
                                 />
                               </CardContent>
                             </Card>
@@ -715,7 +791,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview3Fr : settingsPreview3En} 
                                   alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(11)}
+                                  onClick={() => openLightbox(13)}
                                 />
                               </CardContent>
                             </Card>
@@ -725,7 +801,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview4Fr : settingsPreview4En} 
                                   alt={language === 'fr' ? "Personnalisation avancée" : "Advanced settings"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(12)}
+                                  onClick={() => openLightbox(14)}
                                 />
                               </CardContent>
                             </Card>
@@ -739,7 +815,7 @@ const Software = () => {
                                 src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
                                 alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
                                 className="w-full h-auto rounded-lg"
-                                onClick={() => openLightbox(9)}
+                                onClick={() => openLightbox(11)}
                               />
                             </CardContent>
                           </Card>
@@ -750,7 +826,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview2Fr : settingsPreview2En} 
                                   alt={language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview"}
                                   className="w-full h-auto rounded-lg"
-                                  onClick={() => openLightbox(10)}
+                                  onClick={() => openLightbox(12)}
                                 />
                               </CardContent>
                             </Card>
@@ -760,7 +836,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview3Fr : settingsPreview3En} 
                                   alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
                                   className="w-full h-auto rounded-lg"
-                                  onClick={() => openLightbox(11)}
+                                  onClick={() => openLightbox(13)}
                                 />
                               </CardContent>
                             </Card>
@@ -771,7 +847,7 @@ const Software = () => {
                                 src={language === 'fr' ? settingsPreview4Fr : settingsPreview4En} 
                                 alt={language === 'fr' ? "Personnalisation avancée" : "Advanced settings"}
                                 className="w-full h-auto rounded-lg"
-                                onClick={() => openLightbox(12)}
+                                onClick={() => openLightbox(14)}
                               />
                             </CardContent>
                           </Card>
