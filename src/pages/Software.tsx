@@ -27,6 +27,8 @@ import expensesPreviewEn from "@/assets/expenses-preview-en.jpg";
 import expensesPreviewFr from "@/assets/expenses-preview-fr.jpg";
 import timeTrackingPreviewEn from "@/assets/time-tracking-preview-en.jpg";
 import timeTrackingPreviewFr from "@/assets/time-tracking-preview-fr.jpg";
+import reportsPreviewEn from "@/assets/reports-preview-en.jpg";
+import reportsPreviewFr from "@/assets/reports-preview-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -471,6 +473,10 @@ const Software = () => {
     { 
       src: language === 'fr' ? timeTrackingPreviewFr : timeTrackingPreviewEn, 
       alt: language === 'fr' ? "Suivi du temps" : "Time tracking" 
+    },
+    { 
+      src: language === 'fr' ? reportsPreviewFr : reportsPreviewEn, 
+      alt: language === 'fr' ? "Rapports" : "Reports" 
     }
   ];
 
@@ -636,6 +642,17 @@ const Software = () => {
                             alt={language === 'fr' ? "Suivi du temps" : "Time tracking"}
                             className="w-full h-auto rounded-lg"
                             onClick={() => openLightbox(7)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 8 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? reportsPreviewFr : reportsPreviewEn} 
+                            alt={language === 'fr' ? "Rapports" : "Reports"}
+                            className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(8)}
                           />
                         </CardContent>
                       </Card>
