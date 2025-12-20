@@ -579,7 +579,7 @@ const Clients = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <Table>
+            <Table autoWidth>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-auto">{t("clients.tableClientName")}</TableHead>
