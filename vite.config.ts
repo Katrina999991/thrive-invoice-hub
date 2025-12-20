@@ -15,8 +15,9 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.png', 'pwa-192x192.png?v=2', 'pwa-512x512.png?v=2'],
       manifest: {
+        id: 'gestionflow-v2',
         name: 'GestionFlow - Gestion d\'Entreprise',
         short_name: 'GestionFlow',
         description: 'Solution complète de gestion d\'entreprise. Factures, dépenses, clients et rapports.',
