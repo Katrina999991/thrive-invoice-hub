@@ -35,6 +35,8 @@ import reportsExpensesEn from "@/assets/reports-expenses-en.jpg";
 import reportsExpensesFr from "@/assets/reports-expenses-fr.jpg";
 import reportsStocksEn from "@/assets/reports-stocks-en.jpg";
 import reportsStocksFr from "@/assets/reports-stocks-fr.jpg";
+import invoicePdfEn from "@/assets/invoice-pdf-en.jpg";
+import invoicePdfFr from "@/assets/invoice-pdf-fr.jpg";
 import settingsPreview1En from "@/assets/settings-preview-1-en.jpg";
 import settingsPreview1Fr from "@/assets/settings-preview-1-fr.jpg";
 import settingsPreview2En from "@/assets/settings-preview-2-en.jpg";
@@ -470,7 +472,11 @@ const Software = () => {
     },
     { 
       src: language === 'fr' ? invoicesPreviewFr : invoicesPreviewEn, 
-      alt: language === 'fr' ? "Facturation" : "Invoicing" 
+      alt: language === 'fr' ? "Facturation - Liste" : "Invoicing - List" 
+    },
+    { 
+      src: language === 'fr' ? invoicePdfFr : invoicePdfEn, 
+      alt: language === 'fr' ? "Facturation - PDF" : "Invoicing - PDF" 
     },
     { 
       src: language === 'fr' ? remindersPreviewFr : remindersPreviewEn, 
@@ -633,16 +639,54 @@ const Software = () => {
                         </CardContent>
                       </Card>
                     ) : index === 3 ? (
-                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                        <CardContent className="p-0">
-                          <img 
-                            src={language === 'fr' ? invoicesPreviewFr : invoicesPreviewEn} 
-                            alt={language === 'fr' ? "Facturation" : "Invoicing"}
-                            className="w-full h-auto rounded-lg"
-                            onClick={() => openLightbox(3)}
-                          />
-                        </CardContent>
-                      </Card>
+                      <div className="w-full">
+                        {/* Desktop: 2-column layout */}
+                        <div className="hidden md:grid md:grid-cols-2 gap-4">
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? invoicesPreviewFr : invoicesPreviewEn} 
+                                alt={language === 'fr' ? "Facturation - Liste" : "Invoicing - List"}
+                                className="w-full h-full object-cover rounded-lg"
+                                onClick={() => openLightbox(3)}
+                              />
+                            </CardContent>
+                          </Card>
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? invoicePdfFr : invoicePdfEn} 
+                                alt={language === 'fr' ? "Facturation - PDF" : "Invoicing - PDF"}
+                                className="w-full h-full object-cover rounded-lg"
+                                onClick={() => openLightbox(4)}
+                              />
+                            </CardContent>
+                          </Card>
+                        </div>
+                        {/* Mobile: stacked layout */}
+                        <div className="md:hidden space-y-4">
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? invoicesPreviewFr : invoicesPreviewEn} 
+                                alt={language === 'fr' ? "Facturation - Liste" : "Invoicing - List"}
+                                className="w-full h-auto rounded-lg"
+                                onClick={() => openLightbox(3)}
+                              />
+                            </CardContent>
+                          </Card>
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? invoicePdfFr : invoicePdfEn} 
+                                alt={language === 'fr' ? "Facturation - PDF" : "Invoicing - PDF"}
+                                className="w-full h-auto rounded-lg"
+                                onClick={() => openLightbox(4)}
+                              />
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
                     ) : index === 4 ? (
                       <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                         <CardContent className="p-0">
@@ -650,7 +694,7 @@ const Software = () => {
                             src={language === 'fr' ? remindersPreviewFr : remindersPreviewEn} 
                             alt={language === 'fr' ? "Rappels de paiement" : "Payment reminders"}
                             className="w-full h-auto rounded-lg"
-                            onClick={() => openLightbox(4)}
+                            onClick={() => openLightbox(5)}
                           />
                         </CardContent>
                       </Card>
@@ -661,7 +705,7 @@ const Software = () => {
                             src={language === 'fr' ? stripePreviewFr : stripePreviewEn} 
                             alt={language === 'fr' ? "Paiements Stripe" : "Stripe payments"}
                             className="w-full h-auto rounded-lg"
-                            onClick={() => openLightbox(5)}
+                            onClick={() => openLightbox(6)}
                           />
                         </CardContent>
                       </Card>
@@ -672,7 +716,7 @@ const Software = () => {
                             src={language === 'fr' ? expensesPreviewFr : expensesPreviewEn} 
                             alt={language === 'fr' ? "Gestion des dépenses" : "Expense management"}
                             className="w-full h-auto rounded-lg"
-                            onClick={() => openLightbox(6)}
+                            onClick={() => openLightbox(7)}
                           />
                         </CardContent>
                       </Card>
@@ -683,7 +727,7 @@ const Software = () => {
                             src={language === 'fr' ? timeTrackingPreviewFr : timeTrackingPreviewEn} 
                             alt={language === 'fr' ? "Suivi du temps" : "Time tracking"}
                             className="w-full h-auto rounded-lg"
-                            onClick={() => openLightbox(7)}
+                            onClick={() => openLightbox(8)}
                           />
                         </CardContent>
                       </Card>
@@ -699,7 +743,7 @@ const Software = () => {
                                   src={language === 'fr' ? reportsOverviewFr : reportsOverviewEn} 
                                   alt={language === 'fr' ? "Rapports - Aperçu" : "Reports - Overview"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(8)}
+                                  onClick={() => openLightbox(9)}
                                 />
                               </CardContent>
                             </Card>
@@ -709,7 +753,7 @@ const Software = () => {
                                   src={language === 'fr' ? reportsPreviewFr : reportsPreviewEn} 
                                   alt={language === 'fr' ? "Rapports - Revenus" : "Reports - Revenue"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(9)}
+                                  onClick={() => openLightbox(10)}
                                 />
                               </CardContent>
                             </Card>
@@ -722,7 +766,7 @@ const Software = () => {
                                   src={language === 'fr' ? reportsExpensesFr : reportsExpensesEn} 
                                   alt={language === 'fr' ? "Rapports - Dépenses" : "Reports - Expenses"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(10)}
+                                  onClick={() => openLightbox(11)}
                                 />
                               </CardContent>
                             </Card>
@@ -732,7 +776,7 @@ const Software = () => {
                                   src={language === 'fr' ? reportsStocksFr : reportsStocksEn} 
                                   alt={language === 'fr' ? "Rapports - Stocks" : "Reports - Stock"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(11)}
+                                  onClick={() => openLightbox(12)}
                                 />
                               </CardContent>
                             </Card>
@@ -746,7 +790,7 @@ const Software = () => {
                                 src={language === 'fr' ? reportsOverviewFr : reportsOverviewEn} 
                                 alt={language === 'fr' ? "Rapports - Aperçu" : "Reports - Overview"}
                                 className="w-full h-auto rounded-lg"
-                                onClick={() => openLightbox(8)}
+                                onClick={() => openLightbox(9)}
                               />
                             </CardContent>
                           </Card>
@@ -757,7 +801,7 @@ const Software = () => {
                                   src={language === 'fr' ? reportsPreviewFr : reportsPreviewEn} 
                                   alt={language === 'fr' ? "Rapports - Revenus" : "Reports - Revenue"}
                                   className="w-full h-auto rounded-lg"
-                                  onClick={() => openLightbox(9)}
+                                    onClick={() => openLightbox(10)}
                                 />
                               </CardContent>
                             </Card>
@@ -767,7 +811,7 @@ const Software = () => {
                                   src={language === 'fr' ? reportsExpensesFr : reportsExpensesEn} 
                                   alt={language === 'fr' ? "Rapports - Dépenses" : "Reports - Expenses"}
                                   className="w-full h-auto rounded-lg"
-                                  onClick={() => openLightbox(10)}
+                                    onClick={() => openLightbox(11)}
                                 />
                               </CardContent>
                             </Card>
@@ -778,7 +822,7 @@ const Software = () => {
                                 src={language === 'fr' ? reportsStocksFr : reportsStocksEn} 
                                 alt={language === 'fr' ? "Rapports - Stocks" : "Reports - Stock"}
                                 className="w-full h-auto rounded-lg"
-                                onClick={() => openLightbox(11)}
+                                onClick={() => openLightbox(12)}
                               />
                             </CardContent>
                           </Card>
@@ -796,7 +840,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
                                   alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(12)}
+                                  onClick={() => openLightbox(13)}
                                 />
                               </CardContent>
                             </Card>
@@ -806,7 +850,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview2Fr : settingsPreview2En} 
                                   alt={language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(13)}
+                                  onClick={() => openLightbox(14)}
                                 />
                               </CardContent>
                             </Card>
@@ -819,7 +863,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview3Fr : settingsPreview3En} 
                                   alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(14)}
+                                  onClick={() => openLightbox(15)}
                                 />
                               </CardContent>
                             </Card>
@@ -829,7 +873,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview4Fr : settingsPreview4En} 
                                   alt={language === 'fr' ? "Personnalisation avancée" : "Advanced settings"}
                                   className="w-full h-full object-cover rounded-lg"
-                                  onClick={() => openLightbox(15)}
+                                  onClick={() => openLightbox(16)}
                                 />
                               </CardContent>
                             </Card>
@@ -843,7 +887,7 @@ const Software = () => {
                                 src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
                                 alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
                                 className="w-full h-auto rounded-lg"
-                                onClick={() => openLightbox(12)}
+                                onClick={() => openLightbox(13)}
                               />
                             </CardContent>
                           </Card>
@@ -854,7 +898,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview2Fr : settingsPreview2En} 
                                   alt={language === 'fr' ? "Personnalisation - Aperçu" : "Settings - Preview"}
                                   className="w-full h-auto rounded-lg"
-                                  onClick={() => openLightbox(13)}
+                                  onClick={() => openLightbox(14)}
                                 />
                               </CardContent>
                             </Card>
@@ -864,7 +908,7 @@ const Software = () => {
                                   src={language === 'fr' ? settingsPreview3Fr : settingsPreview3En} 
                                   alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
                                   className="w-full h-auto rounded-lg"
-                                  onClick={() => openLightbox(14)}
+                                  onClick={() => openLightbox(15)}
                                 />
                               </CardContent>
                             </Card>
@@ -875,7 +919,7 @@ const Software = () => {
                                 src={language === 'fr' ? settingsPreview4Fr : settingsPreview4En} 
                                 alt={language === 'fr' ? "Personnalisation avancée" : "Advanced settings"}
                                 className="w-full h-auto rounded-lg"
-                                onClick={() => openLightbox(15)}
+                                onClick={() => openLightbox(16)}
                               />
                             </CardContent>
                           </Card>
