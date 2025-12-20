@@ -546,7 +546,9 @@ const Reports = () => {
     return data.map(item => {
       if (viewMode === 'monthly') {
         const [year, month] = item.period.split('-');
-        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        const monthNamesFr = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthNames = language === 'fr' ? monthNamesFr : monthNamesEn;
         return {
           period: `${monthNames[parseInt(month) - 1]} ${year}`,
           revenue: item.revenue,
