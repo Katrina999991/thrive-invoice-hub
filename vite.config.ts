@@ -30,22 +30,16 @@ export default defineConfig(({ mode }) => ({
         categories: ['business', 'finance', 'productivity'],
         icons: [
           {
-            src: 'pwa-192x192.png?v=3',
+            src: 'pwa-192x192.png?v=4',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'pwa-512x512.png?v=3',
+            src: 'pwa-512x512.png?v=4',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
-          },
-          {
-            src: 'pwa-512x512.png?v=3',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
           }
         ],
         screenshots: [
