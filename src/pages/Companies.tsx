@@ -890,6 +890,7 @@ Best regards,
   const [logoError, setLogoError] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [showTaxNameError, setShowTaxNameError] = useState(false);
 
   const addTax = () => {
     setTaxes([...taxes, { name: "", percentage: 0 }]);
@@ -930,13 +931,7 @@ Best regards,
     // Validate tax names - all taxes must have a name
     const taxesWithEmptyNames = taxes.filter(tax => !tax.name || tax.name.trim() === '');
     if (taxesWithEmptyNames.length > 0) {
-      toast({
-        title: language === 'fr' ? "Nom de taxe requis" : "Tax name required",
-        description: language === 'fr' 
-          ? "Veuillez entrer un nom pour chaque taxe" 
-          : "Please enter a name for each tax",
-        variant: "destructive"
-      });
+      setShowTaxNameError(true);
       return;
     }
 
@@ -1669,6 +1664,27 @@ Best regards,
             </AlertDialogCancel>
             <AlertDialogAction onClick={() => navigate("/dashboard/pricing")}>
               {language === "fr" ? "Voir les tarifs" : "View Pricing"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Tax Name Required Error Dialog */}
+      <AlertDialog open={showTaxNameError} onOpenChange={setShowTaxNameError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === "fr" ? "Nom de taxe requis" : "Tax Name Required"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === "fr" 
+                ? "Veuillez entrer un nom pour chaque taxe avant de sauvegarder."
+                : "Please enter a name for each tax before saving."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowTaxNameError(false)}>
+              {language === "fr" ? "Compris" : "OK"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
