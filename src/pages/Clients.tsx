@@ -582,13 +582,13 @@ const Clients = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("clients.tableClientName")}</TableHead>
-                  <TableHead>{t("clients.tableContactPerson")}</TableHead>
-                  <TableHead>{t("clients.tableServiceProvider")}</TableHead>
-                  <TableHead>{t("clients.tableContactInfo")}</TableHead>
-                  <TableHead>{t("clients.tableLanguage")}</TableHead>
-                  <TableHead>{t("clients.tableHourlyRate")}</TableHead>
-                  <TableHead className="text-right">{t("clients.tableActions")}</TableHead>
+                  <TableHead className="w-auto">{t("clients.tableClientName")}</TableHead>
+                  <TableHead className="w-auto whitespace-nowrap">{t("clients.tableContactPerson")}</TableHead>
+                  <TableHead className="w-auto whitespace-nowrap">{t("clients.tableServiceProvider")}</TableHead>
+                  <TableHead className="w-auto">{t("clients.tableContactInfo")}</TableHead>
+                  <TableHead className="w-auto whitespace-nowrap">{t("clients.tableLanguage")}</TableHead>
+                  <TableHead className="w-auto whitespace-nowrap">{t("clients.tableHourlyRate")}</TableHead>
+                  <TableHead className="w-auto text-right whitespace-nowrap">{t("clients.tableActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -597,27 +597,27 @@ const Clients = () => {
                   
                   return (
                     <TableRow key={client.id} className={isOverLimit ? 'bg-orange-500/5' : ''}>
-                       <TableCell>
+                       <TableCell className="whitespace-nowrap">
                          <div className="flex items-center gap-2">
-                           <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                           <Building className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                            <span className="font-medium">{client.name}</span>
                            {client.send_overdue_email_auto && (
-                             <Badge variant="secondary" className="text-xs">
+                             <Badge variant="secondary" className="text-xs whitespace-nowrap">
                                <Bell className="h-3 w-3 mr-1" />
                                {language === "fr" ? "Rappel auto" : "Auto reminder"}
                              </Badge>
                            )}
                            {isOverLimit && (
-                             <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
+                             <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs whitespace-nowrap">
                                {language === "fr" ? "Hors limite" : "Over Limit"}
                              </Badge>
                            )}
                          </div>
                        </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <div className="font-medium">{client.contact_person || "—"}</div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <span className="text-sm font-medium text-primary">
                         {client.companies?.name || "—"}
                       </span>
@@ -642,13 +642,13 @@ const Clients = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge variant="outline" className="flex items-center w-fit">
                         <Languages className="h-3 w-3 mr-1" />
                         {client.language === 'french' ? 'Français' : 'English'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <span className="font-medium">${client.hourly_rate || 0}/hr</span>
                     </TableCell>
                     <TableCell className="text-right">
