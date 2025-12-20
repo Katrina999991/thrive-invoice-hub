@@ -50,6 +50,7 @@ import { z } from "zod";
 import { ContactForm } from "@/components/ContactForm";
 import { useEncryption } from "@/hooks/useEncryption";
 import { useEmailPreferences } from "@/hooks/useEmailPreferences";
+import { PWAInstallSection } from "@/components/PWAInstallSection";
 
 
 export default function Settings() {
@@ -2009,6 +2010,8 @@ Cordialement,
             </div>
           </CardContent>
         </Card>
+
+        <PWAInstallSection />
 
         <MFASecuritySection />
 
