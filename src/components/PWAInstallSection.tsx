@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, Share, MoreVertical, Smartphone, Monitor, CheckCircle2 } from "lucide-react";
+import { Download, Share, MoreVertical, Smartphone, Monitor, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -7,6 +7,17 @@ import { useLanguage } from "@/hooks/useLanguage";
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+// Global variable to capture the prompt early
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+
+// Capture the event as early as possible
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    globalDeferredPrompt = e as BeforeInstallPromptEvent;
+  });
 }
 
 // Detect browser and platform
@@ -24,9 +35,10 @@ const getBrowserInfo = () => {
 };
 
 export function PWAInstallSection() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const { language } = useLanguage();
   const browserInfo = getBrowserInfo();
 
@@ -37,41 +49,63 @@ export function PWAInstallSection() {
       return;
     }
 
+    // Check for navigator.standalone (iOS)
+    if ((navigator as any).standalone === true) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Use global prompt if available
+    if (globalDeferredPrompt) {
+      setDeferredPrompt(globalDeferredPrompt);
+    }
+
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const prompt = e as BeforeInstallPromptEvent;
+      globalDeferredPrompt = prompt;
+      setDeferredPrompt(prompt);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     // Listen for successful installation
-    window.addEventListener("appinstalled", () => {
+    const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-    });
+      globalDeferredPrompt = null;
+    };
+
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (deferredPrompt) {
+      // Direct installation available
+      setIsInstalling(true);
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
 
-    setIsInstalling(true);
-    try {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === "accepted") {
-        setIsInstalled(true);
+        if (outcome === "accepted") {
+          setIsInstalled(true);
+        }
+      } catch (error) {
+        console.error("PWA install error:", error);
+      } finally {
+        setIsInstalling(false);
+        setDeferredPrompt(null);
+        globalDeferredPrompt = null;
       }
-    } catch (error) {
-      console.error("PWA install error:", error);
-    } finally {
-      setIsInstalling(false);
-      setDeferredPrompt(null);
+    } else {
+      // Show manual instructions
+      setShowInstructions(true);
     }
   };
 
@@ -81,16 +115,16 @@ export function PWAInstallSection() {
         title: language === 'fr' ? "Installation sur iOS (iPhone/iPad)" : "Install on iOS (iPhone/iPad)",
         steps: language === 'fr' 
           ? [
-              "Ouvrez ce site dans Safari",
-              "Appuyez sur le bouton Partager (carré avec flèche)",
+              "Ouvrez ce site dans Safari (si ce n'est pas déjà fait)",
+              "Appuyez sur le bouton Partager (carré avec flèche vers le haut)",
               "Faites défiler et appuyez sur « Sur l'écran d'accueil »",
-              "Appuyez sur « Ajouter »"
+              "Appuyez sur « Ajouter » en haut à droite"
             ]
           : [
-              "Open this site in Safari",
-              "Tap the Share button (square with arrow)",
+              "Open this site in Safari (if not already)",
+              "Tap the Share button (square with arrow pointing up)",
               "Scroll down and tap 'Add to Home Screen'",
-              "Tap 'Add'"
+              "Tap 'Add' in the top right"
             ],
         icon: <Share className="w-5 h-5" />
       };
@@ -176,39 +210,48 @@ export function PWAInstallSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Direct install button if available */}
-        {deferredPrompt && (
-          <Button 
-            onClick={handleInstall} 
-            disabled={isInstalling}
-            className="w-full"
-            size="lg"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            {isInstalling 
-              ? (language === "fr" ? "Installation..." : "Installing...")
-              : (language === "fr" ? "Installer maintenant" : "Install Now")
-            }
-          </Button>
-        )}
+        {/* Install button - always visible */}
+        <Button 
+          onClick={handleInstall} 
+          disabled={isInstalling}
+          className="w-full"
+          size="lg"
+        >
+          {deferredPrompt ? (
+            <>
+              <Download className="w-5 h-5 mr-2" />
+              {isInstalling 
+                ? (language === "fr" ? "Installation..." : "Installing...")
+                : (language === "fr" ? "Installer maintenant" : "Install Now")
+              }
+            </>
+          ) : (
+            <>
+              <ExternalLink className="w-5 h-5 mr-2" />
+              {language === "fr" ? "Voir les instructions" : "View Instructions"}
+            </>
+          )}
+        </Button>
 
-        {/* Manual instructions */}
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            {instructions.icon}
-            <h3 className="font-medium">{instructions.title}</h3>
+        {/* Manual instructions - always visible or when button clicked */}
+        {(showInstructions || !deferredPrompt) && (
+          <div className="rounded-lg border bg-muted/30 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              {instructions.icon}
+              <h3 className="font-medium">{instructions.title}</h3>
+            </div>
+            <ol className="space-y-2 text-sm text-muted-foreground">
+              {instructions.steps.map((step, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
           </div>
-          <ol className="space-y-2 text-sm text-muted-foreground">
-            {instructions.steps.map((step, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                  {index + 1}
-                </span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
+        )}
 
         {/* Benefits */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
