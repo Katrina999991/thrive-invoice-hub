@@ -182,12 +182,19 @@ const Reports = () => {
 
   // Helper function to get translated category name
   const getTranslatedCategoryName = (categoryName: string) => {
+    if (!categoryName) return categoryName;
+    
+    const normalizedName = categoryName.toLowerCase().trim();
+    
+    // Find category by matching name, name_en or name_fr (case-insensitive)
     const category = categories.find(cat => 
-      cat.name === categoryName || 
-      cat.name_en === categoryName || 
-      cat.name_fr === categoryName
+      cat.name?.toLowerCase() === normalizedName || 
+      cat.name_en?.toLowerCase() === normalizedName || 
+      cat.name_fr?.toLowerCase() === normalizedName
     );
+    
     if (!category) return categoryName;
+    
     return language === 'fr' 
       ? (category.name_fr || category.name) 
       : (category.name_en || category.name);
