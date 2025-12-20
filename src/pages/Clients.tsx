@@ -50,17 +50,31 @@ const Clients = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
   const [emailList, setEmailList] = useState<string[]>([""]);
+  const [showValidationError, setShowValidationError] = useState(false);
+  const [validationErrorMessage, setValidationErrorMessage] = useState({ title: "", description: "" });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
+    
+    // Validation: vérifier que le nom est renseigné
+    if (!newClient.name || newClient.name.trim() === "") {
+      setValidationErrorMessage({
+        title: language === 'fr' ? "Nom requis" : "Name required",
+        description: language === 'fr' ? "Veuillez entrer un nom pour le client" : "Please enter a name for the client"
+      });
+      setShowValidationError(true);
+      return;
+    }
     
     // Validation: vérifier qu'une compagnie est sélectionnée
     if (!newClient.company_id || newClient.company_id.trim() === "") {
-      toast({
-        title: t("clients.validation.error"),
-        description: t("clients.validation.companyRequired"),
-        variant: "destructive"
+      setValidationErrorMessage({
+        title: language === 'fr' ? "Compagnie requise" : "Company required",
+        description: language === 'fr' ? "Veuillez sélectionner une compagnie" : "Please select a company"
       });
+      setShowValidationError(true);
       return;
     }
     
@@ -69,11 +83,11 @@ const Clients = () => {
     
     // Validation: vérifier qu'au moins un email est renseigné
     if (!emailsString) {
-      toast({
-        title: t("clients.validation.error"),
-        description: t("clients.validation.emailRequired"),
-        variant: "destructive"
+      setValidationErrorMessage({
+        title: language === 'fr' ? "Email requis" : "Email required",
+        description: language === 'fr' ? "Veuillez entrer au moins un email" : "Please enter at least one email"
       });
+      setShowValidationError(true);
       return;
     }
 
@@ -84,11 +98,11 @@ const Clients = () => {
         try {
           emailSchema.parse(email.trim());
         } catch (error) {
-          toast({
-            title: t("clients.validation.error"),
-            description: t("clients.validation.emailInvalid"),
-            variant: "destructive"
+          setValidationErrorMessage({
+            title: language === 'fr' ? "Email invalide" : "Invalid email",
+            description: language === 'fr' ? "Veuillez entrer une adresse email valide" : "Please enter a valid email address"
           });
+          setShowValidationError(true);
           return;
         }
       }
@@ -102,11 +116,11 @@ const Clients = () => {
       try {
         phoneSchema.parse(newClient.phone.trim());
       } catch (error) {
-        toast({
-          title: t("clients.validation.error"),
-          description: t("clients.validation.phoneInvalid"),
-          variant: "destructive"
+        setValidationErrorMessage({
+          title: language === 'fr' ? "Téléphone invalide" : "Invalid phone",
+          description: language === 'fr' ? "Veuillez entrer un numéro de téléphone valide" : "Please enter a valid phone number"
         });
+        setShowValidationError(true);
         return;
       }
     }
@@ -163,6 +177,7 @@ const Clients = () => {
     setEmailList([""]);
     setEditingClient(null);
     setIsDialogOpen(false);
+    setAttemptedSubmit(false);
   };
 
   const handleEdit = (client: any) => {
@@ -283,8 +298,11 @@ const Clients = () => {
                   placeholder={t("clients.namePlaceholder")}
                   value={newClient.name}
                   onChange={(e) => setNewClient({...newClient, name: e.target.value})}
-                  required
+                  className={attemptedSubmit && (!newClient.name || newClient.name.trim() === '') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                 />
+                {attemptedSubmit && (!newClient.name || newClient.name.trim() === '') && (
+                  <p className="text-xs text-red-500">{language === 'fr' ? 'Le nom est requis' : 'Name is required'}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contact_person">{t("clients.contactPerson")}</Label>
@@ -300,9 +318,8 @@ const Clients = () => {
                 <Select 
                   value={newClient.company_id} 
                   onValueChange={(value) => setNewClient({...newClient, company_id: value})}
-                  required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={attemptedSubmit && (!newClient.company_id || newClient.company_id.trim() === '') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
                     <SelectValue placeholder={t("clients.serviceProviderPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -313,6 +330,9 @@ const Clients = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {attemptedSubmit && (!newClient.company_id || newClient.company_id.trim() === '') && (
+                  <p className="text-xs text-red-500">{language === 'fr' ? 'La compagnie est requise' : 'Company is required'}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>{t("clients.emails")} *</Label>
@@ -323,7 +343,7 @@ const Clients = () => {
                       placeholder={t("clients.emailPlaceholder")}
                       value={email}
                       onChange={(e) => updateEmailField(index, e.target.value)}
-                      required={index === 0}
+                      className={attemptedSubmit && index === 0 && (!email || email.trim() === '') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                     />
                     {emailList.length > 1 && (
                       <Button
@@ -337,6 +357,9 @@ const Clients = () => {
                     )}
                   </div>
                 ))}
+                {attemptedSubmit && emailList.every(e => !e || e.trim() === '') && (
+                  <p className="text-xs text-red-500">{language === 'fr' ? 'Au moins un email est requis' : 'At least one email is required'}</p>
+                )}
                 <Button
                   type="button"
                   variant="outline"
@@ -690,6 +713,21 @@ const Clients = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Validation Error Dialog */}
+      <AlertDialog open={showValidationError} onOpenChange={setShowValidationError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{validationErrorMessage.title}</AlertDialogTitle>
+            <AlertDialogDescription>{validationErrorMessage.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowValidationError(false)}>
+              {language === "fr" ? "Compris" : "OK"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
