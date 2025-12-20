@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Download, Sparkles } from "lucide-react";
+import { X, Download, Sparkles, Share, MoreVertical, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -22,10 +22,25 @@ if (typeof window !== "undefined") {
   });
 }
 
+// Detect browser and platform
+const getBrowserInfo = () => {
+  if (typeof navigator === "undefined") return { isIOS: false, isSafari: false, isChrome: false, isAndroid: false };
+  
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const isChrome = /chrome/i.test(ua) && !/edge/i.test(ua);
+  const isAndroid = /android/i.test(ua);
+  
+  return { isIOS, isSafari, isChrome, isAndroid };
+};
+
 export function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
-  const { t } = useLanguage();
+  const [showManualInstructions, setShowManualInstructions] = useState(false);
+  const { t, language } = useLanguage();
+  const browserInfo = getBrowserInfo();
 
   useEffect(() => {
     console.log("PWA Banner: Component mounted");
@@ -51,6 +66,14 @@ export function PWAInstallBanner() {
       return;
     }
 
+    // For iOS or when beforeinstallprompt is not supported, show manual instructions
+    if (browserInfo.isIOS) {
+      console.log("PWA Banner: iOS detected, showing manual instructions");
+      setShowBanner(true);
+      setShowManualInstructions(true);
+      return;
+    }
+
     // Listen for future events
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log("PWA Banner: beforeinstallprompt event received");
@@ -61,20 +84,39 @@ export function PWAInstallBanner() {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
+    // After a delay, if no event was captured, show manual instructions for mobile
+    const timeout = setTimeout(() => {
+      if (!deferredPromptGlobal && !deferredPrompt && browserInfo.isAndroid) {
+        console.log("PWA Banner: No beforeinstallprompt, showing manual instructions");
+        setShowBanner(true);
+        setShowManualInstructions(true);
+      }
+    }, 3000);
+
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      clearTimeout(timeout);
     };
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // Show manual instructions if programmatic install not available
+      setShowManualInstructions(true);
+      return;
+    }
 
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === "accepted") {
-      setShowBanner(false);
-      localStorage.setItem(STORAGE_KEY, "installed");
+      if (outcome === "accepted") {
+        setShowBanner(false);
+        localStorage.setItem(STORAGE_KEY, "installed");
+      }
+    } catch (error) {
+      console.error("PWA install error:", error);
+      setShowManualInstructions(true);
     }
 
     setDeferredPrompt(null);
@@ -86,6 +128,29 @@ export function PWAInstallBanner() {
   };
 
   if (!showBanner) return null;
+
+  const getManualInstructions = () => {
+    if (browserInfo.isIOS) {
+      return {
+        title: language === 'fr' ? "Comment installer sur iOS" : "How to install on iOS",
+        steps: language === 'fr' 
+          ? ["Appuyez sur le bouton Partager", "Faites défiler et appuyez sur « Sur l'écran d'accueil »", "Appuyez sur « Ajouter »"]
+          : ["Tap the Share button", "Scroll down and tap 'Add to Home Screen'", "Tap 'Add'"],
+        icon: <Share className="w-5 h-5" />
+      };
+    }
+    
+    // Android or other
+    return {
+      title: language === 'fr' ? "Comment installer" : "How to install",
+      steps: language === 'fr'
+        ? ["Appuyez sur le menu (⋮) du navigateur", "Sélectionnez « Installer l'application » ou « Ajouter à l'écran d'accueil »"]
+        : ["Tap the browser menu (⋮)", "Select 'Install app' or 'Add to Home Screen'"],
+      icon: <MoreVertical className="w-5 h-5" />
+    };
+  };
+
+  const instructions = getManualInstructions();
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-[420px] z-50 animate-in slide-in-from-bottom-4 duration-500">
@@ -105,31 +170,63 @@ export function PWAInstallBanner() {
             </div>
             
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-primary-foreground text-base tracking-tight">
-                {t("pwa.install.title")}
-              </h3>
-              <p className="text-primary-foreground/80 text-sm mt-1 leading-relaxed">
-                {t("pwa.install.description")}
-              </p>
-              
-              <div className="flex items-center gap-3 mt-4">
-                <Button
-                  size="sm"
-                  onClick={handleInstall}
-                  className="h-9 px-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {t("pwa.install.button")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleDismiss}
-                  className="h-9 px-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  {t("pwa.install.later")}
-                </Button>
-              </div>
+              {!showManualInstructions ? (
+                <>
+                  <h3 className="font-bold text-primary-foreground text-base tracking-tight">
+                    {t("pwa.install.title")}
+                  </h3>
+                  <p className="text-primary-foreground/80 text-sm mt-1 leading-relaxed">
+                    {t("pwa.install.description")}
+                  </p>
+                  
+                  <div className="flex items-center gap-3 mt-4">
+                    <Button
+                      size="sm"
+                      onClick={handleInstall}
+                      className="h-9 px-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      {t("pwa.install.button")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismiss}
+                      className="h-9 px-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                    >
+                      {t("pwa.install.later")}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-bold text-primary-foreground text-base tracking-tight flex items-center gap-2">
+                    {instructions.icon}
+                    {instructions.title}
+                  </h3>
+                  <ol className="text-primary-foreground/90 text-sm mt-3 space-y-2">
+                    {instructions.steps.map((step, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-foreground/20 flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  
+                  <div className="flex items-center gap-3 mt-4">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismiss}
+                      className="h-9 px-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                    >
+                      {language === 'fr' ? "Compris" : "Got it"}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
 
             <button
