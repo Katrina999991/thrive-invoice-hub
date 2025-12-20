@@ -180,6 +180,14 @@ const Reports = () => {
     return categories.filter(cat => cat.for_expenses);
   }, [categories]);
 
+  // Fallback translations for common categories not in database
+  const fallbackTranslations: Record<string, { en: string; fr: string }> = {
+    'products': { en: 'Products', fr: 'Produits' },
+    'produits': { en: 'Products', fr: 'Produits' },
+    'services': { en: 'Services', fr: 'Services' },
+    'uncategorized': { en: 'Uncategorized', fr: 'Non catégorisé' },
+  };
+
   // Helper function to get translated category name
   const getTranslatedCategoryName = (categoryName: string) => {
     if (!categoryName) return categoryName;
@@ -193,11 +201,19 @@ const Reports = () => {
       cat.name_fr?.toLowerCase() === normalizedName
     );
     
-    if (!category) return categoryName;
+    if (category) {
+      return language === 'fr' 
+        ? (category.name_fr || category.name) 
+        : (category.name_en || category.name);
+    }
     
-    return language === 'fr' 
-      ? (category.name_fr || category.name) 
-      : (category.name_en || category.name);
+    // Use fallback translations if category not found in database
+    const fallback = fallbackTranslations[normalizedName];
+    if (fallback) {
+      return language === 'fr' ? fallback.fr : fallback.en;
+    }
+    
+    return categoryName;
   };
   // États pour les filtres de la section Products
   const [productFilterType, setProductFilterType] = useState<'all' | 'company'>('all');
