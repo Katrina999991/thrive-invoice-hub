@@ -926,6 +926,20 @@ Best regards,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate tax names - all taxes must have a name
+    const taxesWithEmptyNames = taxes.filter(tax => !tax.name || tax.name.trim() === '');
+    if (taxesWithEmptyNames.length > 0) {
+      toast({
+        title: language === 'fr' ? "Nom de taxe requis" : "Tax name required",
+        description: language === 'fr' 
+          ? "Veuillez entrer un nom pour chaque taxe" 
+          : "Please enter a name for each tax",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setUploadingLogo(true);
 
     // Validate invoice numbering configuration
