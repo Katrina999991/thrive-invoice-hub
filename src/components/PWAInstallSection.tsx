@@ -126,7 +126,8 @@ export function PWAInstallSection() {
               "Scroll down and tap 'Add to Home Screen'",
               "Tap 'Add' in the top right"
             ],
-        icon: <Share className="w-5 h-5" />
+        icon: <Share className="w-5 h-5" />,
+        note: null
       };
     }
     
@@ -144,7 +145,10 @@ export function PWAInstallSection() {
               "Select 'Install app' or 'Add to Home Screen'",
               "Confirm the installation"
             ],
-        icon: <MoreVertical className="w-5 h-5" />
+        icon: <MoreVertical className="w-5 h-5" />,
+        note: language === 'fr' 
+          ? "💡 Brave: Désactivez Brave Shields pour ce site si l'installation échoue. Chrome offre la meilleure compatibilité PWA."
+          : "💡 Brave: Disable Brave Shields for this site if installation fails. Chrome offers the best PWA compatibility."
       };
     }
 
@@ -162,7 +166,8 @@ export function PWAInstallSection() {
             "Or open the browser menu (⋮) and click 'Install'",
             "Confirm the installation"
           ],
-      icon: <Monitor className="w-5 h-5" />
+      icon: <Monitor className="w-5 h-5" />,
+      note: null
     };
   };
 
@@ -250,6 +255,11 @@ export function PWAInstallSection() {
                 </li>
               ))}
             </ol>
+            {instructions.note && (
+              <p className="mt-3 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2 rounded">
+                {instructions.note}
+              </p>
+            )}
           </div>
         )}
 
