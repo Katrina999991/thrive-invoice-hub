@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import clientsPreviewEn from "@/assets/clients-preview-en.jpg";
 import clientsPreviewFr from "@/assets/clients-preview-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
+import ImageLightbox from "@/components/ImageLightbox";
 
 const translations = {
   fr: {
@@ -419,8 +421,27 @@ const featureIcons = [Building2, Users, Package, FileText, Bell, CreditCard, Rec
 const Software = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const t = translations[language];
+
+  // Feature images for lightbox
+  const featureImages = [
+    { 
+      src: language === 'fr' ? companiesPreviewFr : companiesPreviewEn, 
+      alt: language === 'fr' ? "Gestion multi-entreprises" : "Multi-company management" 
+    },
+    { 
+      src: language === 'fr' ? clientsPreviewFr : clientsPreviewEn, 
+      alt: language === 'fr' ? "Gestion des clients" : "Client management" 
+    }
+  ];
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
 
   useSEO({
     title: language === 'fr' 
@@ -495,22 +516,24 @@ const Software = () => {
                   </div>
                   <div className="flex-1 w-full">
                     {index === 0 ? (
-                      <Card className="overflow-hidden border-primary/20 shadow-lg">
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                         <CardContent className="p-0">
                           <img 
                             src={language === 'fr' ? companiesPreviewFr : companiesPreviewEn} 
                             alt={language === 'fr' ? "Gestion multi-entreprises" : "Multi-company management"}
                             className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(0)}
                           />
                         </CardContent>
                       </Card>
                     ) : index === 1 ? (
-                      <Card className="overflow-hidden border-primary/20 shadow-lg">
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                         <CardContent className="p-0">
                           <img 
                             src={language === 'fr' ? clientsPreviewFr : clientsPreviewEn} 
                             alt={language === 'fr' ? "Gestion des clients" : "Client management"}
                             className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(1)}
                           />
                         </CardContent>
                       </Card>
@@ -612,6 +635,14 @@ const Software = () => {
       </section>
 
       <Footer />
+
+      <ImageLightbox
+        images={featureImages}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={setLightboxIndex}
+      />
     </div>
   );
 };
