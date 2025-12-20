@@ -15,6 +15,14 @@ import companiesPreviewEn from "@/assets/companies-preview-en.jpg";
 import companiesPreviewFr from "@/assets/companies-preview-fr.jpg";
 import clientsPreviewEn from "@/assets/clients-preview-en.jpg";
 import clientsPreviewFr from "@/assets/clients-preview-fr.jpg";
+import productsPreviewEn from "@/assets/products-preview-en.jpg";
+import productsPreviewFr from "@/assets/products-preview-fr.jpg";
+import invoicesPreviewEn from "@/assets/invoices-preview-en.jpg";
+import invoicesPreviewFr from "@/assets/invoices-preview-fr.jpg";
+import remindersPreviewEn from "@/assets/reminders-preview-en.jpg";
+import remindersPreviewFr from "@/assets/reminders-preview-fr.jpg";
+import stripePreviewEn from "@/assets/stripe-preview-en.jpg";
+import stripePreviewFr from "@/assets/stripe-preview-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -435,6 +443,22 @@ const Software = () => {
     { 
       src: language === 'fr' ? clientsPreviewFr : clientsPreviewEn, 
       alt: language === 'fr' ? "Gestion des clients" : "Client management" 
+    },
+    { 
+      src: language === 'fr' ? productsPreviewFr : productsPreviewEn, 
+      alt: language === 'fr' ? "Produits et services" : "Products and services" 
+    },
+    { 
+      src: language === 'fr' ? invoicesPreviewFr : invoicesPreviewEn, 
+      alt: language === 'fr' ? "Facturation" : "Invoicing" 
+    },
+    { 
+      src: language === 'fr' ? remindersPreviewFr : remindersPreviewEn, 
+      alt: language === 'fr' ? "Rappels de paiement" : "Payment reminders" 
+    },
+    { 
+      src: language === 'fr' ? stripePreviewFr : stripePreviewEn, 
+      alt: language === 'fr' ? "Paiements Stripe" : "Stripe payments" 
     }
   ];
 
@@ -534,6 +558,50 @@ const Software = () => {
                             alt={language === 'fr' ? "Gestion des clients" : "Client management"}
                             className="w-full h-auto rounded-lg"
                             onClick={() => openLightbox(1)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 2 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? productsPreviewFr : productsPreviewEn} 
+                            alt={language === 'fr' ? "Produits et services" : "Products and services"}
+                            className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(2)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 3 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? invoicesPreviewFr : invoicesPreviewEn} 
+                            alt={language === 'fr' ? "Facturation" : "Invoicing"}
+                            className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(3)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 4 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? remindersPreviewFr : remindersPreviewEn} 
+                            alt={language === 'fr' ? "Rappels de paiement" : "Payment reminders"}
+                            className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(4)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 5 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? stripePreviewFr : stripePreviewEn} 
+                            alt={language === 'fr' ? "Paiements Stripe" : "Stripe payments"}
+                            className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(5)}
                           />
                         </CardContent>
                       </Card>
