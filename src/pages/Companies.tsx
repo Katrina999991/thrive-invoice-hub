@@ -1453,13 +1453,19 @@ Best regards,
                 {taxes.map((tax, index) => (
                   <div key={index} className="flex gap-2 items-end">
                     <div className="flex-1">
-                      <Label htmlFor={`tax-name-${index}`}>{t("companies.taxName")}</Label>
+                      <Label htmlFor={`tax-name-${index}`}>{t("companies.taxName")} *</Label>
                       <Input
                         id={`tax-name-${index}`}
                         placeholder={t("companies.taxNamePlaceholder")}
                         value={tax.name}
                         onChange={(e) => updateTax(index, 'name', e.target.value)}
+                        className={(!tax.name || tax.name.trim() === '') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                       />
+                      {(!tax.name || tax.name.trim() === '') && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {language === 'fr' ? 'Le nom est requis' : 'Name is required'}
+                        </p>
+                      )}
                     </div>
                     <div className="w-24">
                       <Label htmlFor={`tax-percentage-${index}`}>{t("companies.taxRate")}</Label>
