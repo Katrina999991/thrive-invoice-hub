@@ -35,6 +35,8 @@ import settingsPreview2En from "@/assets/settings-preview-2-en.jpg";
 import settingsPreview2Fr from "@/assets/settings-preview-2-fr.jpg";
 import settingsPreview3En from "@/assets/settings-preview-3-en.jpg";
 import settingsPreview3Fr from "@/assets/settings-preview-3-fr.jpg";
+import settingsPreview4En from "@/assets/settings-preview-4-en.jpg";
+import settingsPreview4Fr from "@/assets/settings-preview-4-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -495,6 +497,10 @@ const Software = () => {
     { 
       src: language === 'fr' ? settingsPreview3Fr : settingsPreview3En, 
       alt: language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security" 
+    },
+    { 
+      src: language === 'fr' ? settingsPreview4Fr : settingsPreview4En, 
+      alt: language === 'fr' ? "Personnalisation avancée" : "Advanced settings" 
     }
   ];
 
@@ -678,19 +684,18 @@ const Software = () => {
                       <div className="w-full">
                         {/* Desktop: 2-column layout */}
                         <div className="hidden md:grid md:grid-cols-2 gap-4">
-                          {/* Left: Large primary image */}
-                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                            <CardContent className="p-0">
-                              <img 
-                                src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
-                                alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
-                                className="w-full h-full object-cover rounded-lg"
-                                onClick={() => openLightbox(9)}
-                              />
-                            </CardContent>
-                          </Card>
-                          {/* Right: 2x1 grid of smaller images */}
+                          {/* Left: 2x1 grid of images */}
                           <div className="grid grid-rows-2 gap-4">
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? settingsPreview1Fr : settingsPreview1En} 
+                                  alt={language === 'fr' ? "Personnalisation - Apparence" : "Settings - Appearance"}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onClick={() => openLightbox(9)}
+                                />
+                              </CardContent>
+                            </Card>
                             <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                               <CardContent className="p-0">
                                 <img 
@@ -701,6 +706,9 @@ const Software = () => {
                                 />
                               </CardContent>
                             </Card>
+                          </div>
+                          {/* Right: 2x1 grid of images */}
+                          <div className="grid grid-rows-2 gap-4">
                             <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                               <CardContent className="p-0">
                                 <img 
@@ -708,6 +716,16 @@ const Software = () => {
                                   alt={language === 'fr' ? "Personnalisation - Sécurité" : "Settings - Security"}
                                   className="w-full h-full object-cover rounded-lg"
                                   onClick={() => openLightbox(11)}
+                                />
+                              </CardContent>
+                            </Card>
+                            <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                              <CardContent className="p-0">
+                                <img 
+                                  src={language === 'fr' ? settingsPreview4Fr : settingsPreview4En} 
+                                  alt={language === 'fr' ? "Personnalisation avancée" : "Advanced settings"}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onClick={() => openLightbox(12)}
                                 />
                               </CardContent>
                             </Card>
@@ -747,6 +765,16 @@ const Software = () => {
                               </CardContent>
                             </Card>
                           </div>
+                          <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                            <CardContent className="p-0">
+                              <img 
+                                src={language === 'fr' ? settingsPreview4Fr : settingsPreview4En} 
+                                alt={language === 'fr' ? "Personnalisation avancée" : "Advanced settings"}
+                                className="w-full h-auto rounded-lg"
+                                onClick={() => openLightbox(12)}
+                              />
+                            </CardContent>
+                          </Card>
                         </div>
                       </div>
                     ) : (
