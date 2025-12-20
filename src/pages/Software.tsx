@@ -23,6 +23,8 @@ import remindersPreviewEn from "@/assets/reminders-preview-en.jpg";
 import remindersPreviewFr from "@/assets/reminders-preview-fr.jpg";
 import stripePreviewEn from "@/assets/stripe-preview-en.jpg";
 import stripePreviewFr from "@/assets/stripe-preview-fr.jpg";
+import expensesPreviewEn from "@/assets/expenses-preview-en.jpg";
+import expensesPreviewFr from "@/assets/expenses-preview-fr.jpg";
 import PublicNavigation from "@/components/PublicNavigation";
 import Footer from "@/components/Footer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -459,6 +461,10 @@ const Software = () => {
     { 
       src: language === 'fr' ? stripePreviewFr : stripePreviewEn, 
       alt: language === 'fr' ? "Paiements Stripe" : "Stripe payments" 
+    },
+    { 
+      src: language === 'fr' ? expensesPreviewFr : expensesPreviewEn, 
+      alt: language === 'fr' ? "Gestion des dépenses" : "Expense management" 
     }
   ];
 
@@ -602,6 +608,17 @@ const Software = () => {
                             alt={language === 'fr' ? "Paiements Stripe" : "Stripe payments"}
                             className="w-full h-auto rounded-lg"
                             onClick={() => openLightbox(5)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : index === 6 ? (
+                      <Card className="overflow-hidden border-primary/20 shadow-lg group cursor-zoom-in transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                        <CardContent className="p-0">
+                          <img 
+                            src={language === 'fr' ? expensesPreviewFr : expensesPreviewEn} 
+                            alt={language === 'fr' ? "Gestion des dépenses" : "Expense management"}
+                            className="w-full h-auto rounded-lg"
+                            onClick={() => openLightbox(6)}
                           />
                         </CardContent>
                       </Card>
