@@ -224,7 +224,7 @@ const Index = () => {
         subtitle: "Plan gratuit disponible • La plupart des entreprises choisissent Premium",
         free: {
           name: "Gratuit",
-          price: "0$",
+          price: "0$ CAD",
           period: "/mois",
           description: "Pour commencer",
           features: [
@@ -238,7 +238,7 @@ const Index = () => {
         },
         premium: {
           name: "Premium",
-          price: "19,99$",
+          price: "19,99$ CAD",
           period: "/mois",
           description: "Le choix idéal pour petites entreprises",
           popular: "Recommandé",
@@ -252,7 +252,7 @@ const Index = () => {
         },
         pro: {
           name: "Pro",
-          price: "34,99$",
+          price: "34,99$ CAD",
           period: "/mois",
           description: "Pour agences et multi-entreprises",
           features: [
@@ -471,7 +471,7 @@ const Index = () => {
         subtitle: "Free plan available • Most businesses choose Premium",
         free: {
           name: "Free",
-          price: "$0",
+          price: "$0 CAD",
           period: "/month",
           description: "To get started",
           features: [
@@ -485,7 +485,7 @@ const Index = () => {
         },
         premium: {
           name: "Premium",
-          price: "$19.99",
+          price: "$19.99 CAD",
           period: "/month",
           popular: "Recommended",
           description: "The smart choice for small businesses",
@@ -499,7 +499,7 @@ const Index = () => {
         },
         pro: {
           name: "Pro",
-          price: "$34.99",
+          price: "$34.99 CAD",
           period: "/month",
           description: "For agencies and multi-company",
           features: [
