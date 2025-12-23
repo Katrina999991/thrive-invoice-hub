@@ -83,7 +83,7 @@ const PublicPricing = () => {
       plans: {
         free: {
           name: "Gratuit",
-          price: "0 $",
+          price: "0 $ CAD",
           period: "/mois",
           description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
           cta: "Commencer gratuitement",
@@ -102,8 +102,8 @@ const PublicPricing = () => {
         },
         premium: {
           name: "Premium",
-          price: "19,99 $",
-          yearlyPrice: "199 $",
+          price: "19,99 $ CAD",
+          yearlyPrice: "199 $ CAD",
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Le meilleur équilibre pour freelances et petites entreprises",
@@ -131,8 +131,8 @@ const PublicPricing = () => {
         },
         pro: {
           name: "Pro",
-          price: "34,99 $",
-          yearlyPrice: "349 $",
+          price: "34,99 $ CAD",
+          yearlyPrice: "349 $ CAD",
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
@@ -246,7 +246,7 @@ const PublicPricing = () => {
       plans: {
         free: {
           name: "Free",
-          price: "$0",
+          price: "$0 CAD",
           period: "/month",
           description: "Ideal to discover GestionFlow and start your business",
           cta: "Get Started Free",
@@ -265,8 +265,8 @@ const PublicPricing = () => {
         },
         premium: {
           name: "Premium",
-          price: "$19.99",
-          yearlyPrice: "$199",
+          price: "$19.99 CAD",
+          yearlyPrice: "$199 CAD",
           period: "/month",
           yearlyPeriod: "/year",
           description: "The best balance for freelancers and small businesses",
@@ -294,8 +294,8 @@ const PublicPricing = () => {
         },
         pro: {
           name: "Pro",
-          price: "$34.99",
-          yearlyPrice: "$349",
+          price: "$34.99 CAD",
+          yearlyPrice: "$349 CAD",
           period: "/month",
           yearlyPeriod: "/year",
           description: "Built for growing businesses and multi-company management",

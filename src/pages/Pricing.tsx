@@ -601,7 +601,7 @@ const Pricing = () => {
                 </div>
                 
                 <div className="mb-2">
-                  <span className="text-4xl font-bold text-foreground">{price} $</span>
+                  <span className="text-4xl font-bold text-foreground">{price} $ CAD</span>
                   <span className="text-muted-foreground text-lg">
                     {billingCycle === 'monthly' ? t.perMonth : t.perYear}
                   </span>
