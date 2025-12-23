@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ProductUpdateEmailSection } from "@/components/ProductUpdateEmailSection";
+import { UsersTable } from "@/components/admin/UsersTable";
 import { Shield } from "lucide-react";
 
 // Admin user ID - only this user can access admin features
@@ -38,6 +39,8 @@ export default function Admin() {
             : "Manage GestionFlow administrative features."}
         </p>
       </div>
+
+      <UsersTable />
 
       <ProductUpdateEmailSection />
     </div>
