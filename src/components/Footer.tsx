@@ -73,9 +73,22 @@ const Footer = () => {
               className="h-20 mb-4"
               loading="lazy"
             />
-            <p className="text-muted-foreground max-w-md">
+            <p className="text-muted-foreground max-w-md mb-4">
               {t.description}
             </p>
+            <a 
+              href="https://theresanaiforthat.com/ai/gestionflow/?ref=featured&v=8428778" 
+              target="_blank" 
+              rel="nofollow noopener noreferrer"
+            >
+              <img 
+                width="200" 
+                src="https://media.theresanaiforthat.com/featured-on-taaft.png?width=600" 
+                alt="Featured on There's an AI for that"
+                className="hover:opacity-80 transition-opacity"
+                loading="lazy"
+              />
+            </a>
           </div>
           
           {/* Links Columns */}
