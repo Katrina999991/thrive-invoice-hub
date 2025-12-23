@@ -4,12 +4,12 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function Layout() {
   const { user, signOut } = useAuth();
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -19,6 +19,10 @@ export default function Layout() {
       description: language === 'fr' ? "Vous avez été déconnecté avec succès." : "You have been successfully signed out.",
     });
     navigate("/auth");
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'fr' ? 'en' : 'fr');
   };
 
   return (
@@ -33,13 +37,22 @@ export default function Layout() {
               <h1 className="font-semibold hidden md:block">{t("app.title")}</h1>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+              >
+                <Globe className="h-4 w-4" />
+                <span className="font-medium">{language.toUpperCase()}</span>
+              </Button>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <User className="h-4 w-4" />
-                <span>{user?.email}</span>
+                <span className="hidden sm:inline">{user?.email}</span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
-                Sign out
+                <span className="hidden sm:inline ml-1">{language === 'fr' ? 'Déconnexion' : 'Sign out'}</span>
               </Button>
             </div>
           </header>
