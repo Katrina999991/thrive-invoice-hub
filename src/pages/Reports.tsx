@@ -78,13 +78,13 @@ const Reports = () => {
   });
   
   // Helper function to log export events
-  const logExport = useCallback((reportType: string, exportFormat: 'pdf' | 'excel', description: string) => {
+  const logExport = useCallback((reportType: string, exportFormat: 'pdf' | 'excel' | 'csv', description: string) => {
     if (!user) return;
     logAuditEvent({
       userId: user.id,
       userName: user.email || 'Unknown',
       category: 'exports',
-      eventType: exportFormat === 'pdf' ? 'pdf_download' : 'excel_export',
+      eventType: exportFormat === 'pdf' ? 'pdf_download' : exportFormat === 'csv' ? 'csv_export' : 'excel_export',
       description,
       metadata: { reportType, format: exportFormat }
     });
@@ -2797,6 +2797,199 @@ const Reports = () => {
     const filename = `${getReportTranslation('revenueReportFile', language)}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(wb, filename);
     logExport('revenue', 'excel', language === 'fr' ? 'Export Excel rapport revenus' : 'Revenue report Excel export');
+  };
+
+  // CSV Export - Revenue by Period (Premium+)
+  const exportRevenueToCSV = () => {
+    if (!realRevenueData || !chartData.length) return;
+    
+    const headers = [
+      language === 'fr' ? 'Période' : 'Period',
+      language === 'fr' ? 'Revenus' : 'Revenue',
+      language === 'fr' ? 'Nombre de factures' : 'Number of Invoices',
+      language === 'fr' ? 'Revenu moyen par facture' : 'Average Revenue per Invoice'
+    ];
+    
+    const rows = chartData.map(item => [
+      item.period,
+      item.revenue.toFixed(2),
+      item.invoiceCount,
+      item.invoiceCount > 0 ? (item.revenue / item.invoiceCount).toFixed(2) : '0.00'
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${language === 'fr' ? 'revenus-par-periode' : 'revenue-by-period'}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    logExport('revenue', 'csv', language === 'fr' ? 'Export CSV rapport revenus' : 'Revenue report CSV export');
+  };
+
+  // CSV Export - Revenue by Client (Premium+)
+  const exportRevenueByClientToCSV = () => {
+    if (!clientRevenueData || clientRevenueData.clientData.length === 0) return;
+    
+    const headers = [
+      language === 'fr' ? 'Client' : 'Client',
+      language === 'fr' ? 'Facturé' : 'Invoiced',
+      language === 'fr' ? 'Payé' : 'Paid',
+      language === 'fr' ? 'Factures' : 'Invoices',
+      language === 'fr' ? '% du Total' : '% of Total'
+    ];
+    
+    const rows = clientRevenueData.clientData.map(client => [
+      `"${client.clientName.replace(/"/g, '""')}"`,
+      client.totalInvoiced.toFixed(2),
+      client.totalPaid.toFixed(2),
+      client.invoiceCount,
+      client.percentageOfTotal.toFixed(1)
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const companyFilter = clientRevenueCompanyId && clientRevenueCompanyId !== 'all' 
+      ? `-${companies.find(c => c.id === clientRevenueCompanyId)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    link.download = `${language === 'fr' ? 'revenus-par-client' : 'revenue-by-client'}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    logExport('revenue_by_client', 'csv', language === 'fr' ? 'Export CSV revenus par client' : 'Revenue by client CSV export');
+  };
+
+  // CSV Export - Revenue by Product (Premium+)
+  const exportRevenueByProductToCSV = () => {
+    if (!productRevenueData || productRevenueData.productData.length === 0) return;
+    
+    const headers = [
+      language === 'fr' ? 'Produit/Service' : 'Product/Service',
+      language === 'fr' ? 'Quantité vendue' : 'Quantity Sold',
+      language === 'fr' ? 'Revenus' : 'Revenue',
+      language === 'fr' ? 'Moyenne par vente' : 'Avg per Sale',
+      language === 'fr' ? '% du Total' : '% of Total'
+    ];
+    
+    const rows = productRevenueData.productData.map(product => [
+      `"${product.productName.replace(/"/g, '""')}"`,
+      product.quantitySold,
+      product.totalRevenue.toFixed(2),
+      product.averageRevenuePerSale.toFixed(2),
+      product.percentageOfTotal.toFixed(1)
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const companyFilter = productRevenueCompanyId && productRevenueCompanyId !== 'all' 
+      ? `-${companies.find(c => c.id === productRevenueCompanyId)?.name?.replace(/\s+/g, '-')}`
+      : '';
+    link.download = `${language === 'fr' ? 'revenus-par-produit' : 'revenue-by-product'}${companyFilter}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    logExport('revenue_by_product', 'csv', language === 'fr' ? 'Export CSV revenus par produit' : 'Revenue by product CSV export');
+  };
+
+  // CSV Export - Expenses by Period (Premium+)
+  const exportExpensesByPeriodToCSV = () => {
+    if (!expenseReportData) return;
+    
+    const headers = [
+      language === 'fr' ? 'Date' : 'Date',
+      language === 'fr' ? 'Description' : 'Description',
+      language === 'fr' ? 'Catégorie' : 'Category',
+      language === 'fr' ? 'Entreprise' : 'Company',
+      language === 'fr' ? 'Fournisseur' : 'Vendor',
+      language === 'fr' ? 'Montant' : 'Amount',
+      language === 'fr' ? 'Taxes' : 'Taxes',
+      language === 'fr' ? 'Total' : 'Total',
+      language === 'fr' ? 'Statut' : 'Status'
+    ];
+    
+    const sortedExpenses = [...expenseReportData.expenseDetails].sort((a, b) => 
+      new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime()
+    );
+    
+    const rows = sortedExpenses.map(expense => {
+      const taxes = Array.isArray(expense.taxes) ? expense.taxes : [];
+      const totalTaxAmount = taxes.reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0);
+      const grandTotal = Number(expense.amount) + totalTaxAmount;
+      
+      return [
+        format(new Date(expense.expense_date), 'yyyy-MM-dd'),
+        `"${(expense.description || '').replace(/"/g, '""')}"`,
+        `"${(expense.category || '').replace(/"/g, '""')}"`,
+        `"${(expense.company_name || '').replace(/"/g, '""')}"`,
+        `"${(expense.vendor || '').replace(/"/g, '""')}"`,
+        expense.amount.toFixed(2),
+        totalTaxAmount.toFixed(2),
+        grandTotal.toFixed(2),
+        expense.status
+      ];
+    });
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    let filename = language === 'fr' ? 'depenses-par-periode' : 'expenses-by-period';
+    if (expenseStartDate && expenseEndDate) {
+      filename += `-${format(expenseStartDate, 'yyyy-MM-dd')}-${format(expenseEndDate, 'yyyy-MM-dd')}`;
+    }
+    link.download = `${filename}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    logExport('expenses-by-period', 'csv', language === 'fr' ? 'Export CSV dépenses par période' : 'Expenses by period CSV export');
+  };
+
+  // CSV Export - Expenses by Category (Premium+)
+  const exportExpensesByCategoryToCSV = () => {
+    if (!expenseReportData) return;
+    
+    const headers = [
+      language === 'fr' ? 'Catégorie' : 'Category',
+      language === 'fr' ? 'Nombre' : 'Count',
+      language === 'fr' ? 'Montant total' : 'Total Amount',
+      language === 'fr' ? 'Montant moyen' : 'Average Amount',
+      language === 'fr' ? '% du total' : '% of Total'
+    ];
+    
+    const sortedCategories = [...expenseReportData.expensesByCategory].sort((a, b) => b.total_amount - a.total_amount);
+    
+    const rows = sortedCategories.map(cat => {
+      const percentage = expenseReportData.totalExpenses > 0 
+        ? ((cat.total_amount / expenseReportData.totalExpenses) * 100).toFixed(1)
+        : '0.0';
+      
+      return [
+        `"${(cat.category || '').replace(/"/g, '""')}"`,
+        cat.count,
+        cat.total_amount.toFixed(2),
+        (cat.total_amount / cat.count).toFixed(2),
+        percentage
+      ];
+    });
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    let filename = language === 'fr' ? 'depenses-par-categorie' : 'expenses-by-category';
+    if (expenseStartDate && expenseEndDate) {
+      filename += `-${format(expenseStartDate, 'yyyy-MM-dd')}-${format(expenseEndDate, 'yyyy-MM-dd')}`;
+    }
+    link.download = `${filename}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    logExport('expenses-by-category', 'csv', language === 'fr' ? 'Export CSV dépenses par catégorie' : 'Expenses by category CSV export');
   };
 
   // Export functions for clients - GLOBAL COMPREHENSIVE REPORT
@@ -5642,6 +5835,18 @@ const Reports = () => {
                         <FileSpreadsheet className="h-4 w-4" />
                         Excel
                       </Button>
+                      {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={exportRevenueToCSV}
+                          disabled={!realRevenueData || !chartData.length}
+                          className="flex items-center gap-2"
+                        >
+                          <FileSpreadsheet className="h-4 w-4" />
+                          CSV
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -5909,6 +6114,18 @@ const Reports = () => {
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
+                    {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportRevenueByClientToCSV}
+                        disabled={clientRevenueLoading}
+                        className="flex items-center gap-2"
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        CSV
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -5994,6 +6211,18 @@ const Reports = () => {
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
+                    {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportRevenueByProductToCSV}
+                        disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
+                        className="flex items-center gap-2"
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        CSV
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -6654,6 +6883,36 @@ const Reports = () => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
+
+                {/* CSV Exports (Premium+) */}
+                {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide min-w-[50px]">CSV</span>
+                    <div className="h-4 w-px bg-border" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button onClick={exportExpensesByPeriodToCSV} variant="outline" size="sm" disabled={!expenseReportData}>
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
+                          {language === 'fr' ? 'Par période' : 'By Period'}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {language === 'fr' ? 'Exporter le rapport en CSV' : 'Export report as CSV'}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button onClick={exportExpensesByCategoryToCSV} variant="outline" size="sm" disabled={!expenseReportData}>
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
+                          {language === 'fr' ? 'Par catégorie' : 'By Category'}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {language === 'fr' ? 'Exporter le rapport en CSV' : 'Export report as CSV'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
 
                 {/* Email Exports */}
                 <div className="flex flex-wrap items-center gap-2">
