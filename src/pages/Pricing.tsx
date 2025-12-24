@@ -210,6 +210,7 @@ const Pricing = () => {
             { text: "Inventory management", icon: "Package" },
             { text: "Automatic stock updates on sales", icon: "RefreshCcw" },
             { text: "Tax reports", icon: "BarChart3" },
+            { text: "Expense reports", icon: "Receipt" },
             { text: "Time tracking", icon: "Clock" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
@@ -311,6 +312,7 @@ const Pricing = () => {
             { text: "Gestion des stocks", icon: "Package" },
             { text: "Mise à jour automatique des stocks sur ventes", icon: "RefreshCcw" },
             { text: "Rapports fiscaux", icon: "BarChart3" },
+            { text: "Rapports de dépenses", icon: "Receipt" },
             { text: "Suivi des heures", icon: "Clock" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
