@@ -1101,24 +1101,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* TAAFT Badge */}
-      <section className="py-8 bg-muted/30">
-        <div className="container mx-auto px-4 flex justify-center">
-          <a 
-            href="https://theresanaiforthat.com/ai/gestionflow/?ref=featured&v=8428778" 
-            target="_blank" 
-            rel="nofollow noopener noreferrer"
-          >
-            <img 
-              width="200" 
-              src="https://media.theresanaiforthat.com/featured-on-taaft.png?width=600" 
-              alt="Featured on There's an AI for that"
-              className="hover:opacity-80 transition-opacity"
-              loading="lazy"
-            />
-          </a>
-        </div>
-      </section>
 
       <Footer />
 
