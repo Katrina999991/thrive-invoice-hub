@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Building2, Briefcase, Rocket, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Users, Building2, Briefcase, Rocket, CheckCircle2, FileSpreadsheet, BarChart3, Clock, Smartphone } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
@@ -27,6 +27,36 @@ const Comparison = () => {
       intro: {
         text1: "Choisir un logiciel de gestion d'entreprise est une décision importante.",
         text2: "Nous avons créé ces pages de comparaison pour vous aider à comprendre les différences entre GestionFlow et d'autres solutions populaires, de manière claire, honnête et transparente."
+      },
+      features: {
+        title: "Fonctionnalités clés de GestionFlow",
+        items: [
+          {
+            icon: "FileSpreadsheet",
+            title: "Export CSV des rapports",
+            description: "Exportez vos rapports de dépenses et de revenus en CSV (Premium & Pro)"
+          },
+          {
+            icon: "BarChart3",
+            title: "Rapports complets",
+            description: "Rapports de dépenses, revenus et taxes pour une vision complète de votre entreprise"
+          },
+          {
+            icon: "Building2",
+            title: "Gestion multi-entreprises",
+            description: "Gérez plusieurs entreprises depuis un seul compte"
+          },
+          {
+            icon: "Clock",
+            title: "Suivi du temps",
+            description: "Suivez votre temps de travail et convertissez-le directement en factures"
+          },
+          {
+            icon: "Smartphone",
+            title: "Application installable",
+            description: "Installez GestionFlow sur votre ordinateur et mobile (PWA)"
+          }
+        ]
       },
       comparisons: {
         title: "Comparaisons disponibles",
@@ -81,6 +111,36 @@ const Comparison = () => {
         text1: "Choosing business management software is an important decision.",
         text2: "We've created these comparison pages to help you understand the differences between GestionFlow and other popular solutions, in a clear, honest, and transparent way."
       },
+      features: {
+        title: "Key GestionFlow Features",
+        items: [
+          {
+            icon: "FileSpreadsheet",
+            title: "CSV Report Export",
+            description: "Export your expense and revenue reports to CSV (Premium & Pro)"
+          },
+          {
+            icon: "BarChart3",
+            title: "Comprehensive Reports",
+            description: "Expense, revenue, and tax reports for a complete view of your business"
+          },
+          {
+            icon: "Building2",
+            title: "Multi-Company Management",
+            description: "Manage multiple businesses from a single account"
+          },
+          {
+            icon: "Clock",
+            title: "Time Tracking",
+            description: "Track your work time and convert it directly into invoices"
+          },
+          {
+            icon: "Smartphone",
+            title: "Installable App",
+            description: "Install GestionFlow on your desktop and mobile (PWA)"
+          }
+        ]
+      },
       comparisons: {
         title: "Available Comparisons",
         items: [
@@ -134,7 +194,11 @@ const Comparison = () => {
     Users: <Users className="h-6 w-6" />,
     Briefcase: <Briefcase className="h-6 w-6" />,
     Building2: <Building2 className="h-6 w-6" />,
-    Rocket: <Rocket className="h-6 w-6" />
+    Rocket: <Rocket className="h-6 w-6" />,
+    FileSpreadsheet: <FileSpreadsheet className="h-6 w-6" />,
+    BarChart3: <BarChart3 className="h-6 w-6" />,
+    Clock: <Clock className="h-6 w-6" />,
+    Smartphone: <Smartphone className="h-6 w-6" />
   };
 
   return (
@@ -165,6 +229,31 @@ const Comparison = () => {
             <p className="text-muted-foreground">
               {t.intro.text2}
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Key Features Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
+            {t.features.title}
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {t.features.items.map((item, index) => (
+              <div 
+                key={index}
+                className="flex items-start gap-4 p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  {iconMap[item.icon]}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
