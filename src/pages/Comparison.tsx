@@ -32,16 +32,6 @@ const Comparison = () => {
         title: "Fonctionnalités clés de GestionFlow",
         items: [
           {
-            icon: "FileSpreadsheet",
-            title: "Export CSV des rapports",
-            description: "Exportez vos rapports de dépenses et de revenus en CSV (Premium & Pro)"
-          },
-          {
-            icon: "BarChart3",
-            title: "Rapports complets",
-            description: "Rapports de dépenses, revenus et taxes pour une vision complète de votre entreprise"
-          },
-          {
             icon: "Building2",
             title: "Gestion multi-entreprises",
             description: "Gérez plusieurs entreprises depuis un seul compte"
@@ -50,6 +40,16 @@ const Comparison = () => {
             icon: "Clock",
             title: "Suivi du temps",
             description: "Suivez votre temps de travail et convertissez-le directement en factures"
+          },
+          {
+            icon: "FileSpreadsheet",
+            title: "Export CSV des rapports",
+            description: "Exportez vos rapports de dépenses et de revenus en CSV (Premium & Pro)"
+          },
+          {
+            icon: "BarChart3",
+            title: "Rapports clairs et ciblés",
+            description: "Rapports de dépenses, revenus et taxes pour vos activités quotidiennes"
           },
           {
             icon: "Smartphone",
@@ -115,16 +115,6 @@ const Comparison = () => {
         title: "Key GestionFlow Features",
         items: [
           {
-            icon: "FileSpreadsheet",
-            title: "CSV Report Export",
-            description: "Export your expense and revenue reports to CSV (Premium & Pro)"
-          },
-          {
-            icon: "BarChart3",
-            title: "Comprehensive Reports",
-            description: "Expense, revenue, and tax reports for a complete view of your business"
-          },
-          {
             icon: "Building2",
             title: "Multi-Company Management",
             description: "Manage multiple businesses from a single account"
@@ -133,6 +123,16 @@ const Comparison = () => {
             icon: "Clock",
             title: "Time Tracking",
             description: "Track your work time and convert it directly into invoices"
+          },
+          {
+            icon: "FileSpreadsheet",
+            title: "CSV Report Export",
+            description: "Export your expense and revenue reports to CSV (Premium & Pro)"
+          },
+          {
+            icon: "BarChart3",
+            title: "Clear and Focused Reports",
+            description: "Expense, revenue, and tax reports for day-to-day business insights"
           },
           {
             icon: "Smartphone",
