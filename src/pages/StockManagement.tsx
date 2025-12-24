@@ -49,7 +49,7 @@ const StockManagement = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Button onClick={() => navigate('/dashboard/settings')}>
+            <Button onClick={() => navigate('/dashboard/pricing')}>
               {language === 'fr' ? 'Voir les plans' : 'View Plans'}
             </Button>
           </CardContent>
