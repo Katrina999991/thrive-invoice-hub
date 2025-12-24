@@ -5888,18 +5888,6 @@ const Reports = () => {
                         <FileSpreadsheet className="h-4 w-4" />
                         Excel
                       </Button>
-                      {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={exportRevenueToCSV}
-                          disabled={!realRevenueData || !chartData.length}
-                          className="flex items-center gap-2"
-                        >
-                          <FileSpreadsheet className="h-4 w-4" />
-                          CSV
-                        </Button>
-                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -6167,18 +6155,6 @@ const Reports = () => {
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
-                    {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={exportRevenueByClientToCSV}
-                        disabled={clientRevenueLoading}
-                        className="flex items-center gap-2"
-                      >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        CSV
-                      </Button>
-                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -6264,18 +6240,6 @@ const Reports = () => {
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
-                    {(planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={exportRevenueByProductToCSV}
-                        disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                        className="flex items-center gap-2"
-                      >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        CSV
-                      </Button>
-                    )}
                     <Button
                       variant="outline"
                       size="sm"
