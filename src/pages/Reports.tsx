@@ -2992,6 +2992,59 @@ const Reports = () => {
     logExport('expenses-by-category', 'csv', language === 'fr' ? 'Export CSV dépenses par catégorie' : 'Expenses by category CSV export');
   };
 
+  // CSV Export - All Expenses (Premium+)
+  const exportAllExpensesToCSV = () => {
+    if (!expenseReportData) return;
+    
+    const headers = [
+      language === 'fr' ? 'Date' : 'Date',
+      language === 'fr' ? 'Description' : 'Description',
+      language === 'fr' ? 'Catégorie' : 'Category',
+      language === 'fr' ? 'Entreprise' : 'Company',
+      language === 'fr' ? 'Fournisseur' : 'Vendor',
+      language === 'fr' ? 'Montant' : 'Amount',
+      language === 'fr' ? 'Taxes' : 'Taxes',
+      language === 'fr' ? 'Total' : 'Total',
+      language === 'fr' ? 'Statut' : 'Status'
+    ];
+    
+    const sortedExpenses = [...expenseReportData.expenseDetails].sort((a, b) => 
+      new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime()
+    );
+    
+    const rows = sortedExpenses.map(expense => {
+      const taxes = Array.isArray(expense.taxes) ? expense.taxes : [];
+      const totalTaxAmount = taxes.reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0);
+      const grandTotal = Number(expense.amount) + totalTaxAmount;
+      
+      return [
+        format(new Date(expense.expense_date), 'yyyy-MM-dd'),
+        `"${(expense.description || '').replace(/"/g, '""')}"`,
+        `"${(expense.category || '').replace(/"/g, '""')}"`,
+        `"${(expense.company_name || '').replace(/"/g, '""')}"`,
+        `"${(expense.vendor || '').replace(/"/g, '""')}"`,
+        expense.amount.toFixed(2),
+        totalTaxAmount.toFixed(2),
+        grandTotal.toFixed(2),
+        expense.status
+      ];
+    });
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    let filename = language === 'fr' ? 'toutes-depenses' : 'all-expenses';
+    if (expenseStartDate && expenseEndDate) {
+      filename += `-${format(expenseStartDate, 'yyyy-MM-dd')}-${format(expenseEndDate, 'yyyy-MM-dd')}`;
+    }
+    link.download = `${filename}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    logExport('expenses-all', 'csv', language === 'fr' ? 'Export CSV toutes dépenses' : 'All expenses CSV export');
+  };
+
   // Export functions for clients - GLOBAL COMPREHENSIVE REPORT
   const exportClientsToPDF = () => {
     const doc = new jsPDF();
@@ -6905,6 +6958,17 @@ const Reports = () => {
                         <Button onClick={exportExpensesByCategoryToCSV} variant="outline" size="sm" disabled={!expenseReportData}>
                           <FileSpreadsheet className="w-4 h-4 mr-2" />
                           {language === 'fr' ? 'Par catégorie' : 'By Category'}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {language === 'fr' ? 'Exporter le rapport en CSV' : 'Export report as CSV'}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button onClick={exportAllExpensesToCSV} variant="outline" size="sm" disabled={!expenseReportData}>
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
+                          {language === 'fr' ? 'Toutes' : 'All'}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
