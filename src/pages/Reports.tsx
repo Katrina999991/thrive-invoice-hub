@@ -94,9 +94,9 @@ const Reports = () => {
   const isTabAvailable = (tab: string) => {
     if (tab === 'overview' || tab === 'revenue' || tab === 'reminders') return true; // Always available
     if (planLimits?.all_reports) return true; // Pro plan - all reports available
-    // Premium plan - taxes and products access
+    // Premium plan - taxes, products and expenses access
     if (planLimits?.plan_type === 'premium') {
-      return tab === 'taxes' || tab === 'products';
+      return tab === 'taxes' || tab === 'products' || tab === 'expenses';
     }
     return false; // Free plan - only overview, revenue and reminders
   };
