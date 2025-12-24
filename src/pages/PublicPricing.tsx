@@ -125,6 +125,7 @@ const PublicPricing = () => {
             { text: "Mise à jour automatique des stocks sur ventes", icon: "RefreshCcw" },
             { text: "Rapports fiscaux", icon: "BarChart3" },
             { text: "Rapports de dépenses", icon: "Receipt" },
+            { text: "Export CSV (rapports dépenses et revenus)", icon: "FileSpreadsheet" },
             { text: "Paiements Stripe", icon: "CreditCard" },
             { text: "Suivi des heures", icon: "Clock" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
@@ -289,6 +290,7 @@ const PublicPricing = () => {
             { text: "Automatic stock updates on sales", icon: "RefreshCcw" },
             { text: "Tax reports", icon: "BarChart3" },
             { text: "Expense reports", icon: "Receipt" },
+            { text: "CSV export (expense & revenue reports)", icon: "FileSpreadsheet" },
             { text: "Stripe payments", icon: "CreditCard" },
             { text: "Time tracking", icon: "Clock" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
