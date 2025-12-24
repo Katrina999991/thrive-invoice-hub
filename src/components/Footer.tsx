@@ -59,7 +59,7 @@ const Footer = () => {
     };
   }, []);
 
-  const currentLogo = isDark ? logo : logoDark;
+  const currentLogo = isDark ? logoDark : logo;
 
   return (
     <footer className="bg-muted border-t border-border py-12" role="contentinfo">
