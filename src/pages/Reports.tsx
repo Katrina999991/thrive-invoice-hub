@@ -5888,6 +5888,27 @@ const Reports = () => {
                         <FileSpreadsheet className="h-4 w-4" />
                         Excel
                       </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={exportRevenueToCSV}
+                              disabled={!realRevenueData || !chartData.length || planLimits?.plan_type === 'free'}
+                              className="flex items-center gap-2"
+                            >
+                              <FileSpreadsheet className="h-4 w-4" />
+                              CSV
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        {planLimits?.plan_type === 'free' && (
+                          <TooltipContent>
+                            {language === 'fr' ? 'Disponible avec le plan Premium ou Pro' : 'Available with Premium or Pro plan'}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
                       <Button
                         variant="outline"
                         size="sm"
@@ -6155,6 +6176,27 @@ const Reports = () => {
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={exportRevenueByClientToCSV}
+                            disabled={clientRevenueLoading || planLimits?.plan_type === 'free'}
+                            className="flex items-center gap-2"
+                          >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            CSV
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {planLimits?.plan_type === 'free' && (
+                        <TooltipContent>
+                          {language === 'fr' ? 'Disponible avec le plan Premium ou Pro' : 'Available with Premium or Pro plan'}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                     <Button
                       variant="outline"
                       size="sm"
@@ -6240,6 +6282,27 @@ const Reports = () => {
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={exportRevenueByProductToCSV}
+                            disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0 || planLimits?.plan_type === 'free'}
+                            className="flex items-center gap-2"
+                          >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            CSV
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {planLimits?.plan_type === 'free' && (
+                        <TooltipContent>
+                          {language === 'fr' ? 'Disponible avec le plan Premium ou Pro' : 'Available with Premium or Pro plan'}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                     <Button
                       variant="outline"
                       size="sm"
