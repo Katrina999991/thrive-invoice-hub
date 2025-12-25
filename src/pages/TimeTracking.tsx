@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause } from "lucide-react";
@@ -9,6 +9,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -89,6 +90,7 @@ type ActiveTimer = {
 export default function TimeTracking() {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries();
   const { clients } = useClients();
   const { companies } = useCompanies();
@@ -115,6 +117,16 @@ export default function TimeTracking() {
   const [timerClientId, setTimerClientId] = useState<string>("");
   const [timerServiceId, setTimerServiceId] = useState<string>("");
 
+  // User-specific localStorage keys
+  const timerStorageKey = useMemo(() => 
+    user?.id ? `activeTimeTracker_${user.id}` : null, 
+    [user?.id]
+  );
+  const lastClientStorageKey = useMemo(() => 
+    user?.id ? `lastTimeEntryClientId_${user.id}` : null, 
+    [user?.id]
+  );
+
   useSEO({
     title: language === "fr" ? "Suivi des heures" : "Time Tracking",
     description: language === "fr" 
@@ -124,9 +136,11 @@ export default function TimeTracking() {
 
   const services = products.filter(p => p.is_active && p.quantity === null);
 
-  // Load active timer from localStorage on mount
+  // Load active timer from localStorage on mount (user-specific)
   useEffect(() => {
-    const savedTimer = localStorage.getItem("activeTimeTracker");
+    if (!timerStorageKey) return;
+    
+    const savedTimer = localStorage.getItem(timerStorageKey);
     if (savedTimer) {
       try {
         const timer = JSON.parse(savedTimer) as ActiveTimer;
@@ -138,10 +152,13 @@ export default function TimeTracking() {
         }
         setActiveTimer(timer);
       } catch (e) {
-        localStorage.removeItem("activeTimeTracker");
+        localStorage.removeItem(timerStorageKey);
       }
+    } else {
+      // Clear timer if switching users
+      setActiveTimer(null);
     }
-  }, []);
+  }, [timerStorageKey]);
 
   // Update elapsed time every second when timer is active
   useEffect(() => {
@@ -186,7 +203,7 @@ export default function TimeTracking() {
 
   // Start timer function
   const handleStartTimer = () => {
-    if (!timerClientId) {
+    if (!timerClientId || !timerStorageKey || !lastClientStorageKey) {
       toast({
         title: language === "fr" ? "Erreur" : "Error",
         description: language === "fr" ? "Veuillez sélectionner un client" : "Please select a client",
@@ -214,8 +231,8 @@ export default function TimeTracking() {
       totalPausedMs: 0,
     };
     
-    localStorage.setItem("activeTimeTracker", JSON.stringify(timer));
-    localStorage.setItem("lastTimeEntryClientId", timerClientId);
+    localStorage.setItem(timerStorageKey, JSON.stringify(timer));
+    localStorage.setItem(lastClientStorageKey, timerClientId);
     setElapsedTime("00:00:00");
     setActiveTimer(timer);
     setIsStartTimerDialogOpen(false);
@@ -276,7 +293,9 @@ export default function TimeTracking() {
     }
     
     // Clear the timer
-    localStorage.removeItem("activeTimeTracker");
+    if (timerStorageKey) {
+      localStorage.removeItem(timerStorageKey);
+    }
     setActiveTimer(null);
     
     // Open the dialog
@@ -285,7 +304,9 @@ export default function TimeTracking() {
 
   // Cancel timer without saving
   const handleCancelTimer = () => {
-    localStorage.removeItem("activeTimeTracker");
+    if (timerStorageKey) {
+      localStorage.removeItem(timerStorageKey);
+    }
     setActiveTimer(null);
     toast({
       title: language === "fr" ? "Timer annulé" : "Timer cancelled",
@@ -294,7 +315,7 @@ export default function TimeTracking() {
 
   // Pause timer
   const handlePauseTimer = () => {
-    if (!activeTimer || activeTimer.isPaused) return;
+    if (!activeTimer || activeTimer.isPaused || !timerStorageKey) return;
     
     const updatedTimer: ActiveTimer = {
       ...activeTimer,
@@ -302,7 +323,7 @@ export default function TimeTracking() {
       pausedAt: new Date().toISOString(),
     };
     
-    localStorage.setItem("activeTimeTracker", JSON.stringify(updatedTimer));
+    localStorage.setItem(timerStorageKey, JSON.stringify(updatedTimer));
     setActiveTimer(updatedTimer);
     
     toast({
@@ -312,7 +333,7 @@ export default function TimeTracking() {
 
   // Resume timer
   const handleResumeTimer = () => {
-    if (!activeTimer || !activeTimer.isPaused || !activeTimer.pausedAt) return;
+    if (!activeTimer || !activeTimer.isPaused || !activeTimer.pausedAt || !timerStorageKey) return;
     
     const pausedAtTime = new Date(activeTimer.pausedAt).getTime();
     const now = new Date().getTime();
@@ -325,7 +346,7 @@ export default function TimeTracking() {
       totalPausedMs: (activeTimer.totalPausedMs || 0) + pauseDuration,
     };
     
-    localStorage.setItem("activeTimeTracker", JSON.stringify(updatedTimer));
+    localStorage.setItem(timerStorageKey, JSON.stringify(updatedTimer));
     setActiveTimer(updatedTimer);
     
     toast({
@@ -335,9 +356,11 @@ export default function TimeTracking() {
 
   // Open start timer dialog
   const handleOpenStartTimerDialog = () => {
-    const lastClientId = localStorage.getItem("lastTimeEntryClientId");
-    if (lastClientId && clients.find(c => c.id === lastClientId)) {
-      setTimerClientId(lastClientId);
+    if (lastClientStorageKey) {
+      const lastClientId = localStorage.getItem(lastClientStorageKey);
+      if (lastClientId && clients.find(c => c.id === lastClientId)) {
+        setTimerClientId(lastClientId);
+      }
     }
     if (services.length > 0) {
       setTimerServiceId(services[0].id);
@@ -415,10 +438,12 @@ export default function TimeTracking() {
     setIsDialogOpen(true);
     setTimeout(() => {
       // Pré-sélectionner le dernier client utilisé
-      const lastClientId = localStorage.getItem("lastTimeEntryClientId");
-      if (lastClientId && clients.find(c => c.id === lastClientId)) {
-        form.setValue("client_id", lastClientId);
-        handleClientChange(lastClientId);
+      if (lastClientStorageKey) {
+        const lastClientId = localStorage.getItem(lastClientStorageKey);
+        if (lastClientId && clients.find(c => c.id === lastClientId)) {
+          form.setValue("client_id", lastClientId);
+          handleClientChange(lastClientId);
+        }
       }
       
       // Pré-sélectionner le premier service
@@ -471,7 +496,9 @@ export default function TimeTracking() {
     }
     
     // Sauvegarder le dernier client utilisé
-    localStorage.setItem("lastTimeEntryClientId", data.client_id);
+    if (lastClientStorageKey) {
+      localStorage.setItem(lastClientStorageKey, data.client_id);
+    }
     
     setIsDialogOpen(false);
     setEditingEntry(null);
