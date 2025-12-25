@@ -837,42 +837,44 @@ export default function TimeTracking() {
       {activeTimer && (
         <Card className={cn("border-primary", activeTimer.isPaused ? "bg-muted/50" : "bg-primary/5")}>
           <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "w-3 h-3 rounded-full",
-                    activeTimer.isPaused ? "bg-yellow-500" : "bg-red-500 animate-pulse"
-                  )} />
-                  <span className="font-medium text-primary">
-                    {activeTimer.isPaused 
-                      ? (language === "fr" ? "En pause" : "Paused")
-                      : (language === "fr" ? "En cours" : "In progress")
-                    }
-                  </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="flex items-center justify-between sm:justify-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "w-3 h-3 rounded-full",
+                      activeTimer.isPaused ? "bg-yellow-500" : "bg-red-500 animate-pulse"
+                    )} />
+                    <span className="font-medium text-primary">
+                      {activeTimer.isPaused 
+                        ? (language === "fr" ? "En pause" : "Paused")
+                        : (language === "fr" ? "En cours" : "In progress")
+                      }
+                    </span>
+                  </div>
+                  <div className="text-2xl font-mono font-bold sm:ml-2">{elapsedTime}</div>
                 </div>
-                <div className="text-2xl font-mono font-bold">{elapsedTime}</div>
-                <div className="text-muted-foreground">
+                <div className="text-sm sm:text-base text-muted-foreground truncate">
                   {clients.find(c => c.id === activeTimer.clientId)?.name || "-"}
                   {activeTimer.description && ` • ${activeTimer.description}`}
                 </div>
-                <Badge variant="outline">
+                <Badge variant="outline" className="w-fit">
                   {language === "fr" ? "Début" : "Started"}: {activeTimer.startTime}
                 </Badge>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                 {activeTimer.isPaused ? (
-                  <Button onClick={handleResumeTimer} variant="outline">
+                  <Button onClick={handleResumeTimer} variant="outline" size="sm" className="flex-1 sm:flex-none">
                     <Play className="mr-2 h-4 w-4" />
                     {language === "fr" ? "Reprendre" : "Resume"}
                   </Button>
                 ) : (
-                  <Button onClick={handlePauseTimer} variant="outline">
+                  <Button onClick={handlePauseTimer} variant="outline" size="sm" className="flex-1 sm:flex-none">
                     <Pause className="mr-2 h-4 w-4" />
                     {language === "fr" ? "Pause" : "Pause"}
                   </Button>
                 )}
-                <Button onClick={handleStopTimer} variant="default">
+                <Button onClick={handleStopTimer} variant="default" size="sm" className="flex-1 sm:flex-none">
                   <Square className="mr-2 h-4 w-4" />
                   {language === "fr" ? "Terminer" : "Stop"}
                 </Button>
@@ -977,105 +979,210 @@ export default function TimeTracking() {
                 : "No hours recorded"}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={allSameClientSelected && selectedEntries.length > 0}
-                      onCheckedChange={handleSelectAll}
-                      aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
-                      disabled={unbilledFilteredEntries.length === 0}
-                      className={someSelected ? "data-[state=checked]:bg-primary" : ""}
-                      {...(someSelected && { "data-state": "indeterminate" })}
-                    />
-                  </TableHead>
-                  <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
-                  <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
-                  <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
-                  <TableHead className="text-right">{language === "fr" ? "Heures" : "Hours"}</TableHead>
-                  <TableHead className="text-right">{language === "fr" ? "Taux" : "Rate"}</TableHead>
-                  <TableHead className="text-right">{language === "fr" ? "Total" : "Total"}</TableHead>
-                  <TableHead>{language === "fr" ? "Statut" : "Status"}</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>
-                      {!entry.is_billed && (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
                         <Checkbox
-                          checked={selectedEntries.includes(entry.id)}
-                          onCheckedChange={() => toggleSelection(entry.id)}
-                          disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
+                          checked={allSameClientSelected && selectedEntries.length > 0}
+                          onCheckedChange={handleSelectAll}
+                          aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
+                          disabled={unbilledFilteredEntries.length === 0}
+                          className={someSelected ? "data-[state=checked]:bg-primary" : ""}
+                          {...(someSelected && { "data-state": "indeterminate" })}
                         />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const [year, month, day] = entry.date.split('-').map(Number);
-                        const localDate = new Date(year, month - 1, day);
-                        return format(localDate, "d MMM yyyy", {
-                          locale: language === "fr" ? fr : undefined,
-                        });
-                      })()}
-                    </TableCell>
-                    <TableCell>{entry.clients?.name || "-"}</TableCell>
-                    <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
-                    <TableCell className="text-right">{entry.hours}h</TableCell>
-                    <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
-                    <TableCell className="text-right font-medium">
-                      ${(entry.hours * entry.hourly_rate).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={entry.is_billed ? "billed" : "unbilled"}
-                        onValueChange={async (value) => {
-                          if (value === "billed" && !entry.is_billed) {
-                            await updateTimeEntry(entry.id, { is_billed: true });
-                          } else if (value === "unbilled" && entry.is_billed) {
-                            await markAsUnbilled(entry.id);
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background z-50">
-                          <SelectItem value="unbilled">
-                            {language === "fr" ? "Non facturé" : "Unbilled"}
-                          </SelectItem>
-                          <SelectItem value="billed">
-                            {language === "fr" ? "Facturé" : "Billed"}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      {!entry.is_billed && (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(entry)}
+                      </TableHead>
+                      <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
+                      <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
+                      <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
+                      <TableHead className="text-right">{language === "fr" ? "Heures" : "Hours"}</TableHead>
+                      <TableHead className="text-right">{language === "fr" ? "Taux" : "Rate"}</TableHead>
+                      <TableHead className="text-right">{language === "fr" ? "Total" : "Total"}</TableHead>
+                      <TableHead>{language === "fr" ? "Statut" : "Status"}</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredEntries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>
+                          {!entry.is_billed && (
+                            <Checkbox
+                              checked={selectedEntries.includes(entry.id)}
+                              onCheckedChange={() => toggleSelection(entry.id)}
+                              disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            const [year, month, day] = entry.date.split('-').map(Number);
+                            const localDate = new Date(year, month - 1, day);
+                            return format(localDate, "d MMM yyyy", {
+                              locale: language === "fr" ? fr : undefined,
+                            });
+                          })()}
+                        </TableCell>
+                        <TableCell>{entry.clients?.name || "-"}</TableCell>
+                        <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
+                        <TableCell className="text-right">{entry.hours}h</TableCell>
+                        <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ${(entry.hours * entry.hourly_rate).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={entry.is_billed ? "billed" : "unbilled"}
+                            onValueChange={async (value) => {
+                              if (value === "billed" && !entry.is_billed) {
+                                await updateTimeEntry(entry.id, { is_billed: true });
+                              } else if (value === "unbilled" && entry.is_billed) {
+                                await markAsUnbilled(entry.id);
+                              }
+                            }}
                           >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteTimeEntry(entry.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background z-50">
+                              <SelectItem value="unbilled">
+                                {language === "fr" ? "Non facturé" : "Unbilled"}
+                              </SelectItem>
+                              <SelectItem value="billed">
+                                {language === "fr" ? "Facturé" : "Billed"}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          {!entry.is_billed && (
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(entry)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteTimeEntry(entry.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3">
+                {/* Select All on Mobile */}
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Checkbox
+                    checked={allSameClientSelected && selectedEntries.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
+                    disabled={unbilledFilteredEntries.length === 0}
+                    className={someSelected ? "data-[state=checked]:bg-primary" : ""}
+                    {...(someSelected && { "data-state": "indeterminate" })}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {language === "fr" ? "Tout sélectionner" : "Select all"}
+                  </span>
+                </div>
+
+                {filteredEntries.map((entry) => {
+                  const [year, month, day] = entry.date.split('-').map(Number);
+                  const localDate = new Date(year, month - 1, day);
+                  const formattedDate = format(localDate, "d MMM yyyy", {
+                    locale: language === "fr" ? fr : undefined,
+                  });
+                  
+                  return (
+                    <div key={entry.id} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          {!entry.is_billed && (
+                            <Checkbox
+                              checked={selectedEntries.includes(entry.id)}
+                              onCheckedChange={() => toggleSelection(entry.id)}
+                              disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
+                              className="mt-1"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{entry.description}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {entry.clients?.name || "-"}
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        {!entry.is_billed && (
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleEdit(entry)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => deleteTimeEntry(entry.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                        <span className="text-muted-foreground">{formattedDate}</span>
+                        <span>{entry.hours}h × ${entry.hourly_rate}</span>
+                        <span className="font-semibold">${(entry.hours * entry.hourly_rate).toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="pt-1">
+                        <Select
+                          value={entry.is_billed ? "billed" : "unbilled"}
+                          onValueChange={async (value) => {
+                            if (value === "billed" && !entry.is_billed) {
+                              await updateTimeEntry(entry.id, { is_billed: true });
+                            } else if (value === "unbilled" && entry.is_billed) {
+                              await markAsUnbilled(entry.id);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full h-8 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            <SelectItem value="unbilled">
+                              {language === "fr" ? "Non facturé" : "Unbilled"}
+                            </SelectItem>
+                            <SelectItem value="billed">
+                              {language === "fr" ? "Facturé" : "Billed"}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
