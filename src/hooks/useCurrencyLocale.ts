@@ -194,26 +194,29 @@ export const useCurrencyLocale = () => {
       const finalPrice = isZeroDecimal ? Math.round(convertedPrice) : convertedPrice;
       
       if (showCurrency) {
+        // Get the currency symbol
+        let symbol = currencyInfo.symbol;
         try {
-          const formatted = new Intl.NumberFormat(locale, {
+          const formatter = new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency,
             currencyDisplay: 'narrowSymbol',
-            minimumFractionDigits: isZeroDecimal ? 0 : 2,
-            maximumFractionDigits: isZeroDecimal ? 0 : 2,
-          }).format(finalPrice);
-          // Append currency code (e.g., "£19.99 GBP")
-          return `${formatted} ${currency}`;
+          });
+          const parts = formatter.formatToParts(0);
+          const symbolPart = parts.find(p => p.type === 'currency');
+          if (symbolPart) symbol = symbolPart.value;
         } catch (e) {
-          // Fallback if narrowSymbol not supported
-          const formatted = new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency,
-            minimumFractionDigits: isZeroDecimal ? 0 : 2,
-            maximumFractionDigits: isZeroDecimal ? 0 : 2,
-          }).format(finalPrice);
-          return `${formatted} ${currency}`;
+          // Keep default symbol
         }
+        
+        // Format number without currency symbol
+        const formattedNumber = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: isZeroDecimal ? 0 : 2,
+          maximumFractionDigits: isZeroDecimal ? 0 : 2,
+        }).format(finalPrice);
+        
+        // Return format: £19.99 GBP (symbol in front, then amount, then currency code)
+        return `${symbol}${formattedNumber} ${currency}`;
       }
       
       return finalPrice.toFixed(isZeroDecimal ? 0 : 2);
