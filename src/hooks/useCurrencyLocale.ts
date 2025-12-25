@@ -142,17 +142,33 @@ export const useCurrencyLocale = () => {
         }
       }
       
-      // Get currency symbol
-      const formatter = new Intl.NumberFormat(browserLocale, {
-        style: 'currency',
-        currency: detectedCurrency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      
-      const symbolParts = formatter.formatToParts(0);
-      const symbolPart = symbolParts.find(p => p.type === 'currency');
-      const symbol = symbolPart?.value || '$';
+      // Get currency symbol - use narrowSymbol for cleaner display (£ instead of £GB)
+      let symbol = '$';
+      try {
+        const formatter = new Intl.NumberFormat(browserLocale, {
+          style: 'currency',
+          currency: detectedCurrency,
+          currencyDisplay: 'narrowSymbol',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+        
+        const symbolParts = formatter.formatToParts(0);
+        const symbolPart = symbolParts.find(p => p.type === 'currency');
+        symbol = symbolPart?.value || '$';
+      } catch (e) {
+        // Fallback if narrowSymbol not supported
+        const formatter = new Intl.NumberFormat(browserLocale, {
+          style: 'currency',
+          currency: detectedCurrency,
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+        
+        const symbolParts = formatter.formatToParts(0);
+        const symbolPart = symbolParts.find(p => p.type === 'currency');
+        symbol = symbolPart?.value || '$';
+      }
       
       setCurrencyInfo({
         currency: detectedCurrency,
@@ -178,12 +194,23 @@ export const useCurrencyLocale = () => {
       const finalPrice = isZeroDecimal ? Math.round(convertedPrice) : convertedPrice;
       
       if (showCurrency) {
-        return new Intl.NumberFormat(locale, {
-          style: 'currency',
-          currency,
-          minimumFractionDigits: isZeroDecimal ? 0 : 2,
-          maximumFractionDigits: isZeroDecimal ? 0 : 2,
-        }).format(finalPrice);
+        try {
+          return new Intl.NumberFormat(locale, {
+            style: 'currency',
+            currency,
+            currencyDisplay: 'narrowSymbol',
+            minimumFractionDigits: isZeroDecimal ? 0 : 2,
+            maximumFractionDigits: isZeroDecimal ? 0 : 2,
+          }).format(finalPrice);
+        } catch (e) {
+          // Fallback if narrowSymbol not supported
+          return new Intl.NumberFormat(locale, {
+            style: 'currency',
+            currency,
+            minimumFractionDigits: isZeroDecimal ? 0 : 2,
+            maximumFractionDigits: isZeroDecimal ? 0 : 2,
+          }).format(finalPrice);
+        }
       }
       
       return finalPrice.toFixed(isZeroDecimal ? 0 : 2);
