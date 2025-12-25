@@ -6,22 +6,30 @@ interface CurrencyInfo {
   symbol: string;
 }
 
-// Map browser locales to likely currencies
-const localeToCurrency: Record<string, string> = {
-  'en-US': 'USD',
-  'en-CA': 'CAD',
-  'fr-CA': 'CAD',
-  'fr-FR': 'EUR',
-  'de-DE': 'EUR',
-  'es-ES': 'EUR',
-  'it-IT': 'EUR',
-  'pt-BR': 'BRL',
-  'en-GB': 'GBP',
-  'en-AU': 'AUD',
-  'ja-JP': 'JPY',
-  'zh-CN': 'CNY',
-  'en-IN': 'INR',
-  'es-MX': 'MXN',
+// Country code to currency mapping (priority over language)
+const countryToCurrency: Record<string, string> = {
+  'CA': 'CAD',
+  'US': 'USD',
+  'GB': 'GBP',
+  'AU': 'AUD',
+  'NZ': 'NZD',
+  'JP': 'JPY',
+  'CN': 'CNY',
+  'IN': 'INR',
+  'MX': 'MXN',
+  'BR': 'BRL',
+  // EU countries
+  'FR': 'EUR',
+  'DE': 'EUR',
+  'ES': 'EUR',
+  'IT': 'EUR',
+  'NL': 'EUR',
+  'BE': 'EUR',
+  'AT': 'EUR',
+  'PT': 'EUR',
+  'IE': 'EUR',
+  'FI': 'EUR',
+  'GR': 'EUR',
 };
 
 // Exchange rates (approximate, for display only - Stripe handles actual conversion)
@@ -50,17 +58,28 @@ export const useCurrencyLocale = () => {
       // Get browser locale
       const browserLocale = navigator.language || 'en-CA';
       
-      // Try exact match first
-      let detectedCurrency = localeToCurrency[browserLocale];
+      // Extract country code from locale (e.g., "fr-CA" -> "CA", "en-US" -> "US")
+      const parts = browserLocale.split('-');
+      const countryCode = parts.length > 1 ? parts[1].toUpperCase() : null;
       
-      // Try language-only match
+      let detectedCurrency: string | undefined;
+      
+      // Priority 1: Use country code if available
+      if (countryCode && countryToCurrency[countryCode]) {
+        detectedCurrency = countryToCurrency[countryCode];
+      }
+      
+      // Priority 2: Check timezone for Canada (covers "fr" without country code)
       if (!detectedCurrency) {
-        const languageOnly = browserLocale.split('-')[0];
-        const matchingLocale = Object.keys(localeToCurrency).find(
-          locale => locale.startsWith(languageOnly)
-        );
-        if (matchingLocale) {
-          detectedCurrency = localeToCurrency[matchingLocale];
+        try {
+          const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          if (timezone && timezone.startsWith('America/') && 
+              ['America/Toronto', 'America/Vancouver', 'America/Montreal', 'America/Edmonton', 
+               'America/Winnipeg', 'America/Halifax', 'America/St_Johns', 'America/Regina'].includes(timezone)) {
+            detectedCurrency = 'CAD';
+          }
+        } catch (e) {
+          // Timezone detection failed, continue
         }
       }
       
@@ -75,8 +94,8 @@ export const useCurrencyLocale = () => {
         maximumFractionDigits: 0,
       });
       
-      const parts = formatter.formatToParts(0);
-      const symbolPart = parts.find(p => p.type === 'currency');
+      const symbolParts = formatter.formatToParts(0);
+      const symbolPart = symbolParts.find(p => p.type === 'currency');
       const symbol = symbolPart?.value || '$';
       
       setCurrencyInfo({
