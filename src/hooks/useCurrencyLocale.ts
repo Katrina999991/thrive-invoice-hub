@@ -139,7 +139,10 @@ export const useCurrencyLocale = () => {
       
       // Convert from CAD to local currency
       const rate = exchangeRatesFromCAD[currency] || 1;
-      const convertedPrice = Math.round(priceInCAD * rate);
+      const convertedPrice = priceInCAD * rate;
+      
+      // For JPY, round to whole number; for others, keep 2 decimals
+      const finalPrice = currency === 'JPY' ? Math.round(convertedPrice) : convertedPrice;
       
       if (showCurrency) {
         return new Intl.NumberFormat(locale, {
@@ -147,10 +150,10 @@ export const useCurrencyLocale = () => {
           currency,
           minimumFractionDigits: currency === 'JPY' ? 0 : 2,
           maximumFractionDigits: currency === 'JPY' ? 0 : 2,
-        }).format(convertedPrice);
+        }).format(finalPrice);
       }
       
-      return convertedPrice.toString();
+      return finalPrice.toFixed(currency === 'JPY' ? 0 : 2);
     };
   }, [currencyInfo]);
 
