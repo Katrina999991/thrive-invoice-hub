@@ -62,25 +62,31 @@ export const useCurrencyLocale = () => {
       const parts = browserLocale.split('-');
       const countryCode = parts.length > 1 ? parts[1].toUpperCase() : null;
       
-      let detectedCurrency: string | undefined;
-      
-      // Priority 1: Use country code if available
-      if (countryCode && countryToCurrency[countryCode]) {
-        detectedCurrency = countryToCurrency[countryCode];
+      // Check if user is in Canada via timezone (most reliable for Canadian users)
+      let isInCanada = false;
+      try {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (timezone && [
+          'America/Toronto', 'America/Vancouver', 'America/Montreal', 'America/Edmonton',
+          'America/Winnipeg', 'America/Halifax', 'America/St_Johns', 'America/Regina',
+          'America/Whitehorse', 'America/Yellowknife', 'America/Iqaluit', 'America/Moncton',
+          'America/Goose_Bay', 'America/Glace_Bay', 'America/Dawson', 'America/Rankin_Inlet'
+        ].includes(timezone)) {
+          isInCanada = true;
+        }
+      } catch (e) {
+        // Timezone detection failed
       }
       
-      // Priority 2: Check timezone for Canada (covers "fr" without country code)
-      if (!detectedCurrency) {
-        try {
-          const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          if (timezone && timezone.startsWith('America/') && 
-              ['America/Toronto', 'America/Vancouver', 'America/Montreal', 'America/Edmonton', 
-               'America/Winnipeg', 'America/Halifax', 'America/St_Johns', 'America/Regina'].includes(timezone)) {
-            detectedCurrency = 'CAD';
-          }
-        } catch (e) {
-          // Timezone detection failed, continue
-        }
+      let detectedCurrency: string | undefined;
+      
+      // Priority 1: If user is in Canada (by timezone), always use CAD
+      if (isInCanada) {
+        detectedCurrency = 'CAD';
+      }
+      // Priority 2: Use country code from locale if available
+      else if (countryCode && countryToCurrency[countryCode]) {
+        detectedCurrency = countryToCurrency[countryCode];
       }
       
       // Default to CAD if no match
