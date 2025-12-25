@@ -1961,52 +1961,6 @@ Cordialement,
                 )}
               </div>
 
-              {/* Summary Emails Section */}
-              <div className="space-y-3 pt-4 border-t">
-                <h3 className="font-medium">
-                  {language === "fr" ? "Emails de résumé" : "Summary Emails"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {language === "fr" 
-                    ? "Recevez des résumés périodiques de votre activité."
-                    : "Receive periodic summaries of your activity."}
-                </p>
-                {emailPreferencesLoading ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">
-                      {language === "fr" ? "Chargement..." : "Loading..."}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="space-y-2 pl-6">
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="text-sm font-medium">{language === "fr" ? "Résumé hebdomadaire" : "Weekly summary"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {language === "fr" ? "Résumé de votre activité de la semaine" : "Summary of your weekly activity"}
-                        </p>
-                      </div>
-                      <Switch 
-                        checked={emailPreferences?.weekly_summary ?? false} 
-                        onCheckedChange={(checked) => updateEmailPreference('weekly_summary', checked)}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="text-sm font-medium">{language === "fr" ? "Résumé mensuel" : "Monthly summary"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {language === "fr" ? "Résumé de performance du mois" : "Monthly performance summary"}
-                        </p>
-                      </div>
-                      <Switch 
-                        checked={emailPreferences?.monthly_summary ?? false} 
-                        onCheckedChange={(checked) => updateEmailPreference('monthly_summary', checked)}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </CardContent>
         </Card>
