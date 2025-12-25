@@ -52,7 +52,7 @@ import {
 const Pricing = () => {
   const { availablePlans, currentSubscription, isLoading, planLimits } = useSubscription();
   const { language } = useLanguage();
-  const { formatPrice, isLocalCurrency, currency } = useCurrencyLocale();
+  const { formatPrice, isLocalCurrency, currency, currencyNote } = useCurrencyLocale();
   const { createCheckout, checkSubscription, openCustomerPortal, scheduleUpgrade, isLoading: stripeLoading } = useStripeCheckout();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [hasActiveStripeSubscription, setHasActiveStripeSubscription] = useState(false);
@@ -711,8 +711,9 @@ const Pricing = () => {
       </div>
 
       {/* Pricing Disclaimer */}
-      <p className="text-center text-xs text-muted-foreground mb-10">
-        {t.pricingDisclaimer}
+      <p className="text-center text-xs text-muted-foreground mb-10 flex items-center justify-center gap-1.5">
+        <Globe className="h-3.5 w-3.5" />
+        {currencyNote[language]}
       </p>
 
       {/* Free User Incentive Section */}
