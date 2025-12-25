@@ -215,31 +215,24 @@ export function PWAInstallSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Install button - always visible */}
-        <Button 
-          onClick={handleInstall} 
-          disabled={isInstalling}
-          className="w-full"
-          size="lg"
-        >
-          {deferredPrompt ? (
-            <>
-              <Download className="w-5 h-5 mr-2" />
-              {isInstalling 
-                ? (language === "fr" ? "Installation..." : "Installing...")
-                : (language === "fr" ? "Installer maintenant" : "Install Now")
-              }
-            </>
-          ) : (
-            <>
-              <ExternalLink className="w-5 h-5 mr-2" />
-              {language === "fr" ? "Voir les instructions" : "View Instructions"}
-            </>
-          )}
-        </Button>
+        {/* Install button - only show when native install is available */}
+        {deferredPrompt && (
+          <Button 
+            onClick={handleInstall} 
+            disabled={isInstalling}
+            className="w-full"
+            size="lg"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            {isInstalling 
+              ? (language === "fr" ? "Installation..." : "Installing...")
+              : (language === "fr" ? "Installer maintenant" : "Install Now")
+            }
+          </Button>
+        )}
 
-        {/* Manual instructions - always visible or when button clicked */}
-        {(showInstructions || !deferredPrompt) && (
+        {/* Manual instructions - show when native install is not available */}
+        {!deferredPrompt && (
           <div className="rounded-lg border bg-muted/30 p-4">
             <div className="flex items-center gap-2 mb-3">
               {instructions.icon}
