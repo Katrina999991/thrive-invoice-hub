@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Download, Sparkles, Share, MoreVertical, Plus } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { X, Download, Sparkles, Share, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -9,6 +9,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const STORAGE_KEY = "pwa-install-banner-dismissed";
+const STORAGE_TIMESTAMP_KEY = "pwa-install-banner-dismissed-at";
+const DISMISS_DURATION_DAYS = 7;
 
 // Global variable to capture the event before React mounts
 let deferredPromptGlobal: BeforeInstallPromptEvent | null = null;
@@ -24,37 +26,82 @@ if (typeof window !== "undefined") {
 
 // Detect browser and platform
 const getBrowserInfo = () => {
-  if (typeof navigator === "undefined") return { isIOS: false, isSafari: false, isChrome: false, isAndroid: false };
+  if (typeof navigator === "undefined") return { isIOS: false, isSafari: false, isChrome: false, isAndroid: false, isMobile: false };
   
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
   const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
   const isChrome = /chrome/i.test(ua) && !/edge/i.test(ua);
   const isAndroid = /android/i.test(ua);
+  const isMobile = isIOS || isAndroid || /mobile/i.test(ua);
   
-  return { isIOS, isSafari, isChrome, isAndroid };
+  return { isIOS, isSafari, isChrome, isAndroid, isMobile };
+};
+
+// Check if dismiss period has expired
+const isDismissPeriodExpired = (): boolean => {
+  const dismissedAt = localStorage.getItem(STORAGE_TIMESTAMP_KEY);
+  if (!dismissedAt) return true;
+  
+  const dismissedTime = parseInt(dismissedAt, 10);
+  const now = Date.now();
+  const daysSinceDismiss = (now - dismissedTime) / (1000 * 60 * 60 * 24);
+  
+  return daysSinceDismiss >= DISMISS_DURATION_DAYS;
 };
 
 export function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
   const [showManualInstructions, setShowManualInstructions] = useState(false);
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const browserInfo = getBrowserInfo();
+
+  // Function to show banner (can be triggered externally)
+  const showBannerIfEligible = useCallback(() => {
+    // Check if already installed
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      return;
+    }
+
+    // Check if permanently installed
+    if (localStorage.getItem(STORAGE_KEY) === "installed") {
+      return;
+    }
+
+    // Check if dismiss period expired
+    if (!isDismissPeriodExpired()) {
+      return;
+    }
+
+    // Show the banner
+    if (deferredPromptGlobal) {
+      setDeferredPrompt(deferredPromptGlobal);
+      setShowBanner(true);
+    } else if (browserInfo.isIOS || browserInfo.isAndroid) {
+      setShowBanner(true);
+      setShowManualInstructions(true);
+    }
+  }, [browserInfo.isIOS, browserInfo.isAndroid]);
 
   useEffect(() => {
     console.log("PWA Banner: Component mounted");
     
-    // Check if already dismissed
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (dismissed) {
-      console.log("PWA Banner: Already dismissed");
+    // Check if permanently installed
+    if (localStorage.getItem(STORAGE_KEY) === "installed") {
+      console.log("PWA Banner: Already installed");
       return;
     }
 
     // Check if already installed (standalone mode)
     if (window.matchMedia("(display-mode: standalone)").matches) {
       console.log("PWA Banner: Already installed (standalone mode)");
+      return;
+    }
+
+    // Check if dismiss period has not expired
+    if (!isDismissPeriodExpired()) {
+      console.log("PWA Banner: Dismissed recently, waiting for period to expire");
       return;
     }
 
@@ -99,6 +146,20 @@ export function PWAInstallBanner() {
     };
   }, []);
 
+  // Listen for custom event to trigger banner (e.g., after first invoice/expense)
+  useEffect(() => {
+    const handlePwaPromptEvent = () => {
+      console.log("PWA Banner: Triggered via gf-pwa-prompt event");
+      showBannerIfEligible();
+    };
+
+    window.addEventListener("gf-pwa-prompt", handlePwaPromptEvent);
+
+    return () => {
+      window.removeEventListener("gf-pwa-prompt", handlePwaPromptEvent);
+    };
+  }, [showBannerIfEligible]);
+
   const handleInstall = async () => {
     if (!deferredPrompt) {
       // Show manual instructions if programmatic install not available
@@ -113,6 +174,7 @@ export function PWAInstallBanner() {
       if (outcome === "accepted") {
         setShowBanner(false);
         localStorage.setItem(STORAGE_KEY, "installed");
+        localStorage.removeItem(STORAGE_TIMESTAMP_KEY);
       }
     } catch (error) {
       console.error("PWA install error:", error);
@@ -124,10 +186,33 @@ export function PWAInstallBanner() {
 
   const handleDismiss = () => {
     setShowBanner(false);
-    localStorage.setItem(STORAGE_KEY, "dismissed");
+    // Store timestamp for 7-day delay
+    localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
+    // Remove permanent dismiss flag if it was set
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   if (!showBanner) return null;
+
+  // Device-specific copy
+  const getDeviceSpecificCopy = () => {
+    if (browserInfo.isMobile) {
+      return {
+        title: language === 'fr' ? "Installer GestionFlow" : "Install GestionFlow",
+        description: language === 'fr' 
+          ? "Ajoutez GestionFlow à votre écran d'accueil pour un accès rapide."
+          : "Add GestionFlow to your Home Screen for quick access."
+      };
+    }
+    return {
+      title: language === 'fr' ? "Installer GestionFlow" : "Install GestionFlow",
+      description: language === 'fr'
+        ? "Installez GestionFlow sur votre ordinateur pour un accès plus rapide."
+        : "Install GestionFlow on your computer for faster access."
+    };
+  };
+
+  const deviceCopy = getDeviceSpecificCopy();
 
   const getManualInstructions = () => {
     if (browserInfo.isIOS) {
@@ -173,10 +258,10 @@ export function PWAInstallBanner() {
               {!showManualInstructions ? (
                 <>
                   <h3 className="font-bold text-primary-foreground text-base tracking-tight">
-                    {t("pwa.install.title")}
+                    {deviceCopy.title}
                   </h3>
                   <p className="text-primary-foreground/80 text-sm mt-1 leading-relaxed">
-                    {t("pwa.install.description")}
+                    {deviceCopy.description}
                   </p>
                   
                   <div className="flex items-center gap-3 mt-4">
@@ -186,7 +271,7 @@ export function PWAInstallBanner() {
                       className="h-9 px-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      {t("pwa.install.button")}
+                      {language === 'fr' ? "Installer" : "Install"}
                     </Button>
                     <Button
                       size="sm"
@@ -194,7 +279,7 @@ export function PWAInstallBanner() {
                       onClick={handleDismiss}
                       className="h-9 px-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
                     >
-                      {t("pwa.install.later")}
+                      {language === 'fr' ? "Plus tard" : "Later"}
                     </Button>
                   </div>
                 </>
