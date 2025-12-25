@@ -58,30 +58,40 @@ export const useCurrencyLocale = () => {
       // Get browser locale
       const browserLocale = navigator.language || 'en-CA';
       
-      // Extract country code from locale (e.g., "fr-CA" -> "CA", "en-US" -> "US")
-      const parts = browserLocale.split('-');
-      const countryCode = parts.length > 1 ? parts[1].toUpperCase() : null;
+      // Check if any locale in navigator.languages contains "CA" country code
+      const hasCanadianLocale = navigator.languages?.some(lang => {
+        const upper = lang.toUpperCase();
+        return upper.includes('-CA') || upper === 'CA';
+      }) || browserLocale.toUpperCase().includes('-CA');
       
-      // Check if user is in Canada via timezone (most reliable for Canadian users)
-      let isInCanada = false;
+      // Check if user is in Canada via timezone
+      let isInCanadianTimezone = false;
       try {
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (timezone && [
-          'America/Toronto', 'America/Vancouver', 'America/Montreal', 'America/Edmonton',
-          'America/Winnipeg', 'America/Halifax', 'America/St_Johns', 'America/Regina',
-          'America/Whitehorse', 'America/Yellowknife', 'America/Iqaluit', 'America/Moncton',
-          'America/Goose_Bay', 'America/Glace_Bay', 'America/Dawson', 'America/Rankin_Inlet'
-        ].includes(timezone)) {
-          isInCanada = true;
+        if (timezone) {
+          const canadianTimezones = [
+            'America/Toronto', 'America/Vancouver', 'America/Montreal', 'America/Edmonton',
+            'America/Winnipeg', 'America/Halifax', 'America/St_Johns', 'America/Regina',
+            'America/Whitehorse', 'America/Yellowknife', 'America/Iqaluit', 'America/Moncton',
+            'America/Goose_Bay', 'America/Glace_Bay', 'America/Dawson', 'America/Rankin_Inlet',
+            'America/Nipigon', 'America/Thunder_Bay', 'America/Rainy_River', 'America/Atikokan',
+            'America/Swift_Current', 'America/Cambridge_Bay', 'America/Inuvik', 'America/Creston',
+            'America/Fort_Nelson', 'America/Blanc-Sablon', 'America/Pangnirtung', 'America/Resolute'
+          ];
+          isInCanadianTimezone = canadianTimezones.includes(timezone);
         }
       } catch (e) {
         // Timezone detection failed
       }
       
+      // Extract country code from primary locale
+      const parts = browserLocale.split('-');
+      const countryCode = parts.length > 1 ? parts[1].toUpperCase() : null;
+      
       let detectedCurrency: string | undefined;
       
-      // Priority 1: If user is in Canada (by timezone), always use CAD
-      if (isInCanada) {
+      // Priority 1: If user has Canadian locale OR Canadian timezone, use CAD
+      if (hasCanadianLocale || isInCanadianTimezone) {
         detectedCurrency = 'CAD';
       }
       // Priority 2: Use country code from locale if available
