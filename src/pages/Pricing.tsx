@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrencyLocale } from "@/hooks/useCurrencyLocale";
 import { 
   Check, 
   Crown, 
@@ -33,7 +34,8 @@ import {
   History,
   UsersRound,
   FileCheck,
-  X
+  X,
+  Globe
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
@@ -50,6 +52,7 @@ import {
 const Pricing = () => {
   const { availablePlans, currentSubscription, isLoading, planLimits } = useSubscription();
   const { language } = useLanguage();
+  const { formatPrice, isLocalCurrency, currency } = useCurrencyLocale();
   const { createCheckout, checkSubscription, openCustomerPortal, scheduleUpgrade, isLoading: stripeLoading } = useStripeCheckout();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [hasActiveStripeSubscription, setHasActiveStripeSubscription] = useState(false);
@@ -148,9 +151,9 @@ const Pricing = () => {
       yearly: "Yearly",
       nextRenewal: "Next billing date:",
       manageSubscription: "Manage Subscription",
-      saveYearly: "Save about 2 months with annual subscription",
+      saveYearly: "Save about 2 months with annual billing",
       saveYearlyShort: "Save ~2 months",
-      currentPlan: "Current Plan",
+      currentPlan: "Your Plan",
       upgradeTo: "Upgrade to",
       switchToFree: "Switch to Free",
       perMonth: "/month",
@@ -161,8 +164,8 @@ const Pricing = () => {
       billingRule3: "Downgrades take effect at the end of the current billing cycle.",
       billingRule4: "Switching to the Free plan acts as subscription cancellation.",
       noCommitment: "No long-term commitment. You can change plans at any time.",
-      securePayments: "All payments are processed securely via Stripe.",
-      cancelAnytime: "No long-term commitment. Change your plan at any time.",
+      securePayments: "Secure payments via Stripe",
+      cancelAnytime: "Cancel anytime, no questions asked",
       policyTitle: "Plan Change Policy",
       policyIntro: "If you downgrade to a lower plan (e.g., from Pro to Premium), here's what happens:",
       policyKeepData: "You keep all your existing data (companies, clients, invoices, expenses)",
@@ -170,13 +173,15 @@ const Pricing = () => {
       policyNoCreate: "However, you won't be able to create new entities if you exceed the new plan's limits",
       policyExample: "Example: If you have 3 companies on the Pro plan and downgrade to Premium (limit: 1 company), you keep your 3 companies but will need to delete 2 before you can create a new one.",
       freeUserTitle: "Unlock Your Full Potential",
-      freeUserDesc: "Upgrade to Premium or Pro and enjoy unlimited invoices, PDF downloads, and reduced Stripe fees.",
+      freeUserDesc: "Upgrade to Premium or Pro for unlimited invoicing, PDF exports, and reduced payment processing costs.",
+      pricingDisclaimer: "Prices shown in your local currency. Base pricing in CAD. Taxes may apply.",
       plans: {
         free: {
           name: "Free",
-          description: "Ideal to discover GestionFlow and start your business",
-          stripeInfo: "Stripe Payments (+2% GestionFlow processing fee)",
-          stripeInfoShort: "+2% GestionFlow fee",
+          description: "Discover and test GestionFlow",
+          stripeInfo: "Payments accepted via Stripe",
+          stripeInfoShort: "Payment processing included",
+          stripeFeeNote: "Standard rates apply",
           noInventory: "Inventory management not included",
           features: [
             { text: "1 company", icon: "Building2" },
@@ -192,12 +197,12 @@ const Pricing = () => {
         },
         premium: {
           name: "Premium",
-          description: "The best balance for freelancers and small businesses",
-          popular: "⭐ Most Popular",
+          description: "Best for freelancers and small businesses",
+          popular: "Most Popular",
           chosenBy: "Chosen by most of our users",
-          stripeInfo: "Stripe Payments (+1% GestionFlow processing fee)",
-          stripeInfoShort: "+1% GestionFlow fee",
-          stripeNote: "Pay less fees on every payment received",
+          stripeInfo: "Reduced payment fees",
+          stripeInfoShort: "Save on every payment",
+          stripeFeeNote: "Lower processing costs",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
@@ -218,10 +223,10 @@ const Pricing = () => {
         },
         pro: {
           name: "Pro",
-          description: "Built for growing businesses and multi-company management",
-          stripeInfo: "Stripe Payments (+0.5% GestionFlow processing fee)",
-          stripeInfoShort: "+0.5% GestionFlow fee",
-          stripeNote: "Optimize your payment costs as your business grows",
+          description: "Ideal for growing businesses and multi-company management",
+          stripeInfo: "Lowest payment fees",
+          stripeInfoShort: "Maximum savings on payments",
+          stripeFeeNote: "Best rates for high volume",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
             { text: "Unlimited clients, invoices & quotes", icon: "Users" },
@@ -234,13 +239,13 @@ const Pricing = () => {
           ]
         }
       },
-      stripeFeesTitle: "Stripe Payments & Fees",
-      stripeFeesDesc: "Payments are processed securely via Stripe.",
-      stripeFeesDesc2: "Stripe charges standard processing fees.",
-      stripeFeesDesc3: "GestionFlow adds an additional processing fee based on your plan:",
-      stripeFeesFree: "Free: +2%",
-      stripeFeesPremium: "Premium: +1%",
-      stripeFeesPro: "Pro: +0.5%",
+      stripeFeesTitle: "Payment Processing",
+      stripeFeesDesc: "Accept payments securely via Stripe.",
+      stripeFeesDesc2: "Standard Stripe fees apply to all transactions.",
+      stripeFeesDesc3: "Upgrading your plan reduces your payment processing costs:",
+      stripeFeesFree: "Free: Standard rates",
+      stripeFeesPremium: "Premium: Reduced rates",
+      stripeFeesPro: "Pro: Lowest rates",
       switchToFreeWarning: "Switching to the Free plan will disable paid features at the end of your billing cycle."
     },
     fr: {
@@ -251,9 +256,9 @@ const Pricing = () => {
       yearly: "Annuel",
       nextRenewal: "Prochaine date de facturation :",
       manageSubscription: "Gérer mon abonnement",
-      saveYearly: "Économisez environ 2 mois avec l'abonnement annuel",
+      saveYearly: "Économisez environ 2 mois avec la facturation annuelle",
       saveYearlyShort: "Économisez ~2 mois",
-      currentPlan: "Plan actuel",
+      currentPlan: "Votre plan",
       upgradeTo: "Passer à",
       switchToFree: "Passer au Gratuit",
       perMonth: "/mois",
@@ -264,8 +269,8 @@ const Pricing = () => {
       billingRule3: "Les downgrades prennent effet à la fin du cycle de facturation actuel.",
       billingRule4: "Passer au plan Gratuit équivaut à une annulation d'abonnement.",
       noCommitment: "Aucun engagement à long terme. Vous pouvez changer de plan à tout moment.",
-      securePayments: "Tous les paiements sont traités de manière sécurisée via Stripe.",
-      cancelAnytime: "Aucun engagement à long terme. Changez de plan à tout moment.",
+      securePayments: "Paiements sécurisés via Stripe",
+      cancelAnytime: "Annulez à tout moment, sans justification",
       policyTitle: "Politique de changement de plan",
       policyIntro: "Si vous passez à un plan inférieur (par exemple de Pro à Premium), voici ce qui se passe :",
       policyKeepData: "Vous conservez toutes vos données existantes (entreprises, clients, factures, dépenses)",
@@ -273,13 +278,15 @@ const Pricing = () => {
       policyNoCreate: "Cependant, vous ne pourrez pas créer de nouvelles entités si vous dépassez les limites du nouveau plan",
       policyExample: "Exemple : Si vous avez 3 entreprises sur le plan Pro et que vous passez au plan Premium (limite : 1 entreprise), vous gardez vos 3 entreprises mais vous devrez en supprimer 2 avant de pouvoir en créer une nouvelle.",
       freeUserTitle: "Débloquez tout votre potentiel",
-      freeUserDesc: "Passez à Premium ou Pro et profitez de factures illimitées, du téléchargement PDF et de frais Stripe réduits.",
+      freeUserDesc: "Passez à Premium ou Pro pour la facturation illimitée, l'export PDF et des frais de paiement réduits.",
+      pricingDisclaimer: "Prix affichés dans votre devise locale. Tarification de base en CAD. Les taxes peuvent s'appliquer.",
       plans: {
         free: {
           name: "Gratuit",
-          description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
-          stripeInfo: "Paiements Stripe (+2 % frais GestionFlow)",
-          stripeInfoShort: "+2 % frais GestionFlow",
+          description: "Découvrez et testez GestionFlow",
+          stripeInfo: "Paiements acceptés via Stripe",
+          stripeInfoShort: "Traitement des paiements inclus",
+          stripeFeeNote: "Tarifs standards",
           noInventory: "Gestion des stocks non incluse",
           features: [
             { text: "1 entreprise", icon: "Building2" },
@@ -295,12 +302,12 @@ const Pricing = () => {
         },
         premium: {
           name: "Premium",
-          description: "Le meilleur équilibre pour freelances et petites entreprises",
-          popular: "⭐ Le plus populaire",
+          description: "Idéal pour freelances et petites entreprises",
+          popular: "Le plus populaire",
           chosenBy: "Choisi par la majorité de nos utilisateurs",
-          stripeInfo: "Paiements Stripe (+1 % frais GestionFlow)",
-          stripeInfoShort: "+1 % frais GestionFlow",
-          stripeNote: "Réduisez vos frais sur chaque paiement encaissé",
+          stripeInfo: "Frais de paiement réduits",
+          stripeInfoShort: "Économisez sur chaque paiement",
+          stripeFeeNote: "Coûts de traitement réduits",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
@@ -321,10 +328,10 @@ const Pricing = () => {
         },
         pro: {
           name: "Pro",
-          description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
-          stripeInfo: "Paiements Stripe (+0,5 % frais GestionFlow)",
-          stripeInfoShort: "+0,5 % frais GestionFlow",
-          stripeNote: "Optimisez vos coûts de paiement à mesure que votre activité grandit",
+          description: "Parfait pour entreprises en croissance et gestion multi-entreprises",
+          stripeInfo: "Frais de paiement les plus bas",
+          stripeInfoShort: "Économies maximales sur les paiements",
+          stripeFeeNote: "Meilleurs tarifs pour gros volumes",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
             { text: "Clients, factures et devis illimités", icon: "Users" },
@@ -337,13 +344,13 @@ const Pricing = () => {
           ]
         }
       },
-      stripeFeesTitle: "Paiements Stripe et frais",
-      stripeFeesDesc: "Les paiements sont traités de manière sécurisée via Stripe.",
-      stripeFeesDesc2: "Les frais de traitement standard de Stripe s'appliquent.",
-      stripeFeesDesc3: "GestionFlow ajoute des frais de traitement supplémentaires selon votre plan :",
-      stripeFeesFree: "Gratuit : +2 %",
-      stripeFeesPremium: "Premium : +1 %",
-      stripeFeesPro: "Pro : +0,5 %",
+      stripeFeesTitle: "Traitement des paiements",
+      stripeFeesDesc: "Acceptez les paiements de manière sécurisée via Stripe.",
+      stripeFeesDesc2: "Les frais Stripe standards s'appliquent à toutes les transactions.",
+      stripeFeesDesc3: "Passez à un plan supérieur pour réduire vos coûts de traitement :",
+      stripeFeesFree: "Gratuit : Tarifs standards",
+      stripeFeesPremium: "Premium : Tarifs réduits",
+      stripeFeesPro: "Pro : Tarifs les plus bas",
       switchToFreeWarning: "Passer au plan Gratuit désactivera les fonctionnalités payantes à la fin de votre cycle de facturation."
     }
   };
@@ -558,7 +565,7 @@ const Pricing = () => {
       </div>
 
       {/* Pricing Cards */}
-      <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12 items-stretch">
+      <div className="grid md:grid-cols-3 gap-8 lg:gap-10 mb-10 items-stretch">
         {orderedPlans?.map((plan) => {
           const planData = getPlanData(plan.plan_type);
           const price = billingCycle === 'monthly' ? plan.monthly_price : plan.yearly_price;
@@ -572,94 +579,114 @@ const Pricing = () => {
               key={plan.id} 
               className={`relative flex flex-col transition-all duration-300 ${
                 isPremium 
-                  ? 'border-2 border-primary shadow-2xl md:scale-[1.03] ring-4 ring-primary/10' 
-                  : 'border-border hover:border-primary/30'
-              } ${isCurrent ? 'ring-2 ring-primary bg-primary/5' : ''}`}
+                  ? 'border-2 border-primary shadow-xl md:scale-[1.02] ring-2 ring-primary/5' 
+                  : 'border-border hover:border-primary/20 hover:shadow-md'
+              } ${isCurrent ? 'ring-2 ring-primary/50 bg-primary/[0.02]' : ''}`}
             >
-              {/* Popular Badge for Premium */}
+              {/* Popular Badge for Premium - Modernized */}
               {isPremium && 'popular' in planData && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <Badge className="bg-primary text-primary-foreground px-5 py-2 shadow-lg font-bold whitespace-nowrap">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                  <Badge className="bg-primary text-primary-foreground px-4 py-1.5 text-xs font-semibold shadow-sm whitespace-nowrap rounded-full">
+                    <Star className="h-3 w-3 mr-1.5 fill-current" />
                     {(planData as typeof t.plans.premium).popular}
                   </Badge>
                 </div>
               )}
 
-              {/* Current Plan Badge */}
+              {/* Current Plan Badge - Refined */}
               {isCurrent && (
-                <div className="absolute -top-3 right-4 z-10">
-                  <Badge variant="secondary" className="bg-foreground text-background px-3 py-1 font-medium">
-                    ✓ {t.currentPlan}
+                <div className="absolute -top-2.5 right-4 z-10">
+                  <Badge variant="outline" className="bg-background border-primary/30 text-primary px-3 py-1 text-xs font-medium shadow-sm">
+                    <Check className="h-3 w-3 mr-1" />
+                    {t.currentPlan}
                   </Badge>
                 </div>
               )}
               
-              <CardHeader className={`pt-8 ${isPremium ? 'pt-10' : ''}`}>
-                <div className="flex items-center gap-3 mb-3">
+              <CardHeader className={`pt-8 pb-4 ${isPremium ? 'pt-10' : ''}`}>
+                <div className="flex items-center gap-3 mb-4">
                   <div className={`p-2.5 rounded-xl ${
-                    isPremium ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                    isPremium ? 'bg-primary/10 text-primary' : 
+                    isPro ? 'bg-amber-500/10 text-amber-600' :
+                    'bg-muted text-muted-foreground'
                   }`}>
                     {getPlanIcon(plan.plan_type)}
                   </div>
                   <h3 className="text-2xl font-bold text-foreground">{planData.name}</h3>
                 </div>
                 
-                <div className="mb-2">
-                  <span className="text-4xl font-bold text-foreground">{price} $ CAD</span>
-                  <span className="text-muted-foreground text-lg">
-                    {billingCycle === 'monthly' ? t.perMonth : t.perYear}
-                  </span>
+                {/* Price Display - Localized */}
+                <div className="mb-3 space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-foreground tracking-tight">
+                      {formatPrice(price)}
+                    </span>
+                    <span className="text-muted-foreground text-base">
+                      {billingCycle === 'monthly' ? t.perMonth : t.perYear}
+                    </span>
+                  </div>
+                  {isLocalCurrency && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Globe className="h-3 w-3" />
+                      {language === 'fr' ? `≈ ${price.toFixed(2)} $ CAD` : `≈ ${price.toFixed(2)} CAD`}
+                    </p>
+                  )}
                 </div>
 
                 {isPremium && 'chosenBy' in planData && (
-                  <p className="text-xs text-primary font-medium mb-2">
+                  <p className="text-xs text-primary/80 font-medium mb-2">
                     {(planData as typeof t.plans.premium).chosenBy}
                   </p>
                 )}
 
                 {billingCycle === 'yearly' && plan.plan_type !== 'free' && (
-                  <p className="text-xs text-primary/80 mb-2">✨ {t.saveYearlyShort}</p>
+                  <p className="text-xs text-primary font-medium mb-2 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    {t.saveYearlyShort}
+                  </p>
                 )}
                 
                 <p className="text-muted-foreground text-sm leading-relaxed">{planData.description}</p>
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col">
-                <ul className="space-y-3 flex-1">
+              <CardContent className="flex-1 flex flex-col pt-0">
+                <ul className="space-y-2.5 flex-1">
                   {planData.features.map((feature: { text: string; icon: string }, index: number) => (
-                    <li key={index} className="flex items-center gap-3">
-                      {getFeatureIcon(feature.icon)}
-                      <span className="text-sm text-foreground">{feature.text}</span>
+                    <li key={index} className="flex items-start gap-2.5">
+                      <span className="mt-0.5">{getFeatureIcon(feature.icon)}</span>
+                      <span className="text-sm text-foreground leading-snug">{feature.text}</span>
                     </li>
                   ))}
                 </ul>
 
                 {/* No Inventory for Free Plan */}
                 {plan.plan_type === 'free' && 'noInventory' in planData && (
-                  <div className="mt-3 flex items-center gap-3 text-muted-foreground/70">
-                    <X className="h-4 w-4 shrink-0" />
-                    <span className="text-sm">{(planData as any).noInventory}</span>
+                  <div className="mt-3 flex items-start gap-2.5 text-muted-foreground/60">
+                    <X className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span className="text-sm leading-snug">{(planData as any).noInventory}</span>
                   </div>
                 )}
                 
-                {/* Stripe Info */}
-                <div className="mt-6 pt-4 border-t border-border">
-                  <p className={`text-sm font-medium flex items-center gap-2 ${isPremium || isPro ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <CreditCard className="h-4 w-4" />
-                    {planData.stripeInfo}
-                  </p>
-                  {'stripeNote' in planData && (
-                    <p className="text-xs text-muted-foreground mt-1 ml-6">
-                      {(planData as typeof t.plans.premium).stripeNote}
+                {/* Stripe Info - Benefit-focused */}
+                <div className="mt-6 pt-4 border-t border-border/50">
+                  <div className={`flex items-center gap-2 ${isPremium || isPro ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <CreditCard className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">{planData.stripeInfo}</span>
+                  </div>
+                  {'stripeFeeNote' in planData && (
+                    <p className="text-xs text-muted-foreground mt-1.5 ml-6">
+                      {(planData as any).stripeFeeNote}
                     </p>
                   )}
                 </div>
               </CardContent>
 
-              <CardFooter className="pt-4 flex-col gap-2">
+              <CardFooter className="pt-4 pb-6 flex-col gap-3">
                 <Button 
-                  className={`w-full h-12 font-medium ${
-                    buttonConfig.isUpgrade && isPremium ? 'text-base' : ''
+                  className={`w-full h-11 font-medium transition-all ${
+                    buttonConfig.isUpgrade && isPremium 
+                      ? 'text-base shadow-md hover:shadow-lg' 
+                      : ''
                   }`}
                   variant={buttonConfig.variant}
                   disabled={buttonConfig.disabled || stripeLoading}
@@ -667,15 +694,14 @@ const Pricing = () => {
                   size="lg"
                 >
                   {buttonConfig.icon}
-                  {buttonConfig.isUpgrade && <CreditCard className="h-4 w-4 mr-2" />}
                   {buttonConfig.text}
                   {buttonConfig.isUpgrade && <ArrowRight className="h-4 w-4 ml-2" />}
                 </Button>
                 {plan.plan_type === 'free' && planLimits?.plan_type !== 'free' && (
-                  <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                  <p className="text-xs text-muted-foreground text-center leading-relaxed max-w-[90%] mx-auto">
                     {language === 'fr' 
-                      ? 'Passer au plan Gratuit met fin à votre abonnement payant à la fin de votre période de facturation. Aucun engagement à long terme.'
-                      : 'Switching to the Free plan ends your paid subscription at the end of your billing period. No long-term commitment.'}
+                      ? 'Passer au plan Gratuit met fin à votre abonnement à la fin de votre période de facturation.'
+                      : 'Switching to Free ends your subscription at the end of your billing period.'}
                   </p>
                 )}
               </CardFooter>
@@ -683,6 +709,11 @@ const Pricing = () => {
           );
         })}
       </div>
+
+      {/* Pricing Disclaimer */}
+      <p className="text-center text-xs text-muted-foreground mb-10">
+        {t.pricingDisclaimer}
+      </p>
 
       {/* Free User Incentive Section */}
       {isFreeUser && (
