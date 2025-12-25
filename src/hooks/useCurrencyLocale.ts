@@ -195,21 +195,24 @@ export const useCurrencyLocale = () => {
       
       if (showCurrency) {
         try {
-          return new Intl.NumberFormat(locale, {
+          const formatted = new Intl.NumberFormat(locale, {
             style: 'currency',
             currency,
             currencyDisplay: 'narrowSymbol',
             minimumFractionDigits: isZeroDecimal ? 0 : 2,
             maximumFractionDigits: isZeroDecimal ? 0 : 2,
           }).format(finalPrice);
+          // Append currency code (e.g., "£19.99 GBP")
+          return `${formatted} ${currency}`;
         } catch (e) {
           // Fallback if narrowSymbol not supported
-          return new Intl.NumberFormat(locale, {
+          const formatted = new Intl.NumberFormat(locale, {
             style: 'currency',
             currency,
             minimumFractionDigits: isZeroDecimal ? 0 : 2,
             maximumFractionDigits: isZeroDecimal ? 0 : 2,
           }).format(finalPrice);
+          return `${formatted} ${currency}`;
         }
       }
       
