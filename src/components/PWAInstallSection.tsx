@@ -264,14 +264,10 @@ export function PWAInstallSection() {
         )}
 
         {/* Benefits */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
             <span>{language === "fr" ? "Accès rapide" : "Quick access"}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <span>{language === "fr" ? "Fonctionne hors ligne" : "Works offline"}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
