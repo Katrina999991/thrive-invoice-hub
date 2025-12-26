@@ -1,11 +1,89 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "npm:resend@2.0.0";
+import { encode as encodeBase64, decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// ========== DECRYPTION FUNCTIONS ==========
+async function deriveKey(keyString: string): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+  
+  return await crypto.subtle.importKey(
+    'raw',
+    hashBuffer,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
+async function decryptData(ciphertext: string, keyString: string): Promise<string> {
+  if (!ciphertext) return ciphertext;
+  
+  if (ciphertext.startsWith("AESENC:")) {
+    try {
+      const key = await deriveKey(keyString);
+      const base64Data = ciphertext.slice(7);
+      const combined = decodeBase64(base64Data);
+      
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encrypted
+      );
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      console.error("Decryption error:", error);
+      return ciphertext;
+    }
+  }
+  
+  if (ciphertext.startsWith("ENC:")) {
+    try {
+      const base64Data = ciphertext.slice(4);
+      const encrypted = decodeBase64(base64Data);
+      const keyBytes = new TextEncoder().encode(keyString);
+      
+      const decrypted = new Uint8Array(encrypted.length);
+      for (let i = 0; i < encrypted.length; i++) {
+        decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
+      }
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      console.error("Legacy decryption error:", error);
+      return ciphertext;
+    }
+  }
+  
+  return ciphertext;
+}
+
+async function decryptClientData(client: any): Promise<any> {
+  const encryptionKey = Deno.env.get("ENCRYPTION_KEY");
+  if (!encryptionKey || !client) return client;
+  
+  const decryptedClient = { ...client };
+  
+  if (client.email && (client.email.startsWith("AESENC:") || client.email.startsWith("ENC:"))) {
+    decryptedClient.email = await decryptData(client.email, encryptionKey);
+  }
+  if (client.phone && (client.phone.startsWith("AESENC:") || client.phone.startsWith("ENC:"))) {
+    decryptedClient.phone = await decryptData(client.phone, encryptionKey);
+  }
+  
+  return decryptedClient;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -78,7 +156,8 @@ serve(async (req) => {
     }> = [];
 
     for (const invoice of overdueInvoices || []) {
-      const client = invoice.clients;
+      // Decrypt client data (email, phone may be encrypted)
+      const client = await decryptClientData(invoice.clients);
       
       // Skip if client has no email
       if (!client?.email) {

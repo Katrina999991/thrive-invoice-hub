@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 import { jsPDF } from "npm:jspdf@2.5.1";
 import "npm:jspdf-autotable@3.8.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { encode as encodeBase64, decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -12,6 +13,91 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// ========== DECRYPTION FUNCTIONS ==========
+// Convert string key to proper AES-256 key (32 bytes)
+async function deriveKey(keyString: string): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+  
+  return await crypto.subtle.importKey(
+    'raw',
+    hashBuffer,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
+// AES-GCM decryption
+async function decryptData(ciphertext: string, keyString: string): Promise<string> {
+  if (!ciphertext) return ciphertext;
+  
+  // Handle AES format
+  if (ciphertext.startsWith("AESENC:")) {
+    try {
+      const key = await deriveKey(keyString);
+      const base64Data = ciphertext.slice(7); // Remove "AESENC:" prefix
+      const combined = decodeBase64(base64Data);
+      
+      // Extract IV (first 12 bytes) and encrypted data
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encrypted
+      );
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      console.error("Decryption error:", error);
+      return ciphertext; // Return as-is if decryption fails
+    }
+  }
+  
+  // Handle legacy XOR format
+  if (ciphertext.startsWith("ENC:")) {
+    try {
+      const base64Data = ciphertext.slice(4);
+      const encrypted = decodeBase64(base64Data);
+      const keyBytes = new TextEncoder().encode(keyString);
+      
+      const decrypted = new Uint8Array(encrypted.length);
+      for (let i = 0; i < encrypted.length; i++) {
+        decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
+      }
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      console.error("Legacy decryption error:", error);
+      return ciphertext;
+    }
+  }
+  
+  // Return as-is if not encrypted
+  return ciphertext;
+}
+
+// Decrypt client fields
+async function decryptClientData(client: any): Promise<any> {
+  const encryptionKey = Deno.env.get("ENCRYPTION_KEY");
+  if (!encryptionKey || !client) return client;
+  
+  const decryptedClient = { ...client };
+  
+  // Decrypt email and phone if they appear encrypted
+  if (client.email && (client.email.startsWith("AESENC:") || client.email.startsWith("ENC:"))) {
+    decryptedClient.email = await decryptData(client.email, encryptionKey);
+  }
+  if (client.phone && (client.phone.startsWith("AESENC:") || client.phone.startsWith("ENC:"))) {
+    decryptedClient.phone = await decryptData(client.phone, encryptionKey);
+  }
+  
+  return decryptedClient;
+}
 
 // Colors for PDF
 const COLORS = {
@@ -220,8 +306,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const client = quote.clients;
+    // Decrypt client data (email, phone may be encrypted)
+    const client = await decryptClientData(quote.clients);
     const company = client?.companies;
+
+    console.log("Client data after decryption:", { 
+      hasEmail: !!client?.email, 
+      emailStartsWithAESENC: client?.email?.startsWith("AESENC:"),
+      hasPhone: !!client?.phone 
+    });
 
     let emailsToSend: string[] = [];
     if (selectedEmails && selectedEmails.length > 0) {
