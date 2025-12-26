@@ -105,9 +105,20 @@ serve(async (req) => {
       companiesCountMap.set(c.user_id, (companiesCountMap.get(c.user_id) || 0) + 1);
     });
 
-    const usersWithInvoices = new Set(invoices?.map((i) => i.user_id) || []);
-    const usersWithQuotes = new Set(quotes?.map((q) => q.user_id) || []);
-    const usersWithExpenses = new Set(expenses?.map((e) => e.user_id) || []);
+    const invoicesCountMap = new Map<string, number>();
+    invoices?.forEach((i) => {
+      invoicesCountMap.set(i.user_id, (invoicesCountMap.get(i.user_id) || 0) + 1);
+    });
+
+    const quotesCountMap = new Map<string, number>();
+    quotes?.forEach((q) => {
+      quotesCountMap.set(q.user_id, (quotesCountMap.get(q.user_id) || 0) + 1);
+    });
+
+    const expensesCountMap = new Map<string, number>();
+    expenses?.forEach((e) => {
+      expensesCountMap.set(e.user_id, (expensesCountMap.get(e.user_id) || 0) + 1);
+    });
 
     // Combine data
     const users = authUsers.users.map((user) => {
@@ -127,9 +138,9 @@ serve(async (req) => {
         // Activation data
         stripe_connected: !!(profile?.stripe_account_id && profile?.stripe_onboarding_complete),
         companies_count: companiesCountMap.get(user.id) || 0,
-        has_invoices: usersWithInvoices.has(user.id),
-        has_quotes: usersWithQuotes.has(user.id),
-        has_expenses: usersWithExpenses.has(user.id),
+        invoices_count: invoicesCountMap.get(user.id) || 0,
+        quotes_count: quotesCountMap.get(user.id) || 0,
+        expenses_count: expensesCountMap.get(user.id) || 0,
       };
     });
 
