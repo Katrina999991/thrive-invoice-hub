@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
-import { jsPDF } from "npm:jspdf@2.5.1";
-import "npm:jspdf-autotable@3.8.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { encode as encodeBase64, decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
+import { decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
+import { generateQuotePdfForEmail, TemplateType, COLOR_PRESETS } from "./quotePdf.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -99,19 +98,6 @@ async function decryptClientData(client: any): Promise<any> {
   return decryptedClient;
 }
 
-// Colors for PDF
-const COLORS = {
-  primary: [37, 99, 235] as [number, number, number],
-  dark: [31, 41, 55] as [number, number, number],
-  gray: [107, 114, 128] as [number, number, number],
-  lightGray: [156, 163, 175] as [number, number, number],
-  tableHeader: [249, 250, 251] as [number, number, number],
-  tableAlt: [249, 250, 251] as [number, number, number],
-  border: [229, 231, 235] as [number, number, number],
-  white: [255, 255, 255] as [number, number, number],
-  totalBg: [239, 246, 255] as [number, number, number],
-};
-
 // Generate a secure random token
 function generateSecureToken(): string {
   const array = new Uint8Array(32);
@@ -156,46 +142,6 @@ Merci de considérer nos services !
 Cordialement,
 {company_name}`,
     responseLink: 'Cliquez ici pour répondre à ce devis'
-  }
-};
-
-// PDF translations
-const pdfTranslations = {
-  fr: {
-    quote: 'DEVIS',
-    preparedFor: 'Préparé pour',
-    quoteNumber: 'N° Devis',
-    issueDate: 'Date',
-    expiryDate: 'Expire le',
-    item: 'Article / Description',
-    quantity: 'Quantité',
-    unitPrice: 'Prix unitaire',
-    total: 'Total',
-    subtotal: 'Sous-total',
-    tax: 'Taxes',
-    totalAmount: 'Total',
-    terms: 'Conditions',
-    notes: 'Notes',
-    thankYou: 'Merci pour votre confiance !',
-    branding: 'Créé avec GestionFlow',
-  },
-  en: {
-    quote: 'QUOTE',
-    preparedFor: 'Prepared for',
-    quoteNumber: 'Quote #',
-    issueDate: 'Date',
-    expiryDate: 'Expires',
-    item: 'Item / Description',
-    quantity: 'Quantity',
-    unitPrice: 'Unit Price',
-    total: 'Total',
-    subtotal: 'Subtotal',
-    tax: 'Taxes',
-    totalAmount: 'Total',
-    terms: 'Terms',
-    notes: 'Notes',
-    thankYou: 'Thank you for your business!',
-    branding: 'Created with GestionFlow',
   }
 };
 
@@ -280,10 +226,15 @@ const handler = async (req: Request): Promise<Response> => {
             province_state,
             postal_code,
             tax_id,
+            taxes,
             quote_email_subject_en,
             quote_email_subject_fr,
             quote_email_message_en,
-            quote_email_message_fr
+            quote_email_message_fr,
+            quote_body_message_en,
+            quote_body_message_fr,
+            quote_footer_message_en,
+            quote_footer_message_fr
           )
         ),
         quote_items (
@@ -393,271 +344,57 @@ const handler = async (req: Request): Promise<Response> => {
 
     emailMessage = emailMessage.replace(/\n/g, '<br>');
 
-    // Get translations for PDF
-    const t = isFrench ? pdfTranslations.fr : pdfTranslations.en;
-    const primaryColor = COLORS.primary;
-
-    // Generate modern PDF
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    let yPos = 20;
-
-    // ========== HEADER SECTION ==========
-    
-    // Company info (top-left)
-    if (company) {
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...primaryColor);
-      doc.text(company.name, margin, yPos + 5);
-      
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...COLORS.gray);
-      let companyY = yPos + 12;
-      
-      if (company.street_address) {
-        doc.text(company.street_address, margin, companyY);
-        companyY += 4;
-      }
-      if (company.city || company.province_state || company.postal_code) {
-        const cityLine = [company.city, company.province_state, company.postal_code].filter(Boolean).join(', ');
-        doc.text(cityLine, margin, companyY);
-        companyY += 4;
-      }
-      if (company.email) {
-        doc.text(company.email, margin, companyY);
-        companyY += 4;
-      }
-      if (company.phone) {
-        doc.text(company.phone, margin, companyY);
-        companyY += 4;
-      }
-      if (company.tax_id) {
-        doc.text(company.tax_id, margin, companyY);
-      }
-    }
-
-    // Document title "QUOTE" (right side)
-    doc.setFontSize(28);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...primaryColor);
-    doc.text(t.quote, pageWidth - margin, yPos + 8, { align: 'right' });
-
-    // Quote details (right side, below title)
-    let detailsY = yPos + 18;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.dark);
-    
-    // Quote number
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${t.quoteNumber}:`, pageWidth - margin - 45, detailsY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(quote.quote_number, pageWidth - margin, detailsY, { align: 'right' });
-    detailsY += 6;
-    
-    // Issue date
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${t.issueDate}:`, pageWidth - margin - 45, detailsY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(quote.issue_date, pageWidth - margin, detailsY, { align: 'right' });
-    detailsY += 6;
-    
-    // Expiry date (highlighted)
-    if (quote.expiry_date) {
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...primaryColor);
-      doc.text(`${t.expiryDate}:`, pageWidth - margin - 45, detailsY);
-      doc.setFont('helvetica', 'normal');
-      doc.text(quote.expiry_date, pageWidth - margin, detailsY, { align: 'right' });
-      doc.setTextColor(...COLORS.dark);
-    }
-
-    yPos = Math.max(yPos + 40, detailsY) + 15;
-
-    // ========== CLIENT SECTION ==========
-    
-    // Draw a subtle box for client info
-    const clientBoxHeight = client?.address ? 40 : 32;
-    doc.setFillColor(...COLORS.tableHeader);
-    doc.setDrawColor(...COLORS.border);
-    doc.roundedRect(margin, yPos, (pageWidth - margin * 2) / 2 - 5, clientBoxHeight, 3, 3, 'FD');
-    
-    yPos += 8;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...COLORS.gray);
-    doc.text(t.preparedFor.toUpperCase(), margin + 8, yPos);
-    
-    yPos += 7;
-    if (client) {
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...COLORS.dark);
-      doc.text(client.name, margin + 8, yPos);
-      yPos += 6;
-      
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...COLORS.gray);
-      
-      if (client.contact_person && client.contact_person !== client.name) {
-        doc.text(client.contact_person, margin + 8, yPos);
-        yPos += 4;
-      }
-      if (client.email) {
-        doc.text(client.email.split(',')[0].trim(), margin + 8, yPos);
-        yPos += 4;
-      }
-      if (client.address) {
-        doc.text(client.address, margin + 8, yPos, { maxWidth: 80 });
-      }
-    }
-
-    yPos = yPos + 20;
-
-    // ========== ITEMS TABLE ==========
-    
-    const tableHeaders = [t.item, t.quantity, t.unitPrice, t.total];
-    const tableData = (quote.quote_items || []).map((item: any) => [
-      item.description,
-      item.quantity.toString(),
-      `$${item.unit_price.toFixed(2)}`,
-      `$${item.total.toFixed(2)}`
-    ]);
-
-    (doc as any).autoTable({
-      head: [tableHeaders],
-      body: tableData,
-      startY: yPos,
-      theme: 'plain',
-      styles: {
-        fontSize: 10,
-        cellPadding: { top: 6, right: 8, bottom: 6, left: 8 },
-        lineColor: COLORS.border,
-        lineWidth: 0.1,
+    // Generate PDF using unified design system (same as frontend download)
+    console.log("Generating quote PDF with unified design system...");
+    const pdfBase64 = await generateQuotePdfForEmail({
+      quote: {
+        quote_number: quote.quote_number,
+        issue_date: quote.issue_date,
+        expiry_date: quote.expiry_date,
+        subtotal: quote.subtotal,
+        tax_amount: quote.tax_amount,
+        total: quote.total,
+        terms: quote.terms,
+        notes: quote.notes,
+        items: (quote.quote_items || []).map((item: any) => ({
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.total,
+          notes: item.notes,
+          product_taxes: item.product_taxes
+        }))
       },
-      headStyles: {
-        fillColor: COLORS.tableHeader,
-        textColor: COLORS.dark,
-        fontStyle: 'bold',
-        fontSize: 9,
-      },
-      bodyStyles: {
-        textColor: COLORS.dark,
-      },
-      alternateRowStyles: {
-        fillColor: COLORS.white,
-      },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { halign: 'center', cellWidth: 25 },
-        2: { halign: 'right', cellWidth: 35 },
-        3: { halign: 'right', cellWidth: 35, fontStyle: 'bold' }
-      },
-      didParseCell: (data: any) => {
-        if (data.section === 'body' && data.row.index % 2 === 1) {
-          data.cell.styles.fillColor = COLORS.tableAlt;
-        }
-      }
+      client: client ? {
+        name: client.name,
+        email: client.email,
+        address: client.address,
+        phone: client.phone,
+        contact_person: client.contact_person,
+        language: client.language
+      } : null,
+      company: company ? {
+        name: company.name,
+        logo_url: company.logo_url,
+        email: company.email,
+        phone: company.phone,
+        street_address: company.street_address,
+        city: company.city,
+        province_state: company.province_state,
+        postal_code: company.postal_code,
+        tax_id: company.tax_id,
+        taxes: company.taxes as any,
+        quote_body_message_en: company.quote_body_message_en,
+        quote_body_message_fr: company.quote_body_message_fr,
+        quote_footer_message_en: company.quote_footer_message_en,
+        quote_footer_message_fr: company.quote_footer_message_fr
+      } : null,
+      language: isFrench ? 'fr' : 'en',
+      template: 'classic', // Default template
+      colorPreset: 'blue', // Default color
+      hideBranding
     });
-
-    // ========== TOTALS SECTION ==========
-    
-    const finalY = (doc as any).lastAutoTable?.finalY || yPos + 50;
-    let totalsY = finalY + 10;
-    const totalsX = pageWidth - margin - 70;
-
-    // Subtotal
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.gray);
-    doc.text(`${t.subtotal}:`, totalsX, totalsY);
-    doc.setTextColor(...COLORS.dark);
-    doc.text(`$${quote.subtotal.toFixed(2)}`, pageWidth - margin, totalsY, { align: 'right' });
-    totalsY += 7;
-
-    // Taxes
-    if (quote.tax_amount > 0) {
-      doc.setTextColor(...COLORS.gray);
-      doc.text(`${t.tax}:`, totalsX, totalsY);
-      doc.setTextColor(...COLORS.dark);
-      doc.text(`$${quote.tax_amount.toFixed(2)}`, pageWidth - margin, totalsY, { align: 'right' });
-      totalsY += 7;
-    }
-
-    // Divider line
-    doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.5);
-    doc.line(totalsX - 5, totalsY, pageWidth - margin, totalsY);
-    totalsY += 8;
-
-    // Total with highlight background
-    doc.setFillColor(...COLORS.totalBg);
-    doc.roundedRect(totalsX - 10, totalsY - 5, 80, 12, 2, 2, 'F');
-    
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...primaryColor);
-    doc.text(`${t.totalAmount}:`, totalsX, totalsY + 3);
-    doc.text(`$${quote.total.toFixed(2)}`, pageWidth - margin, totalsY + 3, { align: 'right' });
-
-    totalsY += 20;
-
-    // ========== TERMS & NOTES ==========
-    
-    let contentY = totalsY;
-    
-    if (quote.terms) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...COLORS.dark);
-      doc.text(t.terms, margin, contentY);
-      contentY += 6;
-      
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...COLORS.gray);
-      const termsLines = doc.splitTextToSize(quote.terms, pageWidth - margin * 2);
-      doc.text(termsLines, margin, contentY);
-      contentY += termsLines.length * 4 + 10;
-    }
-
-    if (quote.notes) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...COLORS.dark);
-      doc.text(t.notes, margin, contentY);
-      contentY += 6;
-      
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...COLORS.gray);
-      const notesLines = doc.splitTextToSize(quote.notes, pageWidth - margin * 2);
-      doc.text(notesLines, margin, contentY);
-    }
-
-    // ========== FOOTER ==========
-    
-    // Thank you message
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(...COLORS.gray);
-    doc.text(t.thankYou, pageWidth / 2, pageHeight - 25, { align: 'center' });
-
-    // Branding
-    if (!hideBranding) {
-      doc.setFontSize(8);
-      doc.setTextColor(...COLORS.lightGray);
-      doc.text(t.branding, pageWidth / 2, pageHeight - 15, { align: 'center' });
-    }
-
-    // Convert PDF to base64
-    const pdfOutput = doc.output('arraybuffer');
-    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfOutput)));
+    console.log("Quote PDF generated successfully");
 
     // Get company email for Reply-To and potential sending
     const companyEmail = company.email;
