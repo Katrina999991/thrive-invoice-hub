@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, Check, X } from "lucide-react";
+import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 
@@ -25,9 +25,9 @@ interface User {
   // Activation data
   stripe_connected: boolean;
   companies_count: number;
-  has_invoices: boolean;
-  has_quotes: boolean;
-  has_expenses: boolean;
+  invoices_count: number;
+  quotes_count: number;
+  expenses_count: number;
 }
 
 export function UsersTable() {
@@ -152,7 +152,7 @@ export function UsersTable() {
   const newUsersCount = users.filter((u) => isAfter(new Date(u.created_at), sevenDaysAgo)).length;
   const premiumCount = users.filter((u) => u.plan_type === "premium").length;
   const proCount = users.filter((u) => u.plan_type === "pro").length;
-  const activeUsersCount = users.filter((u) => u.has_invoices || u.has_quotes || u.has_expenses).length;
+  const activeUsersCount = users.filter((u) => u.invoices_count > 0 || u.quotes_count > 0 || u.expenses_count > 0).length;
 
   const getPlanBadge = (plan: string) => {
     switch (plan) {
@@ -179,18 +179,12 @@ export function UsersTable() {
     return isAfter(new Date(createdAt), sevenDaysAgo);
   };
 
-  const ActivationIndicator = ({ active, activeLabel, inactiveLabel }: { active: boolean; activeLabel: string; inactiveLabel: string }) => (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${active ? 'bg-green-500/20 text-green-600' : 'bg-muted text-muted-foreground'}`}>
-          {active ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{active ? activeLabel : inactiveLabel}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
+  // Helper to get count-based styling
+  const getCountStyle = (count: number) => {
+    if (count === 0) return 'bg-muted text-muted-foreground';
+    if (count <= 5) return 'bg-blue-500/20 text-blue-600';
+    return 'bg-emerald-500/20 text-emerald-600';
+  };
 
   if (loading) {
     return (
@@ -366,26 +360,32 @@ export function UsersTable() {
                             {user.companies_count}
                           </span>
                           
-                          {/* Invoices */}
-                          <ActivationIndicator 
-                            active={user.has_invoices} 
-                            activeLabel={t.hasInvoices} 
-                            inactiveLabel={t.noInvoices} 
-                          />
+                          {/* Invoices - count with hierarchy */}
+                          <span 
+                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}
+                            title={t.hasInvoices}
+                          >
+                            <FileText className="h-3 w-3" />
+                            {user.invoices_count}
+                          </span>
                           
-                          {/* Quotes */}
-                          <ActivationIndicator 
-                            active={user.has_quotes} 
-                            activeLabel={t.hasQuotes} 
-                            inactiveLabel={t.noQuotes} 
-                          />
+                          {/* Quotes - count with hierarchy */}
+                          <span 
+                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}
+                            title={t.hasQuotes}
+                          >
+                            <Receipt className="h-3 w-3" />
+                            {user.quotes_count}
+                          </span>
                           
-                          {/* Expenses */}
-                          <ActivationIndicator 
-                            active={user.has_expenses} 
-                            activeLabel={t.hasExpenses} 
-                            inactiveLabel={t.noExpenses} 
-                          />
+                          {/* Expenses - count with hierarchy */}
+                          <span 
+                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}
+                            title={t.hasExpenses}
+                          >
+                            <Receipt className="h-3 w-3" />
+                            {user.expenses_count}
+                          </span>
                         </div>
                       </TableCell>
                     </TableRow>
