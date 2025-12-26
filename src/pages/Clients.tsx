@@ -51,6 +51,7 @@ const Clients = () => {
   const [showValidationError, setShowValidationError] = useState(false);
   const [validationErrorMessage, setValidationErrorMessage] = useState({ title: "", description: "" });
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [hourlyRateInput, setHourlyRateInput] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,6 +177,7 @@ const Clients = () => {
     setEditingClient(null);
     setIsDialogOpen(false);
     setAttemptedSubmit(false);
+    setHourlyRateInput("");
   };
 
   const handleEdit = (client: any) => {
@@ -198,6 +200,7 @@ const Clients = () => {
       include_payment_link: client.include_payment_link || false,
       send_overdue_email_auto: client.send_overdue_email_auto || false
     });
+    setHourlyRateInput(client.hourly_rate ? String(client.hourly_rate) : "");
     setIsDialogOpen(true);
   };
 
@@ -416,11 +419,24 @@ const Clients = () => {
                 <Label htmlFor="hourly_rate">{t("clients.hourlyRate")}</Label>
                 <Input
                   id="hourly_rate"
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   placeholder={t("clients.hourlyPlaceholder")}
-                  value={newClient.hourly_rate}
-                  onChange={(e) => setNewClient({...newClient, hourly_rate: parseFloat(e.target.value) || 0})}
+                  value={hourlyRateInput}
+                  onChange={(e) => {
+                    const rawValue = e.target.value;
+                    // Allow digits, one decimal separator (comma or period)
+                    if (rawValue === "" || /^[0-9]*[.,]?[0-9]*$/.test(rawValue)) {
+                      setHourlyRateInput(rawValue);
+                      const normalizedValue = rawValue.replace(',', '.');
+                      const numValue = parseFloat(normalizedValue);
+                      if (rawValue === "" || rawValue === "." || rawValue === ",") {
+                        setNewClient({...newClient, hourly_rate: 0});
+                      } else if (!isNaN(numValue) && numValue >= 0) {
+                        setNewClient({...newClient, hourly_rate: numValue});
+                      }
+                    }
+                  }}
                 />
               </div>
               <div className="space-y-2">
