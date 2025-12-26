@@ -6,12 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Lock, Sparkles, Eye, Palette, Settings2 } from "lucide-react";
+import { FileText, Lock, Sparkles, Eye, Palette, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 
 const COLOR_PRESETS = [
@@ -219,200 +219,188 @@ export function InvoiceDesignSettings() {
   const activeColor = getActiveColor();
 
   return (
-    <div className="space-y-6">
-      {/* Section 1: Invoice Template */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {language === "fr" ? "Modèle de facture" : "Invoice Template"}
-          </CardTitle>
-          <CardDescription>
-            {language === "fr" 
-              ? "Choisissez la mise en page utilisée pour vos factures et devis."
-              : "Choose the invoice layout used for your invoices and quotes."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {TEMPLATES.map((template) => {
-              const isAvailable = canUseTemplate(template.minPlan);
-              const badge = getPlanBadge(template.minPlan);
-              const isSelected = invoiceTemplate === template.value;
-              
-              return (
-                <div
-                  key={template.value}
-                  onClick={() => isAvailable && handleInvoiceTemplateChange(template.value)}
-                  className={cn(
-                    "relative flex flex-col p-4 rounded-lg border-2 transition-all",
-                    isSelected && isAvailable
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/50",
-                    !isAvailable && "opacity-60 cursor-not-allowed",
-                    isAvailable && "cursor-pointer"
-                  )}
-                >
-                  {badge && (
-                    <div className="absolute top-2 right-2">
-                      {badge}
-                    </div>
-                  )}
-                  
-                  {/* Mini preview */}
-                  <div className="mb-3 bg-background rounded border p-2 h-20 flex flex-col justify-between">
-                    <TemplatePreviewMini template={template.value} color={activeColor} />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className={cn(
-                        "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                        isSelected ? "border-primary" : "border-muted-foreground/50"
-                      )}
-                    >
-                      {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
-                    </div>
-                    <span className="font-medium">
-                      {template.label[language]}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 ml-6">
-                    {template.description[language]}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      {/* ========================================== */}
+      {/* SECTION 1: PDF APPEARANCE */}
+      {/* ========================================== */}
+      <div className="space-y-6">
+        <SectionHeader 
+          title={language === "fr" ? "Apparence des PDF" : "PDF Appearance"}
+          description={language === "fr" 
+            ? "Ces paramètres contrôlent l'apparence par défaut de vos factures et devis PDF."
+            : "These settings control how your PDF invoices and quotes look by default."}
+        />
 
-      {/* Section 2: Color Presets */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            {language === "fr" ? "Couleur de la facture" : "Invoice Color"}
-          </CardTitle>
-          <CardDescription>
-            {language === "fr"
-              ? "Sélectionnez une couleur d'accent pour vos documents."
-              : "Select an accent color for your documents."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {COLOR_PRESETS.map((preset) => {
-              const isSelected = invoiceColor === preset.value;
-              return (
+        {/* Template Selection */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4" />
+              {language === "fr" ? "Modèle" : "Template"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {TEMPLATES.map((template) => {
+                const isAvailable = canUseTemplate(template.minPlan);
+                const badge = getPlanBadge(template.minPlan);
+                const isSelected = invoiceTemplate === template.value;
+                
+                return (
+                  <div
+                    key={template.value}
+                    onClick={() => isAvailable && handleInvoiceTemplateChange(template.value)}
+                    className={cn(
+                      "relative flex flex-col p-4 rounded-lg border-2 transition-all",
+                      isSelected && isAvailable
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/50",
+                      !isAvailable && "opacity-60 cursor-not-allowed",
+                      isAvailable && "cursor-pointer"
+                    )}
+                  >
+                    {badge && (
+                      <div className="absolute top-2 right-2">
+                        {badge}
+                      </div>
+                    )}
+                    
+                    {/* Mini preview */}
+                    <div className="mb-3 bg-background rounded border p-2 h-20 flex flex-col justify-between">
+                      <TemplatePreviewMini template={template.value} color={activeColor} />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className={cn(
+                          "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                          isSelected ? "border-primary" : "border-muted-foreground/50"
+                        )}
+                      >
+                        {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      </div>
+                      <span className="font-medium">
+                        {template.label[language]}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 ml-6">
+                      {template.description[language]}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Color Selection */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Palette className="h-4 w-4" />
+              {language === "fr" ? "Couleur d'accent" : "Accent Color"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              {COLOR_PRESETS.map((preset) => {
+                const isSelected = invoiceColor === preset.value;
+                return (
+                  <button
+                    key={preset.value}
+                    onClick={() => handleInvoiceColorChange(preset.value)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all",
+                      isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/50"
+                    )}
+                  >
+                    <div className={cn("w-5 h-5 rounded-full", preset.color)} />
+                    <span className="text-sm font-medium">
+                      {preset.label[language]}
+                    </span>
+                  </button>
+                );
+              })}
+              
+              {/* Custom color for Pro */}
+              {isPro && (
                 <button
-                  key={preset.value}
-                  onClick={() => handleInvoiceColorChange(preset.value)}
+                  onClick={() => handleInvoiceColorChange("custom")}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all",
-                    isSelected
+                    invoiceColor === "custom"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-muted-foreground/50"
                   )}
                 >
-                  <div className={cn("w-5 h-5 rounded-full", preset.color)} />
+                  <div 
+                    className="w-5 h-5 rounded-full border"
+                    style={{ backgroundColor: customColor }}
+                  />
                   <span className="text-sm font-medium">
-                    {preset.label[language]}
+                    {language === "fr" ? "Personnalisée" : "Custom"}
                   </span>
                 </button>
-              );
-            })}
-            
-            {/* Custom color for Pro */}
-            {isPro && (
-              <button
-                onClick={() => handleInvoiceColorChange("custom")}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all",
-                  invoiceColor === "custom"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground/50"
-                )}
-              >
-                <div 
-                  className="w-5 h-5 rounded-full border"
-                  style={{ backgroundColor: customColor }}
-                />
-                <span className="text-sm font-medium">
-                  {language === "fr" ? "Personnalisée" : "Custom"}
-                </span>
-              </button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Section 3: Advanced Customization (Pro only) */}
-      <Card className={cn(!isPro && "opacity-75")}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5" />
-              {language === "fr" ? "Personnalisation avancée" : "Advanced Customization"}
-            </CardTitle>
-            {!isPro && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Lock className="h-3 w-3" />
-                Pro
-              </Badge>
-            )}
-          </div>
-          <CardDescription>
-            {language === "fr"
-              ? "Ces paramètres s'appliquent uniquement aux factures et devis PDF. Ils définissent l'image de marque et le contenu par défaut pour les nouveaux documents."
-              : "These settings apply to PDF invoices and quotes only. They define default branding and content for new documents."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!isPro ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">
-                {language === "fr" 
-                  ? "Passez au plan Pro pour débloquer la personnalisation complète des documents."
-                  : "Upgrade to Pro to unlock full document customization."}
-              </p>
-              <Button variant="outline" className="mt-4" size="sm" onClick={() => navigate("/dashboard/pricing")}>
-                {language === "fr" ? "Voir les plans" : "View Plans"}
-              </Button>
+              )}
             </div>
-          ) : (
-            <div className="space-y-8">
-              {/* SECTION 1: Branding (Shared) */}
-              <div className="space-y-4">
-                <div className="border-b pb-2">
-                  <h3 className="text-base font-semibold">{language === "fr" ? "Image de marque" : "Branding"}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Personnalisez l'apparence par défaut de vos documents PDF."
-                      : "Customize the default appearance of your PDF documents."}
-                  </p>
-                </div>
 
-                {/* Custom color picker */}
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Couleur personnalisée" : "Custom Accent Color"}</Label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={customColor}
-                      onChange={(e) => handleCustomColorChange(e.target.value)}
-                      className="w-10 h-10 rounded cursor-pointer border"
-                    />
-                    <Input
-                      value={customColor}
-                      onChange={(e) => handleCustomColorChange(e.target.value)}
-                      placeholder="#2563eb"
-                      className="w-32"
-                    />
-                  </div>
-                </div>
+            {/* Custom color picker - show when custom is selected */}
+            {isPro && invoiceColor === "custom" && (
+              <div className="mt-4 pt-4 border-t flex items-center gap-3">
+                <input
+                  type="color"
+                  value={customColor}
+                  onChange={(e) => handleCustomColorChange(e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border"
+                />
+                <Input
+                  value={customColor}
+                  onChange={(e) => handleCustomColorChange(e.target.value)}
+                  placeholder="#2563eb"
+                  className="w-32"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
+        {/* Logo & Branding - Pro Only */}
+        <Card className={cn(!isPro && "opacity-75")}>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                {language === "fr" ? "Logo et image de marque" : "Logo & Branding"}
+              </CardTitle>
+              {!isPro && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Lock className="h-3 w-3" />
+                  Pro
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="text-sm">
+              {language === "fr"
+                ? "Personnalisez le placement du logo et la signature sur vos documents."
+                : "Customize logo placement and branding on your documents."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!isPro ? (
+              <div className="text-center py-4 text-muted-foreground">
+                <Sparkles className="h-6 w-6 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">
+                  {language === "fr" 
+                    ? "Passez au plan Pro pour personnaliser le logo et masquer la signature."
+                    : "Upgrade to Pro to customize logo placement and hide branding."}
+                </p>
+                <Button variant="outline" className="mt-3" size="sm" onClick={() => navigate("/dashboard/pricing")}>
+                  {language === "fr" ? "Voir les plans" : "View Plans"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
                 {/* Logo position & size */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -448,17 +436,17 @@ export function InvoiceDesignSettings() {
                 </div>
 
                 {/* Remove branding */}
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border">
                   <div className="space-y-0.5">
-                    <Label>
+                    <Label className="text-sm font-medium">
                       {language === "fr" 
-                        ? "Supprimer la signature GestionFlow des PDF" 
-                        : "Remove GestionFlow branding from PDFs"}
+                        ? "Supprimer la signature GestionFlow" 
+                        : "Remove GestionFlow Branding"}
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {language === "fr"
-                        ? "Masquer la mention \"Généré avec GestionFlow\" sur les documents."
-                        : "Hide the \"Generated with GestionFlow\" mention on documents."}
+                        ? "Masquer \"Généré avec GestionFlow\" en bas des documents."
+                        : "Hide \"Generated with GestionFlow\" at the bottom of documents."}
                     </p>
                   </div>
                   <Switch
@@ -467,142 +455,189 @@ export function InvoiceDesignSettings() {
                   />
                 </div>
               </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-              <Separator />
+      {/* ========================================== */}
+      {/* SECTION 2: DEFAULT DOCUMENT CONTENT */}
+      {/* ========================================== */}
+      <div className="space-y-6">
+        <SectionHeader 
+          title={language === "fr" ? "Contenu par défaut des documents" : "Default Document Content"}
+          description={language === "fr" 
+            ? "Définissez le texte pré-rempli automatiquement lors de la création de nouveaux documents. Laisser vide utilisera les valeurs par défaut."
+            : "Set the text that's automatically pre-filled when creating new documents. Leave empty to use default values."}
+        />
 
-              {/* SECTION 2: Invoice Defaults */}
-              <div className="space-y-4">
-                <div className="border-b pb-2">
-                  <h3 className="text-base font-semibold">{language === "fr" ? "Valeurs par défaut des factures" : "Invoice Defaults"}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Définissez le contenu par défaut appliqué aux nouvelles factures."
-                      : "Set default content applied to new invoices."}
-                  </p>
-                </div>
-
-                {/* Invoice Footer Text */}
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Texte de pied de page de facture" : "Invoice Footer Text"}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Ce texte apparaît en bas des factures PDF."
-                      : "This text appears at the bottom of PDF invoices."}
-                  </p>
+        {/* Invoice Defaults */}
+        <Card className={cn(!isPro && "opacity-75")}>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                {language === "fr" ? "Contenu des factures" : "Invoice Content"}
+              </CardTitle>
+              {!isPro && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Lock className="h-3 w-3" />
+                  Pro
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="text-sm">
+              {language === "fr"
+                ? "Texte par défaut pour les nouvelles factures."
+                : "Default text for new invoices."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!isPro ? (
+              <ProUpgradePrompt language={language} navigate={navigate} />
+            ) : (
+              <div className="space-y-5">
+                <FormField
+                  label={language === "fr" ? "Pied de page" : "Footer Text"}
+                  description={language === "fr" 
+                    ? "Apparaît en bas de la facture PDF."
+                    : "Appears at the bottom of the PDF invoice."}
+                >
                   <Input
                     value={invoiceFooterText}
                     onChange={(e) => handleInvoiceFooterTextChange(e.target.value)}
                     placeholder={language === "fr" ? "Merci pour votre confiance!" : "Thank you for your business!"}
                   />
-                </div>
+                </FormField>
 
-                {/* Default Invoice Terms */}
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Conditions par défaut des factures" : "Default Invoice Terms"}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Ces conditions sont automatiquement pré-remplies lors de la création d'une nouvelle facture."
-                      : "These terms are automatically pre-filled when creating a new invoice."}
-                  </p>
+                <FormField
+                  label={language === "fr" ? "Conditions par défaut" : "Default Terms"}
+                  description={language === "fr" 
+                    ? "Pré-remplies lors de la création d'une nouvelle facture."
+                    : "Pre-filled when creating a new invoice."}
+                >
                   <Textarea
                     value={defaultInvoiceTerms}
                     onChange={(e) => handleDefaultInvoiceTermsChange(e.target.value)}
                     placeholder={language === "fr" ? "Paiement dû dans les 30 jours..." : "Payment due within 30 days..."}
                     rows={3}
                   />
-                </div>
+                </FormField>
               </div>
+            )}
+          </CardContent>
+        </Card>
 
-              <Separator />
-
-              {/* SECTION 3: Quote Defaults */}
-              <div className="space-y-4">
-                <div className="border-b pb-2">
-                  <h3 className="text-base font-semibold">{language === "fr" ? "Valeurs par défaut des devis" : "Quote Defaults"}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Définissez le contenu par défaut appliqué aux nouveaux devis."
-                      : "Set default content applied to new quotes."}
-                  </p>
-                </div>
-
-                {/* Quote Footer Text */}
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Texte de pied de page de devis" : "Quote Footer Text"}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Ce texte apparaît en bas des devis PDF."
-                      : "This text appears at the bottom of PDF quotes."}
-                  </p>
+        {/* Quote Defaults */}
+        <Card className={cn(!isPro && "opacity-75")}>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                {language === "fr" ? "Contenu des devis" : "Quote Content"}
+              </CardTitle>
+              {!isPro && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Lock className="h-3 w-3" />
+                  Pro
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="text-sm">
+              {language === "fr"
+                ? "Texte par défaut pour les nouveaux devis."
+                : "Default text for new quotes."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!isPro ? (
+              <ProUpgradePrompt language={language} navigate={navigate} />
+            ) : (
+              <div className="space-y-5">
+                <FormField
+                  label={language === "fr" ? "Pied de page" : "Footer Text"}
+                  description={language === "fr" 
+                    ? "Apparaît en bas du devis PDF."
+                    : "Appears at the bottom of the PDF quote."}
+                >
                   <Input
                     value={quoteFooterText}
                     onChange={(e) => handleQuoteFooterTextChange(e.target.value)}
                     placeholder={language === "fr" ? "Merci de considérer nos services!" : "Thank you for considering our services!"}
                   />
-                </div>
+                </FormField>
 
-                {/* Default Quote Terms */}
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Conditions par défaut des devis" : "Default Quote Terms"}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Ces conditions sont automatiquement pré-remplies lors de la création d'un nouveau devis."
-                      : "These terms are automatically pre-filled when creating a new quote."}
-                  </p>
+                <FormField
+                  label={language === "fr" ? "Conditions par défaut" : "Default Terms"}
+                  description={language === "fr" 
+                    ? "Pré-remplies lors de la création d'un nouveau devis."
+                    : "Pre-filled when creating a new quote."}
+                >
                   <Textarea
                     value={defaultQuoteTerms}
                     onChange={(e) => handleDefaultQuoteTermsChange(e.target.value)}
                     placeholder={language === "fr" ? "Ce devis est valide 30 jours..." : "This quote is valid for 30 days..."}
                     rows={3}
                   />
-                </div>
+                </FormField>
               </div>
+            )}
+          </CardContent>
+        </Card>
 
-              <Separator />
-
-              {/* SECTION 4: Shared Defaults */}
-              <div className="space-y-4">
-                <div className="border-b pb-2">
-                  <h3 className="text-base font-semibold">{language === "fr" ? "Valeurs partagées par défaut" : "Shared Defaults"}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Contenu par défaut appliqué aux factures et aux devis."
-                      : "Default content applied to both invoices and quotes."}
-                  </p>
-                </div>
-
-                {/* Default notes */}
-                <div className="space-y-2">
-                  <Label>{language === "fr" ? "Notes par défaut" : "Default Notes"}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "fr" 
-                      ? "Ces notes sont pré-remplies sur les nouvelles factures et devis."
-                      : "These notes are pre-filled on new invoices and quotes."}
-                  </p>
-                  <Textarea
-                    value={defaultNotes}
-                    onChange={(e) => handleDefaultNotesChange(e.target.value)}
-                    placeholder={language === "fr" ? "Notes additionnelles..." : "Additional notes..."}
-                    rows={3}
-                  />
-                </div>
-              </div>
+        {/* Shared Notes */}
+        <Card className={cn(!isPro && "opacity-75")}>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                {language === "fr" ? "Notes partagées" : "Shared Notes"}
+              </CardTitle>
+              {!isPro && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Lock className="h-3 w-3" />
+                  Pro
+                </Badge>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <CardDescription className="text-sm">
+              {language === "fr"
+                ? "Notes appliquées aux factures et aux devis."
+                : "Notes applied to both invoices and quotes."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!isPro ? (
+              <ProUpgradePrompt language={language} navigate={navigate} />
+            ) : (
+              <FormField
+                label={language === "fr" ? "Notes par défaut" : "Default Notes"}
+                description={language === "fr" 
+                  ? "Pré-remplies sur les nouvelles factures et devis."
+                  : "Pre-filled on new invoices and quotes."}
+              >
+                <Textarea
+                  value={defaultNotes}
+                  onChange={(e) => handleDefaultNotesChange(e.target.value)}
+                  placeholder={language === "fr" ? "Notes additionnelles..." : "Additional notes..."}
+                  rows={3}
+                />
+              </FormField>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Section 4: Live Preview */}
+      {/* ========================================== */}
+      {/* SECTION 3: LIVE PREVIEW */}
+      {/* ========================================== */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            {language === "fr" ? "Aperçu" : "Preview"}
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Eye className="h-4 w-4" />
+            {language === "fr" ? "Aperçu en direct" : "Live Preview"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {language === "fr"
-              ? "Aperçu de l'apparence de vos factures et devis."
-              : "Preview how your invoices and quotes will look."}
+              ? "Visualisez l'apparence de vos factures et devis avec les paramètres actuels."
+              : "See how your invoices and quotes will look with current settings."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -619,6 +654,55 @@ export function InvoiceDesignSettings() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// ============================================
+// HELPER COMPONENTS
+// ============================================
+
+function SectionHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="space-y-1">
+      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function FormField({ 
+  label, 
+  description, 
+  children 
+}: { 
+  label: string; 
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      {description && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function ProUpgradePrompt({ language, navigate }: { language: string; navigate: (path: string) => void }) {
+  return (
+    <div className="text-center py-4 text-muted-foreground">
+      <Sparkles className="h-6 w-6 mx-auto mb-2 opacity-50" />
+      <p className="text-sm">
+        {language === "fr" 
+          ? "Passez au plan Pro pour personnaliser le contenu par défaut."
+          : "Upgrade to Pro to customize default content."}
+      </p>
+      <Button variant="outline" className="mt-3" size="sm" onClick={() => navigate("/dashboard/pricing")}>
+        {language === "fr" ? "Voir les plans" : "View Plans"}
+      </Button>
     </div>
   );
 }
