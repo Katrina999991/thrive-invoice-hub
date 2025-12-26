@@ -1273,10 +1273,10 @@ Cordialement,
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              {language === "fr" ? "Personnalisation des messages" : "Message Customization"}
+              {language === "fr" ? "Contenu des documents PDF" : "PDF Document Content"}
             </CardTitle>
             <CardDescription>
-              {language === "fr" ? "Personnalisez les messages envoyés avec vos factures et devis." : "Customize the messages sent with your invoices and quotes."}
+              {language === "fr" ? "Personnalisez les messages qui apparaissent dans vos factures et devis PDF." : "Customize the messages that appear in your PDF invoices and quotes."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1285,8 +1285,8 @@ Cordialement,
               <div className="rounded-lg border bg-muted/30 p-3">
                 <p className="text-sm text-muted-foreground">
                   {language === "fr" 
-                    ? "Ces messages sont utilisés pour communiquer avec vos clients via les PDFs et les emails." 
-                    : "These messages are used to communicate with your clients via PDFs and emails."}
+                    ? "Ces messages apparaissent uniquement dans les documents PDF. Pour personnaliser les emails envoyés à vos clients, consultez la section « Modèles d'emails » ci-dessous." 
+                    : "These messages appear only in PDF documents. To customize emails sent to your clients, see the \"Email Templates\" section below."}
                 </p>
               </div>
 
@@ -1320,14 +1320,14 @@ Cordialement,
                     {/* Invoice Body Message */}
                     <div className="space-y-4 rounded-lg border p-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{language === "fr" ? "Message du corps de la facture" : "Invoice Body Message"}</h4>
+                        <h4 className="font-medium">{language === "fr" ? "Message PDF de la facture" : "Invoice PDF Message"}</h4>
                         <Badge variant="secondary">Premium</Badge>
                       </div>
                       
                       <p className="text-sm text-muted-foreground">
                         {language === "fr" 
-                          ? "Ce message apparaît après le tableau des articles dans les factures PDF et est également utilisé dans les emails de facture." 
-                          : "This message appears after the items table in PDF invoices and is also used in invoice emails."}
+                          ? "Ce message apparaît après le tableau des articles dans les factures PDF uniquement." 
+                          : "This message appears after the items table in PDF invoices only."}
                       </p>
                       
                       {/* Helper text based on plan */}
@@ -1399,14 +1399,14 @@ Cordialement,
                     {/* Quote Body Message */}
                     <div className="space-y-4 rounded-lg border p-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{language === "fr" ? "Message du corps du devis" : "Quote Body Message"}</h4>
+                        <h4 className="font-medium">{language === "fr" ? "Message PDF du devis" : "Quote PDF Message"}</h4>
                         <Badge variant="secondary">Premium</Badge>
                       </div>
                       
                       <p className="text-sm text-muted-foreground">
                         {language === "fr" 
-                          ? "Ce message apparaît après le tableau des articles dans les devis PDF et est également utilisé dans les emails de devis." 
-                          : "This message appears after the items table in PDF quotes and is also used in quote emails."}
+                          ? "Ce message apparaît après le tableau des articles dans les devis PDF uniquement." 
+                          : "This message appears after the items table in PDF quotes only."}
                       </p>
                       
                       {/* Helper text based on plan */}
@@ -1486,7 +1486,7 @@ Cordialement,
               <Badge variant="secondary">Premium</Badge>
             </CardTitle>
             <CardDescription>
-              {language === "fr" ? "Personnalisez les modèles d'emails envoyés à vos clients." : "Customize the email templates sent to your clients."}
+              {language === "fr" ? "Ces modèles contrôlent tous les emails envoyés automatiquement à vos clients (factures, rappels, confirmations)." : "These templates control all emails sent automatically to your clients (invoices, reminders, confirmations)."}
             </CardDescription>
           </CardHeader>
           <CardContent>
