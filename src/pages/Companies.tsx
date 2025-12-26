@@ -883,6 +883,7 @@ Best regards,
   });
 
   const [taxes, setTaxes] = useState<Array<{name: string, percentage: number}>>([]);
+  const [taxInputValues, setTaxInputValues] = useState<Array<string>>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -894,16 +895,24 @@ Best regards,
 
   const addTax = () => {
     setTaxes([...taxes, { name: "", percentage: 0 }]);
+    setTaxInputValues([...taxInputValues, ""]);
   };
 
   const removeTax = (index: number) => {
     setTaxes(taxes.filter((_, i) => i !== index));
+    setTaxInputValues(taxInputValues.filter((_, i) => i !== index));
   };
 
   const updateTax = (index: number, field: 'name' | 'percentage', value: string | number) => {
     const newTaxes = [...taxes];
     newTaxes[index] = { ...newTaxes[index], [field]: value };
     setTaxes(newTaxes);
+  };
+
+  const updateTaxInputValue = (index: number, value: string) => {
+    const newInputValues = [...taxInputValues];
+    newInputValues[index] = value;
+    setTaxInputValues(newInputValues);
   };
 
   const validateInvoiceNumbering = async (): Promise<boolean> => {
@@ -1082,6 +1091,7 @@ Best regards,
       invoice_body_message_fr: ""
     });
     setTaxes([]);
+    setTaxInputValues([]);
     setEditingCompany(null);
     setIsDialogOpen(false);
   };
@@ -1168,9 +1178,12 @@ Best regards,
     });
     // Handle taxes - parse JSON if it exists
     if (company.taxes && Array.isArray(company.taxes)) {
-      setTaxes(company.taxes as Array<{name: string, percentage: number}>);
+      const taxesData = company.taxes as Array<{name: string, percentage: number}>;
+      setTaxes(taxesData);
+      setTaxInputValues(taxesData.map(t => t.percentage === 0 ? "" : String(t.percentage)));
     } else {
       setTaxes([]);
+      setTaxInputValues([]);
     }
     setIsDialogOpen(true);
   };
@@ -1474,12 +1487,12 @@ Best regards,
                         type="text"
                         inputMode="decimal"
                         placeholder={t("companies.taxRatePlaceholder")}
-                        value={tax.percentage === 0 ? "" : String(tax.percentage).replace('.', language === 'fr' ? ',' : '.')}
+                        value={taxInputValues[index] ?? ""}
                         onChange={(e) => {
-                          // Allow digits, one decimal separator (comma or period)
                           const rawValue = e.target.value;
-                          // Only allow valid decimal input pattern
+                          // Allow digits, one decimal separator (comma or period)
                           if (rawValue === "" || /^[0-9]*[.,]?[0-9]*$/.test(rawValue)) {
+                            updateTaxInputValue(index, rawValue);
                             const normalizedValue = rawValue.replace(',', '.');
                             const numValue = parseFloat(normalizedValue);
                             if (rawValue === "" || rawValue === "." || rawValue === ",") {
