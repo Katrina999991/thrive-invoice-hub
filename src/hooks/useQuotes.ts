@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useEncryption } from "@/hooks/useEncryption";
 
 export interface Quote {
   id: string;
@@ -80,6 +81,7 @@ export const useQuotes = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { decryptFields } = useEncryption();
 
   const fetchQuotes = async () => {
     if (!user) return;
@@ -116,8 +118,19 @@ export const useQuotes = () => {
 
       if (error) throw error;
       
+      // Decrypt client email/phone fields for each quote
+      const quotesWithDecryptedClients = await Promise.all(
+        (data || []).map(async (quote: any) => {
+          if (quote.clients) {
+            const decryptedClient = await decryptFields('clients', quote.clients);
+            return { ...quote, clients: decryptedClient };
+          }
+          return quote;
+        })
+      );
+      
       // Cast the data to our Quote type
-      setQuotes((data || []) as Quote[]);
+      setQuotes(quotesWithDecryptedClients as Quote[]);
     } catch (error) {
       console.error("Error fetching quotes:", error);
       toast({

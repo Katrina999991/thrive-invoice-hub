@@ -258,13 +258,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Decrypt client data (email, phone may be encrypted)
+    console.log("Client data BEFORE decryption:", { 
+      email: quote.clients?.email?.substring(0, 20),
+      phone: quote.clients?.phone?.substring(0, 20),
+      hasEncryptionKey: !!Deno.env.get("ENCRYPTION_KEY")
+    });
+    
     const client = await decryptClientData(quote.clients);
     const company = client?.companies;
 
-    console.log("Client data after decryption:", { 
-      hasEmail: !!client?.email, 
-      emailStartsWithAESENC: client?.email?.startsWith("AESENC:"),
-      hasPhone: !!client?.phone 
+    console.log("Client data AFTER decryption:", { 
+      email: client?.email?.substring(0, 20),
+      phone: client?.phone?.substring(0, 20),
+      emailStillEncrypted: client?.email?.startsWith("AESENC:") || client?.email?.startsWith("ENC:")
     });
 
     let emailsToSend: string[] = [];
