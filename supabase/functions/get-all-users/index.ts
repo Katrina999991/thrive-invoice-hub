@@ -54,14 +54,60 @@ serve(async (req) => {
       throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
     }
 
-    // Fetch all profiles for display names
+    // Fetch all profiles for display names and Stripe info
     const { data: profiles, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("user_id, display_name, username");
+      .select("user_id, display_name, username, stripe_account_id, stripe_onboarding_complete");
 
     if (profileError) {
       throw new Error(`Failed to fetch profiles: ${profileError.message}`);
     }
+
+    // Fetch companies count per user
+    const { data: companies, error: companiesError } = await supabaseClient
+      .from("companies")
+      .select("user_id");
+
+    if (companiesError) {
+      throw new Error(`Failed to fetch companies: ${companiesError.message}`);
+    }
+
+    // Fetch invoices existence per user
+    const { data: invoices, error: invoicesError } = await supabaseClient
+      .from("invoices")
+      .select("user_id");
+
+    if (invoicesError) {
+      throw new Error(`Failed to fetch invoices: ${invoicesError.message}`);
+    }
+
+    // Fetch quotes existence per user
+    const { data: quotes, error: quotesError } = await supabaseClient
+      .from("quotes")
+      .select("user_id");
+
+    if (quotesError) {
+      throw new Error(`Failed to fetch quotes: ${quotesError.message}`);
+    }
+
+    // Fetch expenses existence per user
+    const { data: expenses, error: expensesError } = await supabaseClient
+      .from("expenses")
+      .select("user_id");
+
+    if (expensesError) {
+      throw new Error(`Failed to fetch expenses: ${expensesError.message}`);
+    }
+
+    // Group counts by user_id
+    const companiesCountMap = new Map<string, number>();
+    companies?.forEach((c) => {
+      companiesCountMap.set(c.user_id, (companiesCountMap.get(c.user_id) || 0) + 1);
+    });
+
+    const usersWithInvoices = new Set(invoices?.map((i) => i.user_id) || []);
+    const usersWithQuotes = new Set(quotes?.map((q) => q.user_id) || []);
+    const usersWithExpenses = new Set(expenses?.map((e) => e.user_id) || []);
 
     // Combine data
     const users = authUsers.users.map((user) => {
@@ -78,6 +124,12 @@ serve(async (req) => {
         billing_cycle: subscription?.billing_cycle || null,
         subscription_started_at: subscription?.started_at || null,
         subscription_expires_at: subscription?.expires_at || null,
+        // Activation data
+        stripe_connected: !!(profile?.stripe_account_id && profile?.stripe_onboarding_complete),
+        companies_count: companiesCountMap.get(user.id) || 0,
+        has_invoices: usersWithInvoices.has(user.id),
+        has_quotes: usersWithQuotes.has(user.id),
+        has_expenses: usersWithExpenses.has(user.id),
       };
     });
 
