@@ -1471,15 +1471,23 @@ Best regards,
                       <Label htmlFor={`tax-percentage-${index}`}>{t("companies.taxRate")}</Label>
                       <Input
                         id={`tax-percentage-${index}`}
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.0001"
+                        type="text"
+                        inputMode="decimal"
                         placeholder={t("companies.taxRatePlaceholder")}
-                        value={tax.percentage}
+                        value={tax.percentage === 0 ? "" : String(tax.percentage).replace('.', language === 'fr' ? ',' : '.')}
                         onChange={(e) => {
-                          const value = e.target.value.replace(',', '.');
-                          updateTax(index, 'percentage', parseFloat(value) || 0);
+                          // Allow digits, one decimal separator (comma or period)
+                          const rawValue = e.target.value;
+                          // Only allow valid decimal input pattern
+                          if (rawValue === "" || /^[0-9]*[.,]?[0-9]*$/.test(rawValue)) {
+                            const normalizedValue = rawValue.replace(',', '.');
+                            const numValue = parseFloat(normalizedValue);
+                            if (rawValue === "" || rawValue === "." || rawValue === ",") {
+                              updateTax(index, 'percentage', 0);
+                            } else if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                              updateTax(index, 'percentage', numValue);
+                            }
+                          }
                         }}
                       />
                     </div>
