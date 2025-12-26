@@ -155,12 +155,14 @@ const getTranslations = (language: 'fr' | 'en', documentType: DocumentType, isCl
         title: 'DEVIS',
         documentNumber: 'Devis',
         secondaryDate: "Valide jusqu'au",
+        noExpiryDate: 'Validité : Sans date d\'expiration',
         termsLabel: 'Conditions'
       },
       en: {
         title: 'QUOTE',
         documentNumber: 'Quote',
         secondaryDate: 'Valid Until',
+        noExpiryDate: 'Validity: No expiration date',
         termsLabel: 'Terms & Conditions'
       }
     }
@@ -381,6 +383,11 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
       const secondaryDateText = `${t.secondaryDate}: ${secondaryDate}`;
       const secondaryDateWidth = doc.getTextWidth(secondaryDateText);
       doc.text(secondaryDateText, pageWidth - dateRightMargin - secondaryDateWidth, clientInfoY + (template === 'creative' ? 6 : 12) + textYOffset);
+    } else if (documentType === 'quote') {
+      // Show "No expiration date" for quotes without expiry
+      const noExpiryText = (t as any).noExpiryDate || 'Validity: No expiration date';
+      const noExpiryWidth = doc.getTextWidth(noExpiryText);
+      doc.text(noExpiryText, pageWidth - dateRightMargin - noExpiryWidth, clientInfoY + (template === 'creative' ? 6 : 12) + textYOffset);
     }
     
     // Client details
