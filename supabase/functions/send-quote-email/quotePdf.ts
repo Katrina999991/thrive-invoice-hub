@@ -94,6 +94,7 @@ const getTranslations = (language: 'fr' | 'en', isClientFrench?: boolean) => {
       billTo: 'Facturer à :',
       issueDate: "Date d'émission",
       secondaryDate: "Valide jusqu'au",
+      noExpiryDate: 'Validité : Sans date d\'expiration',
       description: 'Description',
       qty: 'Qté',
       unitPrice: 'Prix unitaire',
@@ -112,6 +113,7 @@ const getTranslations = (language: 'fr' | 'en', isClientFrench?: boolean) => {
       billTo: 'Bill To:',
       issueDate: 'Issue Date',
       secondaryDate: 'Valid Until',
+      noExpiryDate: 'Validity: No expiration date',
       description: 'Description',
       qty: 'Qty',
       unitPrice: 'Unit Price',
@@ -386,6 +388,11 @@ export async function generateQuotePdfForEmail(options: QuotePdfOptions): Promis
       const expiryDateText = `${t.secondaryDate}: ${quote.expiry_date}`;
       const expiryDateWidth = doc.getTextWidth(expiryDateText);
       doc.text(expiryDateText, pageWidth - dateRightMargin - expiryDateWidth, clientInfoY + (template === 'creative' ? 6 : 12) + textYOffset);
+    } else {
+      // Show "No expiration date" for quotes without expiry
+      const noExpiryText = t.noExpiryDate;
+      const noExpiryWidth = doc.getTextWidth(noExpiryText);
+      doc.text(noExpiryText, pageWidth - dateRightMargin - noExpiryWidth, clientInfoY + (template === 'creative' ? 6 : 12) + textYOffset);
     }
     
     // Client details
