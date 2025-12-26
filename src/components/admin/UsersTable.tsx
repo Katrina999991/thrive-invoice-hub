@@ -340,17 +340,17 @@ export function UsersTable() {
                       <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
-                          {/* Stripe */}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
-                                <CreditCard className="h-3.5 w-3.5" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{user.stripe_connected ? t.stripeConnected : t.stripeNotConnected}</p>
-                            </TooltipContent>
-                          </Tooltip>
+                          {/* Stripe - visible status */}
+                          <span 
+                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${
+                              user.stripe_connected 
+                                ? 'bg-purple-500/20 text-purple-600' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            <CreditCard className="h-3 w-3" />
+                            {user.stripe_connected ? '✓' : '✕'}
+                          </span>
                           
                           {/* Companies - visible count with color hierarchy */}
                           <span 
