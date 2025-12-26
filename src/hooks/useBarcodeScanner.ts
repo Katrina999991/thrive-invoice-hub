@@ -27,13 +27,8 @@ export const useBarcodeScanner = () => {
       }
       
       if (status.denied) {
-        toast({
-          title: language === "fr" ? "Permission refusée" : "Permission Denied",
-          description: language === "fr" 
-            ? "Veuillez autoriser l'accès à la caméra dans les paramètres" 
-            : "Please allow camera access in settings",
-          variant: "destructive"
-        });
+        // User denied permission - this is a normal user action, not an error
+        // Don't show any toast message
         return false;
       }
       
@@ -144,23 +139,20 @@ export const useBarcodeScanner = () => {
           console.error("Web scan error:", error);
           stopWebScan();
           
-          if (error.message?.includes("Permission denied") || error.name === "NotAllowedError") {
-            toast({
-              title: language === "fr" ? "Permission refusée" : "Permission Denied",
-              description: language === "fr" 
-                ? "Veuillez autoriser l'accès à la caméra" 
-                : "Please allow camera access",
-              variant: "destructive"
-            });
-          } else {
-            toast({
-              title: language === "fr" ? "Erreur de scan" : "Scan Error",
-              description: language === "fr" 
-                ? "Impossible d'accéder à la caméra" 
-                : "Unable to access camera",
-              variant: "destructive"
-            });
+          // Don't show error toast for user-initiated cancellations (permission denied, closed dialog)
+          // These are normal user actions, not errors
+          const isUserCancellation = 
+            error.message?.includes("Permission denied") || 
+            error.name === "NotAllowedError" ||
+            error.message?.includes("Permission dismissed") ||
+            error.name === "NotReadableError" ||
+            error.message?.includes("user denied");
+          
+          if (!isUserCancellation) {
+            // Only show error for unexpected technical issues
+            console.log("Unexpected camera error:", error);
           }
+          
           resolve(null);
         }
       }, 100);
