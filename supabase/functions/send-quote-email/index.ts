@@ -5,6 +5,23 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 import { generateQuotePdfForEmail, TemplateType, COLOR_PRESETS } from "./quotePdf.ts";
 
+// Helper to convert hex color to RGB array
+function hexToRgb(hex: string): [number, number, number] {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    : [37, 99, 235]; // Default blue
+}
+
+// Helper to create light variant from primary color
+function createLightVariant(primary: [number, number, number]): [number, number, number] {
+  return [
+    Math.min(255, Math.floor(primary[0] + (255 - primary[0]) * 0.85)),
+    Math.min(255, Math.floor(primary[1] + (255 - primary[1]) * 0.85)),
+    Math.min(255, Math.floor(primary[2] + (255 - primary[2]) * 0.85))
+  ];
+}
+
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
@@ -153,6 +170,9 @@ const SendQuoteEmailSchema = z.object({
   selectedEmails: z.array(z.string().email("Invalid email format")).max(10, "Too many recipients").optional(),
   ccEmails: z.array(z.string().email("Invalid email format")).max(10, "Too many CC recipients").optional().default([]),
   hideBranding: z.boolean().optional().default(false),
+  template: z.enum(['classic', 'modern', 'professional', 'creative']).optional().default('classic'),
+  colorPreset: z.string().optional().default('blue'),
+  customColor: z.string().optional().nullable(),
 });
 
 const handler = async (req: Request): Promise<Response> => {
@@ -172,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const { quoteId, customSubject, customMessage, selectedEmails, ccEmails, hideBranding } = validationResult.data;
+    const { quoteId, customSubject, customMessage, selectedEmails, ccEmails, hideBranding, template, colorPreset, customColor } = validationResult.data;
 
     // Get authorization header to identify the user
     const authHeader = req.headers.get('Authorization');
@@ -396,8 +416,12 @@ const handler = async (req: Request): Promise<Response> => {
         quote_footer_message_fr: company.quote_footer_message_fr
       } : null,
       language: isFrench ? 'fr' : 'en',
-      template: 'classic', // Default template
-      colorPreset: 'blue', // Default color
+      template: template as any,
+      colorPreset: customColor ? undefined : colorPreset,
+      customColor: customColor ? (() => {
+        const primary = hexToRgb(customColor);
+        return { primary, light: createLightVariant(primary) };
+      })() : undefined,
       hideBranding
     });
     console.log("Quote PDF generated successfully");

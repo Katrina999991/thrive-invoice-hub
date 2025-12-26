@@ -527,6 +527,9 @@ const Quotes = () => {
     setIsSendingEmail(true);
     try {
       const hideBranding = localStorage.getItem('hidePdfBranding') === 'true' && planLimits?.plan_type === 'pro';
+      const template = localStorage.getItem('invoice-template') || 'classic';
+      const colorPreset = localStorage.getItem('invoice-color') || 'blue';
+      const customColor = colorPreset === 'custom' ? localStorage.getItem('invoice-custom-color') : null;
       
       const { data, error } = await supabase.functions.invoke('send-quote-email', {
         body: {
@@ -534,7 +537,10 @@ const Quotes = () => {
           customSubject: emailSubject,
           customMessage: emailMessage,
           selectedEmails,
-          hideBranding
+          hideBranding,
+          template,
+          colorPreset,
+          customColor
         }
       });
 

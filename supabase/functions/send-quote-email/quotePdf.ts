@@ -79,6 +79,7 @@ export interface QuotePdfOptions {
   language: 'fr' | 'en';
   template?: TemplateType;
   colorPreset?: string;
+  customColor?: { primary: [number, number, number]; light: [number, number, number] };
   hideBranding?: boolean;
 }
 
@@ -209,12 +210,13 @@ export async function generateQuotePdfForEmail(options: QuotePdfOptions): Promis
     language,
     template = 'classic',
     colorPreset = 'blue',
+    customColor,
     hideBranding = false
   } = options;
 
   const isClientFrench = client?.language === 'french';
   const t = getTranslations(language, isClientFrench);
-  const selectedColor = COLOR_PRESETS[colorPreset] || COLOR_PRESETS.blue;
+  const selectedColor = customColor || COLOR_PRESETS[colorPreset] || COLOR_PRESETS.blue;
   
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
