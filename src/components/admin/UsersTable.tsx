@@ -352,18 +352,19 @@ export function UsersTable() {
                             </TooltipContent>
                           </Tooltip>
                           
-                          {/* Companies */}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className={`inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded text-xs font-medium ${user.companies_count > 0 ? 'bg-blue-500/20 text-blue-600' : 'bg-muted text-muted-foreground'}`}>
-                                <Building2 className="h-3 w-3 mr-0.5" />
-                                {user.companies_count}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{t.companies}: {user.companies_count}</p>
-                            </TooltipContent>
-                          </Tooltip>
+                          {/* Companies - visible count with color hierarchy */}
+                          <span 
+                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${
+                              user.companies_count === 0 
+                                ? 'bg-muted text-muted-foreground' 
+                                : user.companies_count === 1 
+                                  ? 'bg-blue-500/20 text-blue-600' 
+                                  : 'bg-emerald-500/20 text-emerald-600'
+                            }`}
+                          >
+                            <Building2 className="h-3 w-3" />
+                            {user.companies_count}
+                          </span>
                           
                           {/* Invoices */}
                           <ActivationIndicator 
