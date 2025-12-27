@@ -199,7 +199,7 @@ serve(async (req) => {
             }
           }
         } else if (session.mode === 'subscription' && session.customer_email) {
-          // This is a subscription checkout - send upgrade email
+          // This is a subscription checkout - update database and send upgrade email
           logStep("Subscription checkout completed", { 
             customerEmail: session.customer_email,
             subscriptionId: session.subscription 
@@ -213,6 +213,33 @@ serve(async (req) => {
             const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
             const priceId = subscription.items.data[0]?.price.id;
             const newPlanType = priceId ? await getPlanTypeFromPriceId(priceId) : 'premium';
+            const billingInterval = subscription.items.data[0]?.price.recurring?.interval;
+            const billingCycle = billingInterval === 'year' ? 'yearly' : 'monthly';
+            const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+            
+            logStep("Updating user subscription in database", { 
+              userId: user.id, 
+              planType: newPlanType,
+              billingCycle,
+              expiresAt
+            });
+            
+            // Update user subscription in database
+            const { error: updateError } = await supabaseClient
+              .from('user_subscriptions')
+              .update({ 
+                plan_type: newPlanType,
+                billing_cycle: billingCycle,
+                expires_at: expiresAt,
+                started_at: new Date().toISOString()
+              })
+              .eq('user_id', user.id);
+            
+            if (updateError) {
+              logStep("Error updating subscription", { error: updateError.message });
+            } else {
+              logStep("User subscription updated successfully");
+            }
             
             await sendSubscriptionEmail({
               emailType: 'upgrade',
