@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt } from "lucide-react";
+import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 
@@ -28,6 +28,7 @@ interface User {
   invoices_count: number;
   quotes_count: number;
   expenses_count: number;
+  clients_count: number;
 }
 
 export function UsersTable() {
@@ -62,12 +63,15 @@ export function UsersTable() {
       stripeConnected: "Stripe connecté",
       stripeNotConnected: "Stripe non connecté",
       companies: "Entreprises",
+      clients: "Clients",
       hasInvoices: "A créé des factures",
       noInvoices: "Aucune facture",
       hasQuotes: "A créé des devis",
       noQuotes: "Aucun devis",
       hasExpenses: "A créé des dépenses",
       noExpenses: "Aucune dépense",
+      hasClients: "A créé des clients",
+      noClients: "Aucun client",
       activeUsers: "Utilisateurs actifs",
     },
     en: {
@@ -92,12 +96,15 @@ export function UsersTable() {
       stripeConnected: "Stripe connected",
       stripeNotConnected: "Stripe not connected",
       companies: "Companies",
+      clients: "Clients",
       hasInvoices: "Has created invoices",
       noInvoices: "No invoices",
       hasQuotes: "Has created quotes",
       noQuotes: "No quotes",
       hasExpenses: "Has created expenses",
       noExpenses: "No expenses",
+      hasClients: "Has created clients",
+      noClients: "No clients",
       activeUsers: "Active users",
     },
   };
@@ -385,6 +392,15 @@ export function UsersTable() {
                           >
                             <Receipt className="h-3 w-3" />
                             {user.expenses_count}
+                          </span>
+                          
+                          {/* Clients - count with hierarchy */}
+                          <span 
+                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}
+                            title={t.hasClients}
+                          >
+                            <UserRound className="h-3 w-3" />
+                            {user.clients_count}
                           </span>
                         </div>
                       </TableCell>

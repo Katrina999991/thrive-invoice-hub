@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useEncryption } from "@/hooks/useEncryption";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Client = Tables<"clients"> & {
@@ -19,6 +20,7 @@ export const useClients = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { encryptFields, decryptArray } = useEncryption();
+  const queryClient = useQueryClient();
 
   const fetchClients = async () => {
     if (!user) return;
@@ -96,6 +98,10 @@ export const useClients = () => {
 
       await fetchClients();
       
+      // Invalidate dashboard stats and plan limits cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      
       toast({
         title: "Success",
         description: "Client created successfully"
@@ -127,6 +133,9 @@ export const useClients = () => {
 
       await fetchClients();
       
+      // Invalidate dashboard stats cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      
       toast({
         title: "Success",
         description: "Client updated successfully"
@@ -151,6 +160,10 @@ export const useClients = () => {
       if (error) throw error;
 
       await fetchClients();
+      
+      // Invalidate dashboard stats and plan limits cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user?.id] });
       
       toast({
         title: "Success",
