@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEncryption } from "@/hooks/useEncryption";
 
 export interface Quote {
@@ -81,6 +82,7 @@ export const useQuotes = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { decryptFields } = useEncryption();
 
   const fetchQuotes = async () => {
@@ -171,6 +173,9 @@ export const useQuotes = () => {
 
       await fetchQuotes();
       
+      // Invalidate dashboard cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      
       toast({
         title: "Success",
         description: "Quote created successfully"
@@ -199,6 +204,9 @@ export const useQuotes = () => {
 
       await fetchQuotes();
       
+      // Invalidate dashboard cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      
       toast({
         title: "Success",
         description: "Quote updated successfully"
@@ -223,6 +231,9 @@ export const useQuotes = () => {
       if (error) throw error;
 
       await fetchQuotes();
+      
+      // Invalidate dashboard cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       
       toast({
         title: "Success",

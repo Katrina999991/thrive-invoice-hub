@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { logAuditEvent, AuditEventCategory } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -41,6 +42,7 @@ export const useCompanies = () => {
   const [loading, setLoading] = useState(true);
   const { user, username } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const fetchCompanies = async () => {
     if (!user) return;
@@ -138,6 +140,10 @@ export const useCompanies = () => {
 
       await fetchCompanies();
       
+      // Invalidate dashboard and plan limits cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      
       toast({
         title: "Success",
         description: "Company created successfully"
@@ -211,6 +217,10 @@ export const useCompanies = () => {
       if (error) throw error;
 
       await fetchCompanies();
+      
+      // Invalidate dashboard and plan limits cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
       
       toast({
         title: "Success",

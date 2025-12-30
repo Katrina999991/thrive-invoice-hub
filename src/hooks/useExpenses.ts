@@ -79,8 +79,9 @@ export const useExpenses = (showArchived: boolean = false) => {
 
       await fetchExpenses();
       
-      // Invalider le cache des limites pour mettre à jour le compteur
+      // Invalider le cache des limites et du dashboard pour mettre à jour le compteur
       queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       
       // Log audit event
       logAuditEvent({
@@ -175,8 +176,9 @@ export const useExpenses = (showArchived: boolean = false) => {
 
       await fetchExpenses();
       
-      // Invalider le cache des limites pour mettre à jour le compteur
+      // Invalider le cache des limites et du dashboard pour mettre à jour le compteur
       queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       
       // Log audit event
       logAuditEvent({
