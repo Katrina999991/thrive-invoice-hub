@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { logAuditEvent } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -16,6 +17,7 @@ export const useInvoices = () => {
   const [loading, setLoading] = useState(true);
   const { user, username } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const fetchInvoices = async () => {
     if (!user) return;
@@ -192,6 +194,10 @@ export const useInvoices = () => {
 
       await fetchInvoices();
       
+      // Invalidate dashboard and plan limits cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      
       // Log audit event
       logAuditEvent({
         userId: user.id,
@@ -236,6 +242,9 @@ export const useInvoices = () => {
       if (error) throw error;
 
       await fetchInvoices();
+      
+      // Invalidate dashboard cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       
       // Log audit event - check if marking as paid
       if (updates.status === 'paid' && currentInvoice?.status !== 'paid') {
@@ -311,6 +320,10 @@ export const useInvoices = () => {
       }
 
       await fetchInvoices();
+      
+      // Invalidate dashboard and plan limits cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
       
       // Log audit event
       logAuditEvent({
