@@ -99,6 +99,15 @@ serve(async (req) => {
       throw new Error(`Failed to fetch expenses: ${expensesError.message}`);
     }
 
+    // Fetch clients count per user
+    const { data: clients, error: clientsError } = await supabaseClient
+      .from("clients")
+      .select("user_id");
+
+    if (clientsError) {
+      throw new Error(`Failed to fetch clients: ${clientsError.message}`);
+    }
+
     // Group counts by user_id
     const companiesCountMap = new Map<string, number>();
     companies?.forEach((c) => {
@@ -118,6 +127,11 @@ serve(async (req) => {
     const expensesCountMap = new Map<string, number>();
     expenses?.forEach((e) => {
       expensesCountMap.set(e.user_id, (expensesCountMap.get(e.user_id) || 0) + 1);
+    });
+
+    const clientsCountMap = new Map<string, number>();
+    clients?.forEach((c) => {
+      clientsCountMap.set(c.user_id, (clientsCountMap.get(c.user_id) || 0) + 1);
     });
 
     // Combine data
@@ -141,6 +155,7 @@ serve(async (req) => {
         invoices_count: invoicesCountMap.get(user.id) || 0,
         quotes_count: quotesCountMap.get(user.id) || 0,
         expenses_count: expensesCountMap.get(user.id) || 0,
+        clients_count: clientsCountMap.get(user.id) || 0,
       };
     });
 
