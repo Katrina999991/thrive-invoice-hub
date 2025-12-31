@@ -153,9 +153,9 @@ const Footer = () => {
         
         <div className="border-t border-border pt-8 flex flex-col items-center gap-4">
           <a 
-            href="https://startupfa.me/s/gestionflow?utm_source=gestionflow.net" 
+            href="https://startupfa.me" 
             target="_blank" 
-            rel="nofollow noopener noreferrer"
+            rel="noopener"
           >
             <img 
               src="https://startupfa.me/badges/featured-badge-small.webp" 
