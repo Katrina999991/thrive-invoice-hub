@@ -107,11 +107,23 @@ const Expenses = () => {
 
   // Handle extracted data from receipt scanner
   const handleReceiptDataExtracted = (data: ExtractedReceiptData) => {
+    console.log("=== RECEIPT DATA EXTRACTED ===");
+    console.log("Suggested category from API:", data.suggested_category);
+    console.log("Suggested category ID from API:", data.suggested_category_id);
+    console.log("Category source:", data.category_source);
+    console.log("Available categories:", categories.map(c => ({ 
+      id: c.id, 
+      name: c.name, 
+      name_en: c.name_en, 
+      name_fr: c.name_fr 
+    })));
+    
     // Helper function to find matching category with multiple fallback strategies
     const findMatchingCategory = () => {
       // 1. First try by ID if provided
       if (data.suggested_category_id) {
         const match = categories.find(cat => cat.id === data.suggested_category_id);
+        console.log("Match by ID:", match?.name);
         if (match) return match;
       }
       
@@ -122,6 +134,7 @@ const Expenses = () => {
           cat.name_en === data.suggested_category ||
           cat.name_fr === data.suggested_category
         );
+        console.log("Exact name match:", exactMatch?.name);
         if (exactMatch) return exactMatch;
       }
       
@@ -133,10 +146,26 @@ const Expenses = () => {
           cat.name_en?.toLowerCase() === lowerSuggested ||
           cat.name_fr?.toLowerCase() === lowerSuggested
         );
+        console.log("Case-insensitive match:", caseMatch?.name);
         if (caseMatch) return caseMatch;
       }
       
-      // 4. Try mapping common category names
+      // 4. Try partial/contains match
+      if (data.suggested_category) {
+        const lowerSuggested = data.suggested_category.toLowerCase();
+        const partialMatch = categories.find(cat => 
+          cat.name?.toLowerCase().includes(lowerSuggested) ||
+          cat.name_en?.toLowerCase().includes(lowerSuggested) ||
+          cat.name_fr?.toLowerCase().includes(lowerSuggested) ||
+          lowerSuggested.includes(cat.name?.toLowerCase() || "") ||
+          lowerSuggested.includes(cat.name_en?.toLowerCase() || "") ||
+          lowerSuggested.includes(cat.name_fr?.toLowerCase() || "")
+        );
+        console.log("Partial match:", partialMatch?.name);
+        if (partialMatch) return partialMatch;
+      }
+      
+      // 5. Try mapping common category names
       const categoryNameMappings: Record<string, string[]> = {
         "meals": ["repas", "food", "restaurant", "nourriture"],
         "repas": ["meals", "food", "restaurant", "nourriture"],
@@ -146,8 +175,9 @@ const Expenses = () => {
         "other": ["autres", "autre", "miscellaneous", "divers"],
         "autres": ["other", "autre", "miscellaneous", "divers"],
         "autre": ["other", "autres", "miscellaneous", "divers"],
-        "equipment": ["équipement", "equipement", "hardware", "electronics"],
-        "équipement": ["equipment", "equipement", "hardware", "electronics"],
+        "equipment": ["équipement", "equipement", "hardware", "electronics", "matériel"],
+        "équipement": ["equipment", "equipement", "hardware", "electronics", "matériel"],
+        "equipement": ["equipment", "équipement", "hardware", "electronics", "matériel"],
         "software": ["logiciels", "logiciel"],
         "logiciels": ["software", "logiciel"],
         "office": ["bureau", "fournitures", "supplies"],
@@ -169,14 +199,19 @@ const Expenses = () => {
             cat.name_en?.toLowerCase() === altName ||
             cat.name_fr?.toLowerCase() === altName
           );
-          if (altMatch) return altMatch;
+          if (altMatch) {
+            console.log("Alternative name match:", altMatch?.name);
+            return altMatch;
+          }
         }
       }
       
+      console.log("No category match found!");
       return null;
     };
     
     const matchingCategory = findMatchingCategory();
+    console.log("Final matching category:", matchingCategory?.name);
     
     // Use language-appropriate description
     const description = language === "fr" 
@@ -184,6 +219,7 @@ const Expenses = () => {
       : (data.description_en || data.description_fr || data.description);
     
     const categoryName = matchingCategory?.name || "";
+    console.log("Setting category to:", categoryName);
     
     setNewExpense(prev => ({
       ...prev,
