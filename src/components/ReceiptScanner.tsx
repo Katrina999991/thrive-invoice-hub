@@ -37,11 +37,13 @@ export const ReceiptScanner = ({ onDataExtracted, companyId, userId }: ReceiptSc
   const { language } = useLanguage();
   const [isScanning, setIsScanning] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const processImage = async (file: File) => {
     setIsScanning(true);
+    setIsPdf(file.type === "application/pdf");
 
     try {
       // Convert file to base64
@@ -208,11 +210,20 @@ export const ReceiptScanner = ({ onDataExtracted, companyId, userId }: ReceiptSc
       {/* Preview */}
       {previewUrl && (
         <div className="relative rounded-lg overflow-hidden border">
-          <img 
-            src={previewUrl} 
-            alt="Receipt preview" 
-            className="w-full h-32 object-cover"
-          />
+          {isPdf ? (
+            <div className="w-full h-32 bg-muted flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Upload className="h-8 w-8" />
+                <span className="text-sm font-medium">PDF</span>
+              </div>
+            </div>
+          ) : (
+            <img 
+              src={previewUrl} 
+              alt="Receipt preview" 
+              className="w-full h-32 object-cover"
+            />
+          )}
           {isScanning && (
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
               <div className="flex flex-col items-center gap-2">
