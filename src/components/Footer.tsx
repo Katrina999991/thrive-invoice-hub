@@ -151,7 +151,20 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="border-t border-border pt-8 text-center">
+        <div className="border-t border-border pt-8 flex flex-col items-center gap-4">
+          <a 
+            href="https://startupfa.me/s/gestionflow?utm_source=gestionflow.net" 
+            target="_blank" 
+            rel="nofollow noopener noreferrer"
+          >
+            <img 
+              src="https://startupfa.me/badges/featured-badge-small.webp" 
+              alt="GestionFlow - Featured on Startup Fame" 
+              width="224" 
+              height="36"
+              loading="lazy"
+            />
+          </a>
           <p className="text-muted-foreground text-sm">{t.copyright}</p>
         </div>
       </div>

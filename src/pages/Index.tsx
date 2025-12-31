@@ -1101,24 +1101,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Badge */}
-      <section className="py-8 flex justify-center">
-        <a 
-          href="https://startupfa.me/s/gestionflow?utm_source=gestionflow.net" 
-          target="_blank" 
-          rel="nofollow noopener noreferrer"
-        >
-          <img 
-            src="https://startupfa.me/badges/featured-badge-small.webp" 
-            alt="GestionFlow - Featured on Startup Fame" 
-            width="224" 
-            height="36"
-            loading="lazy"
-          />
-        </a>
-      </section>
-
-      <Footer />
+<Footer />
 
       {/* Image Lightbox */}
       <ImageLightbox
