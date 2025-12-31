@@ -1965,6 +1965,58 @@ Cordialement,
           </CardContent>
         </Card>
 
+        {/* Smart Categorization Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
+              {language === "fr" ? "Catégorisation intelligente" : "Smart Categorization"}
+            </CardTitle>
+            <CardDescription>
+              {language === "fr" 
+                ? "Gérez les catégories apprises pour les dépenses scannées."
+                : "Manage learned categories for scanned expenses."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {language === "fr"
+                  ? "Lorsque vous scannez un reçu et modifiez la catégorie suggérée, le système apprend de vos corrections pour améliorer les suggestions futures."
+                  : "When you scan a receipt and change the suggested category, the system learns from your corrections to improve future suggestions."}
+              </p>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const { error } = await supabase
+                    .from("expense_category_mappings")
+                    .delete()
+                    .eq("user_id", user?.id || "");
+                  
+                  if (error) {
+                    toast({
+                      title: language === "fr" ? "Erreur" : "Error",
+                      description: language === "fr" 
+                        ? "Impossible d'effacer les catégories"
+                        : "Could not clear categories",
+                      variant: "destructive"
+                    });
+                  } else {
+                    toast({
+                      title: language === "fr" ? "Succès" : "Success",
+                      description: language === "fr"
+                        ? "Les catégories apprises ont été effacées"
+                        : "Learned categories have been cleared"
+                    });
+                  }
+                }}
+              >
+                {language === "fr" ? "Effacer les catégories apprises" : "Clear learned categories"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <PWAInstallSection />
 
         <MFASecuritySection />

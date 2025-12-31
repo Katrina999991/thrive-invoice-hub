@@ -399,6 +399,60 @@ export type Database = {
         }
         Relationships: []
       }
+      expense_category_mappings: {
+        Row: {
+          category_id: string
+          company_id: string
+          created_at: string
+          id: string
+          key: string
+          last_used_at: string
+          mapping_type: string
+          updated_at: string
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          key: string
+          last_used_at?: string
+          mapping_type: string
+          updated_at?: string
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          key?: string
+          last_used_at?: string
+          mapping_type?: string
+          updated_at?: string
+          usage_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_category_mappings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_category_mappings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
