@@ -41,6 +41,68 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // Admin email for notifications
+    const ADMIN_EMAIL = Deno.env.get("RESEND_FROM") || "admin@gestionflow.ca";
+
+    // Helper function to send admin notification on plan change
+    const sendAdminPlanChangeEmail = async (data: {
+      userEmail: string;
+      oldPlan: string;
+      newPlan: string;
+      changeType: 'immediate' | 'end_of_period' | 'cancellation';
+      effectiveDate?: string;
+    }) => {
+      try {
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        const resendFrom = Deno.env.get("RESEND_FROM") || "onboarding@resend.dev";
+
+        const changeTypeLabels: Record<string, string> = {
+          'immediate': 'Immediate',
+          'end_of_period': 'End of billing period',
+          'cancellation': 'Cancellation scheduled',
+        };
+
+        const effectiveLine = data.changeType === 'immediate' 
+          ? '' 
+          : `<p><strong>Effective date:</strong> ${data.effectiveDate}</p>`;
+
+        logStep("Sending admin plan change email", data);
+
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: resendFrom,
+            to: [ADMIN_EMAIL],
+            subject: `Subscription Plan Change – GestionFlow`,
+            html: `
+              <h2>A user has changed subscription plan.</h2>
+              <p><strong>User:</strong> ${data.userEmail}</p>
+              <p><strong>From:</strong> ${data.oldPlan.charAt(0).toUpperCase() + data.oldPlan.slice(1)}</p>
+              <p><strong>To:</strong> ${data.newPlan.charAt(0).toUpperCase() + data.newPlan.slice(1)}</p>
+              <p><strong>Effective:</strong> ${changeTypeLabels[data.changeType]}</p>
+              ${effectiveLine}
+            `,
+            text: `A user has changed subscription plan.\n\nUser: ${data.userEmail}\nFrom: ${data.oldPlan}\nTo: ${data.newPlan}\nEffective: ${changeTypeLabels[data.changeType]}${data.effectiveDate ? `\nEffective date: ${data.effectiveDate}` : ''}`,
+          }),
+        });
+
+        if (response.ok) {
+          logStep("Admin plan change email sent successfully");
+        } else {
+          const errorData = await response.text();
+          logStep("Error sending admin plan change email", { error: errorData });
+        }
+        return { success: response.ok };
+      } catch (error) {
+        logStep("Error sending admin plan change email", { error: error.message });
+        return { error: error.message };
+      }
+    };
+
     // Helper function to send subscription emails
     const sendSubscriptionEmail = async (emailData: {
       emailType: string;
@@ -259,6 +321,7 @@ serve(async (req) => {
         logStep("Subscription updated", { 
           subscriptionId: subscription.id,
           status: subscription.status,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
           previousAttributes: Object.keys(previousAttributes || {})
         });
 
@@ -273,6 +336,28 @@ serve(async (req) => {
             const currentPlanType = currentPriceId ? await getPlanTypeFromPriceId(currentPriceId) : 'premium';
             const billingEndDate = new Date(subscription.current_period_end * 1000).toLocaleDateString('fr-CA');
 
+            // Check if cancellation was scheduled
+            if (previousAttributes?.cancel_at_period_end === false && subscription.cancel_at_period_end === true) {
+              logStep("Cancellation scheduled for end of period", { userEmail: customer.email });
+              
+              // Send admin notification for scheduled cancellation
+              await sendAdminPlanChangeEmail({
+                userEmail: customer.email,
+                oldPlan: currentPlanType,
+                newPlan: 'free',
+                changeType: 'end_of_period',
+                effectiveDate: billingEndDate,
+              });
+
+              await sendSubscriptionEmail({
+                emailType: 'cancellation_scheduled',
+                userId: user.id,
+                newPlanName: 'free',
+                oldPlanName: currentPlanType,
+                billingEndDate,
+              });
+            }
+
             // Check if plan was changed (upgrade/downgrade)
             if (previousAttributes?.items) {
               const previousPriceId = previousAttributes.items?.data?.[0]?.price?.id;
@@ -281,6 +366,19 @@ serve(async (req) => {
               if (previousPlanType && previousPlanType !== currentPlanType) {
                 const planOrder = ['free', 'premium', 'pro'];
                 const isUpgrade = planOrder.indexOf(currentPlanType) > planOrder.indexOf(previousPlanType);
+
+                // Determine if change is immediate or scheduled
+                const isScheduledChange = subscription.schedule !== null;
+                const changeType = isScheduledChange ? 'end_of_period' : 'immediate';
+
+                // Send admin notification for plan change
+                await sendAdminPlanChangeEmail({
+                  userEmail: customer.email,
+                  oldPlan: previousPlanType,
+                  newPlan: currentPlanType,
+                  changeType,
+                  effectiveDate: isScheduledChange ? billingEndDate : undefined,
+                });
 
                 if (isUpgrade) {
                   await sendSubscriptionEmail({
@@ -323,7 +421,7 @@ serve(async (req) => {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         
-        logStep("Subscription cancelled", { subscriptionId: subscription.id });
+        logStep("Subscription cancelled/deleted", { subscriptionId: subscription.id });
 
         // Get customer email
         const customer = await stripe.customers.retrieve(subscription.customer as string);
@@ -332,8 +430,19 @@ serve(async (req) => {
           const user = userData.users.find(u => u.email === customer.email);
 
           if (user) {
+            const currentPriceId = subscription.items.data[0]?.price.id;
+            const previousPlanType = currentPriceId ? await getPlanTypeFromPriceId(currentPriceId) : 'premium';
             const billingEndDate = new Date(subscription.current_period_end * 1000).toLocaleDateString('fr-CA');
             
+            // Send admin notification for cancellation
+            await sendAdminPlanChangeEmail({
+              userEmail: customer.email,
+              oldPlan: previousPlanType,
+              newPlan: 'free',
+              changeType: 'cancellation',
+              effectiveDate: billingEndDate,
+            });
+
             await sendSubscriptionEmail({
               emailType: 'cancellation',
               userId: user.id,
