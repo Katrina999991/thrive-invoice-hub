@@ -29,54 +29,91 @@ function extractKeywords(text: string): string[] {
     .slice(0, 10);
 }
 
-// Category keyword mapping for suggestions
-const categoryKeywords: Record<string, { en: string[]; fr: string[] }> = {
+// Category keyword mapping for suggestions - includes multiple name variants
+const categoryKeywords: Record<string, { names: string[]; keywords: { en: string[]; fr: string[] } }> = {
   "Transport": {
-    en: ["fuel", "gas", "gasoline", "diesel", "petrol", "uber", "taxi", "lyft", "parking", "transit", "bus", "train", "metro", "subway", "flight", "airline", "rental", "car", "toll", "highway"],
-    fr: ["essence", "diesel", "carburant", "taxi", "uber", "stationnement", "parking", "transport", "bus", "train", "metro", "vol", "avion", "location", "voiture", "peage", "autoroute"]
+    names: ["Transport", "Travel", "Voyage", "Transportation"],
+    keywords: {
+      en: ["fuel", "gas", "gasoline", "diesel", "petrol", "uber", "taxi", "lyft", "parking", "transit", "bus", "train", "metro", "subway", "flight", "airline", "rental", "car", "toll", "highway"],
+      fr: ["essence", "diesel", "carburant", "taxi", "uber", "stationnement", "parking", "transport", "bus", "train", "metro", "vol", "avion", "location", "voiture", "peage", "autoroute"]
+    }
   },
   "Repas": {
-    en: ["restaurant", "cafe", "coffee", "food", "meal", "lunch", "dinner", "breakfast", "snack", "pizza", "burger", "sushi", "takeout", "delivery", "doordash", "ubereats", "grubhub"],
-    fr: ["restaurant", "cafe", "nourriture", "repas", "dejeuner", "diner", "petit-dejeuner", "collation", "pizza", "burger", "sushi", "livraison"]
+    names: ["Repas", "Meals", "Food", "Restaurant", "Nourriture"],
+    keywords: {
+      en: ["restaurant", "cafe", "coffee", "food", "meal", "lunch", "dinner", "breakfast", "snack", "pizza", "burger", "sushi", "takeout", "delivery", "doordash", "ubereats", "grubhub", "muffin", "bacon", "sandwich"],
+      fr: ["restaurant", "cafe", "nourriture", "repas", "dejeuner", "diner", "petit-dejeuner", "collation", "pizza", "burger", "sushi", "livraison", "muffin", "bacon", "sandwich"]
+    }
   },
   "Fournitures": {
-    en: ["office", "supplies", "paper", "pen", "ink", "printer", "staples", "folder", "notebook", "stationery", "envelope", "desk"],
-    fr: ["bureau", "fournitures", "papier", "stylo", "encre", "imprimante", "agrafeuse", "classeur", "cahier", "papeterie", "enveloppe"]
+    names: ["Fournitures", "Supplies", "Office Supplies", "Office", "Bureau"],
+    keywords: {
+      en: ["office", "supplies", "paper", "pen", "ink", "printer", "staples", "folder", "notebook", "stationery", "envelope", "desk"],
+      fr: ["bureau", "fournitures", "papier", "stylo", "encre", "imprimante", "agrafeuse", "classeur", "cahier", "papeterie", "enveloppe"]
+    }
   },
   "Services": {
-    en: ["subscription", "software", "saas", "cloud", "hosting", "service", "consulting", "professional", "legal", "accounting", "insurance", "internet", "phone", "mobile"],
-    fr: ["abonnement", "logiciel", "saas", "cloud", "hebergement", "service", "consultation", "professionnel", "juridique", "comptable", "assurance", "internet", "telephone", "mobile"]
+    names: ["Services", "Consulting", "Consultation", "Professional Services"],
+    keywords: {
+      en: ["subscription", "software", "saas", "cloud", "hosting", "service", "consulting", "professional", "legal", "accounting", "insurance"],
+      fr: ["abonnement", "logiciel", "saas", "cloud", "hebergement", "service", "consultation", "professionnel", "juridique", "comptable", "assurance"]
+    }
   },
   "Équipement": {
-    en: ["computer", "laptop", "monitor", "keyboard", "mouse", "hardware", "equipment", "machine", "device", "electronics", "camera", "phone", "tablet"],
-    fr: ["ordinateur", "portable", "ecran", "clavier", "souris", "materiel", "equipement", "machine", "appareil", "electronique", "camera", "telephone", "tablette"]
+    names: ["Équipement", "Equipment", "Hardware", "Electronics", "Électronique", "Software", "Logiciels"],
+    keywords: {
+      en: ["computer", "laptop", "monitor", "keyboard", "mouse", "hardware", "equipment", "machine", "device", "electronics", "camera", "phone", "tablet", "cable", "hdmi", "usb", "adapter"],
+      fr: ["ordinateur", "portable", "ecran", "clavier", "souris", "materiel", "equipement", "machine", "appareil", "electronique", "camera", "telephone", "tablette", "cable", "hdmi", "usb", "adaptateur"]
+    }
   },
   "Marketing": {
-    en: ["advertising", "ads", "marketing", "promotion", "campaign", "google", "facebook", "instagram", "linkedin", "social", "media", "print", "flyer", "banner"],
-    fr: ["publicite", "pub", "marketing", "promotion", "campagne", "google", "facebook", "instagram", "linkedin", "social", "media", "impression", "flyer", "banniere"]
+    names: ["Marketing", "Advertising", "Publicité", "Promotion"],
+    keywords: {
+      en: ["advertising", "ads", "marketing", "promotion", "campaign", "google", "facebook", "instagram", "linkedin", "social", "media", "print", "flyer", "banner"],
+      fr: ["publicite", "pub", "marketing", "promotion", "campagne", "google", "facebook", "instagram", "linkedin", "social", "media", "impression", "flyer", "banniere"]
+    }
   },
   "Télécommunications": {
-    en: ["phone", "mobile", "cell", "telecom", "internet", "wifi", "broadband", "data"],
-    fr: ["telephone", "mobile", "cellulaire", "telecom", "internet", "wifi", "donnees"]
+    names: ["Télécommunications", "Telecommunications", "Utilities", "Services publics", "Internet", "Phone"],
+    keywords: {
+      en: ["phone", "mobile", "cell", "telecom", "internet", "wifi", "broadband", "data"],
+      fr: ["telephone", "mobile", "cellulaire", "telecom", "internet", "wifi", "donnees"]
+    }
   },
   "Bureau à domicile": {
-    en: ["home", "office", "electricity", "electric", "hydro", "utility", "utilities", "heating", "cooling", "rent", "mortgage"],
-    fr: ["domicile", "bureau", "electricite", "hydro", "utilite", "chauffage", "climatisation", "loyer", "hypotheque"]
+    names: ["Bureau à domicile", "Home Office", "Utilities", "Services publics"],
+    keywords: {
+      en: ["home", "office", "electricity", "electric", "hydro", "utility", "utilities", "heating", "cooling", "rent", "mortgage"],
+      fr: ["domicile", "bureau", "electricite", "hydro", "utilite", "chauffage", "climatisation", "loyer", "hypotheque"]
+    }
+  },
+  "Autres": {
+    names: ["Autres", "Other", "Miscellaneous", "Divers"],
+    keywords: {
+      en: [],
+      fr: []
+    }
   }
 };
 
 // Suggest category based on vendor and description
-function suggestCategory(vendor: string, description: string, lineItems: string[]): { category: string; confidence: number; keywords: string[] } {
+function suggestCategory(
+  vendor: string, 
+  description: string, 
+  lineItems: string[], 
+  userCategories: { id: string; name: string; name_en?: string; name_fr?: string }[]
+): { category: string; categoryId: string | null; confidence: number; keywords: string[] } {
   const normalizedVendor = normalizeVendor(vendor);
   const allText = [vendor, description, ...lineItems].join(" ");
   const keywords = extractKeywords(allText);
   
   let bestCategory = "Autres";
+  let bestCategoryId: string | null = null;
   let bestScore = 0;
   const matchedKeywords: string[] = [];
   
-  for (const [category, categoryKws] of Object.entries(categoryKeywords)) {
-    const allKws = [...categoryKws.en, ...categoryKws.fr];
+  for (const [category, config] of Object.entries(categoryKeywords)) {
+    const allKws = [...config.keywords.en, ...config.keywords.fr];
     let score = 0;
     
     for (const kw of allKws) {
@@ -95,12 +132,45 @@ function suggestCategory(vendor: string, description: string, lineItems: string[
     if (score > bestScore) {
       bestScore = score;
       bestCategory = category;
+      
+      // Find matching user category by any name variant
+      const matchedUserCategory = userCategories.find(uc => 
+        config.names.some(name => 
+          uc.name?.toLowerCase() === name.toLowerCase() ||
+          uc.name_en?.toLowerCase() === name.toLowerCase() ||
+          uc.name_fr?.toLowerCase() === name.toLowerCase()
+        )
+      );
+      bestCategoryId = matchedUserCategory?.id || null;
+      if (matchedUserCategory) {
+        bestCategory = matchedUserCategory.name;
+      }
     }
   }
   
   const confidence = Math.min(bestScore / 5, 1); // Normalize to 0-1
+  
+  // If no good match, try to find "Other" category in user categories
+  if (confidence < 0.2) {
+    const otherCategory = userCategories.find(uc => 
+      uc.name?.toLowerCase() === "other" ||
+      uc.name_en?.toLowerCase() === "other" ||
+      uc.name_fr?.toLowerCase() === "autre" ||
+      uc.name_fr?.toLowerCase() === "autres"
+    );
+    if (otherCategory) {
+      return {
+        category: otherCategory.name,
+        categoryId: otherCategory.id,
+        confidence: 0,
+        keywords: [...new Set(matchedKeywords)].slice(0, 5)
+      };
+    }
+  }
+  
   return { 
-    category: confidence >= 0.2 ? bestCategory : "Autres", 
+    category: bestCategory,
+    categoryId: bestCategoryId,
     confidence, 
     keywords: [...new Set(matchedKeywords)].slice(0, 5) 
   };
@@ -302,21 +372,11 @@ serve(async (req) => {
     // 3. If no learned mapping, use AI-based suggestion
     if (!suggestedCategory) {
       const lineItemTexts = lineItems.map((i: any) => typeof i === 'string' ? i : (i?.description || ''));
-      const suggestion = suggestCategory(vendor, descriptionText, lineItemTexts);
+      const suggestion = suggestCategory(vendor, descriptionText, lineItemTexts, categories);
       suggestedCategory = suggestion.category;
+      suggestedCategoryId = suggestion.categoryId;
       categoryConfidence = suggestion.confidence;
       categorySource = "ai_suggestion";
-      
-      // Try to match to user's category
-      const matchedCategory = categories.find(c => 
-        c.name === suggestion.category || 
-        c.name_en === suggestion.category || 
-        c.name_fr === suggestion.category
-      );
-      if (matchedCategory) {
-        suggestedCategoryId = matchedCategory.id;
-        suggestedCategory = matchedCategory.name;
-      }
     }
     
     // Build response with bilingual descriptions
