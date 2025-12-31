@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,15 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
+import { useCategoryMappings } from "@/hooks/useCategoryMappings";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ReceiptScanner } from "@/components/ReceiptScanner";
+import { ReceiptScanner, ExtractedReceiptData } from "@/components/ReceiptScanner";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Tables } from "@/integrations/supabase/types";
@@ -28,6 +30,7 @@ const Expenses = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [showArchived, setShowArchived] = useState(false);
   const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses(showArchived);
   const { categories, loading: categoriesLoading } = useCategories();
@@ -62,6 +65,20 @@ const Expenses = () => {
     status: "paid",
     taxes: [] as Array<{ name: string; percentage: number; amount?: number }>
   });
+  
+  // Smart category tracking
+  const [suggestedCategoryInfo, setSuggestedCategoryInfo] = useState<{
+    category: string | null;
+    categoryId: string | null;
+    confidence: number;
+    source: "learned_vendor" | "learned_keyword" | "ai_suggestion" | "default";
+    vendorNormalized: string | null;
+    extractedKeywords: string[];
+  } | null>(null);
+  const [originalSuggestedCategory, setOriginalSuggestedCategory] = useState<string | null>(null);
+  
+  // Category mappings hook
+  const { saveMappingsFromScan } = useCategoryMappings(newExpense.company_id || undefined);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -89,13 +106,7 @@ const Expenses = () => {
   };
 
   // Handle extracted data from receipt scanner
-  const handleReceiptDataExtracted = (data: {
-    amount: number | null;
-    vendor: string | null;
-    date: string | null;
-    description: string | null;
-    category: string | null;
-  }) => {
+  const handleReceiptDataExtracted = (data: ExtractedReceiptData) => {
     // Map AI category to existing category
     const categoryMapping: Record<string, string> = {
       "Fournitures": "Fournitures",
@@ -108,25 +119,57 @@ const Expenses = () => {
       "Équipement": "Équipement",
       "Equipment": "Équipement",
       "Marketing": "Marketing",
+      "Télécommunications": "Télécommunications",
+      "Telecommunications": "Télécommunications",
+      "Bureau à domicile": "Bureau à domicile",
+      "Home Office": "Bureau à domicile",
       "Autres": "Autres",
       "Other": "Autres"
     };
 
-    const mappedCategory = data.category ? categoryMapping[data.category] || "" : "";
-    const matchingCategory = categories.find(cat => 
-      cat.name === mappedCategory || 
-      cat.name_fr === mappedCategory || 
-      cat.name_en === data.category
-    );
-
+    // First try suggested category from smart categorization
+    let matchingCategory = null;
+    
+    if (data.suggested_category_id) {
+      matchingCategory = categories.find(cat => cat.id === data.suggested_category_id);
+    }
+    
+    if (!matchingCategory && data.suggested_category) {
+      const mappedCategory = categoryMapping[data.suggested_category] || data.suggested_category;
+      matchingCategory = categories.find(cat => 
+        cat.name === mappedCategory || 
+        cat.name_fr === mappedCategory || 
+        cat.name_en === data.suggested_category ||
+        cat.name === data.suggested_category
+      );
+    }
+    
+    // Use language-appropriate description
+    const description = language === "fr" 
+      ? (data.description_fr || data.description_en || data.description)
+      : (data.description_en || data.description_fr || data.description);
+    
+    const categoryName = matchingCategory?.name || "";
+    
     setNewExpense(prev => ({
       ...prev,
       amount: data.amount?.toString() || prev.amount,
       vendor: data.vendor || prev.vendor,
       expense_date: data.date || prev.expense_date,
-      description: data.description || prev.description,
-      category: matchingCategory?.name || prev.category
+      description: description || prev.description,
+      category: categoryName || prev.category
     }));
+    
+    // Store suggestion info for learning
+    setSuggestedCategoryInfo({
+      category: categoryName,
+      categoryId: matchingCategory?.id || null,
+      confidence: data.category_confidence || 0,
+      source: data.category_source || "default",
+      vendorNormalized: data.vendor_normalized || null,
+      extractedKeywords: data.extracted_keywords || []
+    });
+    setOriginalSuggestedCategory(categoryName);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,6 +183,23 @@ const Expenses = () => {
         variant: "destructive",
       });
       return;
+    }
+    
+    // Check if category was changed from suggestion (for learning)
+    const wasCategoryChanged = suggestedCategoryInfo && 
+      originalSuggestedCategory !== newExpense.category;
+    
+    // Find the selected category ID for learning
+    const selectedCategory = categories.find(cat => cat.name === newExpense.category);
+    
+    // Save learned mapping if category was changed
+    if (wasCategoryChanged && suggestedCategoryInfo && selectedCategory && newExpense.company_id) {
+      await saveMappingsFromScan(
+        suggestedCategoryInfo.vendorNormalized || "",
+        suggestedCategoryInfo.extractedKeywords,
+        selectedCategory.id,
+        true
+      );
     }
     
     if (editingExpense) {
@@ -187,6 +247,8 @@ const Expenses = () => {
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
+    setSuggestedCategoryInfo(null);
+    setOriginalSuggestedCategory(null);
   };
 
   const handleEdit = (expense: Expense) => {
@@ -375,7 +437,11 @@ const Expenses = () => {
               {/* Receipt Scanner - only show when adding new expense */}
               {!editingExpense && (
                 <>
-                  <ReceiptScanner onDataExtracted={handleReceiptDataExtracted} />
+                  <ReceiptScanner 
+                    onDataExtracted={handleReceiptDataExtracted} 
+                    companyId={newExpense.company_id || undefined}
+                    userId={user?.id}
+                  />
                   <Separator />
                 </>
               )}
@@ -402,7 +468,17 @@ const Expenses = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">{t("expenses.category")} <span className="text-destructive">*</span></Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="category">{t("expenses.category")} <span className="text-destructive">*</span></Label>
+                  {suggestedCategoryInfo && suggestedCategoryInfo.confidence > 0.3 && newExpense.category === originalSuggestedCategory && (
+                    <Badge variant="secondary" className="text-xs gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      {suggestedCategoryInfo.source === "learned_vendor" 
+                        ? (language === "fr" ? "Appris" : "Learned")
+                        : (language === "fr" ? "Suggéré" : "Suggested")}
+                    </Badge>
+                  )}
+                </div>
                 <Select value={newExpense.category} onValueChange={(value) => setNewExpense({...newExpense, category: value})} required>
                   <SelectTrigger>
                     <SelectValue placeholder={t("expenses.categoryPlaceholder")} />

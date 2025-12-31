@@ -2,24 +2,37 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Upload, Loader2, Scan } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Camera, Upload, Loader2, Scan, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 
-interface ExtractedData {
+export interface ExtractedReceiptData {
   amount: number | null;
   vendor: string | null;
   date: string | null;
   description: string | null;
+  description_en: string | null;
+  description_fr: string | null;
   category: string | null;
+  suggested_category: string | null;
+  suggested_category_id: string | null;
+  category_confidence: number;
+  category_source: "learned_vendor" | "learned_keyword" | "ai_suggestion" | "default";
+  vendor_normalized: string | null;
+  extracted_keywords: string[];
+  taxes?: Array<{ name: string; amount: number }>;
+  line_items?: string[];
 }
 
 interface ReceiptScannerProps {
-  onDataExtracted: (data: ExtractedData) => void;
+  onDataExtracted: (data: ExtractedReceiptData) => void;
+  companyId?: string;
+  userId?: string;
 }
 
-export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
+export const ReceiptScanner = ({ onDataExtracted, companyId, userId }: ReceiptScannerProps) => {
   const { toast } = useToast();
   const { language } = useLanguage();
   const [isScanning, setIsScanning] = useState(false);
@@ -35,9 +48,14 @@ export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
       const base64 = await fileToBase64(file);
       setPreviewUrl(base64);
 
-      // Call edge function
+      // Call edge function with company context for smart categorization
       const { data, error } = await supabase.functions.invoke("scan-receipt", {
-        body: { imageBase64: base64, language }
+        body: { 
+          imageBase64: base64, 
+          language,
+          companyId,
+          userId 
+        }
       });
 
       if (error) {
@@ -49,12 +67,47 @@ export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
       }
 
       if (data?.success && data?.data) {
-        onDataExtracted(data.data);
+        const extractedData: ExtractedReceiptData = {
+          amount: data.data.amount,
+          vendor: data.data.vendor,
+          date: data.data.date,
+          description: data.data.description,
+          description_en: data.data.description_en,
+          description_fr: data.data.description_fr,
+          category: data.data.suggested_category,
+          suggested_category: data.data.suggested_category,
+          suggested_category_id: data.data.suggested_category_id,
+          category_confidence: data.data.category_confidence || 0,
+          category_source: data.data.category_source || "default",
+          vendor_normalized: data.data.vendor_normalized,
+          extracted_keywords: data.data.extracted_keywords || [],
+          taxes: data.data.taxes,
+          line_items: data.data.line_items
+        };
+        
+        onDataExtracted(extractedData);
+        
+        // Show appropriate message based on category source
+        let categoryMessage = "";
+        if (extractedData.category_source === "learned_vendor") {
+          categoryMessage = language === "fr" 
+            ? " (catégorie apprise du vendeur)"
+            : " (category learned from vendor)";
+        } else if (extractedData.category_source === "learned_keyword") {
+          categoryMessage = language === "fr"
+            ? " (catégorie apprise des mots-clés)"
+            : " (category learned from keywords)";
+        } else if (extractedData.category_source === "ai_suggestion" && extractedData.category_confidence > 0.5) {
+          categoryMessage = language === "fr"
+            ? " (catégorie suggérée par l'IA)"
+            : " (AI-suggested category)";
+        }
+        
         toast({
           title: language === "fr" ? "Données extraites" : "Data extracted",
-          description: language === "fr" 
+          description: (language === "fr" 
             ? "Les informations ont été extraites avec succès"
-            : "Information has been extracted successfully",
+            : "Information has been extracted successfully") + categoryMessage,
         });
       }
     } catch (error) {
@@ -95,8 +148,12 @@ export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
 
   return (
     <div className="space-y-4">
-      <Label className="text-sm font-medium">
+      <Label className="text-sm font-medium flex items-center gap-2">
         {language === "fr" ? "Scanner une facture" : "Scan a receipt"}
+        <Badge variant="secondary" className="text-xs gap-1">
+          <Sparkles className="h-3 w-3" />
+          {language === "fr" ? "Intelligent" : "Smart"}
+        </Badge>
       </Label>
       
       <div className="flex gap-2">
@@ -135,7 +192,7 @@ export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
       <Input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf"
         capture="environment"
         onChange={handleFileChange}
         className="hidden"
@@ -143,7 +200,7 @@ export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
       <Input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf"
         onChange={handleFileChange}
         className="hidden"
       />
@@ -171,8 +228,8 @@ export const ReceiptScanner = ({ onDataExtracted }: ReceiptScannerProps) => {
 
       <p className="text-xs text-muted-foreground">
         {language === "fr" 
-          ? "Prenez une photo ou téléchargez une image de votre facture pour extraire automatiquement les données."
-          : "Take a photo or upload an image of your receipt to automatically extract data."}
+          ? "Prenez une photo ou téléchargez une image de votre facture. La catégorie sera suggérée automatiquement et apprend de vos corrections."
+          : "Take a photo or upload an image of your receipt. Category will be auto-suggested and learns from your corrections."}
       </p>
     </div>
   );
