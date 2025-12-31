@@ -107,42 +107,76 @@ const Expenses = () => {
 
   // Handle extracted data from receipt scanner
   const handleReceiptDataExtracted = (data: ExtractedReceiptData) => {
-    // Map AI category to existing category
-    const categoryMapping: Record<string, string> = {
-      "Fournitures": "Fournitures",
-      "Supplies": "Fournitures",
-      "Transport": "Transport",
-      "Transportation": "Transport",
-      "Repas": "Repas",
-      "Meals": "Repas",
-      "Services": "Services",
-      "Équipement": "Équipement",
-      "Equipment": "Équipement",
-      "Marketing": "Marketing",
-      "Télécommunications": "Télécommunications",
-      "Telecommunications": "Télécommunications",
-      "Bureau à domicile": "Bureau à domicile",
-      "Home Office": "Bureau à domicile",
-      "Autres": "Autres",
-      "Other": "Autres"
+    // Helper function to find matching category with multiple fallback strategies
+    const findMatchingCategory = () => {
+      // 1. First try by ID if provided
+      if (data.suggested_category_id) {
+        const match = categories.find(cat => cat.id === data.suggested_category_id);
+        if (match) return match;
+      }
+      
+      // 2. Try exact name match
+      if (data.suggested_category) {
+        const exactMatch = categories.find(cat => 
+          cat.name === data.suggested_category ||
+          cat.name_en === data.suggested_category ||
+          cat.name_fr === data.suggested_category
+        );
+        if (exactMatch) return exactMatch;
+      }
+      
+      // 3. Try case-insensitive match
+      if (data.suggested_category) {
+        const lowerSuggested = data.suggested_category.toLowerCase();
+        const caseMatch = categories.find(cat => 
+          cat.name?.toLowerCase() === lowerSuggested ||
+          cat.name_en?.toLowerCase() === lowerSuggested ||
+          cat.name_fr?.toLowerCase() === lowerSuggested
+        );
+        if (caseMatch) return caseMatch;
+      }
+      
+      // 4. Try mapping common category names
+      const categoryNameMappings: Record<string, string[]> = {
+        "meals": ["repas", "food", "restaurant", "nourriture"],
+        "repas": ["meals", "food", "restaurant", "nourriture"],
+        "transport": ["travel", "voyage", "transportation"],
+        "travel": ["transport", "voyage", "transportation"],
+        "voyage": ["transport", "travel", "transportation"],
+        "other": ["autres", "autre", "miscellaneous", "divers"],
+        "autres": ["other", "autre", "miscellaneous", "divers"],
+        "autre": ["other", "autres", "miscellaneous", "divers"],
+        "equipment": ["équipement", "equipement", "hardware", "electronics"],
+        "équipement": ["equipment", "equipement", "hardware", "electronics"],
+        "software": ["logiciels", "logiciel"],
+        "logiciels": ["software", "logiciel"],
+        "office": ["bureau", "fournitures", "supplies"],
+        "bureau": ["office", "fournitures", "supplies"],
+        "supplies": ["fournitures", "office", "bureau"],
+        "fournitures": ["supplies", "office", "bureau"],
+        "services": ["consulting", "consultation"],
+        "consulting": ["services", "consultation"],
+        "utilities": ["services publics", "télécommunications"],
+      };
+      
+      if (data.suggested_category) {
+        const lowerSuggested = data.suggested_category.toLowerCase();
+        const alternativeNames = categoryNameMappings[lowerSuggested] || [];
+        
+        for (const altName of alternativeNames) {
+          const altMatch = categories.find(cat => 
+            cat.name?.toLowerCase() === altName ||
+            cat.name_en?.toLowerCase() === altName ||
+            cat.name_fr?.toLowerCase() === altName
+          );
+          if (altMatch) return altMatch;
+        }
+      }
+      
+      return null;
     };
-
-    // First try suggested category from smart categorization
-    let matchingCategory = null;
     
-    if (data.suggested_category_id) {
-      matchingCategory = categories.find(cat => cat.id === data.suggested_category_id);
-    }
-    
-    if (!matchingCategory && data.suggested_category) {
-      const mappedCategory = categoryMapping[data.suggested_category] || data.suggested_category;
-      matchingCategory = categories.find(cat => 
-        cat.name === mappedCategory || 
-        cat.name_fr === mappedCategory || 
-        cat.name_en === data.suggested_category ||
-        cat.name === data.suggested_category
-      );
-    }
+    const matchingCategory = findMatchingCategory();
     
     // Use language-appropriate description
     const description = language === "fr" 
