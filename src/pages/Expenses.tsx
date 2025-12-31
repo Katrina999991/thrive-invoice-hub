@@ -165,33 +165,48 @@ const Expenses = () => {
         if (partialMatch) return partialMatch;
       }
       
-      // 5. Try mapping common category names
+      // 5. Try mapping common category names to existing categories
       const categoryNameMappings: Record<string, string[]> = {
+        // Equipment -> Office (since no Equipment category exists)
+        "equipment": ["office", "bureau", "fournitures", "supplies"],
+        "équipement": ["office", "bureau", "fournitures", "supplies"],
+        "equipement": ["office", "bureau", "fournitures", "supplies"],
+        "hardware": ["office", "bureau"],
+        "electronics": ["office", "bureau"],
+        "matériel": ["office", "bureau"],
+        // Meals
         "meals": ["repas", "food", "restaurant", "nourriture"],
         "repas": ["meals", "food", "restaurant", "nourriture"],
+        "food": ["meals", "repas"],
+        "restaurant": ["meals", "repas"],
+        // Transport/Travel
         "transport": ["travel", "voyage", "transportation"],
         "travel": ["transport", "voyage", "transportation"],
         "voyage": ["transport", "travel", "transportation"],
+        // Other
         "other": ["autres", "autre", "miscellaneous", "divers"],
         "autres": ["other", "autre", "miscellaneous", "divers"],
         "autre": ["other", "autres", "miscellaneous", "divers"],
-        "equipment": ["équipement", "equipement", "hardware", "electronics", "matériel"],
-        "équipement": ["equipment", "equipement", "hardware", "electronics", "matériel"],
-        "equipement": ["equipment", "équipement", "hardware", "electronics", "matériel"],
+        // Software
         "software": ["logiciels", "logiciel"],
         "logiciels": ["software", "logiciel"],
+        // Office
         "office": ["bureau", "fournitures", "supplies"],
         "bureau": ["office", "fournitures", "supplies"],
         "supplies": ["fournitures", "office", "bureau"],
         "fournitures": ["supplies", "office", "bureau"],
+        // Services
         "services": ["consulting", "consultation"],
         "consulting": ["services", "consultation"],
+        // Utilities
         "utilities": ["services publics", "télécommunications"],
+        "services publics": ["utilities"],
       };
       
       if (data.suggested_category) {
         const lowerSuggested = data.suggested_category.toLowerCase();
         const alternativeNames = categoryNameMappings[lowerSuggested] || [];
+        console.log("Looking for alternatives for:", lowerSuggested, "->", alternativeNames);
         
         for (const altName of alternativeNames) {
           const altMatch = categories.find(cat => 
@@ -204,6 +219,17 @@ const Expenses = () => {
             return altMatch;
           }
         }
+      }
+      
+      // 6. Last resort: fallback to "Other" category
+      const otherCategory = categories.find(cat => 
+        cat.name?.toLowerCase() === "other" ||
+        cat.name_en?.toLowerCase() === "other" ||
+        cat.name_fr?.toLowerCase() === "autre"
+      );
+      if (otherCategory) {
+        console.log("Fallback to Other category:", otherCategory.name);
+        return otherCategory;
       }
       
       console.log("No category match found!");
