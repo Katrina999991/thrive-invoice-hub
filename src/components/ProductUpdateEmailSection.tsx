@@ -5,16 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Send, Loader2, Mail } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Send, Loader2, Mail, TestTube } from "lucide-react";
 
 export function ProductUpdateEmailSection() {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Test mode
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
   
   // French fields
   const [subjectFr, setSubjectFr] = useState("");
@@ -37,6 +44,18 @@ export function ProductUpdateEmailSection() {
         description: language === "fr" 
           ? "Veuillez remplir au moins une version (FR ou EN)" 
           : "Please fill in at least one version (FR or EN)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate test email if in test mode
+    if (isTestMode && !testEmail.trim()) {
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: language === "fr" 
+          ? "Veuillez entrer une adresse email de test" 
+          : "Please enter a test email address",
         variant: "destructive",
       });
       return;
@@ -74,6 +93,7 @@ export function ProductUpdateEmailSection() {
               title: titleEn,
               content: convertToHtml(contentEn),
             } : null,
+            testEmail: isTestMode ? testEmail.trim() : undefined,
           }),
         }
       );
@@ -86,18 +106,27 @@ export function ProductUpdateEmailSection() {
 
       toast({
         title: language === "fr" ? "Succès" : "Success",
-        description: language === "fr"
-          ? `${result.sentCount} email(s) envoyé(s) avec succès`
-          : `${result.sentCount} email(s) sent successfully`,
+        description: isTestMode
+          ? (language === "fr"
+            ? `Email de test envoyé à ${testEmail}`
+            : `Test email sent to ${testEmail}`)
+          : (language === "fr"
+            ? `${result.sentCount} email(s) envoyé(s) avec succès`
+            : `${result.sentCount} email(s) sent successfully`),
       });
 
-      // Reset form
-      setSubjectFr("");
-      setTitleFr("");
-      setContentFr("");
-      setSubjectEn("");
-      setTitleEn("");
-      setContentEn("");
+      // Refresh logs table
+      queryClient.invalidateQueries({ queryKey: ["product-update-logs"] });
+
+      // Only reset form if not in test mode
+      if (!isTestMode) {
+        setSubjectFr("");
+        setTitleFr("");
+        setContentFr("");
+        setSubjectEn("");
+        setTitleEn("");
+        setContentEn("");
+      }
     } catch (error: any) {
       console.error("Error sending product update:", error);
       toast({
@@ -124,6 +153,43 @@ export function ProductUpdateEmailSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Test Mode Toggle */}
+        <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+          <div className="flex items-center gap-2">
+            <TestTube className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <Label htmlFor="test-mode" className="text-sm font-medium">
+                {language === "fr" ? "Mode test" : "Test Mode"}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {language === "fr" 
+                  ? "Envoyer uniquement à une adresse spécifique" 
+                  : "Send only to a specific address"}
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="test-mode"
+            checked={isTestMode}
+            onCheckedChange={setIsTestMode}
+          />
+        </div>
+
+        {isTestMode && (
+          <div className="space-y-2">
+            <Label htmlFor="test-email">
+              {language === "fr" ? "Email de test" : "Test Email"}
+            </Label>
+            <Input
+              id="test-email"
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="test@example.com"
+            />
+          </div>
+        )}
+
         <Tabs defaultValue="fr" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="fr">🇫🇷 Français</TabsTrigger>
@@ -207,6 +273,7 @@ export function ProductUpdateEmailSection() {
           onClick={handleSendUpdate} 
           disabled={isLoading}
           className="w-full sm:w-auto"
+          variant={isTestMode ? "secondary" : "default"}
         >
           {isLoading ? (
             <>
@@ -215,8 +282,10 @@ export function ProductUpdateEmailSection() {
             </>
           ) : (
             <>
-              <Send className="mr-2 h-4 w-4" />
-              {language === "fr" ? "Envoyer la mise à jour" : "Send Update"}
+              {isTestMode ? <TestTube className="mr-2 h-4 w-4" /> : <Send className="mr-2 h-4 w-4" />}
+              {isTestMode 
+                ? (language === "fr" ? "Envoyer le test" : "Send Test")
+                : (language === "fr" ? "Envoyer la mise à jour" : "Send Update")}
             </>
           )}
         </Button>

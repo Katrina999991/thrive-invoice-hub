@@ -17,6 +17,7 @@ interface ProductUpdateRequest {
   fr: EmailContent | null;
   en: EmailContent | null;
   preferencesUrl?: string; // URL to manage email preferences
+  testEmail?: string; // If provided, only send to this email address (test mode)
 }
 
 const logStep = (step: string, details?: any) => {
@@ -46,9 +47,9 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    const { fr, en, preferencesUrl } = await req.json() as ProductUpdateRequest;
+    const { fr, en, preferencesUrl, testEmail } = await req.json() as ProductUpdateRequest;
 
-    logStep("Request data", { hasFr: !!fr, hasEn: !!en });
+    logStep("Request data", { hasFr: !!fr, hasEn: !!en, testMode: !!testEmail });
 
     // Validate inputs - at least one language version must be provided
     if (!fr && !en) {
@@ -62,61 +63,80 @@ serve(async (req) => {
     const batchId = crypto.randomUUID();
     logStep("Generated batch ID", { batchId });
 
-    // Fetch all users who have opted in for product updates
-    const { data: optedInUsers, error: fetchError } = await supabase
-      .from("email_preferences")
-      .select(`
-        user_id,
-        product_updates
-      `)
-      .eq("product_updates", true);
+    let usersToEmail: { id: string; email: string; language: string }[] = [];
 
-    if (fetchError) {
-      logStep("Error fetching email preferences", { error: fetchError.message });
-      throw new Error(`Failed to fetch email preferences: ${fetchError.message}`);
+    if (testEmail) {
+      // Test mode: send only to the specified email
+      logStep("Test mode enabled", { testEmail });
+      
+      // Try to find the user in auth.users to get their language preference
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      const matchingUser = authUsers?.users.find(u => u.email?.toLowerCase() === testEmail.toLowerCase());
+      
+      usersToEmail = [{
+        id: matchingUser?.id || "test-user",
+        email: testEmail,
+        language: matchingUser?.user_metadata?.language || 'fr' // Default to French for test
+      }];
+    } else {
+      // Normal mode: fetch all opted-in users
+      const { data: optedInUsers, error: fetchError } = await supabase
+        .from("email_preferences")
+        .select(`
+          user_id,
+          product_updates
+        `)
+        .eq("product_updates", true);
+
+      if (fetchError) {
+        logStep("Error fetching email preferences", { error: fetchError.message });
+        throw new Error(`Failed to fetch email preferences: ${fetchError.message}`);
+      }
+
+      if (!optedInUsers || optedInUsers.length === 0) {
+        logStep("No users opted in for product updates");
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: "No users opted in for product updates",
+            sentCount: 0 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+
+      logStep("Found opted-in users", { count: optedInUsers.length });
+
+      // Get user emails from auth.users via profiles or directly
+      const userIds = optedInUsers.map(u => u.user_id);
+      
+      // Fetch user emails and metadata - we need to get them from auth.users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        logStep("Error fetching auth users", { error: authError.message });
+        throw new Error(`Failed to fetch user emails: ${authError.message}`);
+      }
+
+      // Filter to only opted-in users and get their emails + language preference
+      usersToEmail = authUsers.users
+        .filter(user => userIds.includes(user.id) && user.email)
+        .map(user => ({
+          id: user.id,
+          email: user.email!,
+          language: (user.user_metadata?.language as string) || 'en' // Default to English if not set
+        }));
     }
 
-    if (!optedInUsers || optedInUsers.length === 0) {
-      logStep("No users opted in for product updates");
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "No users opted in for product updates",
-          sentCount: 0 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
-    }
-
-    logStep("Found opted-in users", { count: optedInUsers.length });
-
-    // Get user emails from auth.users via profiles or directly
-    const userIds = optedInUsers.map(u => u.user_id);
-    
-    // Fetch user emails and metadata - we need to get them from auth.users
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    
-    if (authError) {
-      logStep("Error fetching auth users", { error: authError.message });
-      throw new Error(`Failed to fetch user emails: ${authError.message}`);
-    }
-
-    // Filter to only opted-in users and get their emails + language preference
-    const usersToEmail = authUsers.users
-      .filter(user => userIds.includes(user.id) && user.email)
-      .map(user => ({
-        id: user.id,
-        email: user.email!,
-        language: (user.user_metadata?.language as string) || 'en' // Default to English if not set
-      }));
-
-    logStep("User emails to send", { count: usersToEmail.length });
+    logStep("Users to email", { count: usersToEmail.length });
 
     if (usersToEmail.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "No valid email addresses found for opted-in users",
+          message: testEmail 
+            ? "Test email address not found" 
+            : "No valid email addresses found for opted-in users",
           sentCount: 0 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
