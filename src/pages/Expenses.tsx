@@ -799,7 +799,20 @@ const Expenses = () => {
                   </p>
                 )}
                 
-                {newExpense.taxes.map((tax, index) => (
+                {newExpense.taxes.map((tax, index) => {
+                  // Get company taxes for dynamic options
+                  const selectedCompany = companies.find(c => c.id === newExpense.company_id);
+                  const companyTaxes = (selectedCompany?.taxes as any[]) || [];
+                  
+                  // Standard tax options
+                  const standardTaxNames = ['TPS', 'TVQ', 'TVH', 'TVP'];
+                  
+                  // Get company tax names that aren't in the standard list
+                  const customTaxNames = companyTaxes
+                    .map(t => t.name)
+                    .filter(name => !standardTaxNames.includes(name.toUpperCase()));
+                  
+                  return (
                   <div key={index} className="flex items-end gap-2">
                     <div className="flex-1 space-y-1">
                       <Label htmlFor={`tax-name-${index}`} className="text-xs">
@@ -809,9 +822,6 @@ const Expenses = () => {
                         value={tax.name} 
                         onValueChange={(value) => {
                           const updatedTaxes = [...newExpense.taxes];
-                          // Find the tax percentage from company taxes if available
-                          const selectedCompany = companies.find(c => c.id === newExpense.company_id);
-                          const companyTaxes = (selectedCompany?.taxes as any[]) || [];
                           const matchingTax = companyTaxes.find(t => t.name === value);
                           updatedTaxes[index] = {
                             ...updatedTaxes[index],
@@ -825,10 +835,15 @@ const Expenses = () => {
                           <SelectValue placeholder={language === "fr" ? "Sélectionner" : "Select"} />
                         </SelectTrigger>
                         <SelectContent>
+                          {/* Standard tax options */}
                           <SelectItem value="TPS">TPS (GST)</SelectItem>
                           <SelectItem value="TVQ">TVQ (QST)</SelectItem>
                           <SelectItem value="TVH">TVH (HST)</SelectItem>
                           <SelectItem value="TVP">TVP (PST)</SelectItem>
+                          {/* Custom company tax names */}
+                          {customTaxNames.map(name => (
+                            <SelectItem key={name} value={name}>{name}</SelectItem>
+                          ))}
                           <SelectItem value="other">{language === "fr" ? "Autre" : "Other"}</SelectItem>
                         </SelectContent>
                       </Select>
@@ -887,8 +902,8 @@ const Expenses = () => {
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
-                
+                )})}
+
                 {newExpense.taxes.length > 0 && (
                   <div className="pt-2 border-t">
                     <div className="flex justify-between text-sm font-medium">

@@ -228,10 +228,8 @@ export function processTaxSplit(
           // Use matched company tax percentage, or the calculated one
           const percentage = matchedTax?.percentage || calculatedPercentage;
           
-          // Use matched company tax name (already valid), otherwise normalize receipt tax name
-          const taxName = matchedTax?.name 
-            ? normalizeTaxLabel(matchedTax.name) 
-            : normalizeTaxLabel(taxLine.name);
+          // Use matched company tax name directly (preserve custom names), otherwise normalize receipt tax name
+          const taxName = matchedTax?.name || normalizeTaxLabel(taxLine.name);
           
           return {
             name: taxName,
@@ -265,7 +263,7 @@ export function processTaxSplit(
     
     if (valid) {
       const mappedTaxes = companyTaxes.map((tax, index) => ({
-        name: normalizeTaxLabel(tax.name),
+        name: tax.name, // Use company tax name directly (preserve custom names)
         percentage: tax.percentage,
         amount: calculatedTaxAmounts[index]
       }));
