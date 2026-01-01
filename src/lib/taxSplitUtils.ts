@@ -207,48 +207,50 @@ export function processTaxSplit(
   
   // Check if we have explicit taxes from receipt
   const hasExplicitTaxes = taxLines.length > 0 && taxLines.some(t => t.amount > 0);
-  const hasSubtotal = subtotal_amount != null && !isNaN(subtotal_amount) && subtotal_amount > 0;
   
-  // Try to reconcile explicit receipt data
-  if (hasSubtotal && hasExplicitTaxes) {
-    if (reconcileAmounts(subtotal_amount, taxLines, total_amount)) {
-      // Perfect reconciliation - use receipt values
-      const mappedTaxes = taxLines
-        .filter(t => t.amount > 0)
-        .map(taxLine => {
-          // Calculate percentage first so we can use it for matching
-          let calculatedPercentage = taxLine.rate || 0;
-          if (!calculatedPercentage && subtotal_amount && subtotal_amount > 0 && taxLine.amount) {
-            calculatedPercentage = Math.round((taxLine.amount / subtotal_amount) * 10000) / 100;
-          }
-          
-          // Try to match by name first, then by percentage as fallback
-          const matchedTax = mapTaxLabelToCompanyTax(taxLine.name, companyTaxes, calculatedPercentage);
-          
-          // Use matched company tax percentage, or the calculated one
-          const percentage = matchedTax?.percentage || calculatedPercentage;
-          
-          // Use matched company tax name directly (preserve custom names), otherwise normalize receipt tax name
-          const taxName = matchedTax?.name || normalizeTaxLabel(taxLine.name);
-          
-          return {
-            name: taxName,
-            percentage: percentage,
-            amount: Math.round(taxLine.amount * 100) / 100
-          };
-        });
-      
-      return {
-        amountBeforeTax: Math.round(subtotal_amount * 100) / 100,
-        taxes: mappedTaxes,
-        helperText: language === 'fr' 
-          ? 'Taxes ajoutées automatiquement depuis le reçu' 
-          : 'Taxes added automatically from receipt',
-        helperTextType: 'success',
-        originalTotal: total_amount,
-        source: 'receipt'
-      };
-    }
+  // CRITICAL: For Amazon-style invoices, the "subtotal" field may actually include taxes.
+  // Always compute amount_before_tax = total - sum(taxes) when tax_lines exist.
+  // This automatically accounts for discounts (already reflected in total_amount).
+  if (hasExplicitTaxes) {
+    const taxSum = taxLines.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const computedBeforeTax = Math.round((total_amount - taxSum) * 100) / 100;
+    
+    // Map tax lines to company taxes
+    const mappedTaxes = taxLines
+      .filter(t => t.amount > 0)
+      .map(taxLine => {
+        // Calculate percentage from the computed before-tax amount
+        let calculatedPercentage = taxLine.rate || 0;
+        if (!calculatedPercentage && computedBeforeTax > 0 && taxLine.amount) {
+          calculatedPercentage = Math.round((taxLine.amount / computedBeforeTax) * 10000) / 100;
+        }
+        
+        // Try to match by name first, then by percentage as fallback
+        const matchedTax = mapTaxLabelToCompanyTax(taxLine.name, companyTaxes, calculatedPercentage);
+        
+        // Use matched company tax percentage, or the calculated one
+        const percentage = matchedTax?.percentage || calculatedPercentage;
+        
+        // Use matched company tax name directly (preserve custom names), otherwise normalize receipt tax name
+        const taxName = matchedTax?.name || normalizeTaxLabel(taxLine.name);
+        
+        return {
+          name: taxName,
+          percentage: percentage,
+          amount: Math.round(taxLine.amount * 100) / 100
+        };
+      });
+    
+    return {
+      amountBeforeTax: computedBeforeTax,
+      taxes: mappedTaxes,
+      helperText: language === 'fr' 
+        ? 'Taxes ajoutées automatiquement depuis le reçu' 
+        : 'Taxes added automatically from receipt',
+      helperTextType: 'success',
+      originalTotal: total_amount,
+      source: 'receipt'
+    };
   }
   
   // In 'auto' mode, if tax_included hint is true and no explicit amounts, don't split
