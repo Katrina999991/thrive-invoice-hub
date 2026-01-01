@@ -785,12 +785,12 @@ const Expenses = () => {
                     onChange={(e) => {
                       const newTotal = parseFloat(e.target.value) || 0;
                       setOriginalReceiptTotal(newTotal);
-                      // Recalculate amount before taxes
+                      // Recalculate amount before taxes (allows for discounts which reduce the amount)
                       const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
                       const amountBeforeTax = newTotal - taxTotal;
                       setNewExpense(prev => ({
                         ...prev,
-                        amount: amountBeforeTax > 0 ? amountBeforeTax.toFixed(2) : "0"
+                        amount: amountBeforeTax.toFixed(2)
                       }));
                     }}
                     className="bg-muted/50"
