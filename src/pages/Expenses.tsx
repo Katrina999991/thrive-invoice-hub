@@ -311,14 +311,14 @@ const Expenses = () => {
       
       let amountBeforeTax = total;
       
-      // If we have subtotal from receipt, use it as amount before tax
-      if (data.subtotal_amount && data.subtotal_amount > 0) {
-        amountBeforeTax = data.subtotal_amount;
-      } else if (hasExplicitTaxes) {
-        // Calculate amount before tax from total - taxes
+      // CRITICAL: For Amazon-style invoices, the "subtotal" may actually include taxes.
+      // Always compute amount_before_tax = total - sum(taxes) when tax_lines exist.
+      // This automatically accounts for discounts (already reflected in total_amount).
+      if (hasExplicitTaxes) {
         const taxSum = taxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
-        amountBeforeTax = total - taxSum;
+        amountBeforeTax = Math.round((total - taxSum) * 100) / 100;
       }
+      // If no tax_lines, use total as amount (unknown pre-tax)
       
       // Don't set taxes when no company is selected - taxes only shown with company + option enabled
       setNewExpense(prev => ({
