@@ -756,17 +756,46 @@ const Expenses = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="amount">{t("expenses.amount")} <span className="text-destructive">*</span></Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder={t("expenses.amountPlaceholder")}
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">{language === "fr" ? "Montant avant taxes" : "Amount before taxes"} <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder={t("expenses.amountPlaceholder")}
+                    value={newExpense.amount}
+                    onChange={(e) => {
+                      setNewExpense({...newExpense, amount: e.target.value});
+                      // Update original total if amount changed manually
+                      const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
+                      setOriginalReceiptTotal((parseFloat(e.target.value) || 0) + taxTotal);
+                    }}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="totalAmount">{language === "fr" ? "Montant total (après taxes)" : "Total amount (with taxes)"}</Label>
+                  <Input
+                    id="totalAmount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={originalReceiptTotal?.toFixed(2) || ""}
+                    onChange={(e) => {
+                      const newTotal = parseFloat(e.target.value) || 0;
+                      setOriginalReceiptTotal(newTotal);
+                      // Recalculate amount before taxes
+                      const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
+                      const amountBeforeTax = newTotal - taxTotal;
+                      setNewExpense(prev => ({
+                        ...prev,
+                        amount: amountBeforeTax > 0 ? amountBeforeTax.toFixed(2) : "0"
+                      }));
+                    }}
+                    className="bg-muted/50"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
