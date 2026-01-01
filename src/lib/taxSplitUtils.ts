@@ -89,25 +89,37 @@ export function normalizeTaxLabel(label: string): string {
 
 /**
  * Map a receipt tax label to a company tax definition
+ * Also accepts percentage for fallback matching
  */
 export function mapTaxLabelToCompanyTax(
   label: string, 
-  companyTaxes: CompanyTax[]
+  companyTaxes: CompanyTax[],
+  percentage?: number
 ): CompanyTax | null {
-  const normalizedLabel = normalizeTaxLabel(label);
+  if (!label && percentage === undefined) return null;
   
-  // Try exact match first
+  const normalizedLabel = label ? normalizeTaxLabel(label) : 'other';
+  
+  // Try exact match first (case insensitive)
   const exactMatch = companyTaxes.find(
-    t => t.name.toUpperCase() === normalizedLabel
+    t => t.name.toUpperCase().trim() === normalizedLabel.toUpperCase()
   );
   if (exactMatch) return exactMatch;
   
-  // Try matching normalized versions
+  // Try matching normalized versions of company tax names
   for (const companyTax of companyTaxes) {
     const normalizedCompanyTax = normalizeTaxLabel(companyTax.name);
-    if (normalizedCompanyTax === normalizedLabel) {
+    if (normalizedCompanyTax === normalizedLabel && normalizedLabel !== 'other') {
       return companyTax;
     }
+  }
+  
+  // Fallback: try to match by percentage (with small tolerance for rounding)
+  if (percentage !== undefined && percentage > 0) {
+    const matchByPercentage = companyTaxes.find(
+      t => Math.abs(t.percentage - percentage) < 0.1
+    );
+    if (matchByPercentage) return matchByPercentage;
   }
   
   return null;
@@ -204,20 +216,19 @@ export function processTaxSplit(
       const mappedTaxes = taxLines
         .filter(t => t.amount > 0)
         .map(taxLine => {
-          const matchedTax = mapTaxLabelToCompanyTax(taxLine.name, companyTaxes);
-          // Use matched company tax percentage, or calculate from receipt amounts, or use receipt rate
-          let percentage = 0;
-          if (matchedTax?.percentage) {
-            percentage = matchedTax.percentage;
-          } else if (taxLine.rate) {
-            percentage = taxLine.rate;
-          } else if (subtotal_amount && subtotal_amount > 0 && taxLine.amount) {
-            // Calculate percentage from amounts if not provided
-            percentage = Math.round((taxLine.amount / subtotal_amount) * 10000) / 100;
+          // Calculate percentage first so we can use it for matching
+          let calculatedPercentage = taxLine.rate || 0;
+          if (!calculatedPercentage && subtotal_amount && subtotal_amount > 0 && taxLine.amount) {
+            calculatedPercentage = Math.round((taxLine.amount / subtotal_amount) * 10000) / 100;
           }
           
-          // Always normalize the tax name to match Select options
-          // Even company tax names need to be normalized to ensure they match Select values
+          // Try to match by name first, then by percentage as fallback
+          const matchedTax = mapTaxLabelToCompanyTax(taxLine.name, companyTaxes, calculatedPercentage);
+          
+          // Use matched company tax percentage, or the calculated one
+          const percentage = matchedTax?.percentage || calculatedPercentage;
+          
+          // Use matched company tax name (already valid), otherwise normalize receipt tax name
           const taxName = matchedTax?.name 
             ? normalizeTaxLabel(matchedTax.name) 
             : normalizeTaxLabel(taxLine.name);
