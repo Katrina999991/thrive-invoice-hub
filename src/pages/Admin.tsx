@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ProductUpdateEmailSection } from "@/components/ProductUpdateEmailSection";
+import { ProductUpdateLogsTable } from "@/components/admin/ProductUpdateLogsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { Shield } from "lucide-react";
 
@@ -43,6 +44,8 @@ export default function Admin() {
       <UsersTable />
 
       <ProductUpdateEmailSection />
+
+      <ProductUpdateLogsTable />
     </div>
   );
 }
