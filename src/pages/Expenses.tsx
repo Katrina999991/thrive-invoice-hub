@@ -304,40 +304,23 @@ const Expenses = () => {
       // Store original total for later tax adjustments
       setOriginalReceiptTotal(data.total_amount || data.amount || null);
     } else {
-      // No company selected - still calculate amount before taxes if possible
+      // No company selected - calculate amount before taxes but don't display taxes
       const total = data.total_amount || data.amount || 0;
       const taxLines = data.tax_lines || [];
       const hasExplicitTaxes = taxLines.length > 0 && taxLines.some((t: any) => t.amount > 0);
       
       let amountBeforeTax = total;
-      let extractedTaxes: Array<{ name: string; percentage: number; amount?: number }> = [];
       
-      // If we have subtotal from receipt, use it
+      // If we have subtotal from receipt, use it as amount before tax
       if (data.subtotal_amount && data.subtotal_amount > 0) {
         amountBeforeTax = data.subtotal_amount;
-        // Also extract taxes from receipt
-        if (hasExplicitTaxes) {
-          extractedTaxes = taxLines
-            .filter((t: any) => t.amount > 0)
-            .map((t: any) => ({
-              name: t.name || 'other',
-              percentage: t.rate || (data.subtotal_amount > 0 ? Math.round((t.amount / data.subtotal_amount) * 10000) / 100 : 0),
-              amount: Math.round(t.amount * 100) / 100
-            }));
-        }
       } else if (hasExplicitTaxes) {
         // Calculate amount before tax from total - taxes
         const taxSum = taxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
         amountBeforeTax = total - taxSum;
-        extractedTaxes = taxLines
-          .filter((t: any) => t.amount > 0)
-          .map((t: any) => ({
-            name: t.name || 'other',
-            percentage: t.rate || (amountBeforeTax > 0 ? Math.round((t.amount / amountBeforeTax) * 10000) / 100 : 0),
-            amount: Math.round(t.amount * 100) / 100
-          }));
       }
       
+      // Don't set taxes when no company is selected - taxes only shown with company + option enabled
       setNewExpense(prev => ({
         ...prev,
         amount: amountBeforeTax.toFixed(2),
@@ -345,23 +328,12 @@ const Expenses = () => {
         expense_date: data.date || prev.expense_date,
         description: description || prev.description,
         category: categoryName || prev.category,
-        taxes: extractedTaxes
+        taxes: [] // No taxes without company
       }));
       // Store original total for later tax adjustments
       setOriginalReceiptTotal(total);
-      
-      if (extractedTaxes.length > 0) {
-        setTaxHelperText({ 
-          text: language === 'fr' 
-            ? 'Taxes extraites du reçu' 
-            : 'Taxes extracted from receipt', 
-          type: 'success' 
-        });
-        setTaxesAutoAdded(true);
-      } else {
-        setTaxHelperText(null);
-        setTaxesAutoAdded(false);
-      }
+      setTaxHelperText(null);
+      setTaxesAutoAdded(false);
     }
     
     setTaxesUserModified(false);
