@@ -91,8 +91,9 @@ const Expenses = () => {
   const [taxesAutoAdded, setTaxesAutoAdded] = useState(false);
   const [taxesUserModified, setTaxesUserModified] = useState(false);
   
-  // Category mappings hook
-  const { saveMappingsFromScan, findSuggestedCategory, mappings: categoryMappings } = useCategoryMappings(newExpense.company_id || undefined);
+  // Category mappings hook - use first company as fallback for learning
+  const effectiveCompanyIdForMappings = newExpense.company_id || (companies.length > 0 ? companies[0].id : undefined);
+  const { saveMappingsFromScan, findSuggestedCategory, mappings: categoryMappings } = useCategoryMappings(effectiveCompanyIdForMappings);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -387,9 +388,11 @@ const Expenses = () => {
     console.log("wasCategoryChanged:", wasCategoryChanged);
     console.log("selectedCategory:", selectedCategory);
     console.log("newExpense.company_id:", newExpense.company_id);
+    console.log("effectiveCompanyIdForMappings:", effectiveCompanyIdForMappings);
     
     // Save learned mapping if category was changed from a scan
-    if (wasCategoryChanged && suggestedCategoryInfo && selectedCategory && newExpense.company_id) {
+    // Use effectiveCompanyIdForMappings (falls back to first company if none selected)
+    if (wasCategoryChanged && suggestedCategoryInfo && selectedCategory && effectiveCompanyIdForMappings) {
       console.log("Saving learned mapping for vendor:", suggestedCategoryInfo.vendorNormalized);
       console.log("Keywords:", suggestedCategoryInfo.extractedKeywords);
       console.log("Category ID:", selectedCategory.id);
@@ -409,7 +412,7 @@ const Expenses = () => {
     // IMPORTANT: Only learn if this is NOT a scanned receipt where category was NOT changed
     // (to avoid overwriting learned mappings with wrong categories)
     const isScannedReceipt = suggestedCategoryInfo !== null;
-    const shouldLearnFromManualEntry = !isScannedReceipt && selectedCategory && newExpense.company_id && newExpense.description;
+    const shouldLearnFromManualEntry = !isScannedReceipt && selectedCategory && effectiveCompanyIdForMappings && newExpense.description;
     
     if (shouldLearnFromManualEntry) {
       // Extract keywords from description (words with 3+ chars)
