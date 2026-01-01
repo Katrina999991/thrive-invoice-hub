@@ -7,10 +7,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ProductUpdateRequest {
+interface EmailContent {
   subject: string;
   title: string;
   content: string; // HTML content for the main body
+}
+
+interface ProductUpdateRequest {
+  fr: EmailContent | null;
+  en: EmailContent | null;
   preferencesUrl?: string; // URL to manage email preferences
 }
 
@@ -41,13 +46,13 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    const { subject, title, content, preferencesUrl } = await req.json() as ProductUpdateRequest;
+    const { fr, en, preferencesUrl } = await req.json() as ProductUpdateRequest;
 
-    logStep("Request data", { subject, title });
+    logStep("Request data", { hasFr: !!fr, hasEn: !!en });
 
-    // Validate inputs
-    if (!subject || !title || !content) {
-      throw new Error("Missing required fields: subject, title, content");
+    // Validate inputs - at least one language version must be provided
+    if (!fr && !en) {
+      throw new Error("At least one language version (fr or en) is required");
     }
 
     // Create Supabase client with service role to access all users
@@ -84,7 +89,7 @@ serve(async (req) => {
     // Get user emails from auth.users via profiles or directly
     const userIds = optedInUsers.map(u => u.user_id);
     
-    // Fetch user emails - we need to get them from auth.users
+    // Fetch user emails and metadata - we need to get them from auth.users
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
     
     if (authError) {
@@ -92,14 +97,18 @@ serve(async (req) => {
       throw new Error(`Failed to fetch user emails: ${authError.message}`);
     }
 
-    // Filter to only opted-in users and get their emails
-    const userEmails = authUsers.users
+    // Filter to only opted-in users and get their emails + language preference
+    const usersToEmail = authUsers.users
       .filter(user => userIds.includes(user.id) && user.email)
-      .map(user => ({ id: user.id, email: user.email! }));
+      .map(user => ({
+        id: user.id,
+        email: user.email!,
+        language: (user.user_metadata?.language as string) || 'en' // Default to English if not set
+      }));
 
-    logStep("User emails to send", { count: userEmails.length });
+    logStep("User emails to send", { count: usersToEmail.length });
 
-    if (userEmails.length === 0) {
+    if (usersToEmail.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -119,9 +128,43 @@ serve(async (req) => {
     let errorCount = 0;
     const errors: string[] = [];
 
-    // Send emails to each opted-in user
-    for (const user of userEmails) {
+    // Footer translations
+    const footerTexts = {
+      fr: {
+        optInMessage: "Vous recevez cet email car vous avez activé les mises à jour produit dans vos préférences.",
+        manageLink: "Gérer les préférences",
+        copyright: `© ${new Date().getFullYear()} GestionFlow. Tous droits réservés.`
+      },
+      en: {
+        optInMessage: "You are receiving this email because you enabled product updates in your email preferences.",
+        manageLink: "Manage email preferences",
+        copyright: `© ${new Date().getFullYear()} GestionFlow. All rights reserved.`
+      }
+    };
+
+    // Send emails to each opted-in user in their preferred language
+    for (const user of usersToEmail) {
       try {
+        // Determine which content to send based on user's language and available content
+        let emailContent: EmailContent;
+        let footerText: typeof footerTexts.en;
+
+        if (user.language === 'fr' && fr) {
+          emailContent = fr;
+          footerText = footerTexts.fr;
+        } else if (user.language === 'en' && en) {
+          emailContent = en;
+          footerText = footerTexts.en;
+        } else if (fr) {
+          // Fallback to French if English not available
+          emailContent = fr;
+          footerText = footerTexts.fr;
+        } else {
+          // Fallback to English if French not available
+          emailContent = en!;
+          footerText = footerTexts.en;
+        }
+
         const emailHtml = `
           <!DOCTYPE html>
           <html>
@@ -132,28 +175,28 @@ serve(async (req) => {
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
             <div style="background-color: #ffffff; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
               <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin: 0 0 24px 0;">
-                ${title}
+                ${emailContent.title}
               </h1>
               
               <div style="color: #374151; font-size: 16px; line-height: 1.6;">
-                ${content}
+                ${emailContent.content}
               </div>
             </div>
             
             <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
               <p style="color: #6b7280; font-size: 12px; margin: 0 0 8px 0;">
-                You are receiving this email because you enabled product updates in your email preferences.
+                ${footerText.optInMessage}
               </p>
               <p style="margin: 0;">
                 <a href="${managePreferencesUrl}" style="color: #2563eb; font-size: 12px; text-decoration: underline;">
-                  Manage email preferences
+                  ${footerText.manageLink}
                 </a>
               </p>
             </div>
             
             <div style="margin-top: 16px; text-align: center;">
               <p style="color: #9ca3af; font-size: 11px; margin: 0;">
-                © ${new Date().getFullYear()} GestionFlow. All rights reserved.
+                ${footerText.copyright}
               </p>
             </div>
           </body>
@@ -164,12 +207,12 @@ serve(async (req) => {
           from: fromEmail,
           to: [user.email],
           replyTo: replyTo,
-          subject: subject,
+          subject: emailContent.subject,
           html: emailHtml,
         });
 
         sentCount++;
-        logStep("Email sent successfully", { userId: user.id, email: user.email });
+        logStep("Email sent successfully", { userId: user.id, email: user.email, language: user.language });
       } catch (emailError: any) {
         errorCount++;
         const errorMsg = emailError?.message || String(emailError);
