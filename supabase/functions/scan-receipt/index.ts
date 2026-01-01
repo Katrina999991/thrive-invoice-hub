@@ -205,7 +205,10 @@ serve(async (req) => {
     let learnedMappings: { key: string; category_id: string; mapping_type: string }[] = [];
     let categories: { id: string; name: string; name_en?: string; name_fr?: string }[] = [];
     
+    console.log("User ID received:", userId);
+    
     if (userId) {
+      console.log("Fetching mappings for user:", userId);
       const [mappingsResult, categoriesResult] = await Promise.all([
         supabase
           .from("expense_category_mappings")
@@ -218,6 +221,9 @@ serve(async (req) => {
           .eq("for_expenses", true)
       ]);
       
+      console.log("Mappings query result:", JSON.stringify(mappingsResult));
+      console.log("Categories query result:", JSON.stringify(categoriesResult));
+      
       if (mappingsResult.data) {
         learnedMappings = mappingsResult.data;
         console.log("Loaded learned mappings:", learnedMappings.length, "mappings for user:", userId);
@@ -229,6 +235,8 @@ serve(async (req) => {
         categories = categoriesResult.data;
         console.log("Loaded categories:", categories.length, "categories");
       }
+    } else {
+      console.log("No userId provided, skipping mapping lookup");
     }
 
     const systemPrompt = language === "fr" 
