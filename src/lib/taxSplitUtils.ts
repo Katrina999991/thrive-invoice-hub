@@ -176,9 +176,19 @@ export function processTaxSplit(
         .filter(t => t.amount > 0)
         .map(taxLine => {
           const matchedTax = mapTaxLabelToCompanyTax(taxLine.name, companyTaxes);
+          // Use matched company tax percentage, or calculate from receipt amounts, or use receipt rate
+          let percentage = 0;
+          if (matchedTax?.percentage) {
+            percentage = matchedTax.percentage;
+          } else if (taxLine.rate) {
+            percentage = taxLine.rate;
+          } else if (subtotal_amount && subtotal_amount > 0 && taxLine.amount) {
+            // Calculate percentage from amounts if not provided
+            percentage = Math.round((taxLine.amount / subtotal_amount) * 10000) / 100;
+          }
           return {
             name: matchedTax?.name || normalizeTaxLabel(taxLine.name),
-            percentage: matchedTax?.percentage || taxLine.rate || 0,
+            percentage: percentage,
             amount: Math.round(taxLine.amount * 100) / 100
           };
         });
