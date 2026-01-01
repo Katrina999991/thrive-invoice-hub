@@ -20,42 +20,71 @@ export interface TaxSplitResult {
   source: 'receipt' | 'calculated' | null;
 }
 
-// Tax label normalization mapping
+// Tax label normalization mapping - values MUST match Select options in Expenses.tsx
 const TAX_LABEL_MAPPINGS: Record<string, string> = {
-  // GST variants
+  // GST variants -> TPS
   'gst': 'TPS',
   'tps': 'TPS',
   'goods and services tax': 'TPS',
   'taxe sur les produits et services': 'TPS',
-  // PST variants
+  'g.s.t.': 'TPS',
+  'g.s.t': 'TPS',
+  't.p.s.': 'TPS',
+  't.p.s': 'TPS',
+  // PST variants -> TVP
   'pst': 'TVP',
   'tvp': 'TVP',
   'provincial sales tax': 'TVP',
   'taxe de vente provinciale': 'TVP',
-  // QST variants  
+  'p.s.t.': 'TVP',
+  'p.s.t': 'TVP',
+  't.v.p.': 'TVP',
+  't.v.p': 'TVP',
+  // QST variants -> TVQ
   'qst': 'TVQ',
   'tvq': 'TVQ',
   'quebec sales tax': 'TVQ',
   'taxe de vente du quebec': 'TVQ',
   'taxe de vente du québec': 'TVQ',
-  // HST variants
+  'q.s.t.': 'TVQ',
+  'q.s.t': 'TVQ',
+  't.v.q.': 'TVQ',
+  't.v.q': 'TVQ',
+  // HST variants -> TVH
   'hst': 'TVH',
   'tvh': 'TVH',
   'harmonized sales tax': 'TVH',
   'taxe de vente harmonisée': 'TVH',
-  // VAT variants
-  'vat': 'TVA',
-  'tva': 'TVA',
-  'value added tax': 'TVA',
-  'taxe sur la valeur ajoutée': 'TVA',
+  'h.s.t.': 'TVH',
+  'h.s.t': 'TVH',
+  't.v.h.': 'TVH',
+  't.v.h': 'TVH',
+  // VAT variants -> other (not in standard Select options)
+  'vat': 'other',
+  'tva': 'other',
+  'value added tax': 'other',
+  'taxe sur la valeur ajoutée': 'other',
 };
+
+// Valid tax name values that match Select options in Expenses.tsx
+const VALID_TAX_NAMES = ['TPS', 'TVQ', 'TVH', 'TVP', 'other'];
 
 /**
  * Normalize a tax label to a standard format
  */
 export function normalizeTaxLabel(label: string): string {
   const normalized = label.toLowerCase().trim();
-  return TAX_LABEL_MAPPINGS[normalized] || label.toUpperCase();
+  const mapped = TAX_LABEL_MAPPINGS[normalized];
+  if (mapped) return mapped;
+  
+  // If not in mapping, check if the label itself is a valid tax name
+  const upperLabel = label.toUpperCase().trim();
+  if (VALID_TAX_NAMES.includes(upperLabel)) {
+    return upperLabel;
+  }
+  
+  // Default to 'other' for unknown tax types so Select can display it
+  return 'other';
 }
 
 /**
@@ -186,8 +215,15 @@ export function processTaxSplit(
             // Calculate percentage from amounts if not provided
             percentage = Math.round((taxLine.amount / subtotal_amount) * 10000) / 100;
           }
+          
+          // Always normalize the tax name to match Select options
+          // Even company tax names need to be normalized to ensure they match Select values
+          const taxName = matchedTax?.name 
+            ? normalizeTaxLabel(matchedTax.name) 
+            : normalizeTaxLabel(taxLine.name);
+          
           return {
-            name: matchedTax?.name || normalizeTaxLabel(taxLine.name),
+            name: taxName,
             percentage: percentage,
             amount: Math.round(taxLine.amount * 100) / 100
           };
@@ -218,7 +254,7 @@ export function processTaxSplit(
     
     if (valid) {
       const mappedTaxes = companyTaxes.map((tax, index) => ({
-        name: tax.name,
+        name: normalizeTaxLabel(tax.name),
         percentage: tax.percentage,
         amount: calculatedTaxAmounts[index]
       }));
