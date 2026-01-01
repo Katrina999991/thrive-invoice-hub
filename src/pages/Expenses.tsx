@@ -91,6 +91,9 @@ const Expenses = () => {
   const [taxesAutoAdded, setTaxesAutoAdded] = useState(false);
   const [taxesUserModified, setTaxesUserModified] = useState(false);
   
+  // Store original receipt total for auto-adjusting amount when taxes change
+  const [originalReceiptTotal, setOriginalReceiptTotal] = useState<number | null>(null);
+  
   // Category mappings hook - now user-level, not company-level
   const { saveMappingsFromScan, findSuggestedCategory, mappings: categoryMappings } = useCategoryMappings();
 
@@ -296,16 +299,23 @@ const Expenses = () => {
         setTaxHelperText(null);
         setTaxesAutoAdded(false);
       }
+      // Store original total for later tax adjustments
+      setOriginalReceiptTotal(data.total_amount || data.amount || null);
+      // Store original total for later tax adjustments
+      setOriginalReceiptTotal(data.total_amount || data.amount || null);
     } else {
       // No company selected, just set the amount from total
+      const total = data.total_amount || data.amount;
       setNewExpense(prev => ({
         ...prev,
-        amount: (data.total_amount || data.amount)?.toString() || prev.amount,
+        amount: total?.toString() || prev.amount,
         vendor: data.vendor || prev.vendor,
         expense_date: data.date || prev.expense_date,
         description: description || prev.description,
         category: categoryName || prev.category
       }));
+      // Store original total for later tax adjustments
+      setOriginalReceiptTotal(total || null);
       setTaxHelperText(null);
       setTaxesAutoAdded(false);
     }
@@ -492,7 +502,28 @@ const Expenses = () => {
     setTaxHelperText(null);
     setTaxesAutoAdded(false);
     setTaxesUserModified(false);
+    setOriginalReceiptTotal(null);
   };
+
+  // Auto-adjust amount when taxes are manually modified and we have original total
+  useEffect(() => {
+    if (originalReceiptTotal !== null && newExpense.taxes.length > 0) {
+      const totalTaxes = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
+      const calculatedAmount = originalReceiptTotal - totalTaxes;
+      
+      // Only update if the calculated amount is positive and different from current
+      if (calculatedAmount > 0) {
+        const currentAmount = parseFloat(newExpense.amount) || 0;
+        // Use a small tolerance to avoid infinite loops from floating point
+        if (Math.abs(calculatedAmount - currentAmount) > 0.001) {
+          setNewExpense(prev => ({
+            ...prev,
+            amount: calculatedAmount.toFixed(2)
+          }));
+        }
+      }
+    }
+  }, [newExpense.taxes, originalReceiptTotal]);
 
   // Auto-suggest category based on learned mappings when description changes
   useEffect(() => {
