@@ -230,27 +230,33 @@ serve(async (req) => {
     const systemPrompt = language === "fr" 
       ? `Tu es un assistant spécialisé dans l'extraction de données de factures et reçus.
          Analyse l'image fournie et extrais les informations suivantes au format JSON strict:
-         - amount: le montant total (nombre décimal, sans symbole de devise)
+         - total_amount: le montant TOTAL final payé (nombre décimal, sans symbole de devise)
+         - subtotal_amount: le sous-total AVANT taxes si visible (nombre décimal, null si non visible)
          - vendor: le nom du vendeur/magasin/entreprise
          - date: la date au format YYYY-MM-DD
          - description_fr: une brève description des achats EN FRANÇAIS
          - description_en: une brève description des achats EN ANGLAIS (traduis si nécessaire)
-         - line_items: tableau des articles achetés avec description
-         - taxes: tableau des taxes avec nom et montant (ex: TPS, TVQ)
+         - line_items: tableau des articles achetés avec description et prix unitaire
+         - tax_lines: tableau des taxes avec pour chaque taxe: name (nom de la taxe ex: TPS, TVQ, GST, PST), amount (montant de la taxe), rate (taux en % si visible, sinon null)
+         - tax_included_hint: boolean indiquant si le reçu mentionne "taxes incluses" ou similaire
          - currency: devise détectée (CAD, USD, EUR, etc.)
          
+         IMPORTANT: Pour tax_lines, extrais CHAQUE taxe séparément avec son montant exact.
          Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire. Si tu ne peux pas extraire une information, utilise null.`
       : `You are an assistant specialized in extracting data from invoices and receipts.
          Analyze the provided image and extract the following information in strict JSON format:
-         - amount: the total amount (decimal number, without currency symbol)
+         - total_amount: the TOTAL final amount paid (decimal number, without currency symbol)
+         - subtotal_amount: the subtotal BEFORE taxes if visible (decimal number, null if not visible)
          - vendor: the vendor/store/business name
          - date: the date in YYYY-MM-DD format
          - description_en: a brief description of the purchases IN ENGLISH
          - description_fr: a brief description of the purchases IN FRENCH (translate if needed)
-         - line_items: array of purchased items with descriptions
-         - taxes: array of taxes with name and amount (e.g., GST, PST)
+         - line_items: array of purchased items with description and unit price
+         - tax_lines: array of taxes with for each tax: name (tax name e.g., GST, PST, TPS, TVQ), amount (tax amount), rate (rate in % if visible, otherwise null)
+         - tax_included_hint: boolean indicating if the receipt mentions "taxes included" or similar
          - currency: detected currency (CAD, USD, EUR, etc.)
          
+         IMPORTANT: For tax_lines, extract EACH tax separately with its exact amount.
          Respond ONLY with the JSON, no additional text. If you cannot extract information, use null.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -379,11 +385,18 @@ serve(async (req) => {
       categorySource = "ai_suggestion";
     }
     
-    // Build response with bilingual descriptions
+    // Build response with bilingual descriptions and enhanced tax data
     const result = {
       success: true,
       data: {
-        amount: extractedData.amount,
+        // Keep backward compatibility with 'amount' field
+        amount: extractedData.total_amount || extractedData.amount,
+        // New enhanced fields for tax splitting
+        total_amount: extractedData.total_amount || extractedData.amount,
+        subtotal_amount: extractedData.subtotal_amount || null,
+        tax_lines: extractedData.tax_lines || extractedData.taxes || [],
+        tax_included_hint: extractedData.tax_included_hint || false,
+        // Other fields
         vendor: extractedData.vendor,
         date: extractedData.date,
         description: language === "fr" 
@@ -392,7 +405,7 @@ serve(async (req) => {
         description_en: extractedData.description_en || extractedData.description,
         description_fr: extractedData.description_fr || extractedData.description,
         line_items: extractedData.line_items,
-        taxes: extractedData.taxes,
+        taxes: extractedData.taxes, // Keep for backward compatibility
         currency: extractedData.currency,
         // Category suggestion
         suggested_category: suggestedCategory,

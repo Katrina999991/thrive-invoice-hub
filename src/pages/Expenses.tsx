@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ReceiptScanner, ExtractedReceiptData } from "@/components/ReceiptScanner";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { processTaxSplit } from "@/lib/taxSplitUtils";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -76,6 +77,19 @@ const Expenses = () => {
     extractedKeywords: string[];
   } | null>(null);
   const [originalSuggestedCategory, setOriginalSuggestedCategory] = useState<string | null>(null);
+  
+  // Receipt data for tax splitting
+  const [receiptData, setReceiptData] = useState<ExtractedReceiptData | null>(null);
+  
+  // Tax helper text
+  const [taxHelperText, setTaxHelperText] = useState<{
+    text: string;
+    type: 'success' | 'warning';
+  } | null>(null);
+  
+  // Track if taxes were auto-added and modified by user
+  const [taxesAutoAdded, setTaxesAutoAdded] = useState(false);
+  const [taxesUserModified, setTaxesUserModified] = useState(false);
   
   // Category mappings hook
   const { saveMappingsFromScan } = useCategoryMappings(newExpense.company_id || undefined);
@@ -247,14 +261,56 @@ const Expenses = () => {
     const categoryName = matchingCategory?.name || "";
     console.log("Setting category to:", categoryName);
     
-    setNewExpense(prev => ({
-      ...prev,
-      amount: data.amount?.toString() || prev.amount,
-      vendor: data.vendor || prev.vendor,
-      expense_date: data.date || prev.expense_date,
-      description: description || prev.description,
-      category: categoryName || prev.category
-    }));
+    // Store receipt data for tax splitting
+    setReceiptData(data);
+    
+    // If company is already selected, apply tax split immediately
+    const selectedCompany = companies.find(c => c.id === newExpense.company_id);
+    if (selectedCompany) {
+      const companySettings = {
+        expense_tax_handling: ((selectedCompany as any).expense_tax_handling || 'auto') as 'auto' | 'always' | 'never',
+        taxes: ((selectedCompany as any).taxes || []) as Array<{ name: string; percentage: number }>
+      };
+      
+      const taxResult = processTaxSplit({
+        total_amount: data.total_amount || data.amount,
+        subtotal_amount: data.subtotal_amount,
+        tax_lines: data.tax_lines,
+        tax_included_hint: data.tax_included_hint
+      }, companySettings, language as 'fr' | 'en');
+      
+      setNewExpense(prev => ({
+        ...prev,
+        amount: taxResult.amountBeforeTax.toString(),
+        vendor: data.vendor || prev.vendor,
+        expense_date: data.date || prev.expense_date,
+        description: description || prev.description,
+        category: categoryName || prev.category,
+        taxes: taxResult.taxes
+      }));
+      
+      if (taxResult.helperText && taxResult.helperTextType) {
+        setTaxHelperText({ text: taxResult.helperText, type: taxResult.helperTextType });
+        setTaxesAutoAdded(taxResult.taxes.length > 0);
+      } else {
+        setTaxHelperText(null);
+        setTaxesAutoAdded(false);
+      }
+    } else {
+      // No company selected, just set the amount from total
+      setNewExpense(prev => ({
+        ...prev,
+        amount: (data.total_amount || data.amount)?.toString() || prev.amount,
+        vendor: data.vendor || prev.vendor,
+        expense_date: data.date || prev.expense_date,
+        description: description || prev.description,
+        category: categoryName || prev.category
+      }));
+      setTaxHelperText(null);
+      setTaxesAutoAdded(false);
+    }
+    
+    setTaxesUserModified(false);
     
     // Store suggestion info for learning
     setSuggestedCategoryInfo({
@@ -266,6 +322,41 @@ const Expenses = () => {
       extractedKeywords: data.extracted_keywords || []
     });
     setOriginalSuggestedCategory(categoryName);
+  };
+  
+  // Function to apply tax split when company changes
+  const applyTaxSplitForCompany = (companyId: string) => {
+    if (!receiptData) return;
+    
+    const selectedCompany = companies.find(c => c.id === companyId);
+    if (!selectedCompany) return;
+    
+    const companySettings = {
+      expense_tax_handling: ((selectedCompany as any).expense_tax_handling || 'auto') as 'auto' | 'always' | 'never',
+      taxes: ((selectedCompany as any).taxes || []) as Array<{ name: string; percentage: number }>
+    };
+    
+    const taxResult = processTaxSplit({
+      total_amount: receiptData.total_amount || receiptData.amount,
+      subtotal_amount: receiptData.subtotal_amount,
+      tax_lines: receiptData.tax_lines,
+      tax_included_hint: receiptData.tax_included_hint
+    }, companySettings, language as 'fr' | 'en');
+    
+    setNewExpense(prev => ({
+      ...prev,
+      amount: taxResult.amountBeforeTax.toString(),
+      taxes: taxResult.taxes
+    }));
+    
+    if (taxResult.helperText && taxResult.helperTextType) {
+      setTaxHelperText({ text: taxResult.helperText, type: taxResult.helperTextType });
+      setTaxesAutoAdded(taxResult.taxes.length > 0);
+    } else {
+      setTaxHelperText(null);
+      setTaxesAutoAdded(false);
+    }
+    setTaxesUserModified(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -345,6 +436,10 @@ const Expenses = () => {
     setIsDialogOpen(false);
     setSuggestedCategoryInfo(null);
     setOriginalSuggestedCategory(null);
+    setReceiptData(null);
+    setTaxHelperText(null);
+    setTaxesAutoAdded(false);
+    setTaxesUserModified(false);
   };
 
   const handleEdit = (expense: Expense) => {
@@ -618,14 +713,22 @@ const Expenses = () => {
                 <Select 
                   value={newExpense.company_id} 
                   onValueChange={(value) => {
-                    const selectedCompany = companies.find(c => c.id === value);
-                    const companyTaxes = selectedCompany?.taxes as any[] || [];
-                    const initialTaxes = companyTaxes.map((tax: any) => ({
-                      name: tax.name,
-                      percentage: tax.percentage,
-                      amount: 0
-                    }));
-                    setNewExpense({...newExpense, company_id: value, taxes: initialTaxes});
+                    setNewExpense(prev => ({ ...prev, company_id: value }));
+                    
+                    // If we have receipt data, apply tax split logic
+                    if (receiptData && !taxesUserModified) {
+                      applyTaxSplitForCompany(value);
+                    } else {
+                      // No receipt data - initialize with empty taxes from company
+                      const selectedCompany = companies.find(c => c.id === value);
+                      const companyTaxes = selectedCompany?.taxes as any[] || [];
+                      const initialTaxes = companyTaxes.map((tax: any) => ({
+                        name: tax.name,
+                        percentage: tax.percentage,
+                        amount: 0
+                      }));
+                      setNewExpense(prev => ({ ...prev, company_id: value, taxes: initialTaxes }));
+                    }
                   }}
                 >
                   <SelectTrigger>
@@ -639,6 +742,15 @@ const Expenses = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {/* Helper text when no company selected and receipt scanned */}
+                {!newExpense.company_id && receiptData && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {language === "fr" 
+                      ? "Sélectionnez une compagnie pour appliquer les règles de taxes"
+                      : "Select a company to apply tax rules"}
+                  </p>
+                )}
               </div>
               
               {/* Taxes Section */}
@@ -654,6 +766,10 @@ const Expenses = () => {
                         ...newExpense,
                         taxes: [...newExpense.taxes, { name: "", percentage: 0, amount: 0 }]
                       });
+                      // Mark as user modified if taxes were auto-added
+                      if (taxesAutoAdded) {
+                        setTaxesUserModified(true);
+                      }
                     }}
                   >
                     <Plus className="h-4 w-4 mr-1" />
@@ -661,7 +777,21 @@ const Expenses = () => {
                   </Button>
                 </div>
                 
-                {newExpense.taxes.length === 0 && (
+                {/* Helper text for auto-added taxes */}
+                {taxHelperText && (
+                  <div className={`text-xs flex items-center gap-1 ${
+                    taxHelperText.type === 'success' ? 'text-green-600' : 'text-amber-600'
+                  }`}>
+                    {taxHelperText.type === 'success' ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3" />
+                    )}
+                    {taxHelperText.text}
+                  </div>
+                )}
+                
+                {newExpense.taxes.length === 0 && !taxHelperText && (
                   <p className="text-sm text-muted-foreground">
                     {language === "fr" 
                       ? "Aucune taxe ajoutée. Cliquez sur 'Ajouter taxe' pour inclure TPS, TVQ, etc."
@@ -718,6 +848,7 @@ const Expenses = () => {
                             percentage: parseFloat(e.target.value) || 0
                           };
                           setNewExpense({...newExpense, taxes: updatedTaxes});
+                          if (taxesAutoAdded) setTaxesUserModified(true);
                         }}
                       />
                     </div>
@@ -738,6 +869,7 @@ const Expenses = () => {
                             amount: parseFloat(e.target.value) || 0
                           };
                           setNewExpense({...newExpense, taxes: updatedTaxes});
+                          if (taxesAutoAdded) setTaxesUserModified(true);
                         }}
                       />
                     </div>
@@ -749,6 +881,7 @@ const Expenses = () => {
                       onClick={() => {
                         const updatedTaxes = newExpense.taxes.filter((_, i) => i !== index);
                         setNewExpense({...newExpense, taxes: updatedTaxes});
+                        if (taxesAutoAdded) setTaxesUserModified(true);
                       }}
                     >
                       <X className="h-4 w-4" />

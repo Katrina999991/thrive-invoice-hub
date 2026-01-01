@@ -8,8 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface ReceiptTaxLine {
+  name: string;
+  amount: number;
+  rate?: number | null;
+}
+
 export interface ExtractedReceiptData {
   amount: number | null;
+  total_amount?: number | null;
+  subtotal_amount?: number | null;
   vendor: string | null;
   date: string | null;
   description: string | null;
@@ -23,6 +31,8 @@ export interface ExtractedReceiptData {
   vendor_normalized: string | null;
   extracted_keywords: string[];
   taxes?: Array<{ name: string; amount: number }>;
+  tax_lines?: ReceiptTaxLine[];
+  tax_included_hint?: boolean;
   line_items?: string[];
 }
 
@@ -71,6 +81,8 @@ export const ReceiptScanner = ({ onDataExtracted, companyId, userId }: ReceiptSc
       if (data?.success && data?.data) {
         const extractedData: ExtractedReceiptData = {
           amount: data.data.amount,
+          total_amount: data.data.total_amount,
+          subtotal_amount: data.data.subtotal_amount,
           vendor: data.data.vendor,
           date: data.data.date,
           description: data.data.description,
@@ -84,6 +96,8 @@ export const ReceiptScanner = ({ onDataExtracted, companyId, userId }: ReceiptSc
           vendor_normalized: data.data.vendor_normalized,
           extracted_keywords: data.data.extracted_keywords || [],
           taxes: data.data.taxes,
+          tax_lines: data.data.tax_lines,
+          tax_included_hint: data.data.tax_included_hint,
           line_items: data.data.line_items
         };
         
