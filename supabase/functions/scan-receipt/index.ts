@@ -221,9 +221,14 @@ serve(async (req) => {
       
       if (mappingsResult.data) {
         learnedMappings = mappingsResult.data;
+        console.log("Loaded learned mappings:", learnedMappings.length, "mappings");
+      }
+      if (mappingsResult.error) {
+        console.error("Error loading mappings:", mappingsResult.error);
       }
       if (categoriesResult.data) {
         categories = categoriesResult.data;
+        console.log("Loaded categories:", categories.length, "categories");
       }
     }
 
@@ -344,6 +349,9 @@ serve(async (req) => {
     
     // 1. First check learned vendor mappings
     const normalizedVendor = normalizeVendor(vendor);
+    console.log("Checking vendor mapping for:", normalizedVendor);
+    console.log("Available vendor mappings:", learnedMappings.filter(m => m.mapping_type === "vendor").map(m => m.key));
+    
     const vendorMapping = learnedMappings.find(
       m => m.mapping_type === "vendor" && m.key === normalizedVendor
     );
@@ -354,11 +362,14 @@ serve(async (req) => {
       suggestedCategory = matchedCategory?.name || null;
       categoryConfidence = 1;
       categorySource = "learned_vendor";
+      console.log("Found vendor mapping! Category:", suggestedCategory);
     }
     
     // 2. If no vendor mapping, check keyword mappings
     if (!suggestedCategory) {
       const keywords = extractKeywords([vendor, descriptionText, ...lineItems.map((i: any) => i?.description || i)].join(" "));
+      console.log("Checking keyword mappings for keywords:", keywords);
+      console.log("Available keyword mappings:", learnedMappings.filter(m => m.mapping_type === "keyword").map(m => m.key));
       
       for (const keyword of keywords) {
         const keywordMapping = learnedMappings.find(

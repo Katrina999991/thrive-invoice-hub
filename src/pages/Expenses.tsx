@@ -389,9 +389,14 @@ const Expenses = () => {
       );
     }
     
-    // Also learn from manual entries: extract keywords from description and vendor
-    // This helps the system learn even when not scanning receipts
-    if (selectedCategory && newExpense.company_id && newExpense.description) {
+    // For scanned receipts where user changed the category: the learning is already done above
+    // For manual entries (no scan): learn from the description/vendor
+    // IMPORTANT: Only learn if this is NOT a scanned receipt where category was NOT changed
+    // (to avoid overwriting learned mappings with wrong categories)
+    const isScannedReceipt = suggestedCategoryInfo !== null;
+    const shouldLearnFromManualEntry = !isScannedReceipt && selectedCategory && newExpense.company_id && newExpense.description;
+    
+    if (shouldLearnFromManualEntry) {
       // Extract keywords from description (words with 3+ chars)
       const descriptionKeywords = newExpense.description
         .toLowerCase()
