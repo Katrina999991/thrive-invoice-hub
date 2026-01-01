@@ -201,16 +201,15 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch learned category mappings if companyId is provided
+    // Fetch learned category mappings for the user (not company-specific)
     let learnedMappings: { key: string; category_id: string; mapping_type: string }[] = [];
     let categories: { id: string; name: string; name_en?: string; name_fr?: string }[] = [];
     
-    if (companyId && userId) {
+    if (userId) {
       const [mappingsResult, categoriesResult] = await Promise.all([
         supabase
           .from("expense_category_mappings")
           .select("key, category_id, mapping_type")
-          .eq("company_id", companyId)
           .eq("user_id", userId),
         supabase
           .from("categories")
@@ -221,7 +220,7 @@ serve(async (req) => {
       
       if (mappingsResult.data) {
         learnedMappings = mappingsResult.data;
-        console.log("Loaded learned mappings:", learnedMappings.length, "mappings");
+        console.log("Loaded learned mappings:", learnedMappings.length, "mappings for user:", userId);
       }
       if (mappingsResult.error) {
         console.error("Error loading mappings:", mappingsResult.error);

@@ -15,7 +15,7 @@ interface CategoryMapping {
   created_at: string;
 }
 
-export const useCategoryMappings = (companyId?: string) => {
+export const useCategoryMappings = () => {
   const [mappings, setMappings] = useState<CategoryMapping[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -23,14 +23,13 @@ export const useCategoryMappings = (companyId?: string) => {
   const { language } = useLanguage();
 
   const fetchMappings = useCallback(async () => {
-    if (!user || !companyId) return;
+    if (!user) return;
 
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("expense_category_mappings")
         .select("*")
-        .eq("company_id", companyId)
         .eq("user_id", user.id)
         .order("last_used_at", { ascending: false });
 
@@ -41,7 +40,7 @@ export const useCategoryMappings = (companyId?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [user, companyId]);
+  }, [user]);
 
   useEffect(() => {
     fetchMappings();
@@ -50,16 +49,16 @@ export const useCategoryMappings = (companyId?: string) => {
   const saveMapping = async (
     key: string,
     categoryId: string,
-    mappingType: "vendor" | "keyword"
+    mappingType: "vendor" | "keyword",
+    companyId?: string
   ) => {
-    if (!user || !companyId) return;
+    if (!user) return;
 
     try {
-      // Check if mapping already exists
+      // Check if mapping already exists (user-level, not company-level)
       const { data: existing } = await supabase
         .from("expense_category_mappings")
         .select("id, usage_count")
-        .eq("company_id", companyId)
         .eq("user_id", user.id)
         .eq("mapping_type", mappingType)
         .eq("key", key)
@@ -76,11 +75,11 @@ export const useCategoryMappings = (companyId?: string) => {
           })
           .eq("id", existing.id);
       } else {
-        // Create new mapping
+        // Create new mapping - company_id is required by schema but mappings are user-level
         await supabase
           .from("expense_category_mappings")
           .insert({
-            company_id: companyId,
+            company_id: companyId || "00000000-0000-0000-0000-000000000000",
             user_id: user.id,
             mapping_type: mappingType,
             key: key,
@@ -98,9 +97,10 @@ export const useCategoryMappings = (companyId?: string) => {
     vendorNormalized: string,
     extractedKeywords: string[],
     categoryId: string,
-    wasCategoryChanged: boolean
+    wasCategoryChanged: boolean,
+    companyId?: string
   ) => {
-    if (!user || !companyId || !categoryId) return;
+    if (!user || !categoryId) return;
 
     // Only save if user changed the category (learning from corrections)
     if (!wasCategoryChanged) return;
@@ -108,14 +108,14 @@ export const useCategoryMappings = (companyId?: string) => {
     try {
       // Always save vendor mapping if vendor exists
       if (vendorNormalized) {
-        await saveMapping(vendorNormalized, categoryId, "vendor");
+        await saveMapping(vendorNormalized, categoryId, "vendor", companyId);
       }
 
       // Save top keywords if no vendor or as additional mappings
       const keywordsToSave = extractedKeywords.slice(0, 3);
       for (const keyword of keywordsToSave) {
         if (keyword && keyword.length > 2) {
-          await saveMapping(keyword, categoryId, "keyword");
+          await saveMapping(keyword, categoryId, "keyword", companyId);
         }
       }
 
@@ -172,13 +172,12 @@ export const useCategoryMappings = (companyId?: string) => {
   };
 
   const clearMappings = async () => {
-    if (!user || !companyId) return;
+    if (!user) return;
 
     try {
       const { error } = await supabase
         .from("expense_category_mappings")
         .delete()
-        .eq("company_id", companyId)
         .eq("user_id", user.id);
 
       if (error) throw error;
