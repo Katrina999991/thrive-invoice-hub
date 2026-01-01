@@ -199,6 +199,7 @@ export type Database = {
           current_invoice_number: number | null
           default_due_days: number | null
           email: string | null
+          expense_tax_handling: string | null
           id: string
           invoice_body_message: string | null
           invoice_body_message_en: string | null
@@ -256,6 +257,7 @@ export type Database = {
           current_invoice_number?: number | null
           default_due_days?: number | null
           email?: string | null
+          expense_tax_handling?: string | null
           id?: string
           invoice_body_message?: string | null
           invoice_body_message_en?: string | null
@@ -313,6 +315,7 @@ export type Database = {
           current_invoice_number?: number | null
           default_due_days?: number | null
           email?: string | null
+          expense_tax_handling?: string | null
           id?: string
           invoice_body_message?: string | null
           invoice_body_message_en?: string | null
@@ -466,8 +469,11 @@ export type Database = {
           is_archived: boolean
           is_billable: boolean | null
           notes: string | null
+          original_receipt_total: number | null
           receipt_url: string | null
           status: string
+          tax_auto_source: string | null
+          tax_user_overridden: boolean | null
           taxes: Json | null
           updated_at: string
           user_id: string
@@ -485,8 +491,11 @@ export type Database = {
           is_archived?: boolean
           is_billable?: boolean | null
           notes?: string | null
+          original_receipt_total?: number | null
           receipt_url?: string | null
           status?: string
+          tax_auto_source?: string | null
+          tax_user_overridden?: boolean | null
           taxes?: Json | null
           updated_at?: string
           user_id: string
@@ -504,8 +513,11 @@ export type Database = {
           is_archived?: boolean
           is_billable?: boolean | null
           notes?: string | null
+          original_receipt_total?: number | null
           receipt_url?: string | null
           status?: string
+          tax_auto_source?: string | null
+          tax_user_overridden?: boolean | null
           taxes?: Json | null
           updated_at?: string
           user_id?: string

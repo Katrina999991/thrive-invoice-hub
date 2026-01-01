@@ -1450,6 +1450,37 @@ Best regards,
                 />
               </div>
               
+              {/* Expense Tax Handling Setting */}
+              <div className="space-y-2">
+                <Label htmlFor="expense_tax_handling">
+                  {language === "fr" ? "Traitement des taxes (reçus)" : "Expense Tax Handling (receipts)"}
+                </Label>
+                <Select 
+                  value={(newCompany as any).expense_tax_handling || "auto"} 
+                  onValueChange={(value) => setNewCompany({...newCompany, expense_tax_handling: value} as any)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">
+                      {language === "fr" ? "Auto (recommandé)" : "Auto (recommended)"}
+                    </SelectItem>
+                    <SelectItem value="always">
+                      {language === "fr" ? "Toujours séparer les taxes" : "Always separate taxes"}
+                    </SelectItem>
+                    <SelectItem value="never">
+                      {language === "fr" ? "Ne jamais séparer les taxes" : "Never separate taxes"}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {language === "fr" 
+                    ? "Contrôle la séparation automatique des taxes lors du scan de reçus"
+                    : "Controls automatic tax splitting when scanning receipts"}
+                </p>
+              </div>
+              
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>{t("companies.taxes")}</Label>
