@@ -92,7 +92,7 @@ const Expenses = () => {
   const [taxesUserModified, setTaxesUserModified] = useState(false);
   
   // Category mappings hook
-  const { saveMappingsFromScan } = useCategoryMappings(newExpense.company_id || undefined);
+  const { saveMappingsFromScan, findSuggestedCategory, mappings: categoryMappings } = useCategoryMappings(newExpense.company_id || undefined);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -379,7 +379,7 @@ const Expenses = () => {
     // Find the selected category ID for learning
     const selectedCategory = categories.find(cat => cat.name === newExpense.category);
     
-    // Save learned mapping if category was changed
+    // Save learned mapping if category was changed from a scan
     if (wasCategoryChanged && suggestedCategoryInfo && selectedCategory && newExpense.company_id) {
       await saveMappingsFromScan(
         suggestedCategoryInfo.vendorNormalized || "",
@@ -387,6 +387,36 @@ const Expenses = () => {
         selectedCategory.id,
         true
       );
+    }
+    
+    // Also learn from manual entries: extract keywords from description and vendor
+    // This helps the system learn even when not scanning receipts
+    if (selectedCategory && newExpense.company_id && newExpense.description) {
+      // Extract keywords from description (words with 3+ chars)
+      const descriptionKeywords = newExpense.description
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length >= 3)
+        .slice(0, 3);
+      
+      // If we have a vendor, save it as a mapping
+      if (newExpense.vendor) {
+        const normalizedVendor = newExpense.vendor.toLowerCase().trim();
+        await saveMappingsFromScan(
+          normalizedVendor,
+          descriptionKeywords,
+          selectedCategory.id,
+          true // Always learn from manual entries
+        );
+      } else if (descriptionKeywords.length > 0) {
+        // If no vendor, just save keywords
+        await saveMappingsFromScan(
+          "",
+          descriptionKeywords,
+          selectedCategory.id,
+          true
+        );
+      }
     }
     
     if (editingExpense) {
@@ -441,6 +471,43 @@ const Expenses = () => {
     setTaxesAutoAdded(false);
     setTaxesUserModified(false);
   };
+
+  // Auto-suggest category based on learned mappings when description changes
+  useEffect(() => {
+    // Only suggest if:
+    // 1. Not editing an existing expense
+    // 2. No receipt was scanned (suggestedCategoryInfo is null)
+    // 3. Category hasn't been manually selected yet
+    // 4. Company is selected
+    // 5. There are mappings available
+    if (editingExpense || suggestedCategoryInfo || newExpense.category || !newExpense.company_id || categoryMappings.length === 0) {
+      return;
+    }
+
+    // Debounce the suggestion
+    const timeoutId = setTimeout(() => {
+      const suggestedCategoryId = findSuggestedCategory(newExpense.vendor, newExpense.description);
+      
+      if (suggestedCategoryId) {
+        const matchingCategory = categories.find(cat => cat.id === suggestedCategoryId);
+        if (matchingCategory) {
+          console.log("Auto-suggesting category from learned mappings:", matchingCategory.name);
+          setNewExpense(prev => ({ ...prev, category: matchingCategory.name }));
+          setSuggestedCategoryInfo({
+            category: matchingCategory.name,
+            categoryId: matchingCategory.id,
+            confidence: 0.8,
+            source: "learned_keyword",
+            vendorNormalized: newExpense.vendor || null,
+            extractedKeywords: newExpense.description?.split(/\s+/).filter(w => w.length >= 3) || []
+          });
+          setOriginalSuggestedCategory(matchingCategory.name);
+        }
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [newExpense.description, newExpense.vendor, newExpense.company_id, editingExpense, suggestedCategoryInfo, newExpense.category, categoryMappings, findSuggestedCategory, categories]);
 
   const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);
