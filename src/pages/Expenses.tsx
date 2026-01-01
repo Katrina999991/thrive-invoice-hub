@@ -379,14 +379,29 @@ const Expenses = () => {
     // Find the selected category ID for learning
     const selectedCategory = categories.find(cat => cat.name === newExpense.category);
     
+    // Debug logging for category learning
+    console.log("=== CATEGORY LEARNING DEBUG ===");
+    console.log("suggestedCategoryInfo:", suggestedCategoryInfo);
+    console.log("originalSuggestedCategory:", originalSuggestedCategory);
+    console.log("newExpense.category:", newExpense.category);
+    console.log("wasCategoryChanged:", wasCategoryChanged);
+    console.log("selectedCategory:", selectedCategory);
+    console.log("newExpense.company_id:", newExpense.company_id);
+    
     // Save learned mapping if category was changed from a scan
     if (wasCategoryChanged && suggestedCategoryInfo && selectedCategory && newExpense.company_id) {
+      console.log("Saving learned mapping for vendor:", suggestedCategoryInfo.vendorNormalized);
+      console.log("Keywords:", suggestedCategoryInfo.extractedKeywords);
+      console.log("Category ID:", selectedCategory.id);
       await saveMappingsFromScan(
         suggestedCategoryInfo.vendorNormalized || "",
         suggestedCategoryInfo.extractedKeywords,
         selectedCategory.id,
         true
       );
+      console.log("Mapping saved successfully!");
+    } else {
+      console.log("NOT saving mapping - conditions not met");
     }
     
     // For scanned receipts where user changed the category: the learning is already done above
