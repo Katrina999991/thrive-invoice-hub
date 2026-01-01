@@ -129,6 +129,48 @@ export const useCategoryMappings = (companyId?: string) => {
     }
   };
 
+  // Find suggested category based on vendor or keywords from description
+  const findSuggestedCategory = (vendor?: string, description?: string): string | null => {
+    if (mappings.length === 0) return null;
+
+    // Normalize vendor for comparison
+    const normalizedVendor = vendor?.toLowerCase().trim();
+    
+    // 1. First try to match by vendor (highest priority)
+    if (normalizedVendor) {
+      const vendorMapping = mappings.find(
+        m => m.mapping_type === "vendor" && m.key === normalizedVendor
+      );
+      if (vendorMapping) {
+        console.log("Found category from vendor mapping:", vendorMapping.category_id);
+        return vendorMapping.category_id;
+      }
+    }
+
+    // 2. Try to match by keywords from description
+    if (description) {
+      const keywords = description
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length >= 3);
+
+      // Sort keyword mappings by usage count (descending) to prioritize frequently used ones
+      const sortedKeywordMappings = mappings
+        .filter(m => m.mapping_type === "keyword")
+        .sort((a, b) => b.usage_count - a.usage_count);
+
+      for (const keyword of keywords) {
+        const keywordMapping = sortedKeywordMappings.find(m => m.key === keyword);
+        if (keywordMapping) {
+          console.log("Found category from keyword mapping:", keyword, keywordMapping.category_id);
+          return keywordMapping.category_id;
+        }
+      }
+    }
+
+    return null;
+  };
+
   const clearMappings = async () => {
     if (!user || !companyId) return;
 
@@ -195,6 +237,7 @@ export const useCategoryMappings = (companyId?: string) => {
     loading,
     saveMapping,
     saveMappingsFromScan,
+    findSuggestedCategory,
     clearMappings,
     clearAllMappings,
     refetch: fetchMappings
