@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Language = "en" | "fr";
 
@@ -1738,9 +1739,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("app-language", lang);
+    
+    // Also save to Supabase user_metadata for server-side access (e.g., emails)
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { language: lang }
+        });
+      }
+    } catch (error) {
+      console.error("Failed to save language preference to Supabase:", error);
+    }
   };
 
   const t = (key: string, replacements?: Record<string, string | number>): string => {
