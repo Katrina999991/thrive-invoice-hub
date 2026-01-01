@@ -505,25 +505,15 @@ const Expenses = () => {
     setOriginalReceiptTotal(null);
   };
 
-  // Auto-adjust amount when taxes are manually modified and we have original total
-  useEffect(() => {
-    if (originalReceiptTotal !== null && newExpense.taxes.length > 0) {
-      const totalTaxes = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
+  // Helper function to recalculate amount from taxes
+  const recalculateAmountFromTaxes = (updatedTaxes: Array<{ name: string; percentage: number; amount?: number }>) => {
+    if (originalReceiptTotal !== null) {
+      const totalTaxes = updatedTaxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
       const calculatedAmount = originalReceiptTotal - totalTaxes;
-      
-      // Only update if the calculated amount is positive and different from current
-      if (calculatedAmount > 0) {
-        const currentAmount = parseFloat(newExpense.amount) || 0;
-        // Use a small tolerance to avoid infinite loops from floating point
-        if (Math.abs(calculatedAmount - currentAmount) > 0.001) {
-          setNewExpense(prev => ({
-            ...prev,
-            amount: calculatedAmount.toFixed(2)
-          }));
-        }
-      }
+      return calculatedAmount > 0 ? calculatedAmount.toFixed(2) : "0";
     }
-  }, [newExpense.taxes, originalReceiptTotal]);
+    return null; // Don't change amount if no original total
+  };
 
   // Auto-suggest category based on learned mappings when description changes
   useEffect(() => {
@@ -1003,7 +993,12 @@ const Expenses = () => {
                             ...updatedTaxes[index],
                             amount: parseFloat(e.target.value) || 0
                           };
-                          setNewExpense({...newExpense, taxes: updatedTaxes});
+                          const newAmount = recalculateAmountFromTaxes(updatedTaxes);
+                          setNewExpense({
+                            ...newExpense, 
+                            taxes: updatedTaxes,
+                            ...(newAmount !== null ? { amount: newAmount } : {})
+                          });
                           if (taxesAutoAdded) setTaxesUserModified(true);
                         }}
                       />
@@ -1015,7 +1010,12 @@ const Expenses = () => {
                       className="text-destructive hover:text-destructive"
                       onClick={() => {
                         const updatedTaxes = newExpense.taxes.filter((_, i) => i !== index);
-                        setNewExpense({...newExpense, taxes: updatedTaxes});
+                        const newAmount = recalculateAmountFromTaxes(updatedTaxes);
+                        setNewExpense({
+                          ...newExpense, 
+                          taxes: updatedTaxes,
+                          ...(newAmount !== null ? { amount: newAmount } : {})
+                        });
                         if (taxesAutoAdded) setTaxesUserModified(true);
                       }}
                     >
