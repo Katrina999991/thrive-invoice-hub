@@ -817,6 +817,60 @@ export type Database = {
         }
         Relationships: []
       }
+      product_update_logs: {
+        Row: {
+          batch_id: string
+          content_en: string | null
+          content_fr: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          recipient_email: string
+          recipient_language: string
+          recipient_user_id: string
+          sent_at: string
+          status: string
+          subject_en: string | null
+          subject_fr: string | null
+          title_en: string | null
+          title_fr: string | null
+        }
+        Insert: {
+          batch_id?: string
+          content_en?: string | null
+          content_fr?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          recipient_language?: string
+          recipient_user_id: string
+          sent_at?: string
+          status?: string
+          subject_en?: string | null
+          subject_fr?: string | null
+          title_en?: string | null
+          title_fr?: string | null
+        }
+        Update: {
+          batch_id?: string
+          content_en?: string | null
+          content_fr?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_language?: string
+          recipient_user_id?: string
+          sent_at?: string
+          status?: string
+          subject_en?: string | null
+          subject_fr?: string | null
+          title_en?: string | null
+          title_fr?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null

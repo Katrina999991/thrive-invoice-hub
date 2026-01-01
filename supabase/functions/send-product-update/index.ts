@@ -58,6 +58,10 @@ serve(async (req) => {
     // Create Supabase client with service role to access all users
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Generate a batch ID to group all emails from this send
+    const batchId = crypto.randomUUID();
+    logStep("Generated batch ID", { batchId });
+
     // Fetch all users who have opted in for product updates
     const { data: optedInUsers, error: fetchError } = await supabase
       .from("email_preferences")
@@ -148,21 +152,26 @@ serve(async (req) => {
         // Determine which content to send based on user's language and available content
         let emailContent: EmailContent;
         let footerText: typeof footerTexts.en;
+        let actualLanguage: string;
 
         if (user.language === 'fr' && fr) {
           emailContent = fr;
           footerText = footerTexts.fr;
+          actualLanguage = 'fr';
         } else if (user.language === 'en' && en) {
           emailContent = en;
           footerText = footerTexts.en;
+          actualLanguage = 'en';
         } else if (fr) {
           // Fallback to French if English not available
           emailContent = fr;
           footerText = footerTexts.fr;
+          actualLanguage = 'fr';
         } else {
           // Fallback to English if French not available
           emailContent = en!;
           footerText = footerTexts.en;
+          actualLanguage = 'en';
         }
 
         const emailHtml = `
@@ -211,22 +220,55 @@ serve(async (req) => {
           html: emailHtml,
         });
 
+        // Log the successful send to database
+        await supabase.from("product_update_logs").insert({
+          batch_id: batchId,
+          subject_fr: fr?.subject || null,
+          subject_en: en?.subject || null,
+          title_fr: fr?.title || null,
+          title_en: en?.title || null,
+          content_fr: fr?.content || null,
+          content_en: en?.content || null,
+          recipient_email: user.email,
+          recipient_user_id: user.id,
+          recipient_language: actualLanguage,
+          status: "sent",
+        });
+
         sentCount++;
-        logStep("Email sent successfully", { userId: user.id, email: user.email, language: user.language });
+        logStep("Email sent successfully", { userId: user.id, email: user.email, language: actualLanguage });
       } catch (emailError: any) {
         errorCount++;
         const errorMsg = emailError?.message || String(emailError);
         errors.push(`${user.email}: ${errorMsg}`);
+
+        // Log the failed send to database
+        await supabase.from("product_update_logs").insert({
+          batch_id: batchId,
+          subject_fr: fr?.subject || null,
+          subject_en: en?.subject || null,
+          title_fr: fr?.title || null,
+          title_en: en?.title || null,
+          content_fr: fr?.content || null,
+          content_en: en?.content || null,
+          recipient_email: user.email,
+          recipient_user_id: user.id,
+          recipient_language: user.language,
+          status: "error",
+          error_message: errorMsg,
+        });
+
         logStep("Error sending email", { userId: user.id, email: user.email, error: errorMsg });
       }
     }
 
-    logStep("Batch complete", { sentCount, errorCount });
+    logStep("Batch complete", { batchId, sentCount, errorCount });
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Product update emails sent`,
+        batchId,
         sentCount,
         errorCount,
         errors: errors.length > 0 ? errors : undefined
