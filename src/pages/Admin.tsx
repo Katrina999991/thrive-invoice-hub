@@ -5,6 +5,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { ProductUpdateEmailSection } from "@/components/ProductUpdateEmailSection";
 import { ProductUpdateLogsTable } from "@/components/admin/ProductUpdateLogsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
+import { ReceiptScanStatsCard } from "@/components/admin/ReceiptScanStatsCard";
 import { Shield } from "lucide-react";
 
 // Admin user ID - only this user can access admin features
@@ -40,6 +41,8 @@ export default function Admin() {
             : "Manage GestionFlow administrative features."}
         </p>
       </div>
+
+      <ReceiptScanStatsCard />
 
       <UsersTable />
 

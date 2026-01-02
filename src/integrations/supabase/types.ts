@@ -1129,6 +1129,47 @@ export type Database = {
           },
         ]
       }
+      receipt_scan_logs: {
+        Row: {
+          company_id: string | null
+          error_message: string | null
+          id: string
+          scanned_at: string
+          status: string
+          total_amount: number | null
+          user_id: string
+          vendor: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          error_message?: string | null
+          id?: string
+          scanned_at?: string
+          status?: string
+          total_amount?: number | null
+          user_id: string
+          vendor?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          error_message?: string | null
+          id?: string
+          scanned_at?: string
+          status?: string
+          total_amount?: number | null
+          user_id?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_scan_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           all_invoice_templates: boolean
