@@ -156,6 +156,7 @@ serve(async (req) => {
 
     let sentCount = 0;
     let errorCount = 0;
+    let rateLimitCount = 0; // Count 429 errors specifically
     const errors: string[] = [];
 
     // Footer translations
@@ -238,12 +239,20 @@ serve(async (req) => {
           </html>
         `;
 
-        await resend.emails.send({
+        const emailResult = await resend.emails.send({
           from: fromEmail,
           to: [user.email],
           replyTo: replyTo,
           subject: emailContent.subject,
           html: emailHtml,
+        });
+
+        // Log detailed response from Resend
+        logStep("Resend API response", { 
+          email: user.email, 
+          result: emailResult,
+          hasId: !!emailResult?.data?.id,
+          error: emailResult?.error
         });
 
         // Log the successful send to database
@@ -266,6 +275,18 @@ serve(async (req) => {
       } catch (emailError: any) {
         errorCount++;
         const errorMsg = emailError?.message || String(emailError);
+        const statusCode = emailError?.statusCode || emailError?.status || 'unknown';
+        
+        // Check for rate limit (429)
+        if (statusCode === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
+          rateLimitCount++;
+          logStep("⚠️ RATE LIMIT DETECTED (429)", { 
+            email: user.email, 
+            statusCode, 
+            totalRateLimits: rateLimitCount 
+          });
+        }
+        
         errors.push(`${user.email}: ${errorMsg}`);
 
         // Log the failed send to database
@@ -281,14 +302,26 @@ serve(async (req) => {
           recipient_user_id: user.id,
           recipient_language: user.language,
           status: "error",
-          error_message: errorMsg,
+          error_message: `[${statusCode}] ${errorMsg}`,
         });
 
-        logStep("Error sending email", { userId: user.id, email: user.email, error: errorMsg });
+        logStep("Error sending email", { 
+          userId: user.id, 
+          email: user.email, 
+          statusCode, 
+          error: errorMsg 
+        });
       }
     }
 
-    logStep("Batch complete", { batchId, sentCount, errorCount });
+    logStep("Batch complete", { batchId, sentCount, errorCount, rateLimitCount });
+    
+    if (rateLimitCount > 0) {
+      logStep("⚠️ RATE LIMIT SUMMARY", { 
+        totalRateLimits: rateLimitCount, 
+        percentageRateLimited: ((rateLimitCount / usersToEmail.length) * 100).toFixed(1) + '%'
+      });
+    }
 
     return new Response(
       JSON.stringify({ 
@@ -297,6 +330,7 @@ serve(async (req) => {
         batchId,
         sentCount,
         errorCount,
+        rateLimitCount,
         errors: errors.length > 0 ? errors : undefined
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
