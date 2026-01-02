@@ -124,9 +124,12 @@ serve(async (req) => {
         throw new Error(`Failed to fetch user emails: ${authError.message}`);
       }
 
+      // Emails to exclude from product updates
+      const excludedEmails = ['silviu@theresanaiforthat.com'];
+
       // Filter to only opted-in users and get their emails + language preference
       usersToEmail = authUsers.users
-        .filter(user => userIds.includes(user.id) && user.email)
+        .filter(user => userIds.includes(user.id) && user.email && !excludedEmails.includes(user.email.toLowerCase()))
         .map(user => ({
           id: user.id,
           email: user.email!,
