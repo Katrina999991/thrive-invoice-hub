@@ -173,8 +173,18 @@ serve(async (req) => {
       }
     };
 
+    // Helper function to add delay between emails (Resend rate limit: 2 requests/second)
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
     // Send emails to each opted-in user in their preferred language
-    for (const user of usersToEmail) {
+    for (let i = 0; i < usersToEmail.length; i++) {
+      const user = usersToEmail[i];
+      
+      // Add delay between emails to respect Resend rate limit (600ms = ~1.6 req/sec, safe margin)
+      if (i > 0) {
+        await delay(600);
+      }
+      
       try {
         // Determine which content to send based on user's language and available content
         let emailContent: EmailContent;
