@@ -21,7 +21,7 @@ export function ProductUpdateEmailSection() {
   
   // Test mode
   const [isTestMode, setIsTestMode] = useState(false);
-  const [testEmail, setTestEmail] = useState("");
+  const [testEmails, setTestEmails] = useState(""); // Supports comma-separated emails
   
   // French fields
   const [subjectFr, setSubjectFr] = useState("");
@@ -49,13 +49,14 @@ export function ProductUpdateEmailSection() {
       return;
     }
 
-    // Validate test email if in test mode
-    if (isTestMode && !testEmail.trim()) {
+    // Validate test emails if in test mode
+    const emailList = testEmails.split(',').map(e => e.trim()).filter(e => e);
+    if (isTestMode && emailList.length === 0) {
       toast({
         title: language === "fr" ? "Erreur" : "Error",
         description: language === "fr" 
-          ? "Veuillez entrer une adresse email de test" 
-          : "Please enter a test email address",
+          ? "Veuillez entrer au moins une adresse email de test" 
+          : "Please enter at least one test email address",
         variant: "destructive",
       });
       return;
@@ -93,7 +94,7 @@ export function ProductUpdateEmailSection() {
               title: titleEn,
               content: convertToHtml(contentEn),
             } : null,
-            testEmail: isTestMode ? testEmail.trim() : undefined,
+            testEmails: isTestMode ? emailList : undefined,
           }),
         }
       );
@@ -108,8 +109,8 @@ export function ProductUpdateEmailSection() {
         title: language === "fr" ? "Succès" : "Success",
         description: isTestMode
           ? (language === "fr"
-            ? `Email de test envoyé à ${testEmail}`
-            : `Test email sent to ${testEmail}`)
+            ? `${result.sentCount} email(s) de test envoyé(s)`
+            : `${result.sentCount} test email(s) sent`)
           : (language === "fr"
             ? `${result.sentCount} email(s) envoyé(s) avec succès`
             : `${result.sentCount} email(s) sent successfully`),
@@ -177,16 +178,21 @@ export function ProductUpdateEmailSection() {
 
         {isTestMode && (
           <div className="space-y-2">
-            <Label htmlFor="test-email">
-              {language === "fr" ? "Email de test" : "Test Email"}
+            <Label htmlFor="test-emails">
+              {language === "fr" ? "Emails de test" : "Test Emails"}
             </Label>
             <Input
-              id="test-email"
-              type="email"
-              value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
-              placeholder="test@example.com"
+              id="test-emails"
+              type="text"
+              value={testEmails}
+              onChange={(e) => setTestEmails(e.target.value)}
+              placeholder="email1@example.com, email2@example.com"
             />
+            <p className="text-xs text-muted-foreground">
+              {language === "fr" 
+                ? "Séparez les adresses par des virgules" 
+                : "Separate addresses with commas"}
+            </p>
           </div>
         )}
 

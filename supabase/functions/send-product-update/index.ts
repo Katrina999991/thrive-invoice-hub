@@ -17,7 +17,8 @@ interface ProductUpdateRequest {
   fr: EmailContent | null;
   en: EmailContent | null;
   preferencesUrl?: string; // URL to manage email preferences
-  testEmail?: string; // If provided, only send to this email address (test mode)
+  testEmails?: string[]; // If provided, only send to these email addresses (test mode)
+  testEmail?: string; // DEPRECATED: kept for backwards compatibility
 }
 
 const logStep = (step: string, details?: any) => {
@@ -47,9 +48,12 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    const { fr, en, preferencesUrl, testEmail } = await req.json() as ProductUpdateRequest;
+    const { fr, en, preferencesUrl, testEmails, testEmail } = await req.json() as ProductUpdateRequest;
 
-    logStep("Request data", { hasFr: !!fr, hasEn: !!en, testMode: !!testEmail });
+    // Support both new testEmails array and deprecated testEmail string
+    const testEmailList = testEmails || (testEmail ? [testEmail] : null);
+    
+    logStep("Request data", { hasFr: !!fr, hasEn: !!en, testMode: !!testEmailList, testCount: testEmailList?.length });
 
     // Validate inputs - at least one language version must be provided
     if (!fr && !en) {
@@ -65,19 +69,21 @@ serve(async (req) => {
 
     let usersToEmail: { id: string; email: string; language: string }[] = [];
 
-    if (testEmail) {
-      // Test mode: send only to the specified email
-      logStep("Test mode enabled", { testEmail });
+    if (testEmailList && testEmailList.length > 0) {
+      // Test mode: send only to the specified email(s)
+      logStep("Test mode enabled", { testEmails: testEmailList });
       
-      // Try to find the user in auth.users to get their language preference
+      // Try to find the users in auth.users to get their language preferences
       const { data: authUsers } = await supabase.auth.admin.listUsers();
-      const matchingUser = authUsers?.users.find(u => u.email?.toLowerCase() === testEmail.toLowerCase());
       
-      usersToEmail = [{
-        id: matchingUser?.id || "test-user",
-        email: testEmail,
-        language: matchingUser?.user_metadata?.language || 'fr' // Default to French for test
-      }];
+      usersToEmail = testEmailList.map(email => {
+        const matchingUser = authUsers?.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+        return {
+          id: matchingUser?.id || `test-user-${email}`,
+          email: email,
+          language: matchingUser?.user_metadata?.language || 'fr' // Default to French for test
+        };
+      });
     } else {
       // Normal mode: fetch all opted-in users
       const { data: optedInUsers, error: fetchError } = await supabase
