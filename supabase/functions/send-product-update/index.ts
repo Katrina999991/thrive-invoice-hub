@@ -81,7 +81,7 @@ serve(async (req) => {
         return {
           id: matchingUser?.id || `test-user-${email}`,
           email: email,
-          language: matchingUser?.user_metadata?.language || 'fr' // Default to French for test
+          language: matchingUser?.user_metadata?.language || 'en' // Default to English if not configured
         };
       });
     } else {
