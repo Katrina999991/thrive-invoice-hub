@@ -344,8 +344,26 @@ serve(async (req) => {
       }
     }
 
+    // Log the scan for usage tracking (before processing)
+    const totalAmount = extractedData.total_amount;
+    const scanVendor = extractedData.vendor || "";
+    
+    try {
+      await supabase.from("receipt_scan_logs").insert({
+        user_id: userId,
+        company_id: companyId || null,
+        vendor: scanVendor,
+        total_amount: totalAmount,
+        status: "success"
+      });
+      console.log("Receipt scan logged successfully");
+    } catch (logError) {
+      console.error("Failed to log receipt scan:", logError);
+      // Don't fail the scan if logging fails
+    }
+
     // Smart category suggestion
-    const vendor = extractedData.vendor || "";
+    const vendor = scanVendor;
     const lineItems = extractedData.line_items || [];
     const descriptionText = extractedData.description_en || extractedData.description_fr || "";
     
