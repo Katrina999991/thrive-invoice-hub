@@ -152,19 +152,34 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-border pt-8 flex flex-col items-center gap-4">
-          <a 
-            href="https://startupfa.me" 
-            target="_blank" 
-            rel="noopener"
-          >
-            <img 
-              src="https://startupfa.me/badges/featured-badge-small.webp" 
-              alt="GestionFlow - Featured on Startup Fame" 
-              width="224" 
-              height="36"
-              loading="lazy"
-            />
-          </a>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a 
+              href="https://startupfa.me" 
+              target="_blank" 
+              rel="noopener"
+            >
+              <img 
+                src="https://startupfa.me/badges/featured-badge-small.webp" 
+                alt="GestionFlow - Featured on Startup Fame" 
+                width="224" 
+                height="36"
+                loading="lazy"
+              />
+            </a>
+            <a 
+              href="https://www.saashub.com/gestionflow?utm_source=badge&utm_campaign=badge&utm_content=gestionflow&badge_variant=color&badge_kind=approved" 
+              target="_blank" 
+              rel="noopener"
+            >
+              <img 
+                src="https://cdn-b.saashub.com/img/badges/approved-color.png?v=1" 
+                alt="GestionFlow - Approved on SaaSHub" 
+                width="150" 
+                height="36"
+                loading="lazy"
+              />
+            </a>
+          </div>
           <p className="text-muted-foreground text-sm">{t.copyright}</p>
         </div>
       </div>
