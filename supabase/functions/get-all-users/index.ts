@@ -9,41 +9,71 @@ const corsHeaders = {
 // Admin user ID - only this user can access this function
 const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
 
+const logStep = (step: string, details?: Record<string, unknown>) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[GET-ALL-USERS] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
+  logStep("Function invoked", { method: req.method });
+  
   if (req.method === "OPTIONS") {
+    logStep("Handling OPTIONS request");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    logStep("Creating Supabase client");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    logStep("Environment check", { 
+      hasUrl: !!supabaseUrl, 
+      hasServiceKey: !!serviceRoleKey 
+    });
+
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      supabaseUrl ?? "",
+      serviceRoleKey ?? "",
       { auth: { persistSession: false } }
     );
 
     // Verify the requesting user is admin
     const authHeader = req.headers.get("Authorization");
+    logStep("Auth header check", { hasAuthHeader: !!authHeader });
+    
     if (!authHeader) {
       throw new Error("No authorization header provided");
     }
 
     const token = authHeader.replace("Bearer ", "");
+    logStep("Verifying user token");
+    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
+      logStep("Auth error", { error: userError?.message });
       throw new Error("Authentication failed");
     }
 
+    logStep("User authenticated", { userId: userData.user.id });
+
     if (userData.user.id !== ADMIN_USER_ID) {
+      logStep("Unauthorized user", { userId: userData.user.id, adminId: ADMIN_USER_ID });
       throw new Error("Unauthorized: Admin access required");
     }
+
+    logStep("Admin verified, fetching users");
 
     // Fetch all users from auth.users
     const { data: authUsers, error: authError } = await supabaseClient.auth.admin.listUsers();
     
     if (authError) {
+      logStep("Error fetching auth users", { error: authError.message });
       throw new Error(`Failed to fetch users: ${authError.message}`);
     }
+
+    logStep("Auth users fetched", { count: authUsers?.users?.length || 0 });
 
     // Fetch all subscriptions
     const { data: subscriptions, error: subError } = await supabaseClient
@@ -51,8 +81,11 @@ serve(async (req) => {
       .select("user_id, plan_type, billing_cycle, started_at, expires_at");
 
     if (subError) {
+      logStep("Error fetching subscriptions", { error: subError.message });
       throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
     }
+
+    logStep("Subscriptions fetched", { count: subscriptions?.length || 0 });
 
     // Fetch all profiles for display names and Stripe info
     const { data: profiles, error: profileError } = await supabaseClient
@@ -60,8 +93,11 @@ serve(async (req) => {
       .select("user_id, display_name, username, stripe_account_id, stripe_onboarding_complete");
 
     if (profileError) {
+      logStep("Error fetching profiles", { error: profileError.message });
       throw new Error(`Failed to fetch profiles: ${profileError.message}`);
     }
+
+    logStep("Profiles fetched", { count: profiles?.length || 0 });
 
     // Fetch companies count per user
     const { data: companies, error: companiesError } = await supabaseClient
@@ -69,6 +105,7 @@ serve(async (req) => {
       .select("user_id");
 
     if (companiesError) {
+      logStep("Error fetching companies", { error: companiesError.message });
       throw new Error(`Failed to fetch companies: ${companiesError.message}`);
     }
 
@@ -78,6 +115,7 @@ serve(async (req) => {
       .select("user_id");
 
     if (invoicesError) {
+      logStep("Error fetching invoices", { error: invoicesError.message });
       throw new Error(`Failed to fetch invoices: ${invoicesError.message}`);
     }
 
@@ -87,6 +125,7 @@ serve(async (req) => {
       .select("user_id");
 
     if (quotesError) {
+      logStep("Error fetching quotes", { error: quotesError.message });
       throw new Error(`Failed to fetch quotes: ${quotesError.message}`);
     }
 
@@ -96,6 +135,7 @@ serve(async (req) => {
       .select("user_id");
 
     if (expensesError) {
+      logStep("Error fetching expenses", { error: expensesError.message });
       throw new Error(`Failed to fetch expenses: ${expensesError.message}`);
     }
 
@@ -105,8 +145,11 @@ serve(async (req) => {
       .select("user_id");
 
     if (clientsError) {
+      logStep("Error fetching clients", { error: clientsError.message });
       throw new Error(`Failed to fetch clients: ${clientsError.message}`);
     }
+
+    logStep("All data fetched, processing");
 
     // Group counts by user_id
     const companiesCountMap = new Map<string, number>();
@@ -162,12 +205,15 @@ serve(async (req) => {
     // Sort by created_at descending (newest first)
     users.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+    logStep("Success", { userCount: users.length });
+
     return new Response(JSON.stringify({ users }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
