@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.mfa-totp]
 verify_jwt = false
+
+[functions.get-all-users]
+verify_jwt = false
