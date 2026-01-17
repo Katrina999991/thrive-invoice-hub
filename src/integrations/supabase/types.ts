@@ -366,6 +366,140 @@ export type Database = {
         }
         Relationships: []
       }
+      company_invites: {
+        Row: {
+          accepted_at: string | null
+          company_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          company_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          role_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          company_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_invites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "company_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          role_id: string
+          status: Database["public"]["Enums"]["member_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          role_id: string
+          status?: Database["public"]["Enums"]["member_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          role_id?: string
+          status?: Database["public"]["Enums"]["member_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "company_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_roles: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_preferences: {
         Row: {
           created_at: string
@@ -1170,6 +1304,32 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          permission: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string
+          permission: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string
+          permission?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "company_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           all_invoice_templates: boolean
@@ -1395,10 +1555,22 @@ export type Database = {
         Args: { check_username: string; current_user_id: string }
         Returns: boolean
       }
+      count_owners_in_company: {
+        Args: { _company_id: string }
+        Returns: number
+      }
+      create_default_roles_for_company: {
+        Args: { _company_id: string; _owner_user_id: string }
+        Returns: undefined
+      }
       decrypt_sensitive: { Args: { ciphertext: string }; Returns: string }
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
       generate_quote_number: { Args: { company_id: string }; Returns: string }
+      get_user_permissions: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: string[]
+      }
       get_user_plan_limits: {
         Args: { user_uuid: string }
         Returns: {
@@ -1415,6 +1587,18 @@ export type Database = {
           pdf_export: boolean
           plan_type: Database["public"]["Enums"]["subscription_plan"]
         }[]
+      }
+      get_user_role_in_company: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: string
+      }
+      has_permission: {
+        Args: { _company_id: string; _permission: string; _user_id: string }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
       }
       is_encrypted: { Args: { data: string }; Returns: boolean }
       log_audit_event: {
@@ -1437,6 +1621,7 @@ export type Database = {
       reset_monthly_usage: { Args: never; Returns: undefined }
     }
     Enums: {
+      app_role: "owner" | "admin" | "accountant" | "employee" | "viewer"
       audit_event_category:
         | "authentication"
         | "billing"
@@ -1445,6 +1630,7 @@ export type Database = {
         | "exports"
         | "settings"
       billing_cycle: "monthly" | "yearly"
+      member_status: "active" | "suspended"
       subscription_plan: "free" | "premium" | "pro"
     }
     CompositeTypes: {
@@ -1573,6 +1759,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["owner", "admin", "accountant", "employee", "viewer"],
       audit_event_category: [
         "authentication",
         "billing",
@@ -1582,6 +1769,7 @@ export const Constants = {
         "settings",
       ],
       billing_cycle: ["monthly", "yearly"],
+      member_status: ["active", "suspended"],
       subscription_plan: ["free", "premium", "pro"],
     },
   },
