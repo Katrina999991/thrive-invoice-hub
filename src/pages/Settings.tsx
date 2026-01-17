@@ -2,7 +2,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight } from "lucide-react";
+import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight, Users } from "lucide-react";
+import { TeamAccessTab } from "@/components/settings/TeamAccessTab";
+import { useCompanyPermissions } from "@/hooks/useCompanyPermissions";
 import { InvoiceDesignSettings } from "@/components/InvoiceDesignSettings";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
@@ -98,6 +100,11 @@ export default function Settings() {
   // Email templates
   const { companies, updateCompany } = useCompanies();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  
+  // Get first company for permissions check
+  const firstCompanyId = companies.length > 0 ? companies[0].id : null;
+  const { hasPermission } = useCompanyPermissions(firstCompanyId);
+  const canViewTeamAccess = hasPermission("access:view_members");
   const [emailTemplates, setEmailTemplates] = useState({
     invoice_email_subject_en: "",
     invoice_email_subject_fr: "",
@@ -787,6 +794,12 @@ Cordialement,
           <TabsTrigger value="general">
             {language === "fr" ? "Général" : "General"}
           </TabsTrigger>
+          {canViewTeamAccess && (
+            <TabsTrigger value="team">
+              <Users className="h-4 w-4 mr-2" />
+              {language === "fr" ? "Équipe & Accès" : "Team & Access"}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -2108,6 +2121,12 @@ Cordialement,
         </CardContent>
         </Card>
         </TabsContent>
+
+        {canViewTeamAccess && (
+          <TabsContent value="team">
+            <TeamAccessTab />
+          </TabsContent>
+        )}
       </Tabs>
 
       
