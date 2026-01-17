@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight } from "lucide-react";
 import { InvoiceDesignSettings } from "@/components/InvoiceDesignSettings";
@@ -781,7 +782,15 @@ Cordialement,
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="general">
+            {language === "fr" ? "Général" : "General"}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="space-y-6">
+          <div className="grid gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -2097,7 +2106,9 @@ Cordialement,
         <CardContent>
           <ContactForm language={language} userEmail={user?.email} />
         </CardContent>
-      </Card>
+        </Card>
+        </TabsContent>
+      </Tabs>
 
       
       {/* Email Change Dialog */}
