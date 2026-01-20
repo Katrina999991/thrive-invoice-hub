@@ -104,7 +104,9 @@ export default function Settings() {
   // Get first company for permissions check
   const firstCompanyId = companies.length > 0 ? companies[0].id : null;
   const { hasPermission } = useCompanyPermissions(firstCompanyId);
-  const canViewTeamAccess = hasPermission("access:view_members");
+  // Temporarily restrict Team & Access tab to admin account only until fully tested
+  const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
+  const canViewTeamAccess = user?.id === ADMIN_USER_ID && hasPermission("access:view_members");
   const [emailTemplates, setEmailTemplates] = useState({
     invoice_email_subject_en: "",
     invoice_email_subject_fr: "",
