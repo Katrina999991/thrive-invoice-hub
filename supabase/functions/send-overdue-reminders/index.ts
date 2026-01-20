@@ -119,6 +119,7 @@ serve(async (req) => {
           email,
           language,
           send_overdue_email_auto,
+          include_payment_link,
           companies (
             id,
             name,
@@ -244,11 +245,44 @@ Best regards,
         .replace(/{total}/g, invoice.total.toFixed(2))
         .replace(/{days_overdue}/g, daysOverdue.toString());
 
-      // Add payment link if available
-      if (invoice.payment_link) {
+      // Add payment link - create automatically if client has option enabled and no link exists
+      let paymentLink = invoice.payment_link;
+      
+      if (!paymentLink && client.include_payment_link === true) {
+        try {
+          console.log(`Creating payment link for overdue invoice ${invoice.invoice_number}`);
+          
+          const paymentLinkResponse = await fetch(
+            `${supabaseUrl}/functions/v1/create-invoice-payment-link`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseServiceKey}`,
+              },
+              body: JSON.stringify({ invoiceId: invoice.id }),
+            }
+          );
+          
+          if (paymentLinkResponse.ok) {
+            const paymentLinkData = await paymentLinkResponse.json();
+            if (paymentLinkData?.url) {
+              paymentLink = paymentLinkData.url;
+              console.log(`Payment link created successfully: ${paymentLink}`);
+            }
+          } else {
+            const errorText = await paymentLinkResponse.text();
+            console.error(`Error creating payment link: ${errorText}`);
+          }
+        } catch (error) {
+          console.error(`Exception creating payment link for invoice ${invoice.invoice_number}:`, error);
+        }
+      }
+      
+      if (paymentLink) {
         const paymentLinkText = isFrench 
-          ? `\n\n<strong>Payer maintenant:</strong> <a href="${invoice.payment_link}" style="color: #2563eb; text-decoration: underline;">Cliquez ici pour payer en ligne</a>`
-          : `\n\n<strong>Pay now:</strong> <a href="${invoice.payment_link}" style="color: #2563eb; text-decoration: underline;">Click here to pay online</a>`;
+          ? `<br><br><div style="margin: 20px 0;"><strong>Payer en ligne :</strong><br><a href="${paymentLink}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Payer maintenant</a></div>`
+          : `<br><br><div style="margin: 20px 0;"><strong>Pay online:</strong><br><a href="${paymentLink}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Pay Now</a></div>`;
         emailMessage += paymentLinkText;
       }
 
