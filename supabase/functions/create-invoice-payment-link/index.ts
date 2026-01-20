@@ -12,6 +12,63 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-INVOICE-PAYMENT-LINK] ${step}${detailsStr}`);
 };
 
+// Decryption helper for encrypted stripe_account_id
+async function decryptData(encryptedData: string): Promise<string> {
+  // Check if data is encrypted (starts with ENC:V1)
+  if (!encryptedData || !encryptedData.startsWith('ENC:V1')) {
+    return encryptedData; // Not encrypted, return as-is
+  }
+
+  const encryptionKey = Deno.env.get("ENCRYPTION_KEY");
+  if (!encryptionKey) {
+    throw new Error("ENCRYPTION_KEY not configured");
+  }
+
+  try {
+    // Remove the ENC:V1 prefix
+    const base64Data = encryptedData.substring(6);
+    const encryptedBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    
+    // Extract IV (first 12 bytes) and ciphertext
+    const iv = encryptedBytes.slice(0, 12);
+    const ciphertext = encryptedBytes.slice(12);
+    
+    // Derive key from encryption key
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(encryptionKey),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits", "deriveKey"]
+    );
+    
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: new TextEncoder().encode("gestionflow-salt"),
+        iterations: 100000,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"]
+    );
+    
+    // Decrypt
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ciphertext
+    );
+    
+    return new TextDecoder().decode(decryptedBuffer);
+  } catch (error) {
+    logStep("Decryption error", { error: error.message });
+    throw new Error("Failed to decrypt data");
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -56,9 +113,13 @@ serve(async (req) => {
       throw new Error("Stripe account not connected. Please start Stripe onboarding first.");
     }
 
+    // Decrypt the stripe_account_id if it's encrypted
+    const stripeAccountId = await decryptData(profile.stripe_account_id);
+    logStep("Stripe account ID processed", { encrypted: profile.stripe_account_id.startsWith('ENC:') });
+
     // Log a warning if onboarding is not complete (useful for test mode)
     if (!profile?.stripe_onboarding_complete) {
-      logStep("WARNING: Onboarding not complete - may be test mode", { accountId: profile.stripe_account_id });
+      logStep("WARNING: Onboarding not complete - may be test mode", { accountId: stripeAccountId.substring(0, 10) + '...' });
     }
 
     // Get user's subscription plan
@@ -140,7 +201,7 @@ serve(async (req) => {
       },
       application_fee_amount: applicationFee,
     }, {
-      stripeAccount: profile.stripe_account_id,
+      stripeAccount: stripeAccountId,
     });
 
     logStep("Payment link created", { url: paymentLink.url });
