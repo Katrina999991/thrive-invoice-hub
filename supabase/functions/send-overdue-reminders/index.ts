@@ -244,6 +244,14 @@ Best regards,
         .replace(/{total}/g, invoice.total.toFixed(2))
         .replace(/{days_overdue}/g, daysOverdue.toString());
 
+      // Add payment link if available
+      if (invoice.payment_link) {
+        const paymentLinkText = isFrench 
+          ? `\n\n<strong>Payer maintenant:</strong> <a href="${invoice.payment_link}" style="color: #2563eb; text-decoration: underline;">Cliquez ici pour payer en ligne</a>`
+          : `\n\n<strong>Pay now:</strong> <a href="${invoice.payment_link}" style="color: #2563eb; text-decoration: underline;">Click here to pay online</a>`;
+        emailMessage += paymentLinkText;
+      }
+
       // Split emails if multiple
       const clientEmails = client.email.split(",").map((e: string) => e.trim());
 
