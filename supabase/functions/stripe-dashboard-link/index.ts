@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,31 +13,70 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-DASHBOARD-LINK] ${step}${detailsStr}`);
 };
 
-// Decrypt function to handle encrypted stripe_account_id
-const decryptValue = async (supabaseClient: any, encryptedValue: string): Promise<string> => {
-  if (!encryptedValue) return encryptedValue;
+// Convert string key to proper AES-256 key (32 bytes)
+async function deriveKey(keyString: string): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
   
-  // Check if value is encrypted (starts with ENC: or AESENC:)
-  if (!encryptedValue.startsWith('ENC:') && !encryptedValue.startsWith('AESENC:')) {
-    return encryptedValue;
-  }
+  return await crypto.subtle.importKey(
+    'raw',
+    hashBuffer,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
+// Decryption helper for encrypted stripe_account_id
+async function decryptData(ciphertext: string, keyString: string): Promise<string> {
+  if (!ciphertext) return ciphertext;
   
-  try {
-    const { data, error } = await supabaseClient.rpc('decrypt_sensitive', {
-      ciphertext: encryptedValue
-    });
-    
-    if (error) {
-      logStep("Decryption error", { error: error.message });
-      throw error;
+  // Handle AES format (AESENC:)
+  if (ciphertext.startsWith("AESENC:")) {
+    try {
+      const key = await deriveKey(keyString);
+      const base64Data = ciphertext.slice(7);
+      const combined = decodeBase64(base64Data);
+      
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encrypted
+      );
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      logStep("AES Decryption error", { error: error.message });
+      return ciphertext;
     }
-    
-    return data || encryptedValue;
-  } catch (error) {
-    logStep("Decryption failed", { error: error.message });
-    throw error;
   }
-};
+  
+  // Handle legacy XOR format (ENC:)
+  if (ciphertext.startsWith("ENC:")) {
+    try {
+      const base64Data = ciphertext.slice(4);
+      const encrypted = decodeBase64(base64Data);
+      const keyBytes = new TextEncoder().encode(keyString);
+      
+      const decrypted = new Uint8Array(encrypted.length);
+      for (let i = 0; i < encrypted.length; i++) {
+        decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
+      }
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      logStep("Legacy XOR Decryption error", { error: error.message });
+      return ciphertext;
+    }
+  }
+  
+  // Not encrypted, return as-is
+  return ciphertext;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -82,10 +122,14 @@ serve(async (req) => {
     }
 
     // Decrypt the stripe_account_id if it's encrypted
-    const decryptedAccountId = await decryptValue(supabaseClient, profile.stripe_account_id);
-    logStep("Stripe account ID decrypted", { accountId: decryptedAccountId });
+    const encryptionKey = Deno.env.get("ENCRYPTION_KEY") || "";
+    const decryptedAccountId = await decryptData(profile.stripe_account_id, encryptionKey);
+    logStep("Stripe account ID decrypted", { 
+      wasEncrypted: profile.stripe_account_id.startsWith('ENC:') || profile.stripe_account_id.startsWith('AESENC:'),
+      accountIdPrefix: decryptedAccountId.substring(0, 10) + '...'
+    });
 
-    logStep("Creating dashboard login link", { accountId: decryptedAccountId });
+    logStep("Creating dashboard login link", { accountId: decryptedAccountId.substring(0, 10) + '...' });
 
     // Create a login link for the Express account
     const loginLink = await stripe.accounts.createLoginLink(decryptedAccountId);
