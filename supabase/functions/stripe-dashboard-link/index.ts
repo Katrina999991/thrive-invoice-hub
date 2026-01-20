@@ -12,6 +12,32 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-DASHBOARD-LINK] ${step}${detailsStr}`);
 };
 
+// Decrypt function to handle encrypted stripe_account_id
+const decryptValue = async (supabaseClient: any, encryptedValue: string): Promise<string> => {
+  if (!encryptedValue) return encryptedValue;
+  
+  // Check if value is encrypted (starts with ENC: or AESENC:)
+  if (!encryptedValue.startsWith('ENC:') && !encryptedValue.startsWith('AESENC:')) {
+    return encryptedValue;
+  }
+  
+  try {
+    const { data, error } = await supabaseClient.rpc('decrypt_sensitive', {
+      ciphertext: encryptedValue
+    });
+    
+    if (error) {
+      logStep("Decryption error", { error: error.message });
+      throw error;
+    }
+    
+    return data || encryptedValue;
+  } catch (error) {
+    logStep("Decryption failed", { error: error.message });
+    throw error;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -55,10 +81,14 @@ serve(async (req) => {
       throw new Error("Stripe onboarding not complete. Please complete onboarding first.");
     }
 
-    logStep("Creating dashboard login link", { accountId: profile.stripe_account_id });
+    // Decrypt the stripe_account_id if it's encrypted
+    const decryptedAccountId = await decryptValue(supabaseClient, profile.stripe_account_id);
+    logStep("Stripe account ID decrypted", { accountId: decryptedAccountId });
+
+    logStep("Creating dashboard login link", { accountId: decryptedAccountId });
 
     // Create a login link for the Express account
-    const loginLink = await stripe.accounts.createLoginLink(profile.stripe_account_id);
+    const loginLink = await stripe.accounts.createLoginLink(decryptedAccountId);
 
     logStep("Dashboard link created", { url: loginLink.url });
 
