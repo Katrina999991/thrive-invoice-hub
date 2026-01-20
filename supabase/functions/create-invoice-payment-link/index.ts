@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,61 +13,69 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-INVOICE-PAYMENT-LINK] ${step}${detailsStr}`);
 };
 
+// Convert string key to proper AES-256 key (32 bytes)
+async function deriveKey(keyString: string): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+  
+  return await crypto.subtle.importKey(
+    'raw',
+    hashBuffer,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
 // Decryption helper for encrypted stripe_account_id
-async function decryptData(encryptedData: string): Promise<string> {
-  // Check if data is encrypted (starts with ENC:V1)
-  if (!encryptedData || !encryptedData.startsWith('ENC:V1')) {
-    return encryptedData; // Not encrypted, return as-is
+async function decryptData(ciphertext: string, keyString: string): Promise<string> {
+  if (!ciphertext) return ciphertext;
+  
+  // Handle AES format (AESENC:)
+  if (ciphertext.startsWith("AESENC:")) {
+    try {
+      const key = await deriveKey(keyString);
+      const base64Data = ciphertext.slice(7);
+      const combined = decodeBase64(base64Data);
+      
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encrypted
+      );
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      logStep("AES Decryption error", { error: error.message });
+      return ciphertext;
+    }
   }
-
-  const encryptionKey = Deno.env.get("ENCRYPTION_KEY");
-  if (!encryptionKey) {
-    throw new Error("ENCRYPTION_KEY not configured");
+  
+  // Handle legacy XOR format (ENC:)
+  if (ciphertext.startsWith("ENC:")) {
+    try {
+      const base64Data = ciphertext.slice(4);
+      const encrypted = decodeBase64(base64Data);
+      const keyBytes = new TextEncoder().encode(keyString);
+      
+      const decrypted = new Uint8Array(encrypted.length);
+      for (let i = 0; i < encrypted.length; i++) {
+        decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
+      }
+      
+      return new TextDecoder().decode(decrypted);
+    } catch (error) {
+      logStep("Legacy XOR Decryption error", { error: error.message });
+      return ciphertext;
+    }
   }
-
-  try {
-    // Remove the ENC:V1 prefix
-    const base64Data = encryptedData.substring(6);
-    const encryptedBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    
-    // Extract IV (first 12 bytes) and ciphertext
-    const iv = encryptedBytes.slice(0, 12);
-    const ciphertext = encryptedBytes.slice(12);
-    
-    // Derive key from encryption key
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw",
-      new TextEncoder().encode(encryptionKey),
-      { name: "PBKDF2" },
-      false,
-      ["deriveBits", "deriveKey"]
-    );
-    
-    const key = await crypto.subtle.deriveKey(
-      {
-        name: "PBKDF2",
-        salt: new TextEncoder().encode("gestionflow-salt"),
-        iterations: 100000,
-        hash: "SHA-256",
-      },
-      keyMaterial,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"]
-    );
-    
-    // Decrypt
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
-    
-    return new TextDecoder().decode(decryptedBuffer);
-  } catch (error) {
-    logStep("Decryption error", { error: error.message });
-    throw new Error("Failed to decrypt data");
-  }
+  
+  // Not encrypted, return as-is
+  return ciphertext;
 }
 
 serve(async (req) => {
@@ -114,8 +123,9 @@ serve(async (req) => {
     }
 
     // Decrypt the stripe_account_id if it's encrypted
-    const stripeAccountId = await decryptData(profile.stripe_account_id);
-    logStep("Stripe account ID processed", { encrypted: profile.stripe_account_id.startsWith('ENC:') });
+    const encryptionKey = Deno.env.get("ENCRYPTION_KEY") || "";
+    const stripeAccountId = await decryptData(profile.stripe_account_id, encryptionKey);
+    logStep("Stripe account ID processed", { encrypted: profile.stripe_account_id.startsWith('ENC:') || profile.stripe_account_id.startsWith('AESENC:') });
 
     // Log a warning if onboarding is not complete (useful for test mode)
     if (!profile?.stripe_onboarding_complete) {
