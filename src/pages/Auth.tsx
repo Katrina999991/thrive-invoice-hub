@@ -673,6 +673,31 @@ export default function Auth() {
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
+                <p className="text-xs text-muted-foreground text-center">
+                  {language === 'en' ? (
+                    <>
+                      By creating an account, you agree to our{' '}
+                      <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                        Privacy Policy
+                      </a>
+                      {' '}and{' '}
+                      <a href="/terms" target="_blank" className="text-primary hover:underline">
+                        Terms of Service
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      En créant un compte, vous acceptez notre{' '}
+                      <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                        Politique de confidentialité
+                      </a>
+                      {' '}et nos{' '}
+                      <a href="/terms" target="_blank" className="text-primary hover:underline">
+                        Conditions d'utilisation
+                      </a>
+                    </>
+                  )}
+                </p>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     <>
