@@ -1567,6 +1567,7 @@ export type Database = {
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
       generate_quote_number: { Args: { company_id: string }; Returns: string }
+      get_current_user_email: { Args: never; Returns: string }
       get_user_permissions: {
         Args: { _company_id: string; _user_id: string }
         Returns: string[]
