@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('user_id', invite.invited_by)
       .single();
 
-    const inviterName = inviterProfile?.display_name || inviterProfile?.username || 'Un membre';
+    const inviterName = inviterProfile?.username || inviterProfile?.display_name || 'Un membre';
     const companyName = invite.companies?.name || 'une entreprise';
     const roleName = invite.company_roles?.name || 'Membre';
 
