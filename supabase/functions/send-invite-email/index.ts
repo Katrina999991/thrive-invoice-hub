@@ -67,8 +67,8 @@ const handler = async (req: Request): Promise<Response> => {
     const companyName = invite.companies?.name || 'une entreprise';
     const roleName = invite.company_roles?.name || 'Membre';
 
-    // Build the invite accept URL
-    const appUrl = Deno.env.get('APP_URL') || 'https://thrive-invoice-hub.lovable.app';
+    // Build the invite accept URL - use production domain
+    const appUrl = 'https://gestionflow.net';
     const acceptUrl = `${appUrl}/accept-invite?token=${invite.token}`;
 
     // Prepare email content (bilingual)
