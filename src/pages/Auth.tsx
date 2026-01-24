@@ -80,12 +80,30 @@ export default function Auth() {
   console.log("Auth component render - showUpdatePassword:", showUpdatePassword);
   console.log("Auth component render - isPasswordRecoveryMode:", isPasswordRecoveryMode);
 
+  // Helper function to handle redirect after auth
+  const handlePostAuthRedirect = () => {
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+      sessionStorage.removeItem('redirectAfterLogin');
+      // Extract the path from the full URL
+      try {
+        const url = new URL(redirectUrl);
+        navigate(url.pathname + url.search);
+      } catch {
+        // If it's already a path, use it directly
+        navigate(redirectUrl);
+      }
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
   // Handle redirects in useEffect, not during render
   useEffect(() => {
     // Don't redirect if we're checking MFA or showing MFA verification
     if (user && !isPasswordRecoveryMode && !showUpdatePassword && !pendingMFACheck && !showMFAVerification) {
-      console.log("Redirecting to /dashboard because user exists and not in recovery mode");
-      navigate("/dashboard");
+      console.log("Redirecting because user exists and not in recovery mode");
+      handlePostAuthRedirect();
     }
   }, [user, isPasswordRecoveryMode, showUpdatePassword, pendingMFACheck, showMFAVerification, navigate]);
 
@@ -204,7 +222,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/dashboard");
+      handlePostAuthRedirect();
       setIsLoading(false);
     }
   };
@@ -232,7 +250,7 @@ export default function Auth() {
         title: language === 'fr' ? "Bienvenue !" : "Welcome back!",
         description: language === 'fr' ? "Vous êtes connecté avec succès." : "You have successfully signed in.",
       });
-      navigate("/dashboard");
+      handlePostAuthRedirect();
     } else {
       toast({
         title: language === 'fr' ? "Erreur" : "Error",
