@@ -181,23 +181,54 @@ export function useCompanyMembers(companyId: string | null) {
     if (!companyId) return;
 
     try {
-      const { error } = await supabase
+      const { data: inviteData, error } = await supabase
         .from("company_invites")
         .insert({
           company_id: companyId,
           email,
           role_id: roleId,
           invited_by: invitedBy
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast({
-        title: language === "fr" ? "Invitation envoyée" : "Invitation sent",
-        description: language === "fr" 
-          ? `Une invitation a été envoyée à ${email}.`
-          : `An invitation has been sent to ${email}.`
-      });
+      // Send invite email
+      if (inviteData) {
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
+            body: { inviteId: inviteData.id }
+          });
+          
+          if (emailError) {
+            console.error("Error sending invite email:", emailError);
+            // Don't fail the invite if email fails, just warn
+            toast({
+              title: language === "fr" ? "Invitation créée" : "Invitation created",
+              description: language === "fr" 
+                ? `L'invitation a été créée mais l'email n'a pas pu être envoyé. Partagez le lien manuellement.`
+                : `Invitation created but email could not be sent. Please share the link manually.`,
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: language === "fr" ? "Invitation envoyée" : "Invitation sent",
+              description: language === "fr" 
+                ? `Une invitation a été envoyée à ${email}.`
+                : `An invitation has been sent to ${email}.`
+            });
+          }
+        } catch (emailError) {
+          console.error("Error invoking send-invite-email:", emailError);
+          toast({
+            title: language === "fr" ? "Invitation créée" : "Invitation created",
+            description: language === "fr" 
+              ? `L'invitation a été créée. L'email sera envoyé bientôt.`
+              : `Invitation created. Email will be sent shortly.`
+          });
+        }
+      }
 
       await fetchInvites();
     } catch (error: any) {
