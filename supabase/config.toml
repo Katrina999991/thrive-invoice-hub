@@ -62,3 +62,30 @@ verify_jwt = false
 
 [functions.send-invite-email]
 verify_jwt = false
+
+[functions.scan-receipt]
+verify_jwt = false
+
+[functions.send-invoice-email]
+verify_jwt = false
+
+[functions.send-contact-email]
+verify_jwt = false
+
+[functions.delete-user-account]
+verify_jwt = false
+
+[functions.send-product-update]
+verify_jwt = false
+
+[functions.stripe-connect-onboarding]
+verify_jwt = false
+
+[functions.stripe-dashboard-link]
+verify_jwt = false
+
+[functions.verify-stripe-account]
+verify_jwt = false
+
+[functions.reset-stripe-account]
+verify_jwt = false
