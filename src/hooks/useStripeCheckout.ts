@@ -9,7 +9,7 @@ export const useStripeCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  const createCheckout = async (planType: PlanType, billingCycle: BillingCycle, isUpgrade: boolean = false) => {
+  const createCheckout = async (planType: PlanType, billingCycle: BillingCycle, isUpgrade: boolean = false, companyId?: string) => {
     try {
       setIsLoading(true);
       
@@ -44,6 +44,8 @@ export const useStripeCheckout = () => {
           // Refresh subscription data
           queryClient.invalidateQueries({ queryKey: ['planLimits'] });
           queryClient.invalidateQueries({ queryKey: ['currentSubscription'] });
+          queryClient.invalidateQueries({ queryKey: ['companySubscription'] });
+          queryClient.invalidateQueries({ queryKey: ['companyPlanLimits'] });
           
           // Optionally open the invoice URL
           if (data.invoiceUrl) {
@@ -55,7 +57,7 @@ export const useStripeCheckout = () => {
       } else {
         // For new subscriptions, use checkout session
         const { data, error } = await supabase.functions.invoke('create-checkout', {
-          body: { priceId },
+          body: { priceId, companyId },
         });
 
         if (error) throw error;
@@ -100,6 +102,8 @@ export const useStripeCheckout = () => {
       // Invalidate queries to refresh subscription data
       queryClient.invalidateQueries({ queryKey: ['planLimits'] });
       queryClient.invalidateQueries({ queryKey: ['currentSubscription'] });
+      queryClient.invalidateQueries({ queryKey: ['companySubscription'] });
+      queryClient.invalidateQueries({ queryKey: ['companyPlanLimits'] });
       
       return data;
     } catch (error: any) {
@@ -186,6 +190,8 @@ export const useStripeCheckout = () => {
       // Refresh subscription data
       queryClient.invalidateQueries({ queryKey: ['planLimits'] });
       queryClient.invalidateQueries({ queryKey: ['currentSubscription'] });
+      queryClient.invalidateQueries({ queryKey: ['companySubscription'] });
+      queryClient.invalidateQueries({ queryKey: ['companyPlanLimits'] });
     } catch (error: any) {
       console.error('Schedule upgrade error:', error);
       toast.error(error.message || 'Failed to schedule upgrade');
