@@ -46,6 +46,7 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
 import { useState, useEffect } from "react";
@@ -54,6 +55,7 @@ export function AppSidebar() {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
   const { planLimits } = useSubscription();
+  const { hasPermission } = useSelectedCompany();
   const { state, setOpenMobile, isMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
@@ -83,19 +85,26 @@ export function AppSidebar() {
   
   const logo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
 
+  // Define main menu items with their required permissions
   const mainItems = [
-    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, requiresFeature: null },
-    { titleKey: "nav.companies", url: "/dashboard/companies", icon: Building2, requiresFeature: null },
-    { titleKey: "nav.clients", url: "/dashboard/clients", icon: Users, requiresFeature: null },
-    { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag, requiresFeature: "category_management" as const },
-    { titleKey: "nav.products", url: "/dashboard/products", icon: Package, requiresFeature: null },
-    { titleKey: "nav.stockManagement", url: "/dashboard/stock", icon: Warehouse, requiresFeature: null },
-    { titleKey: "nav.quotes", url: "/dashboard/quotes", icon: FileCheck, requiresFeature: null },
-    { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText, requiresFeature: null },
-    { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null },
-    { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null },
-    { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3, requiresFeature: null },
+    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, requiresFeature: null, requiredPermission: null },
+    { titleKey: "nav.companies", url: "/dashboard/companies", icon: Building2, requiresFeature: null, requiredPermission: null },
+    { titleKey: "nav.clients", url: "/dashboard/clients", icon: Users, requiresFeature: null, requiredPermission: "clients:view" },
+    { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag, requiresFeature: "category_management" as const, requiredPermission: null },
+    { titleKey: "nav.products", url: "/dashboard/products", icon: Package, requiresFeature: null, requiredPermission: "products:view" },
+    { titleKey: "nav.stockManagement", url: "/dashboard/stock", icon: Warehouse, requiresFeature: null, requiredPermission: "inventory:view" },
+    { titleKey: "nav.quotes", url: "/dashboard/quotes", icon: FileCheck, requiresFeature: null, requiredPermission: "quotes:view" },
+    { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText, requiresFeature: null, requiredPermission: "invoices:view" },
+    { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null, requiredPermission: null },
+    { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null, requiredPermission: "expenses:view" },
+    { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3, requiresFeature: null, requiredPermission: "reports:view" },
   ];
+
+  // Filter menu items based on permissions
+  const visibleMainItems = mainItems.filter(item => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
 
   const settingsItems = [
     { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null, adminOnly: false },
@@ -156,7 +165,7 @@ export function AppSidebar() {
             <SidebarGroupLabel>{t("nav.main")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {mainItems.map((item) => (
+                {visibleMainItems.map((item) => (
                   <SidebarMenuItem key={item.titleKey}>
                     <SidebarMenuButton asChild>
                       <NavLink 
