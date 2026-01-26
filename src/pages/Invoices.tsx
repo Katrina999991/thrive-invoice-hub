@@ -21,6 +21,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -67,6 +68,7 @@ const Invoices = () => {
   const { companies } = useCompanies();
   const { products } = useProducts();
   const { isLimitReached, planLimits } = useSubscription();
+  const { canCreate, canEdit, canDelete, hasPermission } = useSelectedCompany();
   const { 
     isLoading: isStripeLoading,
     stripeAccountId,
@@ -74,6 +76,12 @@ const Invoices = () => {
     loadStripeAccount,
     createPaymentLink
   } = useStripeConnect();
+
+  // Permission checks
+  const canCreateInvoices = canCreate("invoices");
+  const canEditInvoices = canEdit("invoices");
+  const canDeleteInvoices = canDelete("invoices");
+  const canSendInvoices = hasPermission("invoices:send");
 
   // Load Stripe account info on mount
   useEffect(() => {
@@ -1349,10 +1357,12 @@ Best regards,
             {t("invoices.subtitle")}
           </p>
         </div>
-        <Button onClick={handleCreateInvoiceClick} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          {t("invoices.createButton")}
-        </Button>
+        {canCreateInvoices && (
+          <Button onClick={handleCreateInvoiceClick} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            {t("invoices.createButton")}
+          </Button>
+        )}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -2258,16 +2268,18 @@ Best regards,
                             </TooltipContent>
                           </Tooltip>
 
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{language === 'fr' ? 'Modifier la facture' : 'Edit invoice'}</p>
-                            </TooltipContent>
-                          </Tooltip>
+                          {canEditInvoices && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === 'fr' ? 'Modifier la facture' : 'Edit invoice'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
 
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -2284,7 +2296,7 @@ Best regards,
                             </TooltipContent>
                           </Tooltip>
 
-                          {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
+                          {canSendInvoices && (invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid" || invoice.status === "overdue") && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button 
@@ -2387,41 +2399,43 @@ Best regards,
                               </p>
                             </TooltipContent>
                           </Tooltip>
-                          <AlertDialog>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <AlertDialogTrigger asChild>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="text-destructive hover:text-destructive"
+                          {canDeleteInvoices && (
+                            <AlertDialog>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{language === 'fr' ? 'Supprimer la facture' : 'Delete invoice'}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteInvoice(invoice.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{language === 'fr' ? 'Supprimer la facture' : 'Delete invoice'}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteInvoice(invoice.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {t("invoices.deleteButton")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                          </AlertDialog>
+                                    {t("invoices.deleteButton")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </TooltipProvider>
                     </TableCell>
