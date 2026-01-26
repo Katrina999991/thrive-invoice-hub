@@ -33,10 +33,10 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId } = await req.json();
+    const { priceId, companyId } = await req.json();
     if (!priceId) throw new Error("priceId is required");
     
-    logStep("Price ID received", { priceId });
+    logStep("Checkout params received", { priceId, companyId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
     
@@ -51,6 +51,14 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://dkinzkawntfzkabroeib.supabase.co";
     
+    // Build metadata to track which company this subscription is for
+    const metadata: Record<string, string> = {
+      user_id: user.id,
+    };
+    if (companyId) {
+      metadata.company_id = companyId;
+    }
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -64,6 +72,7 @@ serve(async (req) => {
       automatic_tax: {
         enabled: true,
       },
+      metadata,
       success_url: `${origin}/dashboard?subscription=success`,
       cancel_url: `${origin}/dashboard/pricing?subscription=cancelled`,
     });

@@ -500,6 +500,62 @@ export type Database = {
           },
         ]
       }
+      company_subscriptions: {
+        Row: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"] | null
+          company_id: string
+          created_at: string
+          expenses_this_month: number
+          expires_at: string | null
+          id: string
+          invoices_this_month: number
+          last_reset_date: string
+          plan_type: Database["public"]["Enums"]["subscription_plan"]
+          started_at: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"] | null
+          company_id: string
+          created_at?: string
+          expenses_this_month?: number
+          expires_at?: string | null
+          id?: string
+          invoices_this_month?: number
+          last_reset_date?: string
+          plan_type?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"] | null
+          company_id?: string
+          created_at?: string
+          expenses_this_month?: number
+          expires_at?: string | null
+          id?: string
+          invoices_this_month?: number
+          last_reset_date?: string
+          plan_type?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_preferences: {
         Row: {
           created_at: string
@@ -1551,6 +1607,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authorize_action: {
+        Args: {
+          _check_limit?: string
+          _company_id: string
+          _feature_key?: string
+          _permission?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       check_username_available: {
         Args: { check_username: string; current_user_id: string }
         Returns: boolean
@@ -1567,6 +1633,24 @@ export type Database = {
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
       generate_quote_number: { Args: { company_id: string }; Returns: string }
+      get_company_plan_limits: {
+        Args: { _company_id: string }
+        Returns: {
+          all_invoice_templates: boolean
+          all_reports: boolean
+          category_management: boolean
+          custom_email_templates: boolean
+          expenses_used: number
+          invoices_used: number
+          max_clients: number
+          max_companies: number
+          max_expenses_per_month: number
+          max_invoices_per_month: number
+          pdf_export: boolean
+          plan_type: Database["public"]["Enums"]["subscription_plan"]
+          quotes_enabled: boolean
+        }[]
+      }
       get_current_user_email: { Args: never; Returns: string }
       get_user_permissions: {
         Args: { _company_id: string; _user_id: string }

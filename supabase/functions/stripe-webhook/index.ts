@@ -298,9 +298,38 @@ serve(async (req) => {
               .eq('user_id', user.id);
             
             if (updateError) {
-              logStep("Error updating subscription", { error: updateError.message });
+              logStep("Error updating user subscription", { error: updateError.message });
             } else {
               logStep("User subscription updated successfully");
+            }
+
+            // Also update company subscriptions for companies owned by this user
+            const { data: ownedCompanies } = await supabaseClient
+              .from('companies')
+              .select('id')
+              .eq('user_id', user.id);
+
+            if (ownedCompanies && ownedCompanies.length > 0) {
+              for (const company of ownedCompanies) {
+                const { error: companySubError } = await supabaseClient
+                  .from('company_subscriptions')
+                  .upsert({
+                    company_id: company.id,
+                    plan_type: newPlanType,
+                    billing_cycle: billingCycle,
+                    expires_at: expiresAt,
+                    started_at: new Date().toISOString(),
+                    stripe_customer_id: session.customer as string,
+                    stripe_subscription_id: session.subscription as string,
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'company_id' });
+
+                if (companySubError) {
+                  logStep("Error updating company subscription", { companyId: company.id, error: companySubError.message });
+                } else {
+                  logStep("Company subscription updated", { companyId: company.id });
+                }
+              }
             }
             
             await sendSubscriptionEmail({
@@ -458,6 +487,26 @@ serve(async (req) => {
                 expires_at: new Date(subscription.current_period_end * 1000).toISOString()
               })
               .eq('user_id', user.id);
+
+            // Also update company subscriptions for companies owned by this user
+            const { data: ownedCompanies } = await supabaseClient
+              .from('companies')
+              .select('id')
+              .eq('user_id', user.id);
+
+            if (ownedCompanies && ownedCompanies.length > 0) {
+              for (const company of ownedCompanies) {
+                await supabaseClient
+                  .from('company_subscriptions')
+                  .update({
+                    plan_type: 'free',
+                    expires_at: new Date(subscription.current_period_end * 1000).toISOString(),
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('company_id', company.id);
+              }
+              logStep("Company subscriptions updated to free");
+            }
           }
         }
         break;
