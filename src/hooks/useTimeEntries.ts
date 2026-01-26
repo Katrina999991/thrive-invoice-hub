@@ -14,6 +14,7 @@ type TimeEntry = Tables<"time_entries"> & {
   clients?: { name: string; hourly_rate: number | null } | null;
   companies?: { name: string } | null;
   time_entry_ranges?: TimeEntryRange[];
+  profiles?: { display_name: string | null } | null;
 };
 type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id">;
 type TimeEntryUpdate = TablesUpdate<"time_entries">;
@@ -73,7 +74,7 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
 
         const { data: companyEntries, error } = await query;
         if (error) throw error;
-        allEntries = companyEntries || [];
+        allEntries = (companyEntries || []) as TimeEntry[];
       }
 
       // Always fetch user's own entries without company_id (legacy data)
@@ -94,7 +95,7 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
       
       // Merge entries, avoiding duplicates
       const existingIds = new Set(allEntries.map(e => e.id));
-      const legacyEntries = (ownedEntries || []).filter(e => !existingIds.has(e.id));
+      const legacyEntries = ((ownedEntries || []) as TimeEntry[]).filter(e => !existingIds.has(e.id));
       allEntries = [...allEntries, ...legacyEntries];
       
       // Sort by date and created_at
@@ -103,6 +104,23 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
         if (dateCompare !== 0) return dateCompare;
         return a.created_at.localeCompare(b.created_at);
       });
+
+      // Fetch creator names for all entries
+      const userIds = [...new Set(allEntries.map(e => e.user_id))];
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("user_id, display_name")
+          .in("user_id", userIds);
+        
+        if (!profilesError && profiles) {
+          const profileMap = new Map(profiles.map(p => [p.user_id, p.display_name]));
+          allEntries = allEntries.map(entry => ({
+            ...entry,
+            profiles: { display_name: profileMap.get(entry.user_id) || null }
+          }));
+        }
+      }
 
       setTimeEntries(allEntries);
     } catch (error: any) {

@@ -1087,6 +1087,9 @@ export default function TimeTracking() {
                       <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
                       <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
                       <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
+                      {permissions.canViewAll && (
+                        <TableHead>{language === "fr" ? "Créé par" : "Created by"}</TableHead>
+                      )}
                       <TableHead className="text-right">{language === "fr" ? "Heures" : "Hours"}</TableHead>
                       <TableHead className="text-right">{language === "fr" ? "Taux" : "Rate"}</TableHead>
                       <TableHead className="text-right">{language === "fr" ? "Total" : "Total"}</TableHead>
@@ -1124,6 +1127,16 @@ export default function TimeTracking() {
                           </TableCell>
                           <TableCell>{entry.clients?.name || "-"}</TableCell>
                           <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
+                          {permissions.canViewAll && (
+                            <TableCell>
+                              <span className={entry.user_id === user?.id ? "text-muted-foreground" : "font-medium"}>
+                                {entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
+                                {entry.user_id === user?.id && (
+                                  <span className="text-xs ml-1">({language === "fr" ? "moi" : "me"})</span>
+                                )}
+                              </span>
+                            </TableCell>
+                          )}
                           <TableCell className="text-right">{entry.hours}h</TableCell>
                           <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
                           <TableCell className="text-right font-medium">
@@ -1243,6 +1256,11 @@ export default function TimeTracking() {
                             <div className="text-sm text-muted-foreground">
                               {entry.clients?.name || "-"}
                             </div>
+                            {permissions.canViewAll && entry.user_id !== user?.id && (
+                              <div className="text-xs text-primary">
+                                {language === "fr" ? "Par" : "By"}: {entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex gap-1 shrink-0">
