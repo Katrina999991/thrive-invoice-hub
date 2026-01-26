@@ -45,11 +45,18 @@ export const ALL_PERMISSIONS = [
   // Inventory
   { key: "inventory:view", module: "inventory", action: "view" },
   { key: "inventory:adjust", module: "inventory", action: "adjust" },
-  // Time Tracking
-  { key: "time_tracking:view", module: "time_tracking", action: "view" },
-  { key: "time_tracking:create", module: "time_tracking", action: "create" },
-  { key: "time_tracking:edit", module: "time_tracking", action: "edit" },
-  { key: "time_tracking:delete", module: "time_tracking", action: "delete" },
+  // Time Tracking (granular permissions)
+  { key: "time_tracking:view_own", module: "time_tracking", action: "view_own" },
+  { key: "time_tracking:view_all", module: "time_tracking", action: "view_all" },
+  { key: "time_tracking:create_own", module: "time_tracking", action: "create_own" },
+  { key: "time_tracking:edit_own", module: "time_tracking", action: "edit_own" },
+  { key: "time_tracking:edit_all", module: "time_tracking", action: "edit_all" },
+  { key: "time_tracking:delete_own", module: "time_tracking", action: "delete_own" },
+  { key: "time_tracking:delete_all", module: "time_tracking", action: "delete_all" },
+  { key: "time_tracking:approve", module: "time_tracking", action: "approve" },
+  { key: "time_tracking:export", module: "time_tracking", action: "export" },
+  { key: "time_tracking:mark_as_billed", module: "time_tracking", action: "mark_as_billed" },
+  { key: "time_tracking:link_to_invoice", module: "time_tracking", action: "link_to_invoice" },
   // Reports
   { key: "reports:view", module: "reports", action: "view" },
   { key: "reports:export", module: "reports", action: "export" },
