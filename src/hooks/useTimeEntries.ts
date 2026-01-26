@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
@@ -18,7 +18,13 @@ type TimeEntry = Tables<"time_entries"> & {
 type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id">;
 type TimeEntryUpdate = TablesUpdate<"time_entries">;
 
-export const useTimeEntries = () => {
+interface UseTimeEntriesOptions {
+  // If true, only fetch entries owned by the current user
+  filterOwnOnly?: boolean;
+}
+
+export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
+  const { filterOwnOnly = false } = options;
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -42,8 +48,7 @@ export const useTimeEntries = () => {
 
       let data;
       if (companyIds.length > 0) {
-        // Get time entries from companies user is a member of
-        const { data: entriesData, error } = await supabase
+        let query = supabase
           .from("time_entries")
           .select(`
             *,
@@ -54,6 +59,13 @@ export const useTimeEntries = () => {
           .in("company_id", companyIds)
           .order("date", { ascending: true })
           .order("created_at", { ascending: true });
+
+        // If filterOwnOnly is true, only get entries created by the current user
+        if (filterOwnOnly) {
+          query = query.eq("user_id", user.id);
+        }
+
+        const { data: entriesData, error } = await query;
 
         if (error) throw error;
         data = entriesData;
@@ -242,7 +254,7 @@ export const useTimeEntries = () => {
 
   useEffect(() => {
     fetchTimeEntries();
-  }, [user]);
+  }, [user, filterOwnOnly]);
 
   return {
     timeEntries,

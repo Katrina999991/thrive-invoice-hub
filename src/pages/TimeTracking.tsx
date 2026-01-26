@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -10,6 +10,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
+import { useTimeTrackingPermissions } from "@/hooks/useTimeTrackingPermissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -43,6 +45,8 @@ import { CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const timeEntrySchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
@@ -91,7 +95,14 @@ export default function TimeTracking() {
   const { language } = useLanguage();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries();
+  
+  // Get permissions from selected company
+  const { hasPermission, selectedCompanyId } = useSelectedCompany();
+  const permissions = useTimeTrackingPermissions(hasPermission);
+  
+  // Fetch entries based on permissions - employees only see their own
+  const shouldFilterOwnOnly = !permissions.canViewAll;
+  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries({ filterOwnOnly: shouldFilterOwnOnly });
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -825,6 +836,23 @@ export default function TimeTracking() {
     }
   };
 
+  // Permission denied message component
+  const PermissionDeniedTooltip = ({ children, message }: { children: React.ReactNode; message: string }) => (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-not-allowed">{children}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="flex items-center gap-1">
+            <Lock className="h-3 w-3" />
+            {message}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+
   return (
     <div className="container mx-auto py-4 sm:py-8 space-y-6 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -839,26 +867,57 @@ export default function TimeTracking() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          {selectedEntries.length > 0 && (
+          {/* Invoice button - only show if user can link to invoices */}
+          {selectedEntries.length > 0 && permissions.canLinkToInvoice && (
             <Button onClick={() => setShowInvoiceConfirm(true)} disabled={isCreatingInvoice} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
               {language === "fr" ? "Facture" : "Invoice"} ({selectedEntries.length})
             </Button>
           )}
-          {!activeTimer && (
+          {/* Timer button - only show if user can create entries */}
+          {!activeTimer && permissions.canCreate && (
             <Button variant="outline" onClick={handleOpenStartTimerDialog} className="flex-1 sm:flex-none">
               <Play className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">{language === "fr" ? "Démarrer la minuterie" : "Start Timer"}</span>
               <span className="sm:hidden">{language === "fr" ? "Minuterie" : "Timer"}</span>
             </Button>
           )}
-          <Button onClick={handleOpenDialog} className="flex-1 sm:flex-none">
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">{language === "fr" ? "Ajouter des heures" : "Add Hours"}</span>
-            <span className="sm:hidden">{language === "fr" ? "Ajouter" : "Add"}</span>
-          </Button>
+          {/* Add button - only show if user can create entries */}
+          {permissions.canCreate && (
+            <Button onClick={handleOpenDialog} className="flex-1 sm:flex-none">
+              <Plus className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">{language === "fr" ? "Ajouter des heures" : "Add Hours"}</span>
+              <span className="sm:hidden">{language === "fr" ? "Ajouter" : "Add"}</span>
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Permission info banner for read-only users */}
+      {!permissions.canCreate && !permissions.canEditOwn && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {language === "fr" 
+              ? "Vous avez un accès en lecture seule aux entrées de temps."
+              : "You have read-only access to time entries."
+            }
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Info banner for employees who can only see their own entries */}
+      {permissions.canViewOwn && !permissions.canViewAll && permissions.canCreate && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {language === "fr" 
+              ? "Vous ne pouvez voir et gérer que vos propres entrées de temps."
+              : "You can only view and manage your own time entries."
+            }
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Active Timer Card */}
       {activeTimer && (
@@ -1012,16 +1071,19 @@ export default function TimeTracking() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox
-                          checked={allSameClientSelected && selectedEntries.length > 0}
-                          onCheckedChange={handleSelectAll}
-                          aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
-                          disabled={unbilledFilteredEntries.length === 0}
-                          className={someSelected ? "data-[state=checked]:bg-primary" : ""}
-                          {...(someSelected && { "data-state": "indeterminate" })}
-                        />
-                      </TableHead>
+                      {/* Checkbox column - only show if user can link to invoices */}
+                      {permissions.canLinkToInvoice && (
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={allSameClientSelected && selectedEntries.length > 0}
+                            onCheckedChange={handleSelectAll}
+                            aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
+                            disabled={unbilledFilteredEntries.length === 0}
+                            className={someSelected ? "data-[state=checked]:bg-primary" : ""}
+                            {...(someSelected && { "data-state": "indeterminate" })}
+                          />
+                        </TableHead>
+                      )}
                       <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
                       <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
                       <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
@@ -1033,99 +1095,126 @@ export default function TimeTracking() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredEntries.map((entry) => (
-                      <TableRow key={entry.id}>
-                        <TableCell>
-                          {!entry.is_billed && (
-                            <Checkbox
-                              checked={selectedEntries.includes(entry.id)}
-                              onCheckedChange={() => toggleSelection(entry.id)}
-                              disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
-                            />
+                    {filteredEntries.map((entry) => {
+                      const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
+                      const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
+                      
+                      return (
+                        <TableRow key={entry.id}>
+                          {/* Checkbox cell - only show if user can link to invoices */}
+                          {permissions.canLinkToInvoice && (
+                            <TableCell>
+                              {!entry.is_billed && (
+                                <Checkbox
+                                  checked={selectedEntries.includes(entry.id)}
+                                  onCheckedChange={() => toggleSelection(entry.id)}
+                                  disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
+                                />
+                              )}
+                            </TableCell>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          {(() => {
-                            const [year, month, day] = entry.date.split('-').map(Number);
-                            const localDate = new Date(year, month - 1, day);
-                            return format(localDate, "d MMM yyyy", {
-                              locale: language === "fr" ? fr : undefined,
-                            });
-                          })()}
-                        </TableCell>
-                        <TableCell>{entry.clients?.name || "-"}</TableCell>
-                        <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
-                        <TableCell className="text-right">{entry.hours}h</TableCell>
-                        <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${(entry.hours * entry.hourly_rate).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={entry.is_billed ? "billed" : "unbilled"}
-                            onValueChange={async (value) => {
-                              if (value === "billed" && !entry.is_billed) {
-                                await updateTimeEntry(entry.id, { is_billed: true });
-                              } else if (value === "unbilled" && entry.is_billed) {
-                                await markAsUnbilled(entry.id);
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-background z-50">
-                              <SelectItem value="unbilled">
-                                {language === "fr" ? "Non facturé" : "Unbilled"}
-                              </SelectItem>
-                              <SelectItem value="billed">
-                                {language === "fr" ? "Facturé" : "Billed"}
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          {!entry.is_billed && (
+                          <TableCell>
+                            {(() => {
+                              const [year, month, day] = entry.date.split('-').map(Number);
+                              const localDate = new Date(year, month - 1, day);
+                              return format(localDate, "d MMM yyyy", {
+                                locale: language === "fr" ? fr : undefined,
+                              });
+                            })()}
+                          </TableCell>
+                          <TableCell>{entry.clients?.name || "-"}</TableCell>
+                          <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
+                          <TableCell className="text-right">{entry.hours}h</TableCell>
+                          <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
+                          <TableCell className="text-right font-medium">
+                            ${(entry.hours * entry.hourly_rate).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            {/* Status dropdown - only editable if user can mark as billed */}
+                            {permissions.canMarkAsBilled ? (
+                              <Select
+                                value={entry.is_billed ? "billed" : "unbilled"}
+                                onValueChange={async (value) => {
+                                  if (value === "billed" && !entry.is_billed) {
+                                    await updateTimeEntry(entry.id, { is_billed: true });
+                                  } else if (value === "unbilled" && entry.is_billed) {
+                                    await markAsUnbilled(entry.id);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="w-[140px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background z-50">
+                                  <SelectItem value="unbilled">
+                                    {language === "fr" ? "Non facturé" : "Unbilled"}
+                                  </SelectItem>
+                                  <SelectItem value="billed">
+                                    {language === "fr" ? "Facturé" : "Billed"}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge variant={entry.is_billed ? "default" : "secondary"}>
+                                {entry.is_billed 
+                                  ? (language === "fr" ? "Facturé" : "Billed")
+                                  : (language === "fr" ? "Non facturé" : "Unbilled")
+                                }
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(entry)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => deleteTimeEntry(entry.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {canEdit && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(entry)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {canDelete && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteTimeEntry(entry.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {entry.is_billed && !canEdit && (
+                                <PermissionDeniedTooltip message={language === "fr" ? "Entrée facturée - lecture seule" : "Billed entry - read only"}>
+                                  <Lock className="h-4 w-4 text-muted-foreground" />
+                                </PermissionDeniedTooltip>
+                              )}
                             </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
               {/* Mobile Card View */}
               <div className="md:hidden space-y-3">
-                {/* Select All on Mobile */}
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <Checkbox
-                    checked={allSameClientSelected && selectedEntries.length > 0}
-                    onCheckedChange={handleSelectAll}
-                    aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
-                    disabled={unbilledFilteredEntries.length === 0}
-                    className={someSelected ? "data-[state=checked]:bg-primary" : ""}
-                    {...(someSelected && { "data-state": "indeterminate" })}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {language === "fr" ? "Tout sélectionner" : "Select all"}
-                  </span>
-                </div>
+                {/* Select All on Mobile - only show if user can link to invoices */}
+                {permissions.canLinkToInvoice && (
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <Checkbox
+                      checked={allSameClientSelected && selectedEntries.length > 0}
+                      onCheckedChange={handleSelectAll}
+                      aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
+                      disabled={unbilledFilteredEntries.length === 0}
+                      className={someSelected ? "data-[state=checked]:bg-primary" : ""}
+                      {...(someSelected && { "data-state": "indeterminate" })}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {language === "fr" ? "Tout sélectionner" : "Select all"}
+                    </span>
+                  </div>
+                )}
 
                 {filteredEntries.map((entry) => {
                   const [year, month, day] = entry.date.split('-').map(Number);
@@ -1133,12 +1222,15 @@ export default function TimeTracking() {
                   const formattedDate = format(localDate, "d MMM yyyy", {
                     locale: language === "fr" ? fr : undefined,
                   });
+                  const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
+                  const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
                   
                   return (
                     <div key={entry.id} className="border rounded-lg p-3 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-start gap-2 flex-1 min-w-0">
-                          {!entry.is_billed && (
+                          {/* Checkbox for invoicing - only show if user can link to invoices */}
+                          {!entry.is_billed && permissions.canLinkToInvoice && (
                             <Checkbox
                               checked={selectedEntries.includes(entry.id)}
                               onCheckedChange={() => toggleSelection(entry.id)}
@@ -1153,8 +1245,8 @@ export default function TimeTracking() {
                             </div>
                           </div>
                         </div>
-                        {!entry.is_billed && (
-                          <div className="flex gap-1 shrink-0">
+                        <div className="flex gap-1 shrink-0">
+                          {canEdit && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1163,6 +1255,8 @@ export default function TimeTracking() {
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
+                          )}
+                          {canDelete && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1171,8 +1265,11 @@ export default function TimeTracking() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                          </div>
-                        )}
+                          )}
+                          {entry.is_billed && !canEdit && (
+                            <Lock className="h-4 w-4 text-muted-foreground mt-2" />
+                          )}
+                        </div>
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -1182,28 +1279,38 @@ export default function TimeTracking() {
                       </div>
                       
                       <div className="pt-1">
-                        <Select
-                          value={entry.is_billed ? "billed" : "unbilled"}
-                          onValueChange={async (value) => {
-                            if (value === "billed" && !entry.is_billed) {
-                              await updateTimeEntry(entry.id, { is_billed: true });
-                            } else if (value === "unbilled" && entry.is_billed) {
-                              await markAsUnbilled(entry.id);
+                        {/* Status dropdown - only editable if user can mark as billed */}
+                        {permissions.canMarkAsBilled ? (
+                          <Select
+                            value={entry.is_billed ? "billed" : "unbilled"}
+                            onValueChange={async (value) => {
+                              if (value === "billed" && !entry.is_billed) {
+                                await updateTimeEntry(entry.id, { is_billed: true });
+                              } else if (value === "unbilled" && entry.is_billed) {
+                                await markAsUnbilled(entry.id);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background z-50">
+                              <SelectItem value="unbilled">
+                                {language === "fr" ? "Non facturé" : "Unbilled"}
+                              </SelectItem>
+                              <SelectItem value="billed">
+                                {language === "fr" ? "Facturé" : "Billed"}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant={entry.is_billed ? "default" : "secondary"} className="w-full justify-center">
+                            {entry.is_billed 
+                              ? (language === "fr" ? "Facturé" : "Billed")
+                              : (language === "fr" ? "Non facturé" : "Unbilled")
                             }
-                          }}
-                        >
-                          <SelectTrigger className="w-full h-8 text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            <SelectItem value="unbilled">
-                              {language === "fr" ? "Non facturé" : "Unbilled"}
-                            </SelectItem>
-                            <SelectItem value="billed">
-                              {language === "fr" ? "Facturé" : "Billed"}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   );
