@@ -64,10 +64,9 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
 
       const memberCompanyIdList = memberCompanyIds?.map(m => m.company_id) || [];
       
-      // If a specific company is selected, filter to that company
-      const targetCompanyIds = companyId 
-        ? memberCompanyIdList.filter(id => id === companyId)
-        : memberCompanyIdList;
+      // Use all member companies for fetching expenses
+      // The UI filter will handle showing/hiding based on company selection
+      const targetCompanyIds = memberCompanyIdList;
 
       let data: Expense[] = [];
       
