@@ -26,22 +26,53 @@ export const useClients = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("clients")
-        .select(`
-          *,
-          companies (
-            name
-          )
-        `)
+      // First get companies where user is a member
+      const { data: memberCompanyIds, error: memberError } = await supabase
+        .from("company_members")
+        .select("company_id")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("status", "active");
 
-      if (error) throw error;
+      if (memberError) throw memberError;
+
+      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+
+      let data;
+      if (companyIds.length > 0) {
+        // Get clients from companies user is a member of
+        const { data: clientsData, error } = await supabase
+          .from("clients")
+          .select(`
+            *,
+            companies (
+              name
+            )
+          `)
+          .in("company_id", companyIds)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        data = clientsData;
+      } else {
+        // Fallback: get clients owned by user (for backward compatibility)
+        const { data: ownedClients, error } = await supabase
+          .from("clients")
+          .select(`
+            *,
+            companies (
+              name
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        data = ownedClients;
+      }
       
       // Decrypt sensitive fields
       const decryptedClients = await decryptArray('clients', data || []);
-      setClients(decryptedClients);
+      setClients(decryptedClients as Client[]);
     } catch (error) {
       console.error("Error fetching clients:", error);
       toast({

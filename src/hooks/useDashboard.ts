@@ -12,25 +12,73 @@ export const useDashboard = (t?: TranslationFunction) => {
 
       const userId = user.user.id;
 
+      // First get companies where user is a member
+      const { data: memberCompanyIds, error: memberError } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      if (memberError) throw memberError;
+
+      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+
       // Fetch all data in parallel
-      const [invoicesResult, clientsResult, productsResult] = await Promise.all([
-        supabase
-          .from("invoices")
-          .select("id, total, status, created_at, updated_at, invoice_number, clients(name)")
-          .eq("user_id", userId)
-          .eq("is_archived", false)
-          .order("updated_at", { ascending: false }),
-        supabase
+      let invoicesResult, clientsResult, productsResult;
+
+      if (companyIds.length > 0) {
+        // First get client IDs from companies user is a member of
+        const { data: clientsFromCompanies, error: clientsError } = await supabase
           .from("clients")
-          .select("id, name, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("products")
-          .select("id, is_active")
-          .eq("user_id", userId)
-          .eq("is_active", true),
-      ]);
+          .select("id")
+          .in("company_id", companyIds);
+
+        if (clientsError) throw clientsError;
+
+        const clientIds = clientsFromCompanies?.map(c => c.id) || [];
+
+        // Get data from companies user is a member of
+        [invoicesResult, clientsResult, productsResult] = await Promise.all([
+          clientIds.length > 0
+            ? supabase
+                .from("invoices")
+                .select("id, total, status, created_at, updated_at, invoice_number, clients(name)")
+                .in("client_id", clientIds)
+                .eq("is_archived", false)
+                .order("updated_at", { ascending: false })
+            : { data: [], error: null },
+          supabase
+            .from("clients")
+            .select("id, name, created_at")
+            .in("company_id", companyIds)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("products")
+            .select("id, is_active")
+            .in("company_id", companyIds)
+            .eq("is_active", true),
+        ]) as any;
+      } else {
+        // Fallback: get data owned by user (for backward compatibility)
+        [invoicesResult, clientsResult, productsResult] = await Promise.all([
+          supabase
+            .from("invoices")
+            .select("id, total, status, created_at, updated_at, invoice_number, clients(name)")
+            .eq("user_id", userId)
+            .eq("is_archived", false)
+            .order("updated_at", { ascending: false }),
+          supabase
+            .from("clients")
+            .select("id, name, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("products")
+            .select("id, is_active")
+            .eq("user_id", userId)
+            .eq("is_active", true),
+        ]);
+      }
 
       if (invoicesResult.error) throw invoicesResult.error;
       if (clientsResult.error) throw clientsResult.error;

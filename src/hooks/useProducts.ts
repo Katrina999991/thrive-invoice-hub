@@ -19,23 +19,60 @@ export const useProducts = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          *,
-          companies:company_id (
-            id,
-            name
-          ),
-          clients:client_id (
-            id,
-            name
-          )
-        `)
+      // First get companies where user is a member
+      const { data: memberCompanyIds, error: memberError } = await supabase
+        .from("company_members")
+        .select("company_id")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("status", "active");
 
-      if (error) throw error;
+      if (memberError) throw memberError;
+
+      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+
+      let data;
+      if (companyIds.length > 0) {
+        // Get products from companies user is a member of
+        const { data: productsData, error } = await supabase
+          .from("products")
+          .select(`
+            *,
+            companies:company_id (
+              id,
+              name
+            ),
+            clients:client_id (
+              id,
+              name
+            )
+          `)
+          .in("company_id", companyIds)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        data = productsData;
+      } else {
+        // Fallback: get products owned by user
+        const { data: ownedProducts, error } = await supabase
+          .from("products")
+          .select(`
+            *,
+            companies:company_id (
+              id,
+              name
+            ),
+            clients:client_id (
+              id,
+              name
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        data = ownedProducts;
+      }
+      
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
