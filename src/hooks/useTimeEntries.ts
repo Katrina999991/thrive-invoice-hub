@@ -14,7 +14,7 @@ type TimeEntry = Tables<"time_entries"> & {
   clients?: { name: string; hourly_rate: number | null } | null;
   companies?: { name: string } | null;
   time_entry_ranges?: TimeEntryRange[];
-  profiles?: { display_name: string | null } | null;
+  profiles?: { display_name: string | null; username: string | null } | null;
 };
 type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id">;
 type TimeEntryUpdate = TablesUpdate<"time_entries">;
@@ -110,14 +110,14 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
       if (userIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
-          .select("user_id, display_name")
+          .select("user_id, display_name, username")
           .in("user_id", userIds);
         
         if (!profilesError && profiles) {
-          const profileMap = new Map(profiles.map(p => [p.user_id, p.display_name]));
+          const profileMap = new Map(profiles.map(p => [p.user_id, { display_name: p.display_name, username: p.username }]));
           allEntries = allEntries.map(entry => ({
             ...entry,
-            profiles: { display_name: profileMap.get(entry.user_id) || null }
+            profiles: profileMap.get(entry.user_id) || { display_name: null, username: null }
           }));
         }
       }

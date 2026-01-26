@@ -1130,7 +1130,7 @@ export default function TimeTracking() {
                           {permissions.canViewAll && (
                             <TableCell>
                               <span className={entry.user_id === user?.id ? "text-muted-foreground" : "font-medium"}>
-                                {entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
+                                {entry.profiles?.username || entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
                                 {entry.user_id === user?.id && (
                                   <span className="text-xs ml-1">({language === "fr" ? "moi" : "me"})</span>
                                 )}
@@ -1258,7 +1258,7 @@ export default function TimeTracking() {
                             </div>
                             {permissions.canViewAll && entry.user_id !== user?.id && (
                               <div className="text-xs text-primary">
-                                {language === "fr" ? "Par" : "By"}: {entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
+                                {language === "fr" ? "Par" : "By"}: {entry.profiles?.username || entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
                               </div>
                             )}
                           </div>
