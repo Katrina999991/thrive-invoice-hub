@@ -46,7 +46,13 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
 
       const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
 
-      let data;
+      // We need to fetch entries from:
+      // 1. Entries with company_id in user's companies
+      // 2. User's own entries without company_id (legacy data)
+      
+      let allEntries: TimeEntry[] = [];
+
+      // Fetch company entries
       if (companyIds.length > 0) {
         let query = supabase
           .from("time_entries")
@@ -65,29 +71,40 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
           query = query.eq("user_id", user.id);
         }
 
-        const { data: entriesData, error } = await query;
-
+        const { data: companyEntries, error } = await query;
         if (error) throw error;
-        data = entriesData;
-      } else {
-        // Fallback: get time entries owned by user
-        const { data: ownedEntries, error } = await supabase
-          .from("time_entries")
-          .select(`
-            *,
-            clients (name, hourly_rate),
-            companies (name),
-            time_entry_ranges (id, start_time, end_time)
-          `)
-          .eq("user_id", user.id)
-          .order("date", { ascending: true })
-          .order("created_at", { ascending: true });
-
-        if (error) throw error;
-        data = ownedEntries;
+        allEntries = companyEntries || [];
       }
 
-      setTimeEntries(data || []);
+      // Always fetch user's own entries without company_id (legacy data)
+      const { data: ownedEntries, error: ownedError } = await supabase
+        .from("time_entries")
+        .select(`
+          *,
+          clients (name, hourly_rate),
+          companies (name),
+          time_entry_ranges (id, start_time, end_time)
+        `)
+        .eq("user_id", user.id)
+        .is("company_id", null)
+        .order("date", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (ownedError) throw ownedError;
+      
+      // Merge entries, avoiding duplicates
+      const existingIds = new Set(allEntries.map(e => e.id));
+      const legacyEntries = (ownedEntries || []).filter(e => !existingIds.has(e.id));
+      allEntries = [...allEntries, ...legacyEntries];
+      
+      // Sort by date and created_at
+      allEntries.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.created_at.localeCompare(b.created_at);
+      });
+
+      setTimeEntries(allEntries);
     } catch (error: any) {
       console.error("Error fetching time entries:", error);
       toast.error("Erreur lors du chargement des heures");
