@@ -19,6 +19,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,6 +46,12 @@ const Quotes = () => {
   const { products } = useProducts();
   const { createInvoice } = useInvoices();
   const { planLimits } = useSubscription();
+  const { canCreate, canEdit, canDelete, canView } = useSelectedCompany();
+  
+  const canCreateQuotes = canCreate("quotes");
+  const canEditQuotes = canEdit("quotes");
+  const canSendQuotes = canView("quotes"); // send permission not defined, use view
+  const canDeleteQuotes = canDelete("quotes");
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -603,10 +610,12 @@ const Quotes = () => {
           <h1 className="text-2xl font-bold">{t("quotes.title")}</h1>
           <p className="text-muted-foreground text-sm sm:text-base">{t("quotes.subtitle")}</p>
         </div>
-        <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          {t("quotes.createButton")}
-        </Button>
+        {canCreateQuotes && (
+          <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            {t("quotes.createButton")}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -670,42 +679,48 @@ const Quotes = () => {
                         <Button variant="ghost" size="sm" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        {canEditQuotes && (
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="sm" onClick={() => generatePDF(quote)}>
                           <Download className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
                           <Mail className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => duplicateQuote(quote)}>
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        {quote.status === 'accepted' && !quote.converted_to_invoice_id && (
+                        {canCreateQuotes && (
+                          <Button variant="ghost" size="sm" onClick={() => duplicateQuote(quote)}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canEditQuotes && quote.status === 'accepted' && !quote.converted_to_invoice_id && (
                           <Button variant="ghost" size="sm" onClick={() => handleConvertToInvoice(quote)}>
                             <ArrowRight className="h-4 w-4" />
                           </Button>
                         )}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-destructive" disabled={!!quote.converted_to_invoice_id}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t("quotes.delete")}</AlertDialogTitle>
-                              <AlertDialogDescription>{t("quotes.deleteConfirm")}</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t("quotes.cancel")}</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
-                                {t("quotes.delete")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        {canDeleteQuotes && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive" disabled={!!quote.converted_to_invoice_id}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t("quotes.delete")}</AlertDialogTitle>
+                                <AlertDialogDescription>{t("quotes.deleteConfirm")}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t("quotes.cancel")}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
+                                  {t("quotes.delete")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -737,7 +752,7 @@ const Quotes = () => {
                               <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
                               <Badge variant="outline" className="ml-2">{t("quotes.converted")}</Badge>
                             </>
-                          ) : (
+                          ) : canEditQuotes ? (
                             <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'refused') => updateQuote(quote.id, { status: value })}>
                               <SelectTrigger className="w-[130px] h-8">
                                 <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
@@ -749,6 +764,8 @@ const Quotes = () => {
                                 <SelectItem value="refused">{t("quotes.statusRejected")}</SelectItem>
                               </SelectContent>
                             </Select>
+                          ) : (
+                            <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
                           )}
                         </TableCell>
                         <TableCell>{quote.issue_date}</TableCell>
@@ -757,42 +774,48 @@ const Quotes = () => {
                             <Button variant="ghost" size="icon" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            {canEditQuotes && (
+                              <Button variant="ghost" size="icon" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
                               <Download className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
                               <Mail className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            {quote.status === 'accepted' && !quote.converted_to_invoice_id && (
+                            {canCreateQuotes && (
+                              <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canEditQuotes && quote.status === 'accepted' && !quote.converted_to_invoice_id && (
                               <Button variant="ghost" size="icon" onClick={() => handleConvertToInvoice(quote)}>
                                 <ArrowRight className="h-4 w-4" />
                               </Button>
                             )}
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" disabled={!!quote.converted_to_invoice_id}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>{t("quotes.delete")}</AlertDialogTitle>
-                                  <AlertDialogDescription>{t("quotes.deleteConfirm")}</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>{t("quotes.cancel")}</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
-                                    {t("quotes.delete")}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            {canDeleteQuotes && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" disabled={!!quote.converted_to_invoice_id}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>{t("quotes.delete")}</AlertDialogTitle>
+                                    <AlertDialogDescription>{t("quotes.deleteConfirm")}</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>{t("quotes.cancel")}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
+                                      {t("quotes.delete")}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
