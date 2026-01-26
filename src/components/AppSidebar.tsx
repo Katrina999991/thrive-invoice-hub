@@ -108,15 +108,17 @@ export function AppSidebar() {
   });
 
   const settingsItems = [
-    { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null, adminOnly: false },
-    { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings, requiresFeature: null, adminOnly: false },
-    { titleKey: "nav.admin", url: "/dashboard/admin", icon: Shield, requiresFeature: null, adminOnly: true },
+    { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null, adminOnly: false, requiredPermission: "settings:view" },
+    { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings, requiresFeature: null, adminOnly: false, requiredPermission: "settings:view" },
+    { titleKey: "nav.admin", url: "/dashboard/admin", icon: Shield, requiresFeature: null, adminOnly: true, requiredPermission: null },
   ];
 
-  // Filter items based on admin status
-  const visibleSettingsItems = settingsItems.filter(item => 
-    !item.adminOnly || (item.adminOnly && user?.id === ADMIN_USER_ID)
-  );
+  // Filter items based on admin status and permissions
+  const visibleSettingsItems = settingsItems.filter(item => {
+    if (item.adminOnly && user?.id !== ADMIN_USER_ID) return false;
+    if (item.requiredPermission && !hasPermission(item.requiredPermission)) return false;
+    return true;
+  });
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return currentPath === "/dashboard";
