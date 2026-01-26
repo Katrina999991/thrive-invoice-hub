@@ -96,7 +96,7 @@ export function AppSidebar() {
     { titleKey: "nav.stockManagement", url: "/dashboard/stock", icon: Warehouse, requiresFeature: null, requiredPermission: "inventory:view" },
     { titleKey: "nav.quotes", url: "/dashboard/quotes", icon: FileCheck, requiresFeature: null, requiredPermission: "quotes:view" },
     { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText, requiresFeature: null, requiredPermission: "invoices:view" },
-    { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null, requiredPermission: "settings:view" },
+    { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null, requiredPermission: null },
     { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null, requiredPermission: "expenses:view" },
     { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3, requiresFeature: null, requiredPermission: "reports:view" },
   ];
