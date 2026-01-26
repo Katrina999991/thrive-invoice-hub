@@ -5,6 +5,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +27,10 @@ const StockManagement = () => {
   const { companies } = useCompanies();
   const { createExpense } = useExpenses();
   const { planLimits, isLoading: isLoadingPlan } = useSubscription();
+  const { canEdit } = useSelectedCompany();
   const navigate = useNavigate();
+  
+  const canAdjustInventory = canEdit("inventory");
   
   const hasAccess = planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro';
   
@@ -364,13 +368,15 @@ const StockManagement = () => {
                           </code>
                         )}
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditStock(product)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
+                      {canAdjustInventory && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditStock(product)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
@@ -459,37 +465,41 @@ const StockManagement = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <BarcodeScannerButton
-                              onScan={(barcode) => {
-                                if (barcode === product.sku) {
-                                  handleEditStock(product);
-                                  toast({
-                                    title: language === 'fr' ? 'Produit trouvé' : 'Product Found',
-                                    description: product.name
-                                  });
-                                } else {
-                                  toast({
-                                    title: language === 'fr' ? 'Code ne correspond pas' : 'Code Mismatch',
-                                    description: language === 'fr' 
-                                      ? `Ce code ne correspond pas à ${product.name}` 
-                                      : `This code doesn't match ${product.name}`,
-                                    variant: 'destructive'
-                                  });
-                                }
-                              }}
-                              variant="ghost"
-                              size="sm"
-                              showLabel={false}
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditStock(product)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          {canAdjustInventory ? (
+                            <div className="flex items-center justify-end gap-1">
+                              <BarcodeScannerButton
+                                onScan={(barcode) => {
+                                  if (barcode === product.sku) {
+                                    handleEditStock(product);
+                                    toast({
+                                      title: language === 'fr' ? 'Produit trouvé' : 'Product Found',
+                                      description: product.name
+                                    });
+                                  } else {
+                                    toast({
+                                      title: language === 'fr' ? 'Code ne correspond pas' : 'Code Mismatch',
+                                      description: language === 'fr' 
+                                        ? `Ce code ne correspond pas à ${product.name}` 
+                                        : `This code doesn't match ${product.name}`,
+                                      variant: 'destructive'
+                                    });
+                                  }
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                showLabel={false}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditStock(product)}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     );

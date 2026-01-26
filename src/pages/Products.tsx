@@ -20,6 +20,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useClients } from "@/hooks/useClients";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 
 
 
@@ -32,6 +33,10 @@ const Products = () => {
   const { createExpense } = useExpenses();
   const { companies, loading: companiesLoading } = useCompanies();
   const { clients, loading: clientsLoading } = useClients();
+  const { canEdit, canDelete } = useSelectedCompany();
+  
+  const canEditProducts = canEdit("products");
+  const canDeleteProducts = canDelete("products");
 
   // Helper to get translated category name
   const getCategoryName = (category: any) => {
@@ -331,35 +336,41 @@ const Products = () => {
           </div>
         )}
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
+        {(canEditProducts || canDeleteProducts) && (
+          <div className="flex justify-end space-x-2 pt-4 border-t">
+            {canEditProducts && (
+              <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                <Edit className="h-4 w-4" />
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t("products.delete")}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t("products.deleteConfirm").replace('"{name}"', `"${item.name}"`)}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t("products.cancel")}</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={() => deleteProduct(item.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {t("products.deleteButton")}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+            )}
+            {canDeleteProducts && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("products.delete")}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t("products.deleteConfirm").replace('"{name}"', `"${item.name}"`)}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("products.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteProduct(item.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {t("products.deleteButton")}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -373,34 +384,35 @@ const Products = () => {
             {t("products.subtitle")}
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          if (!open) {
-            resetForm();
-          }
-          setIsDialogOpen(open);
-        }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => {
-              setEditingProduct(null);
-              setNewItem({
-                type: "product",
-                name: "",
-                description: "",
-                price: "",
-                cost: "",
-                category: "",
-                quantity: "",
-                unit: "piece",
-                company_id: "",
-                client_id: "",
-                sku: ""
-              });
-              setTaxes([]);
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("products.addButton")}
-            </Button>
-          </DialogTrigger>
+        {canEditProducts && (
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            if (!open) {
+              resetForm();
+            }
+            setIsDialogOpen(open);
+          }}>
+            <DialogTrigger asChild>
+              <Button onClick={() => {
+                setEditingProduct(null);
+                setNewItem({
+                  type: "product",
+                  name: "",
+                  description: "",
+                  price: "",
+                  cost: "",
+                  category: "",
+                  quantity: "",
+                  unit: "piece",
+                  company_id: "",
+                  client_id: "",
+                  sku: ""
+                });
+                setTaxes([]);
+              }}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t("products.addButton")}
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProduct ? t("products.dialog.edit") : t("products.dialog.add")}</DialogTitle>
@@ -704,6 +716,7 @@ const Products = () => {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="flex items-center space-x-2">
