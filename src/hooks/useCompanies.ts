@@ -48,14 +48,38 @@ export const useCompanies = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("companies")
-        .select("*")
+      // First get companies where user is a member (through company_members)
+      const { data: memberCompanyIds, error: memberError } = await supabase
+        .from("company_members")
+        .select("company_id")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("status", "active");
 
-      if (error) throw error;
-      setCompanies(data || []);
+      if (memberError) throw memberError;
+
+      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+
+      if (companyIds.length === 0) {
+        // Fallback: get companies owned by user (for backward compatibility)
+        const { data: ownedCompanies, error: ownedError } = await supabase
+          .from("companies")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (ownedError) throw ownedError;
+        setCompanies(ownedCompanies || []);
+      } else {
+        // Get all companies where user is a member
+        const { data, error } = await supabase
+          .from("companies")
+          .select("*")
+          .in("id", companyIds)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        setCompanies(data || []);
+      }
     } catch (error) {
       console.error("Error fetching companies:", error);
       toast({

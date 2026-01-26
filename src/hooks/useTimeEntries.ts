@@ -28,19 +28,53 @@ export const useTimeEntries = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("time_entries")
-        .select(`
-          *,
-          clients (name, hourly_rate),
-          companies (name),
-          time_entry_ranges (id, start_time, end_time)
-        `)
-        .eq("user_id", user.id)
-        .order("date", { ascending: true })
-        .order("created_at", { ascending: true });
 
-      if (error) throw error;
+      // First get companies where user is a member
+      const { data: memberCompanyIds, error: memberError } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .eq("status", "active");
+
+      if (memberError) throw memberError;
+
+      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+
+      let data;
+      if (companyIds.length > 0) {
+        // Get time entries from companies user is a member of
+        const { data: entriesData, error } = await supabase
+          .from("time_entries")
+          .select(`
+            *,
+            clients (name, hourly_rate),
+            companies (name),
+            time_entry_ranges (id, start_time, end_time)
+          `)
+          .in("company_id", companyIds)
+          .order("date", { ascending: true })
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        data = entriesData;
+      } else {
+        // Fallback: get time entries owned by user
+        const { data: ownedEntries, error } = await supabase
+          .from("time_entries")
+          .select(`
+            *,
+            clients (name, hourly_rate),
+            companies (name),
+            time_entry_ranges (id, start_time, end_time)
+          `)
+          .eq("user_id", user.id)
+          .order("date", { ascending: true })
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        data = ownedEntries;
+      }
+
       setTimeEntries(data || []);
     } catch (error: any) {
       console.error("Error fetching time entries:", error);

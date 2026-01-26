@@ -89,36 +89,99 @@ export const useQuotes = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("quotes")
-        .select(`
-          *,
-          clients (
-            name,
-            contact_person,
-            email,
-            company_id,
-            address,
-            notes
-          ),
-          quote_items (
-            id,
-            description,
-            notes,
-            quantity,
-            unit_price,
-            total,
-            product_id,
-            product_taxes,
-            products (
-              name
-            )
-          )
-        `)
+      // First get companies where user is a member
+      const { data: memberCompanyIds, error: memberError } = await supabase
+        .from("company_members")
+        .select("company_id")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("status", "active");
 
-      if (error) throw error;
+      if (memberError) throw memberError;
+
+      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+
+      let data;
+      if (companyIds.length > 0) {
+        // First get client IDs from companies user is a member of
+        const { data: clientsFromCompanies, error: clientsError } = await supabase
+          .from("clients")
+          .select("id")
+          .in("company_id", companyIds);
+
+        if (clientsError) throw clientsError;
+
+        const clientIds = clientsFromCompanies?.map(c => c.id) || [];
+
+        if (clientIds.length > 0) {
+          // Get quotes for these clients
+          const { data: quotesData, error } = await supabase
+            .from("quotes")
+            .select(`
+              *,
+              clients (
+                name,
+                contact_person,
+                email,
+                company_id,
+                address,
+                notes
+              ),
+              quote_items (
+                id,
+                description,
+                notes,
+                quantity,
+                unit_price,
+                total,
+                product_id,
+                product_taxes,
+                products (
+                  name
+                )
+              )
+            `)
+            .in("client_id", clientIds)
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          data = quotesData;
+        } else {
+          data = [];
+        }
+      } else {
+        // Fallback: get quotes owned by user
+        const { data: ownedQuotes, error } = await supabase
+          .from("quotes")
+          .select(`
+            *,
+            clients (
+              name,
+              contact_person,
+              email,
+              company_id,
+              address,
+              notes
+            ),
+            quote_items (
+              id,
+              description,
+              notes,
+              quantity,
+              unit_price,
+              total,
+              product_id,
+              product_taxes,
+              products (
+                name
+              )
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        data = ownedQuotes;
+      }
       
       // Decrypt client email/phone fields for each quote
       const quotesWithDecryptedClients = await Promise.all(
