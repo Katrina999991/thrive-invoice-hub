@@ -30,10 +30,14 @@ export const useProducts = () => {
 
       const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
 
-      let data;
+      // Build a query that gets:
+      // 1. Products from companies user is a member of (via company_id)
+      // 2. OR products owned by the user directly (user_id) - for legacy products without company_id
+      let allProducts: any[] = [];
+
       if (companyIds.length > 0) {
         // Get products from companies user is a member of
-        const { data: productsData, error } = await supabase
+        const { data: companyProducts, error: companyError } = await supabase
           .from("products")
           .select(`
             *,
@@ -49,31 +53,45 @@ export const useProducts = () => {
           .in("company_id", companyIds)
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
-        data = productsData;
-      } else {
-        // Fallback: get products owned by user
-        const { data: ownedProducts, error } = await supabase
-          .from("products")
-          .select(`
-            *,
-            companies:company_id (
-              id,
-              name
-            ),
-            clients:client_id (
-              id,
-              name
-            )
-          `)
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        data = ownedProducts;
+        if (companyError) throw companyError;
+        allProducts = companyProducts || [];
       }
+
+      // Also get products owned by user that might not have a company_id
+      // or have a company_id not in their membership list
+      const { data: ownedProducts, error: ownedError } = await supabase
+        .from("products")
+        .select(`
+          *,
+          companies:company_id (
+            id,
+            name
+          ),
+          clients:client_id (
+            id,
+            name
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (ownedError) throw ownedError;
+
+      // Merge and deduplicate by id
+      const productMap = new Map<string, any>();
       
-      setProducts(data || []);
+      // Add company products first
+      allProducts.forEach(p => productMap.set(p.id, p));
+      
+      // Add owned products (will overwrite duplicates, which is fine)
+      (ownedProducts || []).forEach(p => productMap.set(p.id, p));
+
+      // Convert back to array and sort by created_at desc
+      const mergedProducts = Array.from(productMap.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      
+      setProducts(mergedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast({
