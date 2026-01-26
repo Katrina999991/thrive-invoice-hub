@@ -151,11 +151,13 @@ export function TeamAccessTab() {
   const getModuleLabel = (module: string) => {
     const labels: Record<string, { en: string; fr: string }> = {
       clients: { en: "Clients", fr: "Clients" },
+      companies: { en: "Companies", fr: "Entreprises" },
       invoices: { en: "Invoices", fr: "Factures" },
       quotes: { en: "Quotes", fr: "Devis" },
       expenses: { en: "Expenses", fr: "Dépenses" },
       products: { en: "Products", fr: "Produits" },
       inventory: { en: "Inventory", fr: "Inventaire" },
+      time_tracking: { en: "Time Tracking", fr: "Suivi du temps" },
       reports: { en: "Reports", fr: "Rapports" },
       settings: { en: "Settings", fr: "Paramètres" },
       access: { en: "Access", fr: "Accès" },
