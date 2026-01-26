@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight, Users } from "lucide-react";
 import { TeamAccessTab } from "@/components/settings/TeamAccessTab";
 import { useCompanyPermissions } from "@/hooks/useCompanyPermissions";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { InvoiceDesignSettings } from "@/components/InvoiceDesignSettings";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useEffect as useReactEffect } from "react";
@@ -103,7 +104,7 @@ export default function Settings() {
   
   // Get first company for permissions check
   const firstCompanyId = companies.length > 0 ? companies[0].id : null;
-  const { hasPermission } = useCompanyPermissions(firstCompanyId);
+  const { hasPermission, isOwner } = useSelectedCompany(firstCompanyId || undefined);
   // Temporarily restrict Team & Access tab to admin account only until fully tested
   const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
   const canViewTeamAccess = user?.id === ADMIN_USER_ID && hasPermission("access:view_members");
@@ -958,6 +959,7 @@ Cordialement,
           </CardContent>
         </Card>
 
+        {isOwner && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1127,6 +1129,7 @@ Cordialement,
             </div>
           </CardContent>
         </Card>
+        )}
 
         <Card>
           <CardHeader>
