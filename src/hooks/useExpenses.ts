@@ -94,8 +94,28 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
 
         if (error) throw error;
         
+        // Also fetch legacy expenses (company_id is NULL) owned by user
+        // This ensures backward compatibility with expenses created before company system
+        const { data: legacyExpenses, error: legacyError } = await supabase
+          .from("expenses")
+          .select(`
+            *,
+            companies (
+              name
+            )
+          `)
+          .is("company_id", null)
+          .eq("user_id", user.id)
+          .eq("is_archived", showArchived)
+          .order("expense_date", { ascending: false });
+
+        if (legacyError) throw legacyError;
+        
+        // Combine company expenses and legacy expenses
+        const allExpenses = [...(expensesData || []), ...(legacyExpenses || [])];
+        
         // Fetch profiles for the expenses
-        const userIds = [...new Set((expensesData || []).map(e => e.user_id))];
+        const userIds = [...new Set(allExpenses.map(e => e.user_id))];
         const { data: profilesData } = await supabase
           .from("profiles")
           .select("user_id, username, display_name")
@@ -105,10 +125,13 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
           (profilesData || []).map(p => [p.user_id, p])
         );
         
-        data = (expensesData || []).map(expense => ({
+        data = allExpenses.map(expense => ({
           ...expense,
           profiles: profilesMap.get(expense.user_id) || null
         })) as Expense[];
+        
+        // Sort by expense_date descending
+        data.sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime());
       } else {
         // Fallback: get expenses owned by user (for users not in any company)
         const { data: ownedExpenses, error } = await supabase
