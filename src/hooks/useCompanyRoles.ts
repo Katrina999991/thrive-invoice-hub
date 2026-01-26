@@ -16,6 +16,11 @@ export const ALL_PERMISSIONS = [
   { key: "clients:create", module: "clients", action: "create" },
   { key: "clients:edit", module: "clients", action: "edit" },
   { key: "clients:delete", module: "clients", action: "delete" },
+  // Companies
+  { key: "companies:view", module: "companies", action: "view" },
+  { key: "companies:create", module: "companies", action: "create" },
+  { key: "companies:edit", module: "companies", action: "edit" },
+  { key: "companies:delete", module: "companies", action: "delete" },
   // Invoices
   { key: "invoices:view", module: "invoices", action: "view" },
   { key: "invoices:create", module: "invoices", action: "create" },
@@ -40,6 +45,11 @@ export const ALL_PERMISSIONS = [
   // Inventory
   { key: "inventory:view", module: "inventory", action: "view" },
   { key: "inventory:adjust", module: "inventory", action: "adjust" },
+  // Time Tracking
+  { key: "time_tracking:view", module: "time_tracking", action: "view" },
+  { key: "time_tracking:create", module: "time_tracking", action: "create" },
+  { key: "time_tracking:edit", module: "time_tracking", action: "edit" },
+  { key: "time_tracking:delete", module: "time_tracking", action: "delete" },
   // Reports
   { key: "reports:view", module: "reports", action: "view" },
   { key: "reports:export", module: "reports", action: "export" },
@@ -57,11 +67,13 @@ export const ALL_PERMISSIONS = [
 
 export const PERMISSION_MODULES = [
   "clients",
+  "companies",
   "invoices", 
   "quotes",
   "expenses",
   "products",
   "inventory",
+  "time_tracking",
   "reports",
   "settings",
   "access",
