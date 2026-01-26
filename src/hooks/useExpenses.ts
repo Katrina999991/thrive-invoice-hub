@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -6,18 +6,50 @@ import { useQueryClient } from "@tanstack/react-query";
 import { logAuditEvent } from "@/lib/auditLogger";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-type Expense = Tables<"expenses">;
+type Expense = Tables<"expenses"> & {
+  companies?: { name: string } | null;
+  profiles?: { username: string | null; display_name: string | null } | null;
+};
 type ExpenseInsert = TablesInsert<"expenses">;
 type ExpenseUpdate = TablesUpdate<"expenses">;
 
-export const useExpenses = (showArchived: boolean = false) => {
+interface UseExpensesOptions {
+  showArchived?: boolean;
+  companyId?: string | null;
+  permissions?: string[];
+}
+
+export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions = false) => {
+  // Handle both old signature (boolean) and new signature (options object)
+  const options: UseExpensesOptions = typeof showArchivedOrOptions === 'boolean' 
+    ? { showArchived: showArchivedOrOptions }
+    : showArchivedOrOptions;
+  
+  const { showArchived = false, companyId, permissions = [] } = options;
+  
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, username } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const fetchExpenses = async () => {
+  // Permission checks
+  const canViewAll = useMemo(() => 
+    permissions.includes("expenses:view_all") || permissions.includes("expenses:view"),
+    [permissions]
+  );
+  
+  const canEditAll = useMemo(() => 
+    permissions.includes("expenses:edit_all") || permissions.includes("expenses:edit"),
+    [permissions]
+  );
+  
+  const canDelete = useMemo(() => 
+    permissions.includes("expenses:delete"),
+    [permissions]
+  );
+
+  const fetchExpenses = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -30,12 +62,18 @@ export const useExpenses = (showArchived: boolean = false) => {
 
       if (memberError) throw memberError;
 
-      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+      const memberCompanyIdList = memberCompanyIds?.map(m => m.company_id) || [];
+      
+      // If a specific company is selected, filter to that company
+      const targetCompanyIds = companyId 
+        ? memberCompanyIdList.filter(id => id === companyId)
+        : memberCompanyIdList;
 
-      let data;
-      if (companyIds.length > 0) {
-        // Get expenses from companies user is a member of
-        const { data: expensesData, error } = await supabase
+      let data: Expense[] = [];
+      
+      if (targetCompanyIds.length > 0) {
+        // Build query based on permissions
+        let query = supabase
           .from("expenses")
           .select(`
             *,
@@ -43,14 +81,36 @@ export const useExpenses = (showArchived: boolean = false) => {
               name
             )
           `)
-          .in("company_id", companyIds)
+          .in("company_id", targetCompanyIds)
           .eq("is_archived", showArchived)
           .order("expense_date", { ascending: false });
 
+        // If user can only view their own expenses, filter by user_id
+        if (!canViewAll) {
+          query = query.eq("user_id", user.id);
+        }
+
+        const { data: expensesData, error } = await query;
+
         if (error) throw error;
-        data = expensesData;
+        
+        // Fetch profiles for the expenses
+        const userIds = [...new Set((expensesData || []).map(e => e.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, username, display_name")
+          .in("user_id", userIds);
+        
+        const profilesMap = new Map(
+          (profilesData || []).map(p => [p.user_id, p])
+        );
+        
+        data = (expensesData || []).map(expense => ({
+          ...expense,
+          profiles: profilesMap.get(expense.user_id) || null
+        })) as Expense[];
       } else {
-        // Fallback: get expenses owned by user
+        // Fallback: get expenses owned by user (for users not in any company)
         const { data: ownedExpenses, error } = await supabase
           .from("expenses")
           .select(`
@@ -64,10 +124,21 @@ export const useExpenses = (showArchived: boolean = false) => {
           .order("expense_date", { ascending: false });
 
         if (error) throw error;
-        data = ownedExpenses;
+        
+        // Fetch profile for current user
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("user_id, username, display_name")
+          .eq("user_id", user.id)
+          .single();
+        
+        data = (ownedExpenses || []).map(expense => ({
+          ...expense,
+          profiles: profileData || null
+        })) as Expense[];
       }
       
-      setExpenses(data || []);
+      setExpenses(data);
     } catch (error) {
       console.error("Error fetching expenses:", error);
       toast({
@@ -78,7 +149,21 @@ export const useExpenses = (showArchived: boolean = false) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, showArchived, companyId, canViewAll, toast]);
+
+  // Check if user can edit a specific expense
+  const canEditExpense = useCallback((expense: Expense): boolean => {
+    if (!user) return false;
+    if (canEditAll) return true;
+    // Can only edit own expenses
+    return expense.user_id === user.id && permissions.includes("expenses:edit_own");
+  }, [user, canEditAll, permissions]);
+
+  // Check if user can delete a specific expense
+  const canDeleteExpense = useCallback((expense: Expense): boolean => {
+    if (!user) return false;
+    return canDelete;
+  }, [user, canDelete]);
 
   const createExpense = async (expenseData: Omit<ExpenseInsert, "user_id">, skipLimitCheck = false) => {
     if (!user) return null;
@@ -154,8 +239,18 @@ export const useExpenses = (showArchived: boolean = false) => {
   const updateExpense = async (id: string, updates: ExpenseUpdate) => {
     if (!user) return;
     
-    // Get current expense for logging
+    // Get current expense for permission check and logging
     const currentExpense = expenses.find(exp => exp.id === id);
+    
+    // Check permission
+    if (currentExpense && !canEditExpense(currentExpense)) {
+      toast({
+        title: "Error",
+        description: "You don't have permission to edit this expense",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       const { error } = await supabase
@@ -196,8 +291,18 @@ export const useExpenses = (showArchived: boolean = false) => {
   const deleteExpense = async (id: string) => {
     if (!user) return;
     
-    // Get expense for logging before deletion
+    // Get expense for permission check and logging before deletion
     const expenseToDelete = expenses.find(exp => exp.id === id);
+    
+    // Check permission
+    if (expenseToDelete && !canDeleteExpense(expenseToDelete)) {
+      toast({
+        title: "Error",
+        description: "You don't have permission to delete this expense",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       const { error } = await supabase
@@ -239,9 +344,25 @@ export const useExpenses = (showArchived: boolean = false) => {
     }
   };
 
+  // Get unique creators from expenses for filtering
+  const uniqueCreators = useMemo(() => {
+    const creatorsMap = new Map<string, { userId: string; name: string }>();
+    
+    expenses.forEach(expense => {
+      if (!creatorsMap.has(expense.user_id)) {
+        const name = expense.profiles?.username || 
+                     expense.profiles?.display_name || 
+                     (expense.user_id === user?.id ? 'Me' : 'Unknown');
+        creatorsMap.set(expense.user_id, { userId: expense.user_id, name });
+      }
+    });
+    
+    return Array.from(creatorsMap.values());
+  }, [expenses, user?.id]);
+
   useEffect(() => {
     fetchExpenses();
-  }, [user, showArchived]);
+  }, [fetchExpenses]);
 
   return {
     expenses,
@@ -249,6 +370,13 @@ export const useExpenses = (showArchived: boolean = false) => {
     createExpense,
     updateExpense,
     deleteExpense,
-    refetch: fetchExpenses
+    refetch: fetchExpenses,
+    // Permission helpers
+    canViewAll,
+    canEditAll,
+    canDelete,
+    canEditExpense,
+    canDeleteExpense,
+    uniqueCreators
   };
 };
