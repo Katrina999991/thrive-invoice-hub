@@ -1170,7 +1170,7 @@ const Expenses = () => {
                 {t("expenses.listDesc")}
               </CardDescription>
             </div>
-            {selectedExpenses.size > 0 && (
+            {selectedExpenses.size > 0 && canEditExpenses && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
                   {selectedExpenses.size} {language === "fr" ? "sélectionné(s)" : "selected"}
@@ -1262,7 +1262,7 @@ const Expenses = () => {
             </Select>
           </div>
 
-          {filteredExpenses.length > 0 && (
+          {filteredExpenses.length > 0 && canEditExpenses && (
             <div className="flex items-center gap-2 mb-4 pb-2 border-b">
               <Checkbox
                 checked={selectedExpenses.size === filteredExpenses.length && filteredExpenses.length > 0}
@@ -1283,11 +1283,13 @@ const Expenses = () => {
             ) : filteredExpenses.map((expense) => (
               <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                 <div className="flex items-start gap-3 flex-1">
-                  <Checkbox
-                    checked={selectedExpenses.has(expense.id)}
-                    onCheckedChange={() => toggleExpenseSelection(expense.id)}
-                    className="mt-1"
-                  />
+                  {canEditExpenses && (
+                    <Checkbox
+                      checked={selectedExpenses.has(expense.id)}
+                      onCheckedChange={() => toggleExpenseSelection(expense.id)}
+                      className="mt-1"
+                    />
+                  )}
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <h3 className="font-medium">{expense.description}</h3>
@@ -1312,15 +1314,21 @@ const Expenses = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
-                      <SelectTrigger className="w-24 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
-                        <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {canEditExpenses ? (
+                      <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
+                        <SelectTrigger className="w-24 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
+                          <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge className={getStatusColor(expense.status)}>
+                        {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
+                      </Badge>
+                    )}
                     {canEditExpenses && (
                       <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
                         <Edit className="h-4 w-4" />
