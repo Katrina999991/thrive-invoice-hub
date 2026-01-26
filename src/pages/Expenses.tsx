@@ -1402,12 +1402,11 @@ const Expenses = () => {
                       <p className="text-sm text-muted-foreground">
                         {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
                         {(expense as any).companies?.name && ` • ${(expense as any).companies.name}`}
-                        {canViewAll && expense.user_id !== user?.id && (
-                          <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
-                            <User className="h-3 w-3 inline-block mr-1" />
-                            {creatorName}
-                          </span>
-                        )}
+                        {` • `}
+                        <span className="inline-flex items-center text-xs bg-muted px-1.5 py-0.5 rounded">
+                          <User className="h-3 w-3 mr-1" />
+                          {creatorName}
+                        </span>
                       </p>
                     </div>
                   </div>
