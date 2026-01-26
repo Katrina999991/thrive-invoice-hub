@@ -46,11 +46,11 @@ const Quotes = () => {
   const { products } = useProducts();
   const { createInvoice } = useInvoices();
   const { planLimits } = useSubscription();
-  const { canCreate, canEdit, canDelete, canView } = useSelectedCompany();
+  const { canCreate, canEdit, canDelete, hasPermission } = useSelectedCompany();
   
   const canCreateQuotes = canCreate("quotes");
   const canEditQuotes = canEdit("quotes");
-  const canSendQuotes = canView("quotes"); // send permission not defined, use view
+  const canSendQuotes = hasPermission("quotes:send");
   const canDeleteQuotes = canDelete("quotes");
 
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
@@ -687,9 +687,11 @@ const Quotes = () => {
                         <Button variant="ghost" size="sm" onClick={() => generatePDF(quote)}>
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
-                          <Mail className="h-4 w-4" />
-                        </Button>
+                        {canSendQuotes && (
+                          <Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                        )}
                         {canCreateQuotes && (
                           <Button variant="ghost" size="sm" onClick={() => duplicateQuote(quote)}>
                             <Copy className="h-4 w-4" />
@@ -782,9 +784,11 @@ const Quotes = () => {
                             <Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
                               <Download className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
-                              <Mail className="h-4 w-4" />
-                            </Button>
+                            {canSendQuotes && (
+                              <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                            )}
                             {canCreateQuotes && (
                               <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
                                 <Copy className="h-4 w-4" />
