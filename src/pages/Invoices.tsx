@@ -82,6 +82,7 @@ const Invoices = () => {
   const canEditInvoices = canEdit("invoices");
   const canDeleteInvoices = canDelete("invoices");
   const canSendInvoices = hasPermission("invoices:send");
+  const canArchiveInvoices = canEdit("invoices"); // Archive requires edit permission
 
   // Load Stripe account info on mount
   useEffect(() => {
@@ -2099,16 +2100,18 @@ Best regards,
                   <CheckCircle className="h-4 w-4 mr-2" />
                   {language === "fr" ? "Statut" : "Status"}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleBulkArchive}
-                >
-                  {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
-                  {showArchived 
-                    ? (language === "fr" ? "Désarchiver" : "Unarchive")
-                    : (language === "fr" ? "Archiver" : "Archive")}
-                </Button>
+                {canArchiveInvoices && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleBulkArchive}
+                  >
+                    {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                    {showArchived 
+                      ? (language === "fr" ? "Désarchiver" : "Unarchive")
+                      : (language === "fr" ? "Archiver" : "Archive")}
+                  </Button>
+                )}
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -2376,29 +2379,31 @@ Best regards,
                               </Tooltip>
                               )
                             )}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => archiveInvoice(invoice.id, !(invoice as any).is_archived)}
-                              >
-                                {(invoice as any).is_archived ? (
-                                  <ArchiveRestore className="h-4 w-4" />
-                                ) : (
-                                  <Archive className="h-4 w-4" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                {(invoice as any).is_archived 
-                                  ? (language === "fr" ? "Désarchiver la facture" : "Unarchive invoice")
-                                  : (language === "fr" ? "Archiver la facture" : "Archive invoice")
-                                }
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
+                          {canArchiveInvoices && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => archiveInvoice(invoice.id, !(invoice as any).is_archived)}
+                                >
+                                  {(invoice as any).is_archived ? (
+                                    <ArchiveRestore className="h-4 w-4" />
+                                  ) : (
+                                    <Archive className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {(invoice as any).is_archived 
+                                    ? (language === "fr" ? "Désarchiver la facture" : "Unarchive invoice")
+                                    : (language === "fr" ? "Archiver la facture" : "Archive invoice")
+                                  }
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           {canDeleteInvoices && (
                             <AlertDialog>
                               <Tooltip>
