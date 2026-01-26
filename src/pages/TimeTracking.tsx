@@ -114,8 +114,10 @@ export default function TimeTracking() {
   const [useCustomDescription, setUseCustomDescription] = useState(false);
   const [editingEntry, setEditingEntry] = useState<string | null>(null);
   const [filterClient, setFilterClient] = useState<string>("all");
+  const [filterCreators, setFilterCreators] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isCreatorFilterOpen, setIsCreatorFilterOpen] = useState(false);
   const [useTimeRange, setUseTimeRange] = useState(false);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
     { id: crypto.randomUUID(), start_time: "", end_time: "" }
@@ -781,10 +783,29 @@ export default function TimeTracking() {
     ? timeEntries.find(e => e.id === selectedEntries[0])?.client_id 
     : null;
 
+  // Get unique creators from all entries for the filter
+  const uniqueCreators = useMemo(() => {
+    const creators = new Map<string, { userId: string; name: string }>();
+    timeEntries.forEach(entry => {
+      if (!creators.has(entry.user_id)) {
+        creators.set(entry.user_id, {
+          userId: entry.user_id,
+          name: entry.profiles?.username || entry.profiles?.display_name || (entry.user_id === user?.id ? (language === "fr" ? "Moi" : "Me") : (language === "fr" ? "Inconnu" : "Unknown"))
+        });
+      }
+    });
+    return Array.from(creators.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [timeEntries, user?.id, language]);
+
   // Filtrer les entrées
   const filteredEntries = timeEntries.filter((entry) => {
     // Filtre par client
     if (filterClient !== "all" && entry.client_id !== filterClient) {
+      return false;
+    }
+
+    // Filtre par créateur
+    if (filterCreators.length > 0 && !filterCreators.includes(entry.user_id)) {
       return false;
     }
     
@@ -979,8 +1000,8 @@ export default function TimeTracking() {
             <Clock className="h-5 w-5" />
             {language === "fr" ? "Heures enregistrées" : "Recorded Hours"}
           </CardTitle>
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4 flex-wrap">
+            <div className="flex-1 min-w-[150px]">
               <Select value={filterClient} onValueChange={setFilterClient}>
                 <SelectTrigger>
                   <SelectValue placeholder={language === "fr" ? "Tous les clients" : "All clients"} />
@@ -997,6 +1018,75 @@ export default function TimeTracking() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Creator filter - only show if user can view all */}
+            {permissions.canViewAll && uniqueCreators.length > 1 && (
+              <Popover open={isCreatorFilterOpen} onOpenChange={setIsCreatorFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full sm:w-[200px] justify-start text-left font-normal",
+                      filterCreators.length === 0 && "text-muted-foreground"
+                    )}
+                  >
+                    {filterCreators.length > 0 ? (
+                      <span className="truncate">
+                        {filterCreators.length === 1
+                          ? uniqueCreators.find(c => c.userId === filterCreators[0])?.name
+                          : `${filterCreators.length} ${language === "fr" ? "sélectionnés" : "selected"}`}
+                      </span>
+                    ) : (
+                      <span>{language === "fr" ? "Tous les utilisateurs" : "All users"}</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-2" align="start">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between pb-2 border-b">
+                      <span className="text-sm font-medium">
+                        {language === "fr" ? "Créé par" : "Created by"}
+                      </span>
+                      {filterCreators.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => setFilterCreators([])}
+                        >
+                          {language === "fr" ? "Effacer" : "Clear"}
+                        </Button>
+                      )}
+                    </div>
+                    {uniqueCreators.map((creator) => (
+                      <div key={creator.userId} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`creator-${creator.userId}`}
+                          checked={filterCreators.includes(creator.userId)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFilterCreators(prev => [...prev, creator.userId]);
+                            } else {
+                              setFilterCreators(prev => prev.filter(id => id !== creator.userId));
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`creator-${creator.userId}`}
+                          className="text-sm cursor-pointer flex-1 truncate"
+                        >
+                          {creator.name}
+                          {creator.userId === user?.id && (
+                            <span className="text-muted-foreground ml-1">({language === "fr" ? "moi" : "me"})</span>
+                          )}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+            
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -1038,11 +1128,12 @@ export default function TimeTracking() {
                 />
               </PopoverContent>
             </Popover>
-            {(filterClient !== "all" || dateRange) && (
+            {(filterClient !== "all" || dateRange || filterCreators.length > 0) && (
               <Button
                 variant="ghost"
                 onClick={() => {
                   setFilterClient("all");
+                  setFilterCreators([]);
                   setDateRange(undefined);
                 }}
                 className="w-full sm:w-auto"
