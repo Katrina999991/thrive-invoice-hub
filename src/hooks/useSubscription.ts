@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useUserCompanies } from "./useUserCompanies";
+import { useMemo } from "react";
 
 export type PlanType = 'free' | 'premium' | 'pro';
 export type BillingCycle = 'monthly' | 'yearly';
@@ -42,24 +44,53 @@ export interface SubscriptionPlan {
   quotes_enabled: boolean;
 }
 
-export const useSubscription = () => {
+/**
+ * useSubscription hook - now uses company-based subscriptions
+ * 
+ * When a companyId is provided, it uses the company's plan.
+ * When no companyId is provided, it tries to use the first company the user has access to.
+ * This ensures invited team members benefit from the company's plan.
+ */
+export const useSubscription = (companyId?: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { memberships, loading: companiesLoading } = useUserCompanies();
 
-  // Fetch user's plan limits
+  // Determine which company to use for plan limits
+  const effectiveCompanyId = useMemo(() => {
+    if (companyId) return companyId;
+    // If no companyId provided, use the first company the user has access to
+    if (memberships && memberships.length > 0) {
+      return memberships[0].company_id;
+    }
+    return null;
+  }, [companyId, memberships]);
+
+  // Fetch company plan limits (not user plan limits)
   const { data: planLimits, isLoading: isLoadingLimits } = useQuery({
-    queryKey: ["planLimits", user?.id],
+    queryKey: ["companyPlanLimits", effectiveCompanyId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!effectiveCompanyId) return null;
       
       const { data, error } = await supabase
-        .rpc('get_user_plan_limits', { user_uuid: user.id })
+        .rpc('get_company_plan_limits', { _company_id: effectiveCompanyId })
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching company plan limits:", error);
+        // Fallback to user plan limits if company plan doesn't exist
+        if (user?.id) {
+          const { data: userData, error: userError } = await supabase
+            .rpc('get_user_plan_limits', { user_uuid: user.id })
+            .single();
+          if (!userError) return userData as PlanLimits;
+        }
+        return null;
+      }
       return data as PlanLimits;
     },
-    enabled: !!user?.id,
+    enabled: !!effectiveCompanyId || !!user?.id,
+    staleTime: 30000, // 30 seconds cache
   });
 
   // Fetch all available plans
@@ -76,22 +107,22 @@ export const useSubscription = () => {
     },
   });
 
-  // Fetch current subscription details
+  // Fetch current company subscription details
   const { data: currentSubscription } = useQuery({
-    queryKey: ["currentSubscription", user?.id],
+    queryKey: ["companySubscription", effectiveCompanyId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!effectiveCompanyId) return null;
       
       const { data, error } = await supabase
-        .from("user_subscriptions")
+        .from("company_subscriptions")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("company_id", effectiveCompanyId)
+        .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!effectiveCompanyId,
   });
 
   // Check if feature is available
@@ -120,30 +151,46 @@ export const useSubscription = () => {
   const checkLimit = async (limitType: 'companies' | 'clients') => {
     if (!user?.id || !planLimits) return { canAdd: true, current: 0, limit: null };
     
-    const table = limitType === 'companies' ? 'companies' : 'clients';
-    const { count, error } = await supabase
-      .from(table)
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
-    
-    if (error) throw error;
-    
-    const limit = limitType === 'companies' 
-      ? planLimits.max_companies 
-      : planLimits.max_clients;
-    
-    const canAdd = limit === null || (count ?? 0) < limit;
-    
-    return { canAdd, current: count ?? 0, limit };
+    if (limitType === 'companies') {
+      // For companies, count all companies the user owns
+      const { count, error } = await supabase
+        .from('companies')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      const limit = planLimits.max_companies;
+      const canAdd = limit === null || (count ?? 0) < limit;
+      
+      return { canAdd, current: count ?? 0, limit };
+    } else {
+      // For clients, count clients in the effective company
+      if (!effectiveCompanyId) return { canAdd: true, current: 0, limit: null };
+      
+      const { count, error } = await supabase
+        .from('clients')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', effectiveCompanyId);
+      
+      if (error) throw error;
+      
+      const limit = planLimits.max_clients;
+      const canAdd = limit === null || (count ?? 0) < limit;
+      
+      return { canAdd, current: count ?? 0, limit };
+    }
   };
 
   return {
     planLimits,
     availablePlans,
     currentSubscription,
-    isLoading: isLoadingLimits || isLoadingPlans,
+    isLoading: isLoadingLimits || isLoadingPlans || companiesLoading,
     canUseFeature,
     isLimitReached,
     checkLimit,
+    // Expose the effective company ID for debugging/reference
+    effectiveCompanyId,
   };
 };
