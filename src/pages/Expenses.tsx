@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check, User, Filter } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
@@ -34,16 +35,32 @@ const Expenses = () => {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const [showArchived, setShowArchived] = useState(false);
-  const { expenses, loading: expensesLoading, createExpense, updateExpense, deleteExpense } = useExpenses(showArchived);
   const { categories, loading: categoriesLoading } = useCategories();
   const { companies, loading: companiesLoading } = useCompanies();
   const { isLimitReached } = useSubscription();
-  const { canCreate, canEdit, canDelete } = useSelectedCompany();
+  const { selectedCompanyId, hasPermission, permissions, loading: permissionsLoading } = useSelectedCompany();
+  
+  // Fetch expenses with permissions
+  const { 
+    expenses, 
+    loading: expensesLoading, 
+    createExpense, 
+    updateExpense, 
+    deleteExpense,
+    canViewAll,
+    canEditExpense,
+    canDeleteExpense,
+    uniqueCreators
+  } = useExpenses({
+    showArchived,
+    companyId: selectedCompanyId,
+    permissions
+  });
 
   // Permission checks
-  const canCreateExpenses = canCreate("expenses");
-  const canEditExpenses = canEdit("expenses");
-  const canDeleteExpenses = canDelete("expenses");
+  const canCreateExpenses = hasPermission("expenses:create");
+  const canEditExpenses = hasPermission("expenses:edit") || hasPermission("expenses:edit_own") || hasPermission("expenses:edit_all");
+  const canDeleteExpenses = hasPermission("expenses:delete");
 
   // Helper to get translated category name
   const getCategoryName = (category: any) => {
@@ -120,6 +137,7 @@ const Expenses = () => {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCompany, setFilterCompany] = useState<string>("all");
+  const [filterCreators, setFilterCreators] = useState<string[]>([]);
 
   const handleAddExpenseClick = () => {
     if (isLimitReached('expenses')) {
@@ -613,8 +631,9 @@ const Expenses = () => {
     const matchesCategory = filterCategory === "all" || expense.category === filterCategory;
     const matchesStatus = filterStatus === "all" || expense.status === filterStatus;
     const matchesCompany = filterCompany === "all" || expense.company_id === filterCompany;
+    const matchesCreator = filterCreators.length === 0 || filterCreators.includes(expense.user_id);
     
-    return matchesSearch && matchesCategory && matchesStatus && matchesCompany;
+    return matchesSearch && matchesCategory && matchesStatus && matchesCompany && matchesCreator;
   });
 
   const toggleSelectAll = () => {
@@ -1214,7 +1233,7 @@ const Expenses = () => {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 pb-4 border-b">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 pb-4 border-b">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -1260,7 +1279,84 @@ const Expenses = () => {
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* Created by filter - only show for users who can view all */}
+            {canViewAll && uniqueCreators.length > 1 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="justify-start">
+                    <User className="h-4 w-4 mr-2" />
+                    {filterCreators.length === 0 
+                      ? (language === "fr" ? "Créé par" : "Created by")
+                      : `${filterCreators.length} ${language === "fr" ? "sélectionné(s)" : "selected"}`}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="start">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between pb-2 border-b mb-2">
+                      <span className="text-sm font-medium">
+                        {language === "fr" ? "Filtrer par créateur" : "Filter by creator"}
+                      </span>
+                      {filterCreators.length > 0 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 px-2 text-xs"
+                          onClick={() => setFilterCreators([])}
+                        >
+                          {language === "fr" ? "Effacer" : "Clear"}
+                        </Button>
+                      )}
+                    </div>
+                    {uniqueCreators.map((creator) => (
+                      <div 
+                        key={creator.userId} 
+                        className="flex items-center gap-2 py-1.5 px-2 hover:bg-accent rounded-sm cursor-pointer"
+                        onClick={() => {
+                          setFilterCreators(prev => 
+                            prev.includes(creator.userId)
+                              ? prev.filter(id => id !== creator.userId)
+                              : [...prev, creator.userId]
+                          );
+                        }}
+                      >
+                        <Checkbox 
+                          checked={filterCreators.includes(creator.userId)} 
+                          onCheckedChange={() => {}}
+                        />
+                        <span className="text-sm">
+                          {creator.userId === user?.id 
+                            ? (language === "fr" ? "Moi" : "Me") 
+                            : creator.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
+          
+          {/* Reset filters button */}
+          {(searchTerm || filterCategory !== "all" || filterStatus !== "all" || filterCompany !== "all" || filterCreators.length > 0) && (
+            <div className="mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterCategory("all");
+                  setFilterStatus("all");
+                  setFilterCompany("all");
+                  setFilterCreators([]);
+                }}
+                className="text-muted-foreground"
+              >
+                <X className="h-4 w-4 mr-1" />
+                {language === "fr" ? "Réinitialiser les filtres" : "Reset filters"}
+              </Button>
+            </div>
+          )}
 
           {filteredExpenses.length > 0 && canEditExpenses && (
             <div className="flex items-center gap-2 mb-4 pb-2 border-b">
@@ -1276,94 +1372,107 @@ const Expenses = () => {
           <div className="space-y-4">
             {filteredExpenses.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {searchTerm || filterCategory !== "all" || filterStatus !== "all" || filterCompany !== "all"
+                {searchTerm || filterCategory !== "all" || filterStatus !== "all" || filterCompany !== "all" || filterCreators.length > 0
                   ? (language === "fr" ? "Aucune dépense ne correspond aux filtres" : "No expenses match the filters")
                   : (language === "fr" ? "Aucune dépense trouvée" : "No expenses found")}
               </div>
-            ) : filteredExpenses.map((expense) => (
-              <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                <div className="flex items-start gap-3 flex-1">
-                  {canEditExpenses && (
-                    <Checkbox
-                      checked={selectedExpenses.has(expense.id)}
-                      onCheckedChange={() => toggleExpenseSelection(expense.id)}
-                      className="mt-1"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <h3 className="font-medium">{expense.description}</h3>
-                      <Badge className={getStatusColor(expense.status)}>
-                        {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
-                      {(expense as any).companies?.name && ` • ${(expense as any).companies.name}`}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                  <div className="text-right">
-                    <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
-                    {((expense as any).taxes as any[] || []).length > 0 && (
-                      <div className="text-xs text-muted-foreground">
-                        {language === "fr" ? "Taxes: " : "Taxes: "}
-                        ${((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0).toFixed(2)}
+            ) : filteredExpenses.map((expense) => {
+              const expenseCanEdit = canEditExpense(expense);
+              const expenseCanDelete = canDeleteExpense(expense);
+              const creatorName = expense.profiles?.username || expense.profiles?.display_name || 
+                (expense.user_id === user?.id ? (language === "fr" ? "Moi" : "Me") : (language === "fr" ? "Inconnu" : "Unknown"));
+              
+              return (
+                <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    {expenseCanEdit && (
+                      <Checkbox
+                        checked={selectedExpenses.has(expense.id)}
+                        onCheckedChange={() => toggleExpenseSelection(expense.id)}
+                        className="mt-1"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-medium">{expense.description}</h3>
+                        <Badge className={getStatusColor(expense.status)}>
+                          {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
+                        </Badge>
                       </div>
-                    )}
+                      <p className="text-sm text-muted-foreground">
+                        {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
+                        {(expense as any).companies?.name && ` • ${(expense as any).companies.name}`}
+                        {canViewAll && expense.user_id !== user?.id && (
+                          <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
+                            <User className="h-3 w-3 inline-block mr-1" />
+                            {creatorName}
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {canEditExpenses ? (
-                      <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
-                        <SelectTrigger className="w-24 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
-                          <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Badge className={getStatusColor(expense.status)}>
-                        {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
-                      </Badge>
-                    )}
-                    {canEditExpenses && (
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {canDeleteExpenses && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t("expenses.delete")}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t("expenses.deleteConfirm")}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t("expenses.cancel")}</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteExpense(expense.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {t("expenses.delete")}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    <div className="text-right">
+                      <div className="text-lg font-semibold">${Number(expense.amount).toFixed(2)}</div>
+                      {((expense as any).taxes as any[] || []).length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          {language === "fr" ? "Taxes: " : "Taxes: "}
+                          ${((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0).toFixed(2)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {expenseCanEdit ? (
+                        <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
+                          <SelectTrigger className="w-24 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unpaid">{t("expenses.unpaid")}</SelectItem>
+                            <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={getStatusColor(expense.status)}>
+                          {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
+                        </Badge>
+                      )}
+                      {expenseCanEdit && (
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {expenseCanDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t("expenses.delete")}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t("expenses.deleteConfirm")}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t("expenses.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteExpense(expense.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t("expenses.delete")}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
