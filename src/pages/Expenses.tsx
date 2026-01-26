@@ -18,6 +18,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategoryMappings } from "@/hooks/useCategoryMappings";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ReceiptScanner, ExtractedReceiptData } from "@/components/ReceiptScanner";
 import { Separator } from "@/components/ui/separator";
@@ -37,6 +38,12 @@ const Expenses = () => {
   const { categories, loading: categoriesLoading } = useCategories();
   const { companies, loading: companiesLoading } = useCompanies();
   const { isLimitReached } = useSubscription();
+  const { canCreate, canEdit, canDelete } = useSelectedCompany();
+
+  // Permission checks
+  const canCreateExpenses = canCreate("expenses");
+  const canEditExpenses = canEdit("expenses");
+  const canDeleteExpenses = canDelete("expenses");
 
   // Helper to get translated category name
   const getCategoryName = (category: any) => {
@@ -735,10 +742,12 @@ const Expenses = () => {
             {showArchived ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
             <span className="hidden sm:inline">{showArchived ? (language === "fr" ? "Actives" : "Active") : (language === "fr" ? "Archivées" : "Archived")}</span>
           </Button>
-          <Button onClick={handleAddExpenseClick} className="flex-1 sm:flex-none">
-            <Plus className="h-4 w-4 mr-2" />
-            {t("expenses.addButton")}
-          </Button>
+          {canCreateExpenses && (
+            <Button onClick={handleAddExpenseClick} className="flex-1 sm:flex-none">
+              <Plus className="h-4 w-4 mr-2" />
+              {t("expenses.addButton")}
+            </Button>
+          )}
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -1312,33 +1321,37 @@ const Expenses = () => {
                         <SelectItem value="paid">{t("expenses.paid")}</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t("expenses.delete")}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("expenses.deleteConfirm")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t("expenses.cancel")}</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => deleteExpense(expense.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {t("expenses.delete")}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {canEditExpenses && (
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(expense)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {canDeleteExpenses && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t("expenses.delete")}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t("expenses.deleteConfirm")}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t("expenses.cancel")}</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => deleteExpense(expense.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {t("expenses.delete")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </div>
               </div>

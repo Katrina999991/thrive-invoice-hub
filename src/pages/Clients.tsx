@@ -17,8 +17,8 @@ import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { z } from "zod";
-
 
 const Clients = () => {
   const { t, language } = useLanguage();
@@ -27,8 +27,14 @@ const Clients = () => {
   const { clients, loading, createClient, updateClient, deleteClient } = useClients();
   const { companies } = useCompanies();
   const { checkLimit, planLimits } = useSubscription();
+  const { canCreate, canEdit, canDelete } = useSelectedCompany();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [limitMessage, setLimitMessage] = useState({ limit: 0 });
+
+  // Permission checks
+  const canCreateClients = canCreate("clients");
+  const canEditClients = canEdit("clients");
+  const canDeleteClients = canDelete("clients");
 
   const [newClient, setNewClient] = useState({
     name: "",
@@ -280,10 +286,12 @@ const Clients = () => {
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button onClick={handleAddClientClick} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            {t("clients.addButton")}
-          </Button>
+          {canCreateClients && (
+            <Button onClick={handleAddClientClick} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              {t("clients.addButton")}
+            </Button>
+          )}
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingClient ? t("clients.dialog.edit") : t("clients.dialog.add")}</DialogTitle>
@@ -540,33 +548,37 @@ const Clients = () => {
                         )}
                       </div>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("clients.deleteConfirm").replace("{name}", client.name)}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteClient(client.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {t("clients.deleteButton")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        {canEditClients && (
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteClients && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("clients.deleteConfirm").replace("{name}", client.name)}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteClient(client.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {t("clients.deleteButton")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </div>
                     
@@ -690,33 +702,37 @@ const Clients = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("clients.deleteConfirm").replace("{name}", client.name)}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteClient(client.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {t("clients.deleteButton")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        {canEditClients && (
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteClients && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t("clients.delete")}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("clients.deleteConfirm").replace("{name}", client.name)}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t("clients.cancel")}</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteClient(client.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {t("clients.deleteButton")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
