@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
@@ -781,7 +782,13 @@ const Companies = () => {
   const { t, language } = useLanguage();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompanies();
   const { checkLimit, planLimits } = useSubscription();
+  const { hasPermission, isOwner, isAdmin } = useSelectedCompany();
   const navigate = useNavigate();
+
+  // Permission checks - only Owner and Admin can modify companies
+  const canCreateCompany = isOwner || isAdmin;
+  const canEditCompany = isOwner || isAdmin;
+  const canDeleteCompany = isOwner;
 
   // Helper function to format complete address
   const formatAddress = (company: Company) => {
@@ -1207,10 +1214,12 @@ Best regards,
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button onClick={handleAddCompanyClick}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t("companies.addButton")}
-          </Button>
+          {canCreateCompany && (
+            <Button onClick={handleAddCompanyClick}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t("companies.addButton")}
+            </Button>
+          )}
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCompany ? t("companies.dialog.edit") : t("companies.dialog.add")}</DialogTitle>
@@ -1662,45 +1671,51 @@ Best regards,
                 </div>
               )}
 
-              <div className="flex gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(company)}
-                  className="flex-1"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  {t("companies.updateButton")}
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+              {(canEditCompany || canDeleteCompany) && (
+                <div className="flex gap-2 pt-4">
+                  {canEditCompany && (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleEdit(company)}
+                      className="flex-1"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Edit className="h-4 w-4 mr-2" />
+                      {t("companies.updateButton")}
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t("companies.delete")}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("companies.deleteConfirm")}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t("companies.cancel")}</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => deleteCompany(company.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {t("companies.deleteButton")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                  )}
+                  {canDeleteCompany && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t("companies.delete")}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t("companies.deleteConfirm")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t("companies.cancel")}</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteCompany(company.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {t("companies.deleteButton")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
           );
