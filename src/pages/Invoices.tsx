@@ -2092,14 +2092,16 @@ Best regards,
                 <span className="text-sm text-muted-foreground">
                   {selectedInvoices.size} {language === "fr" ? "sélectionné(s)" : "selected"}
                 </span>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setBulkStatusDialogOpen(true)}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  {language === "fr" ? "Statut" : "Status"}
-                </Button>
+                {canEditInvoices && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setBulkStatusDialogOpen(true)}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    {language === "fr" ? "Statut" : "Status"}
+                  </Button>
+                )}
                 {canArchiveInvoices && (
                   <Button 
                     variant="outline" 
@@ -2230,26 +2232,38 @@ Best regards,
                     </TableCell>
                     <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Select 
-                        value={invoice.status} 
-                        onValueChange={(value) => {
-                          const updates: any = { status: value };
-                          if (invoice.status === "paid" && value !== "paid") {
-                            updates.paid_at = null;
-                          }
-                          updateInvoice(invoice.id, updates);
-                        }}
-                      >
-                        <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
-                          <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
-                          <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                          <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {canEditInvoices ? (
+                        <Select 
+                          value={invoice.status} 
+                          onValueChange={(value) => {
+                            const updates: any = { status: value };
+                            if (invoice.status === "paid" && value !== "paid") {
+                              updates.paid_at = null;
+                            }
+                            updateInvoice(invoice.id, updates);
+                          }}
+                        >
+                          <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                            <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                            <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                            <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge 
+                          variant={invoice.status === "paid" ? "default" : "secondary"}
+                          className={invoice.status === "paid" ? "bg-green-600 text-white" : ""}
+                        >
+                          {invoice.status === "draft" ? t("invoices.statusDraft") :
+                           invoice.status === "sent" ? t("invoices.statusSent") :
+                           invoice.status === "paid" ? t("invoices.statusPaid") :
+                           invoice.status === "overdue" ? t("invoices.statusOverdue") : invoice.status}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>{invoice.issue_date}</TableCell>
                     <TableCell>{invoice.due_date}</TableCell>
