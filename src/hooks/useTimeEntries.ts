@@ -106,14 +106,16 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
       });
 
       // Fetch creator names for all entries
-      const userIds = [...new Set(allEntries.map(e => e.user_id))];
+      const userIds = [...new Set(allEntries.map(e => e.user_id).filter(Boolean))];
       if (userIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("user_id, display_name, username")
           .in("user_id", userIds);
         
-        if (!profilesError && profiles) {
+        console.log("Fetched profiles for time entries:", profiles, "for userIds:", userIds);
+        
+        if (!profilesError && profiles && profiles.length > 0) {
           const profileMap = new Map(profiles.map(p => [p.user_id, { display_name: p.display_name, username: p.username }]));
           allEntries = allEntries.map(entry => ({
             ...entry,
