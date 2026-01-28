@@ -86,10 +86,11 @@ export function AppSidebar() {
   const logo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
 
   // Define main menu items with their required permissions
-  // Viewer role only has: clients:view, invoices:view, quotes:view, expenses:view, products:view, inventory:view, reports:view
+  // Dashboard is accessible to all authenticated members (null permission = always visible)
+  // Other items require specific view permissions
   const mainItems = [
-    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, requiresFeature: null, requiredPermission: "settings:view" },
-    { titleKey: "nav.companies", url: "/dashboard/companies", icon: Building2, requiresFeature: null, requiredPermission: "companies:view" },
+    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, requiresFeature: null, requiredPermission: null },
+    { titleKey: "nav.companies", url: "/dashboard/companies", icon: Building2, requiresFeature: null, requiredPermission: null },
     { titleKey: "nav.clients", url: "/dashboard/clients", icon: Users, requiresFeature: null, requiredPermission: "clients:view" },
     { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag, requiresFeature: "category_management" as const, requiredPermission: "settings:view" },
     { titleKey: "nav.products", url: "/dashboard/products", icon: Package, requiresFeature: null, requiredPermission: "products:view" },
@@ -97,7 +98,7 @@ export function AppSidebar() {
     { titleKey: "nav.quotes", url: "/dashboard/quotes", icon: FileCheck, requiresFeature: null, requiredPermission: "quotes:view" },
     { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText, requiresFeature: null, requiredPermission: "invoices:view" },
     { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null, requiredPermission: "time_tracking:view_own" },
-    { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null, requiredPermission: "expenses:view" },
+    { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null, requiredPermission: "expenses:view_own" },
     { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3, requiresFeature: null, requiredPermission: "reports:view" },
   ];
 
