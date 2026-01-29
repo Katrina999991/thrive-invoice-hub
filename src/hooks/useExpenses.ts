@@ -44,8 +44,13 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
     [permissions]
   );
   
-  const canDelete = useMemo(() => 
-    permissions.includes("expenses:delete"),
+  const canDeleteAll = useMemo(() => 
+    permissions.includes("expenses:delete") || permissions.includes("expenses:delete_all"),
+    [permissions]
+  );
+  
+  const canDeleteOwn = useMemo(() => 
+    permissions.includes("expenses:delete_own"),
     [permissions]
   );
 
@@ -184,8 +189,10 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
   // Check if user can delete a specific expense
   const canDeleteExpense = useCallback((expense: Expense): boolean => {
     if (!user) return false;
-    return canDelete;
-  }, [user, canDelete]);
+    if (canDeleteAll) return true;
+    // Can delete own expenses if has delete_own permission
+    return expense.user_id === user.id && canDeleteOwn;
+  }, [user, canDeleteAll, canDeleteOwn]);
 
   const createExpense = async (expenseData: Omit<ExpenseInsert, "user_id">, skipLimitCheck = false) => {
     if (!user) return null;
@@ -396,7 +403,8 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
     // Permission helpers
     canViewAll,
     canEditAll,
-    canDelete,
+    canDeleteAll,
+    canDeleteOwn,
     canEditExpense,
     canDeleteExpense,
     uniqueCreators
