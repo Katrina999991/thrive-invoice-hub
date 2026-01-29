@@ -118,6 +118,9 @@ const Expenses = () => {
   // Store original receipt total for auto-adjusting amount when taxes change
   const [originalReceiptTotal, setOriginalReceiptTotal] = useState<number | null>(null);
   
+  // Temporary string state for total amount input to allow proper decimal input
+  const [totalAmountInput, setTotalAmountInput] = useState<string>("");
+  
   // Category mappings hook - now user-level, not company-level
   const { saveMappingsFromScan, findSuggestedCategory, mappings: categoryMappings } = useCategoryMappings();
 
@@ -325,9 +328,9 @@ const Expenses = () => {
         setTaxesAutoAdded(false);
       }
       // Store original total for later tax adjustments
-      setOriginalReceiptTotal(data.total_amount || data.amount || null);
-      // Store original total for later tax adjustments
-      setOriginalReceiptTotal(data.total_amount || data.amount || null);
+      const total = data.total_amount || data.amount || null;
+      setOriginalReceiptTotal(total);
+      setTotalAmountInput(total !== null ? total.toFixed(2) : "");
     } else {
       // No company selected - calculate amount before taxes but don't display taxes
       const total = data.total_amount || data.amount || 0;
@@ -357,6 +360,7 @@ const Expenses = () => {
       }));
       // Store original total for later tax adjustments
       setOriginalReceiptTotal(total);
+      setTotalAmountInput(total.toFixed(2));
       setTaxHelperText(null);
       setTaxesAutoAdded(false);
     }
@@ -544,6 +548,7 @@ const Expenses = () => {
     setTaxesAutoAdded(false);
     setTaxesUserModified(false);
     setOriginalReceiptTotal(null);
+    setTotalAmountInput("");
   };
 
   // Helper function to recalculate amount from taxes
@@ -813,7 +818,9 @@ const Expenses = () => {
                       setNewExpense({...newExpense, amount: e.target.value});
                       // Update original total if amount changed manually
                       const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
-                      setOriginalReceiptTotal((parseFloat(e.target.value) || 0) + taxTotal);
+                      const newTotal = (parseFloat(e.target.value) || 0) + taxTotal;
+                      setOriginalReceiptTotal(newTotal);
+                      setTotalAmountInput(newTotal.toFixed(2));
                     }}
                     required
                   />
@@ -822,20 +829,27 @@ const Expenses = () => {
                   <Label htmlFor="totalAmount">{language === "fr" ? "Montant total (après taxes)" : "Total amount (with taxes)"}</Label>
                   <Input
                     id="totalAmount"
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     placeholder="0.00"
-                    value={originalReceiptTotal?.toFixed(2) || ""}
+                    value={totalAmountInput}
                     onChange={(e) => {
-                      const newTotal = parseFloat(e.target.value) || 0;
-                      setOriginalReceiptTotal(newTotal);
-                      // Recalculate amount before taxes (allows for discounts which reduce the amount)
-                      const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
-                      const amountBeforeTax = newTotal - taxTotal;
-                      setNewExpense(prev => ({
-                        ...prev,
-                        amount: amountBeforeTax.toFixed(2)
-                      }));
+                      const rawValue = e.target.value;
+                      // Allow typing with comma or period as decimal separator
+                      if (rawValue === "" || /^[0-9]*[.,]?[0-9]*$/.test(rawValue)) {
+                        setTotalAmountInput(rawValue);
+                        // Normalize to dot for calculations
+                        const normalizedValue = rawValue.replace(",", ".");
+                        const newTotal = parseFloat(normalizedValue) || 0;
+                        setOriginalReceiptTotal(newTotal);
+                        // Recalculate amount before taxes (allows for discounts which reduce the amount)
+                        const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
+                        const amountBeforeTax = newTotal - taxTotal;
+                        setNewExpense(prev => ({
+                          ...prev,
+                          amount: amountBeforeTax.toFixed(2)
+                        }));
+                      }
                     }}
                     className="bg-muted/50"
                   />
