@@ -147,6 +147,21 @@ const Expenses = () => {
       setShowLimitDialog(true);
       return;
     }
+    // Auto-select the company if one is selected
+    if (selectedCompanyId) {
+      const selectedCompany = companies.find(c => c.id === selectedCompanyId);
+      const companyTaxes = selectedCompany?.taxes as any[] || [];
+      const initialTaxes = companyTaxes.map((tax: any) => ({
+        name: tax.name,
+        percentage: tax.percentage,
+        amount: 0
+      }));
+      setNewExpense(prev => ({ 
+        ...prev, 
+        company_id: selectedCompanyId,
+        taxes: initialTaxes
+      }));
+    }
     setIsDialogOpen(true);
   };
 
