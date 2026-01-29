@@ -44,15 +44,17 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
     [permissions]
   );
   
-  const canDeleteAll = useMemo(() => 
-    permissions.includes("expenses:delete") || permissions.includes("expenses:delete_all"),
-    [permissions]
-  );
+  const canDeleteAll = useMemo(() => {
+    const result = permissions.includes("expenses:delete") || permissions.includes("expenses:delete_all");
+    console.log("canDeleteAll check:", { permissions, result });
+    return result;
+  }, [permissions]);
   
-  const canDeleteOwn = useMemo(() => 
-    permissions.includes("expenses:delete_own"),
-    [permissions]
-  );
+  const canDeleteOwn = useMemo(() => {
+    const result = permissions.includes("expenses:delete_own");
+    console.log("canDeleteOwn check:", { permissions, result });
+    return result;
+  }, [permissions]);
 
   const fetchExpenses = useCallback(async () => {
     if (!user) return;
@@ -188,10 +190,19 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
 
   // Check if user can delete a specific expense
   const canDeleteExpense = useCallback((expense: Expense): boolean => {
+    console.log("canDeleteExpense called:", {
+      userId: user?.id,
+      expenseUserId: expense.user_id,
+      canDeleteAll,
+      canDeleteOwn,
+      isOwnExpense: expense.user_id === user?.id
+    });
     if (!user) return false;
     if (canDeleteAll) return true;
     // Can delete own expenses if has delete_own permission
-    return expense.user_id === user.id && canDeleteOwn;
+    const result = expense.user_id === user.id && canDeleteOwn;
+    console.log("canDeleteExpense result:", result);
+    return result;
   }, [user, canDeleteAll, canDeleteOwn]);
 
   const createExpense = async (expenseData: Omit<ExpenseInsert, "user_id">, skipLimitCheck = false) => {
