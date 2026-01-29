@@ -35,7 +35,25 @@ export function useCompanyPermissions(companyId: string | null) {
   }, [fetchPermissions]);
 
   const hasPermission = useCallback((permission: string): boolean => {
-    return permissions.includes(permission);
+    // Direct match
+    if (permissions.includes(permission)) return true;
+    
+    // For base permissions like "expenses:view", also check granular variants
+    // e.g., "expenses:view" should return true if user has "expenses:view_own" or "expenses:view_all"
+    if (permission.endsWith(':view')) {
+      const module = permission.replace(':view', '');
+      return permissions.includes(`${module}:view_own`) || permissions.includes(`${module}:view_all`);
+    }
+    if (permission.endsWith(':edit')) {
+      const module = permission.replace(':edit', '');
+      return permissions.includes(`${module}:edit_own`) || permissions.includes(`${module}:edit_all`);
+    }
+    if (permission.endsWith(':delete')) {
+      const module = permission.replace(':delete', '');
+      return permissions.includes(`${module}:delete_own`) || permissions.includes(`${module}:delete_all`);
+    }
+    
+    return false;
   }, [permissions]);
 
   return {
