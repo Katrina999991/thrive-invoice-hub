@@ -1455,13 +1455,13 @@ const Expenses = () => {
                         <Badge className={getStatusColor(expense.status)}>
                           {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
                         </Badge>
-                        {/* Approval badge */}
+                        {/* Approval badge - only show for other users' expenses */}
                         {isApproved ? (
                           <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             {language === "fr" ? "Approuvé" : "Approved"}
                           </Badge>
-                        ) : canViewAll ? (
+                        ) : canViewAll && expense.user_id !== user?.id ? (
                           <Badge variant="secondary">
                             {language === "fr" ? "En attente" : "Pending"}
                           </Badge>
