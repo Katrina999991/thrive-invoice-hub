@@ -47,6 +47,8 @@ const Expenses = () => {
     createExpense, 
     updateExpense, 
     deleteExpense,
+    approveExpense,
+    unapproveExpense,
     canViewAll,
     canEditExpense,
     canDeleteExpense,
@@ -56,6 +58,9 @@ const Expenses = () => {
     companyId: selectedCompanyId,
     permissions
   });
+
+  // Permission checks
+  const canApproveExpenses = hasPermission("expenses:approve");
 
   // Permission checks
   const canCreateExpenses = hasPermission("expenses:create");
@@ -141,6 +146,7 @@ const Expenses = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [filterCreators, setFilterCreators] = useState<string[]>([]);
+  const [filterApproval, setFilterApproval] = useState<string>("all"); // "all" | "pending" | "approved"
 
   const handleAddExpenseClick = () => {
     if (isLimitReached('expenses')) {
@@ -653,7 +659,13 @@ const Expenses = () => {
     const matchesCompany = filterCompany === "all" || expense.company_id === filterCompany;
     const matchesCreator = filterCreators.length === 0 || filterCreators.includes(expense.user_id);
     
-    return matchesSearch && matchesCategory && matchesStatus && matchesCompany && matchesCreator;
+    // Approval filter
+    const isApproved = !!(expense as any).approved_at;
+    const matchesApproval = filterApproval === "all" || 
+      (filterApproval === "approved" && isApproved) ||
+      (filterApproval === "pending" && !isApproved);
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesCompany && matchesCreator && matchesApproval;
   });
 
   const toggleSelectAll = () => {
@@ -1364,6 +1376,20 @@ const Expenses = () => {
                 </PopoverContent>
               </Popover>
             )}
+            
+            {/* Approval filter - only show if user can approve */}
+            {canApproveExpenses && (
+              <Select value={filterApproval} onValueChange={setFilterApproval}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === "fr" ? "Tous" : "All"}</SelectItem>
+                  <SelectItem value="pending">{language === "fr" ? "En attente" : "Pending"}</SelectItem>
+                  <SelectItem value="approved">{language === "fr" ? "Approuvés" : "Approved"}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
           
           {/* Reset filters button */}
@@ -1410,6 +1436,8 @@ const Expenses = () => {
               const expenseCanDelete = canDeleteExpense(expense);
               const creatorName = expense.profiles?.username || expense.profiles?.display_name || 
                 (expense.user_id === user?.id ? (language === "fr" ? "Moi" : "Me") : (language === "fr" ? "Inconnu" : "Unknown"));
+              const isApproved = !!(expense as any).approved_at;
+              const canApproveThis = canApproveExpenses && expense.user_id !== user?.id; // Can't approve own expenses
               
               return (
                 <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
@@ -1427,6 +1455,17 @@ const Expenses = () => {
                         <Badge className={getStatusColor(expense.status)}>
                           {expense.status === "paid" ? t("expenses.paid") : t("expenses.unpaid")}
                         </Badge>
+                        {/* Approval badge */}
+                        {isApproved ? (
+                          <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            {language === "fr" ? "Approuvé" : "Approved"}
+                          </Badge>
+                        ) : canViewAll ? (
+                          <Badge variant="secondary">
+                            {language === "fr" ? "En attente" : "Pending"}
+                          </Badge>
+                        ) : null}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {expense.vendor ? `${expense.vendor} • ` : ""}{getTranslatedCategoryName(expense.category)} • {expense.expense_date}
@@ -1436,6 +1475,11 @@ const Expenses = () => {
                           <User className="h-3 w-3 mr-1" />
                           {creatorName}
                         </span>
+                        {isApproved && (expense as any).approved_by_profile && (
+                          <span className="text-xs ml-2">
+                            • {language === "fr" ? "Approuvé par" : "Approved by"}: {(expense as any).approved_by_profile?.username || (expense as any).approved_by_profile?.display_name}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -1450,6 +1494,28 @@ const Expenses = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
+                      {/* Approve button */}
+                      {canApproveThis && !isApproved && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => approveExpense(expense.id)}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          {language === "fr" ? "Approuver" : "Approve"}
+                        </Button>
+                      )}
+                      {canApproveThis && isApproved && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => unapproveExpense(expense.id)}
+                          className="text-muted-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                       {expenseCanEdit ? (
                         <Select value={expense.status} onValueChange={(value) => updateExpense(expense.id, { status: value })}>
                           <SelectTrigger className="w-24 h-8">

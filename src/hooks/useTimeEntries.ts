@@ -15,6 +15,7 @@ type TimeEntry = Tables<"time_entries"> & {
   companies?: { name: string } | null;
   time_entry_ranges?: TimeEntryRange[];
   profiles?: { display_name: string | null; username: string | null } | null;
+  approved_by_profile?: { display_name: string | null; username: string | null } | null;
 };
 type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id">;
 type TimeEntryUpdate = TablesUpdate<"time_entries">;
@@ -105,21 +106,25 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
         return a.created_at.localeCompare(b.created_at);
       });
 
-      // Fetch creator names for all entries
+      // Fetch creator names and approver names for all entries
       const userIds = [...new Set(allEntries.map(e => e.user_id).filter(Boolean))];
-      if (userIds.length > 0) {
+      const approverIds = [...new Set(allEntries.map(e => (e as any).approved_by).filter(Boolean))];
+      const allUserIds = [...new Set([...userIds, ...approverIds])];
+      
+      if (allUserIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("user_id, display_name, username")
-          .in("user_id", userIds);
+          .in("user_id", allUserIds);
         
-        console.log("Fetched profiles for time entries:", profiles, "for userIds:", userIds);
+        console.log("Fetched profiles for time entries:", profiles, "for userIds:", allUserIds);
         
         if (!profilesError && profiles && profiles.length > 0) {
           const profileMap = new Map(profiles.map(p => [p.user_id, { display_name: p.display_name, username: p.username }]));
           allEntries = allEntries.map(entry => ({
             ...entry,
-            profiles: profileMap.get(entry.user_id) || { display_name: null, username: null }
+            profiles: profileMap.get(entry.user_id) || { display_name: null, username: null },
+            approved_by_profile: (entry as any).approved_by ? profileMap.get((entry as any).approved_by) || null : null
           }));
         }
       }
@@ -289,6 +294,52 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
     }
   };
 
+  const approveTimeEntry = async (entryId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .update({ 
+          approved_at: new Date().toISOString(),
+          approved_by: user.id 
+        })
+        .eq("id", entryId);
+
+      if (error) throw error;
+      
+      toast.success("Entrée approuvée");
+      await fetchTimeEntries();
+    } catch (error: any) {
+      console.error("Error approving time entry:", error);
+      toast.error("Erreur lors de l'approbation");
+      throw error;
+    }
+  };
+
+  const unapproveTimeEntry = async (entryId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .update({ 
+          approved_at: null,
+          approved_by: null 
+        })
+        .eq("id", entryId);
+
+      if (error) throw error;
+      
+      toast.success("Approbation annulée");
+      await fetchTimeEntries();
+    } catch (error: any) {
+      console.error("Error unapproving time entry:", error);
+      toast.error("Erreur lors de l'annulation de l'approbation");
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchTimeEntries();
   }, [user, filterOwnOnly]);
@@ -302,6 +353,8 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
     getUnbilledEntries,
     markAsBilled,
     markAsUnbilled,
+    approveTimeEntry,
+    unapproveTimeEntry,
     refetch: fetchTimeEntries,
   };
 };

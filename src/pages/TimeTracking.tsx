@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -102,7 +102,7 @@ export default function TimeTracking() {
   
   // Fetch entries based on permissions - employees only see their own
   const shouldFilterOwnOnly = !permissions.canViewAll;
-  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled } = useTimeEntries({ filterOwnOnly: shouldFilterOwnOnly });
+  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled, approveTimeEntry, unapproveTimeEntry } = useTimeEntries({ filterOwnOnly: shouldFilterOwnOnly });
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -115,6 +115,7 @@ export default function TimeTracking() {
   const [editingEntry, setEditingEntry] = useState<string | null>(null);
   const [filterClient, setFilterClient] = useState<string>("all");
   const [filterCreators, setFilterCreators] = useState<string[]>([]);
+  const [filterApproval, setFilterApproval] = useState<string>("all"); // "all" | "pending" | "approved"
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isCreatorFilterOpen, setIsCreatorFilterOpen] = useState(false);
@@ -808,6 +809,14 @@ export default function TimeTracking() {
     if (filterCreators.length > 0 && !filterCreators.includes(entry.user_id)) {
       return false;
     }
+
+    // Filtre par approbation
+    if (filterApproval === "approved" && !(entry as any).approved_at) {
+      return false;
+    }
+    if (filterApproval === "pending" && (entry as any).approved_at) {
+      return false;
+    }
     
     // Filtre par date
     if (dateRange?.from) {
@@ -1128,13 +1137,27 @@ export default function TimeTracking() {
                 />
               </PopoverContent>
             </Popover>
-            {(filterClient !== "all" || dateRange || filterCreators.length > 0) && (
+            {/* Approval filter - only show if user can approve */}
+            {permissions.canApprove && (
+              <Select value={filterApproval} onValueChange={setFilterApproval}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === "fr" ? "Tous" : "All"}</SelectItem>
+                  <SelectItem value="pending">{language === "fr" ? "En attente" : "Pending"}</SelectItem>
+                  <SelectItem value="approved">{language === "fr" ? "Approuvés" : "Approved"}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            {(filterClient !== "all" || dateRange || filterCreators.length > 0 || filterApproval !== "all") && (
               <Button
                 variant="ghost"
                 onClick={() => {
                   setFilterClient("all");
                   setFilterCreators([]);
                   setDateRange(undefined);
+                  setFilterApproval("all");
                 }}
                 className="w-full sm:w-auto"
               >
@@ -1185,6 +1208,9 @@ export default function TimeTracking() {
                       <TableHead className="text-right">{language === "fr" ? "Taux" : "Rate"}</TableHead>
                       <TableHead className="text-right">{language === "fr" ? "Total" : "Total"}</TableHead>
                       <TableHead>{language === "fr" ? "Statut" : "Status"}</TableHead>
+                      {permissions.canViewAll && (
+                        <TableHead>{language === "fr" ? "Approbation" : "Approval"}</TableHead>
+                      )}
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1192,6 +1218,8 @@ export default function TimeTracking() {
                     {filteredEntries.map((entry) => {
                       const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                       const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
+                      const isApproved = !!(entry as any).approved_at;
+                      const canApproveEntry = permissions.canApprove && entry.user_id !== user?.id; // Can't approve own entries
                       
                       return (
                         <TableRow key={entry.id}>
@@ -1267,6 +1295,54 @@ export default function TimeTracking() {
                               </Badge>
                             )}
                           </TableCell>
+                          {/* Approval column - only show if user can view all */}
+                          {permissions.canViewAll && (
+                            <TableCell>
+                              {isApproved ? (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-1">
+                                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        {language === "fr" ? "Approuvé" : "Approved"}
+                                      </Badge>
+                                      {canApproveEntry && (
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={() => unapproveTimeEntry(entry.id)}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      {language === "fr" ? "Par" : "By"}: {(entry as any).approved_by_profile?.display_name || (entry as any).approved_by_profile?.username || (language === "fr" ? "Inconnu" : "Unknown")}
+                                      <br />
+                                      {format(new Date((entry as any).approved_at), "d MMM yyyy HH:mm", { locale: language === "fr" ? fr : undefined })}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ) : canApproveEntry ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => approveTimeEntry(entry.id)}
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  {language === "fr" ? "Approuver" : "Approve"}
+                                </Button>
+                              ) : (
+                                <Badge variant="secondary">
+                                  {language === "fr" ? "En attente" : "Pending"}
+                                </Badge>
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="flex gap-1">
                               {canEdit && (
@@ -1328,6 +1404,8 @@ export default function TimeTracking() {
                   });
                   const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                   const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
+                  const isApproved = !!(entry as any).approved_at;
+                  const canApproveEntry = permissions.canApprove && entry.user_id !== user?.id;
                   
                   return (
                     <div key={entry.id} className="border rounded-lg p-3 space-y-2">
@@ -1387,7 +1465,7 @@ export default function TimeTracking() {
                         <span className="font-semibold">${(entry.hours * entry.hourly_rate).toFixed(2)}</span>
                       </div>
                       
-                      <div className="pt-1">
+                      <div className="flex flex-wrap gap-2 pt-1">
                         {/* Status dropdown - only editable if user can mark as billed */}
                         {permissions.canMarkAsBilled ? (
                           <Select
@@ -1400,7 +1478,7 @@ export default function TimeTracking() {
                               }
                             }}
                           >
-                            <SelectTrigger className="w-full h-8 text-sm">
+                            <SelectTrigger className="flex-1 h-8 text-sm">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-background z-50">
@@ -1413,12 +1491,50 @@ export default function TimeTracking() {
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Badge variant={entry.is_billed ? "default" : "secondary"} className="w-full justify-center">
+                          <Badge variant={entry.is_billed ? "default" : "secondary"}>
                             {entry.is_billed 
                               ? (language === "fr" ? "Facturé" : "Billed")
                               : (language === "fr" ? "Non facturé" : "Unbilled")
                             }
                           </Badge>
+                        )}
+                        
+                        {/* Approval status for mobile */}
+                        {permissions.canViewAll && (
+                          <>
+                            {isApproved ? (
+                              <div className="flex items-center gap-1">
+                                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  {language === "fr" ? "Approuvé" : "Approved"}
+                                </Badge>
+                                {canApproveEntry && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => unapproveTimeEntry(entry.id)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            ) : canApproveEntry ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => approveTimeEntry(entry.id)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8"
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                {language === "fr" ? "Approuver" : "Approve"}
+                              </Button>
+                            ) : (
+                              <Badge variant="secondary">
+                                {language === "fr" ? "En attente" : "Pending"}
+                              </Badge>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
