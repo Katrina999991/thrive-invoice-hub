@@ -43,6 +43,7 @@ const EXCLUDED_EMAILS = [
   "pass3344@gmail.com",
   "pass3388@gmail.com",
   "martine@3d-art.ca",
+  "felimailhot@gmail.com",
 ];
 
 export function UsersTable() {
