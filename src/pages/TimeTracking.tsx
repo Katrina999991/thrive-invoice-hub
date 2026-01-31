@@ -1331,7 +1331,6 @@ export default function TimeTracking() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => approveTimeEntry(entry.id)}
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
                                 >
                                   <Check className="h-4 w-4 mr-1" />
                                   {language === "fr" ? "Approuver" : "Approve"}
@@ -1524,7 +1523,7 @@ export default function TimeTracking() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => approveTimeEntry(entry.id)}
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8"
+                                className="h-8"
                               >
                                 <Check className="h-4 w-4 mr-1" />
                                 {language === "fr" ? "Approuver" : "Approve"}
