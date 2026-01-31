@@ -1457,10 +1457,22 @@ const Expenses = () => {
                         </Badge>
                         {/* Approval badge - only show for other users' expenses */}
                         {isApproved ? (
-                          <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            {language === "fr" ? "Approuvé" : "Approved"}
-                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              {language === "fr" ? "Approuvé" : "Approved"}
+                            </Badge>
+                            {canApproveThis && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => unapproveExpense(expense.id)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
                         ) : canViewAll && expense.user_id !== user?.id ? (
                           <Badge variant="secondary">
                             {language === "fr" ? "En attente" : "Pending"}
@@ -1503,16 +1515,6 @@ const Expenses = () => {
                         >
                           <Check className="h-4 w-4 mr-1" />
                           {language === "fr" ? "Approuver" : "Approve"}
-                        </Button>
-                      )}
-                      {canApproveThis && isApproved && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => unapproveExpense(expense.id)}
-                          className="text-muted-foreground"
-                        >
-                          <X className="h-4 w-4" />
                         </Button>
                       )}
                       {expenseCanEdit ? (
