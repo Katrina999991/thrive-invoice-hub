@@ -1497,9 +1497,9 @@ const Expenses = () => {
                       {/* Approve button */}
                       {canApproveThis && !isApproved && (
                         <Button
-                          variant="default"
                           size="sm"
                           onClick={() => approveExpense(expense.id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           <Check className="h-4 w-4 mr-1" />
                           {language === "fr" ? "Approuver" : "Approve"}

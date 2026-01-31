@@ -1328,9 +1328,9 @@ export default function TimeTracking() {
                                 </Tooltip>
                               ) : canApproveEntry ? (
                                 <Button
-                                  variant="default"
                                   size="sm"
                                   onClick={() => approveTimeEntry(entry.id)}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
                                 >
                                   <Check className="h-4 w-4 mr-1" />
                                   {language === "fr" ? "Approuver" : "Approve"}
@@ -1520,10 +1520,9 @@ export default function TimeTracking() {
                               </div>
                             ) : canApproveEntry ? (
                               <Button
-                                variant="default"
                                 size="sm"
                                 onClick={() => approveTimeEntry(entry.id)}
-                                className="h-8"
+                                className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
                               >
                                 <Check className="h-4 w-4 mr-1" />
                                 {language === "fr" ? "Approuver" : "Approve"}
