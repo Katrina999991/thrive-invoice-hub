@@ -31,6 +31,20 @@ interface User {
   clients_count: number;
 }
 
+// Emails to exclude from stats (test/internal accounts)
+const EXCLUDED_EMAILS = [
+  "app@statis.ca",
+  "silviu@theresanaiforthat.com",
+  "katrina99999@hotmail.com",
+  "md@statis.ca",
+  "martine@statis.ca",
+  "etiennedupuis1@gmail.com",
+  "martine9999931@gmail.com",
+  "pass3344@gmail.com",
+  "pass3388@gmail.com",
+  "martine@3d-art.ca",
+];
+
 export function UsersTable() {
   const { language } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
@@ -155,11 +169,14 @@ export function UsersTable() {
     );
   });
 
+  // Filter out excluded emails for stats calculations
+  const usersForStats = users.filter((u) => !EXCLUDED_EMAILS.includes(u.email?.toLowerCase() || ""));
+  
   const sevenDaysAgo = subDays(new Date(), 7);
-  const newUsersCount = users.filter((u) => isAfter(new Date(u.created_at), sevenDaysAgo)).length;
-  const premiumCount = users.filter((u) => u.plan_type === "premium").length;
-  const proCount = users.filter((u) => u.plan_type === "pro").length;
-  const activeUsersCount = users.filter((u) => u.invoices_count > 0 || u.quotes_count > 0 || u.expenses_count > 0).length;
+  const newUsersCount = usersForStats.filter((u) => isAfter(new Date(u.created_at), sevenDaysAgo)).length;
+  const premiumCount = usersForStats.filter((u) => u.plan_type === "premium").length;
+  const proCount = usersForStats.filter((u) => u.plan_type === "pro").length;
+  const activeUsersCount = usersForStats.filter((u) => u.invoices_count > 0 || u.quotes_count > 0 || u.expenses_count > 0).length;
 
   const getPlanBadge = (plan: string) => {
     switch (plan) {
@@ -252,7 +269,7 @@ export function UsersTable() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-muted/50 rounded-lg p-4 text-center">
               <Users className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-2xl font-bold">{users.length}</p>
+              <p className="text-2xl font-bold">{usersForStats.length}</p>
               <p className="text-xs text-muted-foreground">{t.totalUsers}</p>
             </div>
             <div className="bg-green-500/10 rounded-lg p-4 text-center">
