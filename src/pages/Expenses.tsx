@@ -1500,7 +1500,6 @@ const Expenses = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => approveExpense(expense.id)}
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
                         >
                           <Check className="h-4 w-4 mr-1" />
                           {language === "fr" ? "Approuver" : "Approve"}
