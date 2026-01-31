@@ -1497,7 +1497,7 @@ const Expenses = () => {
                       {/* Approve button */}
                       {canApproveThis && !isApproved && (
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={() => approveExpense(expense.id)}
                         >

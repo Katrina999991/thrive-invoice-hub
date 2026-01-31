@@ -1328,7 +1328,7 @@ export default function TimeTracking() {
                                 </Tooltip>
                               ) : canApproveEntry ? (
                                 <Button
-                                  variant="outline"
+                                  variant="default"
                                   size="sm"
                                   onClick={() => approveTimeEntry(entry.id)}
                                 >
@@ -1520,7 +1520,7 @@ export default function TimeTracking() {
                               </div>
                             ) : canApproveEntry ? (
                               <Button
-                                variant="outline"
+                                variant="default"
                                 size="sm"
                                 onClick={() => approveTimeEntry(entry.id)}
                                 className="h-8"
