@@ -75,6 +75,7 @@ export function UsersTable() {
       loading: "Chargement...",
       error: "Erreur lors du chargement des utilisateurs",
       new: "Nouveau",
+      active: "Actif",
       stripeConnected: "Stripe connecté",
       stripeNotConnected: "Stripe non connecté",
       companies: "Entreprises",
@@ -108,6 +109,7 @@ export function UsersTable() {
       loading: "Loading...",
       error: "Error loading users",
       new: "New",
+      active: "Active",
       stripeConnected: "Stripe connected",
       stripeNotConnected: "Stripe not connected",
       companies: "Companies",
@@ -336,6 +338,11 @@ export function UsersTable() {
                           {isNewUser(user.created_at) && (
                             <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
                               {t.new}
+                            </Badge>
+                          )}
+                          {(user.invoices_count > 0 || user.quotes_count > 0 || user.expenses_count > 0) && (
+                            <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs">
+                              {t.active}
                             </Badge>
                           )}
                         </div>
