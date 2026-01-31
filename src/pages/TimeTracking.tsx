@@ -1335,11 +1335,7 @@ export default function TimeTracking() {
                                   <Check className="h-4 w-4 mr-1" />
                                   {language === "fr" ? "Approuver" : "Approve"}
                                 </Button>
-                              ) : (
-                                <Badge variant="secondary">
-                                  {language === "fr" ? "En attente" : "Pending"}
-                                </Badge>
-                              )}
+                              ) : null}
                             </TableCell>
                           )}
                           <TableCell>
@@ -1527,11 +1523,7 @@ export default function TimeTracking() {
                                 <Check className="h-4 w-4 mr-1" />
                                 {language === "fr" ? "Approuver" : "Approve"}
                               </Button>
-                            ) : (
-                              <Badge variant="secondary">
-                                {language === "fr" ? "En attente" : "Pending"}
-                              </Badge>
-                            )}
+                            ) : null}
                           </>
                         )}
                       </div>
