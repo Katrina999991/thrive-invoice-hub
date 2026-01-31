@@ -661,9 +661,10 @@ const Expenses = () => {
     
     // Approval filter
     const isApproved = !!(expense as any).approved_at;
+    // Pending = not approved AND not own entries (own entries don't need approval)
     const matchesApproval = filterApproval === "all" || 
       (filterApproval === "approved" && isApproved) ||
-      (filterApproval === "pending" && !isApproved);
+      (filterApproval === "pending" && !isApproved && expense.user_id !== user?.id);
     
     return matchesSearch && matchesCategory && matchesStatus && matchesCompany && matchesCreator && matchesApproval;
   });

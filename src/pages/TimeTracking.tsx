@@ -814,7 +814,8 @@ export default function TimeTracking() {
     if (filterApproval === "approved" && !(entry as any).approved_at) {
       return false;
     }
-    if (filterApproval === "pending" && (entry as any).approved_at) {
+    // Pending = not approved AND not own entries (own entries don't need approval)
+    if (filterApproval === "pending" && ((entry as any).approved_at || entry.user_id === user?.id)) {
       return false;
     }
     
