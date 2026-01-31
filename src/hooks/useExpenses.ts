@@ -9,6 +9,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 type Expense = Tables<"expenses"> & {
   companies?: { name: string } | null;
   profiles?: { username: string | null; display_name: string | null } | null;
+  approved_by_profile?: { username: string | null; display_name: string | null } | null;
 };
 type ExpenseInsert = TablesInsert<"expenses">;
 type ExpenseUpdate = TablesUpdate<"expenses">;
@@ -120,12 +121,15 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
         // Combine company expenses and legacy expenses
         const allExpenses = [...(expensesData || []), ...(legacyExpenses || [])];
         
-        // Fetch profiles for the expenses
+        // Fetch profiles for the expenses (creators and approvers)
         const userIds = [...new Set(allExpenses.map(e => e.user_id))];
+        const approverIds = [...new Set(allExpenses.map(e => (e as any).approved_by).filter(Boolean))];
+        const allUserIds = [...new Set([...userIds, ...approverIds])];
+        
         const { data: profilesData } = await supabase
           .from("profiles")
           .select("user_id, username, display_name")
-          .in("user_id", userIds);
+          .in("user_id", allUserIds);
         
         const profilesMap = new Map(
           (profilesData || []).map(p => [p.user_id, p])
@@ -133,7 +137,8 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
         
         data = allExpenses.map(expense => ({
           ...expense,
-          profiles: profilesMap.get(expense.user_id) || null
+          profiles: profilesMap.get(expense.user_id) || null,
+          approved_by_profile: (expense as any).approved_by ? profilesMap.get((expense as any).approved_by) || null : null
         })) as Expense[];
         
         // Sort by expense_date descending
@@ -384,6 +389,66 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
     }
   };
 
+  const approveExpense = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .update({ 
+          approved_at: new Date().toISOString(),
+          approved_by: user.id 
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await fetchExpenses();
+      
+      toast({
+        title: "Success",
+        description: "Expense approved successfully"
+      });
+    } catch (error) {
+      console.error("Error approving expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve expense",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const unapproveExpense = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .update({ 
+          approved_at: null,
+          approved_by: null 
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await fetchExpenses();
+      
+      toast({
+        title: "Success",
+        description: "Approval removed"
+      });
+    } catch (error) {
+      console.error("Error unapproving expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove approval",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Get unique creators from expenses for filtering
   const uniqueCreators = useMemo(() => {
     const creatorsMap = new Map<string, { userId: string; name: string }>();
@@ -410,6 +475,8 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
     createExpense,
     updateExpense,
     deleteExpense,
+    approveExpense,
+    unapproveExpense,
     refetch: fetchExpenses,
     // Permission helpers
     canViewAll,

@@ -649,6 +649,8 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          approved_at: string | null
+          approved_by: string | null
           category: string
           client_id: string | null
           company_id: string | null
@@ -671,6 +673,8 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           category: string
           client_id?: string | null
           company_id?: string | null
@@ -693,6 +697,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string
           client_id?: string | null
           company_id?: string | null
@@ -1457,6 +1463,8 @@ export type Database = {
       }
       time_entries: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           client_id: string | null
           company_id: string | null
           created_at: string
@@ -1472,6 +1480,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           client_id?: string | null
           company_id?: string | null
           created_at?: string
@@ -1487,6 +1497,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           client_id?: string | null
           company_id?: string | null
           created_at?: string
