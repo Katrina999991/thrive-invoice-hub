@@ -17,7 +17,11 @@ type TimeEntry = Tables<"time_entries"> & {
   profiles?: { display_name: string | null; username: string | null } | null;
   approved_by_profile?: { display_name: string | null; username: string | null } | null;
 };
-type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id">;
+type TimeEntryInsert = Omit<TablesInsert<"time_entries">, "user_id"> & {
+  duration_raw_minutes?: number | null;
+  duration_billed_minutes?: number | null;
+  source?: 'manual' | 'timer';
+};
 type TimeEntryUpdate = TablesUpdate<"time_entries">;
 
 interface UseTimeEntriesOptions {

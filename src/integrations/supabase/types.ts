@@ -142,6 +142,9 @@ export type Database = {
           notes: string | null
           phone: string | null
           send_overdue_email_auto: boolean | null
+          time_rounding_enabled: boolean | null
+          time_rounding_increment_minutes: number | null
+          time_rounding_method: string | null
           updated_at: string
           user_id: string
         }
@@ -159,6 +162,9 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           send_overdue_email_auto?: boolean | null
+          time_rounding_enabled?: boolean | null
+          time_rounding_increment_minutes?: number | null
+          time_rounding_method?: string | null
           updated_at?: string
           user_id: string
         }
@@ -176,6 +182,9 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           send_overdue_email_auto?: boolean | null
+          time_rounding_enabled?: boolean | null
+          time_rounding_increment_minutes?: number | null
+          time_rounding_method?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1470,12 +1479,15 @@ export type Database = {
           created_at: string
           date: string
           description: string
+          duration_billed_minutes: number | null
+          duration_raw_minutes: number | null
           hourly_rate: number
           hours: number
           id: string
           invoice_id: string | null
           is_billed: boolean
           notes: string | null
+          source: string | null
           updated_at: string
           user_id: string
         }
@@ -1487,12 +1499,15 @@ export type Database = {
           created_at?: string
           date?: string
           description: string
+          duration_billed_minutes?: number | null
+          duration_raw_minutes?: number | null
           hourly_rate?: number
           hours?: number
           id?: string
           invoice_id?: string | null
           is_billed?: boolean
           notes?: string | null
+          source?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1504,12 +1519,15 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
+          duration_billed_minutes?: number | null
+          duration_raw_minutes?: number | null
           hourly_rate?: number
           hours?: number
           id?: string
           invoice_id?: string | null
           is_billed?: boolean
           notes?: string | null
+          source?: string | null
           updated_at?: string
           user_id?: string
         }
