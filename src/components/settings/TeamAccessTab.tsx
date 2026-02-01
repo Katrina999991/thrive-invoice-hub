@@ -49,6 +49,13 @@ export function TeamAccessTab() {
   const canInvite = hasPermission("access:invite");
   const canRemove = hasPermission("access:remove");
   const canManageRoles = hasPermission("access:manage_roles");
+  
+  // Check if current user is Owner of selected company
+  const currentUserMember = members.find(m => m.user_id === user?.id);
+  const isOwner = currentUserMember?.role_name === "Owner";
+  
+  // Admins can manage custom roles but NOT system roles (Owner, Admin)
+  const canEditSystemRoles = isOwner;
 
   // Set first company as default
   useEffect(() => {
@@ -500,8 +507,9 @@ export function TeamAccessTab() {
                           {role.description && (
                             <p className="text-sm text-muted-foreground">{role.description}</p>
                           )}
-                          <div className="flex gap-2">
-                            {!role.is_system && (
+                        <div className="flex gap-2">
+                            {/* Show edit/delete only for non-system roles, OR for system roles if user is Owner */}
+                            {(!role.is_system || canEditSystemRoles) && (
                               <>
                                 <Button 
                                   variant="outline" 
@@ -511,17 +519,19 @@ export function TeamAccessTab() {
                                   <Edit2 className="h-4 w-4 mr-2" />
                                   {language === "fr" ? "Modifier" : "Edit"}
                                 </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setRoleToDelete(role);
-                                    setShowDeleteRoleDialog(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  {language === "fr" ? "Supprimer" : "Delete"}
-                                </Button>
+                                {!role.is_system && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setRoleToDelete(role);
+                                      setShowDeleteRoleDialog(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {language === "fr" ? "Supprimer" : "Delete"}
+                                  </Button>
+                                )}
                               </>
                             )}
                             <Button 
@@ -574,9 +584,17 @@ export function TeamAccessTab() {
                 : (language === "fr" ? "Nouveau rôle" : "New role")}
             </DialogTitle>
             <DialogDescription>
-              {language === "fr" 
-                ? "Définissez le nom et les permissions du rôle"
-                : "Define the role name and permissions"}
+              {editingRole?.is_system && !canEditSystemRoles ? (
+                <span className="text-amber-600">
+                  {language === "fr" 
+                    ? "Les permissions des rôles système ne peuvent être modifiées que par le propriétaire."
+                    : "System role permissions can only be modified by the owner."}
+                </span>
+              ) : (
+                language === "fr" 
+                  ? "Définissez le nom et les permissions du rôle"
+                  : "Define the role name and permissions"
+              )}
             </DialogDescription>
           </DialogHeader>
           
@@ -588,6 +606,7 @@ export function TeamAccessTab() {
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder={language === "fr" ? "Ex: Gestionnaire" : "Ex: Manager"}
+                disabled={editingRole?.is_system && !canEditSystemRoles}
               />
             </div>
             <div className="space-y-2">
@@ -597,6 +616,7 @@ export function TeamAccessTab() {
                 value={roleDescription}
                 onChange={(e) => setRoleDescription(e.target.value)}
                 placeholder={language === "fr" ? "Description optionnelle" : "Optional description"}
+                disabled={editingRole?.is_system && !canEditSystemRoles}
               />
             </div>
 
@@ -607,7 +627,7 @@ export function TeamAccessTab() {
                   const modulePerms = ALL_PERMISSIONS.filter(p => p.module === module);
                   const allSelected = modulePerms.every(p => selectedPermissions.includes(p.key));
                   const someSelected = modulePerms.some(p => selectedPermissions.includes(p.key));
-
+                  const isDisabled = editingRole?.is_system && !canEditSystemRoles;
                   return (
                     <div key={module} className="space-y-2">
                       <div className="flex items-center space-x-2">
@@ -616,10 +636,11 @@ export function TeamAccessTab() {
                           checked={allSelected}
                           onCheckedChange={() => toggleModulePermissions(module)}
                           className={someSelected && !allSelected ? "opacity-50" : ""}
+                          disabled={isDisabled}
                         />
                         <Label 
                           htmlFor={`module-${module}`} 
-                          className="font-medium cursor-pointer"
+                          className={`font-medium ${isDisabled ? "text-muted-foreground" : "cursor-pointer"}`}
                         >
                           {getModuleLabel(module)}
                         </Label>
@@ -631,10 +652,11 @@ export function TeamAccessTab() {
                               id={perm.key}
                               checked={selectedPermissions.includes(perm.key)}
                               onCheckedChange={() => togglePermission(perm.key)}
+                              disabled={isDisabled}
                             />
                             <Label 
                               htmlFor={perm.key} 
-                              className="text-sm cursor-pointer text-muted-foreground"
+                              className={`text-sm ${isDisabled ? "text-muted-foreground/50" : "cursor-pointer text-muted-foreground"}`}
                             >
                               {getActionLabel(perm.action)}
                             </Label>

@@ -1703,6 +1703,7 @@ export type Database = {
         Returns: boolean
       }
       is_encrypted: { Args: { data: string }; Returns: boolean }
+      is_owner_of_role_company: { Args: { _role_id: string }; Returns: boolean }
       is_system_role: { Args: { _role_id: string }; Returns: boolean }
       log_audit_event: {
         Args: {
