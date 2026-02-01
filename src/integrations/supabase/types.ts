@@ -1664,6 +1664,7 @@ export type Database = {
         }[]
       }
       get_current_user_email: { Args: never; Returns: string }
+      get_role_company_id: { Args: { _role_id: string }; Returns: string }
       get_user_permissions: {
         Args: { _company_id: string; _user_id: string }
         Returns: string[]
@@ -1697,7 +1698,12 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_company_owner: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_encrypted: { Args: { data: string }; Returns: boolean }
+      is_system_role: { Args: { _role_id: string }; Returns: boolean }
       log_audit_event: {
         Args: {
           p_category: Database["public"]["Enums"]["audit_event_category"]
