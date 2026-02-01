@@ -18,6 +18,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
+import { ClientTimeRoundingSettings } from "@/components/ClientTimeRoundingSettings";
 import { z } from "zod";
 
 const Clients = () => {
@@ -48,7 +49,10 @@ const Clients = () => {
     notes: "",
     created_at: new Date().toISOString().split('T')[0],
     include_payment_link: false,
-    send_overdue_email_auto: false
+    send_overdue_email_auto: false,
+    time_rounding_enabled: false,
+    time_rounding_increment_minutes: 15,
+    time_rounding_method: "nearest"
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -142,7 +146,10 @@ const Clients = () => {
         hourly_rate: newClient.hourly_rate,
         notes: newClient.notes,
         include_payment_link: newClient.include_payment_link,
-        send_overdue_email_auto: newClient.send_overdue_email_auto
+        send_overdue_email_auto: newClient.send_overdue_email_auto,
+        time_rounding_enabled: newClient.time_rounding_enabled,
+        time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
+        time_rounding_method: newClient.time_rounding_method
       });
     } else {
       await createClient({
@@ -157,7 +164,10 @@ const Clients = () => {
         notes: newClient.notes,
         created_at: newClient.created_at,
         include_payment_link: newClient.include_payment_link,
-        send_overdue_email_auto: newClient.send_overdue_email_auto
+        send_overdue_email_auto: newClient.send_overdue_email_auto,
+        time_rounding_enabled: newClient.time_rounding_enabled,
+        time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
+        time_rounding_method: newClient.time_rounding_method
       });
     }
 
@@ -177,7 +187,10 @@ const Clients = () => {
       notes: "",
       created_at: new Date().toISOString().split('T')[0],
       include_payment_link: false,
-      send_overdue_email_auto: false
+      send_overdue_email_auto: false,
+      time_rounding_enabled: false,
+      time_rounding_increment_minutes: 15,
+      time_rounding_method: "nearest"
     });
     setEmailList([""]);
     setEditingClient(null);
@@ -204,7 +217,10 @@ const Clients = () => {
       notes: client.notes || "",
       created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       include_payment_link: client.include_payment_link || false,
-      send_overdue_email_auto: client.send_overdue_email_auto || false
+      send_overdue_email_auto: client.send_overdue_email_auto || false,
+      time_rounding_enabled: client.time_rounding_enabled || false,
+      time_rounding_increment_minutes: client.time_rounding_increment_minutes || 15,
+      time_rounding_method: client.time_rounding_method || "nearest"
     });
     setHourlyRateInput(client.hourly_rate ? String(client.hourly_rate) : "");
     setIsDialogOpen(true);
@@ -490,6 +506,18 @@ const Clients = () => {
                     : "Automatically send reminder email 1 day after due date"}
                 </Label>
               </div>
+              
+              {/* Time Rounding Settings */}
+              <ClientTimeRoundingSettings
+                enabled={newClient.time_rounding_enabled}
+                incrementMinutes={newClient.time_rounding_increment_minutes}
+                method={newClient.time_rounding_method}
+                language={language === 'fr' ? 'fr' : 'en'}
+                onEnabledChange={(enabled) => setNewClient({...newClient, time_rounding_enabled: enabled})}
+                onIncrementChange={(increment) => setNewClient({...newClient, time_rounding_increment_minutes: increment})}
+                onMethodChange={(method) => setNewClient({...newClient, time_rounding_method: method})}
+              />
+              
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("clients.cancel")}

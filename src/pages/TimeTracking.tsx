@@ -47,6 +47,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { roundDuration, hoursToMinutes, minutesToHours, type RoundingMethod, type RoundingIncrement } from "@/lib/timeRounding";
 
 const timeEntrySchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
@@ -130,6 +131,13 @@ export default function TimeTracking() {
   const [isStartTimerDialogOpen, setIsStartTimerDialogOpen] = useState(false);
   const [timerClientId, setTimerClientId] = useState<string>("");
   const [timerServiceId, setTimerServiceId] = useState<string>("");
+  
+  // Timer entry data for rounding - stored when timer is stopped
+  const [timerEntryData, setTimerEntryData] = useState<{
+    isFromTimer: boolean;
+    durationRawMinutes: number;
+    durationBilledMinutes: number;
+  } | null>(null);
 
   // User-specific localStorage keys
   const timerStorageKey = useMemo(() => 
@@ -268,17 +276,39 @@ export default function TimeTracking() {
     const now = new Date();
     const endTime = format(now, "HH:mm");
     
-    // Calculate hours
-    const [startH, startM] = activeTimer.startTime.split(':').map(Number);
-    const [endH, endM] = endTime.split(':').map(Number);
-    let startMinutes = startH * 60 + startM;
-    let endMinutes = endH * 60 + endM;
-    if (endMinutes < startMinutes) endMinutes += 24 * 60;
-    const totalHours = ((endMinutes - startMinutes) / 60).toFixed(2);
+    // Calculate raw duration in minutes (accounting for pause time)
+    let rawDurationMs = now.getTime() - activeTimer.startTimestamp;
     
-    // Get client's hourly rate
+    // Subtract total paused time
+    if (activeTimer.totalPausedMs) {
+      rawDurationMs -= activeTimer.totalPausedMs;
+    }
+    
+    const rawMinutes = Math.max(0, Math.round(rawDurationMs / (1000 * 60)));
+    
+    // Get client to check for rounding settings
     const client = clients.find(c => c.id === activeTimer.clientId);
     const service = services.find(s => s.id === activeTimer.serviceId);
+    
+    // Calculate billed minutes with rounding if enabled
+    let billedMinutes = rawMinutes;
+    if (client?.time_rounding_enabled && client.time_rounding_increment_minutes && client.time_rounding_method) {
+      billedMinutes = roundDuration(
+        rawMinutes,
+        client.time_rounding_increment_minutes as RoundingIncrement,
+        client.time_rounding_method as RoundingMethod
+      );
+    }
+    
+    // Convert billed minutes to hours for the form
+    const billedHours = minutesToHours(billedMinutes);
+    
+    // Store timer data for submission
+    setTimerEntryData({
+      isFromTimer: true,
+      durationRawMinutes: rawMinutes,
+      durationBilledMinutes: billedMinutes
+    });
     
     // Reset form and populate with timer data
     form.reset({
@@ -286,7 +316,7 @@ export default function TimeTracking() {
       company_id: "",
       service_id: activeTimer.serviceId || "",
       description: activeTimer.description || "",
-      hours: totalHours,
+      hours: billedHours.toFixed(2),
       hourly_rate: service?.price?.toString() || client?.hourly_rate?.toString() || "",
       date: activeTimer.date,
       notes: "",
@@ -495,18 +525,27 @@ export default function TimeTracking() {
         ranges
       );
     } else {
-      await createTimeEntry(
-        {
-          client_id: data.client_id,
-          company_id: data.company_id || null,
-          description: data.description,
-          hours: parseFloat(hours || "0"),
-          hourly_rate: parseFloat(data.hourly_rate),
-          date: data.date,
-          notes: data.notes || null,
-        },
-        ranges
-      );
+      // Build the entry data with timer-specific fields if applicable
+      const entryData: any = {
+        client_id: data.client_id,
+        company_id: data.company_id || null,
+        description: data.description,
+        hours: parseFloat(hours || "0"),
+        hourly_rate: parseFloat(data.hourly_rate),
+        date: data.date,
+        notes: data.notes || null,
+      };
+      
+      // Add timer-specific data if this is from a timer
+      if (timerEntryData?.isFromTimer) {
+        entryData.source = 'timer';
+        entryData.duration_raw_minutes = timerEntryData.durationRawMinutes;
+        entryData.duration_billed_minutes = timerEntryData.durationBilledMinutes;
+      } else {
+        entryData.source = 'manual';
+      }
+      
+      await createTimeEntry(entryData, ranges);
     }
     
     // Sauvegarder le dernier client utilisé
@@ -519,6 +558,7 @@ export default function TimeTracking() {
     setUseCustomDescription(false);
     setUseTimeRange(false);
     setBaseHours(0);
+    setTimerEntryData(null);
     setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
@@ -569,6 +609,7 @@ export default function TimeTracking() {
     setUseCustomDescription(false);
     setUseTimeRange(false);
     setBaseHours(0);
+    setTimerEntryData(null);
     setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     form.reset({
       date: format(new Date(), "yyyy-MM-dd"),
@@ -1257,7 +1298,37 @@ export default function TimeTracking() {
                               </span>
                             </TableCell>
                           )}
-                          <TableCell className="text-right">{entry.hours}h</TableCell>
+                          <TableCell className="text-right">
+                            {(() => {
+                              const rawMin = (entry as any).duration_raw_minutes;
+                              const billedMin = (entry as any).duration_billed_minutes;
+                              const isTimerEntry = (entry as any).source === 'timer';
+                              const hasRounding = isTimerEntry && rawMin !== null && billedMin !== null && rawMin !== billedMin;
+                              
+                              if (hasRounding) {
+                                return (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="cursor-help">
+                                          {entry.hours}h
+                                          <span className="ml-1 text-xs text-primary">≈</span>
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="text-xs">
+                                          {language === "fr" ? "Temps réel" : "Actual"}: {minutesToHours(rawMin)}h
+                                          <br />
+                                          {language === "fr" ? "Facturable" : "Billable"}: {minutesToHours(billedMin)}h
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                );
+                              }
+                              return `${entry.hours}h`;
+                            })()}
+                          </TableCell>
                           <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
                           <TableCell className="text-right font-medium">
                             ${(entry.hours * entry.hourly_rate).toFixed(2)}
@@ -1457,7 +1528,38 @@ export default function TimeTracking() {
                       
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                         <span className="text-muted-foreground">{formattedDate}</span>
-                        <span>{entry.hours}h × ${entry.hourly_rate}</span>
+                        <span>
+                          {(() => {
+                            const rawMin = (entry as any).duration_raw_minutes;
+                            const billedMin = (entry as any).duration_billed_minutes;
+                            const isTimerEntry = (entry as any).source === 'timer';
+                            const hasRounding = isTimerEntry && rawMin !== null && billedMin !== null && rawMin !== billedMin;
+                            
+                            if (hasRounding) {
+                              return (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="cursor-help">
+                                        {entry.hours}h
+                                        <span className="ml-0.5 text-xs text-primary">≈</span>
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">
+                                        {language === "fr" ? "Temps réel" : "Actual"}: {minutesToHours(rawMin)}h
+                                        <br />
+                                        {language === "fr" ? "Facturable" : "Billable"}: {minutesToHours(billedMin)}h
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              );
+                            }
+                            return `${entry.hours}h`;
+                          })()}
+                          {" × $"}{entry.hourly_rate}
+                        </span>
                         <span className="font-semibold">${(entry.hours * entry.hourly_rate).toFixed(2)}</span>
                       </div>
                       
@@ -1803,6 +1905,20 @@ export default function TimeTracking() {
                         {language === "fr" ? "Total des heures: " : "Total hours: "}
                         <span className="font-medium text-foreground">{calculateTotalHours()}h</span>
                       </div>
+                      
+                      {/* Show rounding info when timer entry has rounding applied */}
+                      {timerEntryData?.isFromTimer && timerEntryData.durationRawMinutes !== timerEntryData.durationBilledMinutes && (
+                        <div className="mt-2 p-2 bg-primary/10 rounded-md text-xs">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Clock className="h-3 w-3" />
+                            <span className="font-medium">{language === "fr" ? "Arrondi appliqué" : "Rounding applied"}</span>
+                          </div>
+                          <div className="text-muted-foreground">
+                            {language === "fr" ? "Temps réel" : "Actual"}: {minutesToHours(timerEntryData.durationRawMinutes)}h →{" "}
+                            {language === "fr" ? "Facturable" : "Billable"}: {minutesToHours(timerEntryData.durationBilledMinutes)}h
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <FormField
