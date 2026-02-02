@@ -1647,6 +1647,14 @@ export type Database = {
         }
         Returns: Json
       }
+      check_user_is_admin_or_owner: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      check_user_is_member: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
       check_username_available: {
         Args: { check_username: string; current_user_id: string }
         Returns: boolean
@@ -1687,6 +1695,7 @@ export type Database = {
       }
       get_current_user_email: { Args: never; Returns: string }
       get_role_company_id: { Args: { _role_id: string }; Returns: string }
+      get_role_company_id_safe: { Args: { _role_id: string }; Returns: string }
       get_user_permissions: {
         Args: { _company_id: string; _user_id: string }
         Returns: string[]
@@ -1716,16 +1725,8 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: string
       }
-      get_user_role_name_in_company: {
-        Args: { _company_id: string; _user_id: string }
-        Returns: string
-      }
       has_permission: {
         Args: { _company_id: string; _permission: string; _user_id: string }
-        Returns: boolean
-      }
-      is_company_admin_or_owner: {
-        Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
       is_company_member: {
