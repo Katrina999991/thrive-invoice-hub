@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { PERMISSION_GROUPS, PERMISSIONS } from "@/lib/permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -19,11 +18,15 @@ import {
   Shield,
   User,
   Building2,
-  Users
+  Users,
+  ChevronsUpDown
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 interface CompanyOption {
   id: string;
@@ -466,13 +469,48 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
             <div className="space-y-2">
               <label className="text-sm font-medium">{t.testPermission}</label>
               <div className="flex gap-2">
-                <Input
-                  placeholder={t.testPlaceholder}
-                  value={testPermission}
-                  onChange={(e) => setTestPermission(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleTestPermission()}
-                  className="flex-1"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="flex-1 justify-between font-normal"
+                    >
+                      {testPermission || t.testPlaceholder}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0 z-50" align="start">
+                    <Command>
+                      <CommandInput placeholder={language === "fr" ? "Rechercher une permission..." : "Search permission..."} />
+                      <CommandList>
+                        <CommandEmpty>{language === "fr" ? "Aucune permission trouvée" : "No permission found"}</CommandEmpty>
+                        {Object.entries(PERMISSION_GROUPS).map(([key, group]) => (
+                          <CommandGroup key={key} heading={language === "fr" ? group.labelFr : group.labelEn}>
+                            {group.permissions.map((p) => (
+                              <CommandItem
+                                key={p}
+                                value={p}
+                                onSelect={() => {
+                                  setTestPermission(p);
+                                  setTestResult(null);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    testPermission === p ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {p}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <Button onClick={handleTestPermission} size="sm">
                   {t.test}
                 </Button>
