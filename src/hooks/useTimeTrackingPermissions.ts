@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAuth } from "./useAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 
 /**
  * Time tracking permission types
@@ -46,6 +47,7 @@ export interface TimeTrackingPermissions {
 
 /**
  * Hook to get time tracking permissions based on user's role permissions
+ * Uses centralized PERMISSIONS constants
  */
 export function useTimeTrackingPermissions(
   hasPermission: (permission: string) => boolean
@@ -54,17 +56,17 @@ export function useTimeTrackingPermissions(
   const userId = user?.id;
 
   return useMemo(() => {
-    const canViewOwn = hasPermission("time_tracking:view_own");
-    const canViewAll = hasPermission("time_tracking:view_all");
-    const canCreate = hasPermission("time_tracking:create_own");
-    const canEditOwn = hasPermission("time_tracking:edit_own");
-    const canEditAll = hasPermission("time_tracking:edit_all");
-    const canDeleteOwn = hasPermission("time_tracking:delete_own");
-    const canDeleteAll = hasPermission("time_tracking:delete_all");
-    const canApprove = hasPermission("time_tracking:approve");
-    const canExport = hasPermission("time_tracking:export");
-    const canMarkAsBilled = hasPermission("time_tracking:mark_as_billed");
-    const canLinkToInvoice = hasPermission("time_tracking:link_to_invoice");
+    const canViewOwn = hasPermission(PERMISSIONS.TIME_TRACKING_VIEW_OWN);
+    const canViewAll = hasPermission(PERMISSIONS.TIME_TRACKING_VIEW_ALL);
+    const canCreate = hasPermission(PERMISSIONS.TIME_TRACKING_CREATE_OWN);
+    const canEditOwn = hasPermission(PERMISSIONS.TIME_TRACKING_EDIT_OWN);
+    const canEditAll = hasPermission(PERMISSIONS.TIME_TRACKING_EDIT_ALL);
+    const canDeleteOwn = hasPermission(PERMISSIONS.TIME_TRACKING_DELETE_OWN);
+    const canDeleteAll = hasPermission(PERMISSIONS.TIME_TRACKING_DELETE_ALL);
+    const canApprove = hasPermission(PERMISSIONS.TIME_TRACKING_APPROVE);
+    const canExport = hasPermission(PERMISSIONS.TIME_TRACKING_EXPORT);
+    const canMarkAsBilled = hasPermission(PERMISSIONS.TIME_TRACKING_MARK_AS_BILLED);
+    const canLinkToInvoice = hasPermission(PERMISSIONS.TIME_TRACKING_LINK_TO_INVOICE);
 
     /**
      * Check if user can edit a specific entry

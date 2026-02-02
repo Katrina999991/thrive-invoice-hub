@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { User, Palette, Languages, FileText, Settings as SettingsIcon, AlertTriangle, Mail, Lock, CreditCard, Loader2, Bell, HelpCircle, CheckCircle2, XCircle, Shield, ChevronRight, Users } from "lucide-react";
 import { TeamAccessTab } from "@/components/settings/TeamAccessTab";
-import { useCompanyPermissions } from "@/hooks/useCompanyPermissions";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { InvoiceDesignSettings } from "@/components/InvoiceDesignSettings";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
@@ -55,6 +54,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { useEncryption } from "@/hooks/useEncryption";
 import { useEmailPreferences } from "@/hooks/useEmailPreferences";
 import { PWAInstallSection } from "@/components/PWAInstallSection";
+import { PermissionDebugPanel } from "@/components/PermissionDebugPanel";
 
 
 export default function Settings() {
@@ -104,10 +104,10 @@ export default function Settings() {
   
   // Get first company for permissions check
   const firstCompanyId = companies.length > 0 ? companies[0].id : null;
-  const { hasPermission, isOwner } = useSelectedCompany(firstCompanyId || undefined);
+  const { can, isOwner, isAdmin } = useSelectedCompany(firstCompanyId || undefined);
   // Temporarily restrict Team & Access tab to admin account only until fully tested
   const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
-  const canViewTeamAccess = user?.id === ADMIN_USER_ID && hasPermission("access:view_members");
+  const canViewTeamAccess = user?.id === ADMIN_USER_ID && can("access:view_members");
   const [emailTemplates, setEmailTemplates] = useState({
     invoice_email_subject_en: "",
     invoice_email_subject_fr: "",
@@ -791,6 +791,14 @@ Cordialement,
           {t("settings.description")}
         </p>
       </div>
+
+      {/* Permission Debug Panel - Only visible to Owner/Admin */}
+      {firstCompanyId && (isOwner || isAdmin) && (
+        <PermissionDebugPanel 
+          companyId={firstCompanyId} 
+          companyName={companies.find(c => c.id === firstCompanyId)?.name}
+        />
+      )}
 
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="mb-6">

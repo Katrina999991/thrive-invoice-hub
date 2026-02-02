@@ -1,7 +1,9 @@
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/usePermissions";
+import { checkPermission } from "@/lib/permissions";
 
 export type AuthorizationReason = 
   | "missing_permission" 
@@ -47,13 +49,23 @@ export type LimitType = "invoices" | "expenses" | "clients";
 /**
  * Unified authorization hook that checks both:
  * 1. Company plan features/limits
- * 2. User role permissions
+ * 2. User role permissions (via centralized usePermissions)
  * 
  * This ensures invited team members benefit from the company's plan
  * while still respecting their role-based permissions.
  */
 export function useAuthorization(companyId: string | null) {
   const { user } = useAuth();
+  
+  // Use centralized permissions hook
+  const { 
+    can, 
+    permissions, 
+    abilities,
+    loading: permissionsLoading,
+    refetch: refetchPermissions,
+    invalidatePermissions
+  } = usePermissions(companyId);
 
   // Fetch company plan limits
   const { data: planLimits, isLoading: planLoading } = useQuery({
@@ -76,37 +88,15 @@ export function useAuthorization(companyId: string | null) {
     staleTime: 30000, // 30 seconds
   });
 
-  // Fetch user permissions for this company
-  const { data: permissions = [], isLoading: permissionsLoading } = useQuery({
-    queryKey: ["userPermissions", companyId, user?.id],
-    queryFn: async () => {
-      if (!companyId || !user?.id) return [];
-      
-      const { data, error } = await supabase
-        .rpc('get_user_permissions', { 
-          _company_id: companyId, 
-          _user_id: user.id 
-        });
-      
-      if (error) {
-        console.error("Error fetching permissions:", error);
-        return [];
-      }
-      
-      return (data || []) as string[];
-    },
-    enabled: !!companyId && !!user?.id,
-    staleTime: 30000,
-  });
-
   const loading = planLoading || permissionsLoading;
 
   /**
    * Check if user has a specific permission
+   * Delegates to centralized can() function
    */
   const hasPermission = useCallback((permission: string): boolean => {
-    return permissions.includes(permission);
-  }, [permissions]);
+    return can(permission);
+  }, [can]);
 
   /**
    * Check if the company plan includes a feature
@@ -238,8 +228,10 @@ export function useAuthorization(companyId: string | null) {
     permissions,
     loading,
     
-    // Permission checks
+    // Permission checks (centralized)
     hasPermission,
+    can,
+    abilities,
     
     // Plan feature checks
     hasFeature,
@@ -251,6 +243,12 @@ export function useAuthorization(companyId: string | null) {
     
     // Convenience helpers
     canManageBilling,
+    isOwner: abilities.isOwner,
+    isAdmin: abilities.isAdmin,
     planType: planLimits?.plan_type || "free",
+    
+    // Cache management
+    refetchPermissions,
+    invalidatePermissions,
   };
 }
