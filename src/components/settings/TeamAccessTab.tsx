@@ -310,7 +310,7 @@ export function TeamAccessTab() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {canManageRoles && member.user_id !== user?.id ? (
+                          {canManageRoles && member.user_id !== user?.id && member.role_name !== "Owner" ? (
                             <Select 
                               value={member.role_id} 
                               onValueChange={(value) => updateMemberRole(member.id, value)}
@@ -319,7 +319,7 @@ export function TeamAccessTab() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {roles.map((role) => (
+                                {roles.filter(role => role.name !== "Owner").map((role) => (
                                   <SelectItem key={role.id} value={role.id}>
                                     {role.name}
                                   </SelectItem>
@@ -395,7 +395,7 @@ export function TeamAccessTab() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {roles.filter(role => role.name !== "Owner").map((role) => (
                           <SelectItem key={role.id} value={role.id}>
                             {role.name}
                           </SelectItem>
@@ -508,8 +508,8 @@ export function TeamAccessTab() {
                             <p className="text-sm text-muted-foreground">{role.description}</p>
                           )}
                         <div className="flex gap-2">
-                            {/* Show edit/delete only for non-system roles, OR for system roles if user is Owner */}
-                            {(!role.is_system || canEditSystemRoles) && (
+                            {/* Show edit/delete only for non-system roles, OR for system roles (except Owner) if user is Owner */}
+                            {(!role.is_system || (canEditSystemRoles && role.name !== "Owner")) && (
                               <>
                                 <Button 
                                   variant="outline" 
