@@ -17,6 +17,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useCompanyPermissions } from "@/hooks/useCompanyPermissions";
 import { useCompanyMembers, type CompanyRole } from "@/hooks/useCompanyMembers";
 import { useCompanyRoles, ALL_PERMISSIONS, PERMISSION_MODULES } from "@/hooks/useCompanyRoles";
+import { PermissionDebugPanel } from "@/components/PermissionDebugPanel";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 
@@ -725,6 +726,14 @@ export function TeamAccessTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Permission Debug Panel - For Owners/Admins */}
+      {(isOwner || canManageRoles) && companies.length > 0 && (
+        <PermissionDebugPanel 
+          companies={companies.map(c => ({ id: c.id, name: c.name }))}
+          initialCompanyId={selectedCompanyId}
+        />
+      )}
     </div>
   );
 }

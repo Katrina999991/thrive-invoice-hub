@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useLanguage } from "@/hooks/useLanguage";
-import { PERMISSIONS, PERMISSION_GROUPS, PermissionKey } from "@/lib/permissions";
+import { PERMISSION_GROUPS } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,32 +19,37 @@ import {
   Building2
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
-interface PermissionDebugPanelProps {
-  companyId: string | null;
-  companyName?: string;
+interface CompanyOption {
+  id: string;
+  name: string;
 }
 
-export function PermissionDebugPanel({ companyId, companyName }: PermissionDebugPanelProps) {
+interface PermissionDebugPanelProps {
+  companies: CompanyOption[];
+  initialCompanyId?: string | null;
+}
+
+export function PermissionDebugPanel({ companies, initialCompanyId }: PermissionDebugPanelProps) {
   const { language } = useLanguage();
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(initialCompanyId || companies[0]?.id || "");
+  
   const { 
     can, 
     abilities, 
     permissions, 
-    expandedPermissions, 
     loading, 
     refetch 
-  } = usePermissions(companyId);
+  } = usePermissions(selectedCompanyId || null);
   
   const [testPermission, setTestPermission] = useState("");
   const [testResult, setTestResult] = useState<boolean | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Only show for Owner or Admin
-  if (!abilities.isOwner && !abilities.isAdmin) {
-    return null;
-  }
+  const selectedCompany = companies.find(c => c.id === selectedCompanyId);
 
   const handleTestPermission = () => {
     if (!testPermission.trim()) {
@@ -60,9 +65,15 @@ export function PermissionDebugPanel({ companyId, companyName }: PermissionDebug
     setIsRefreshing(false);
   };
 
+  const handleCompanyChange = (newCompanyId: string) => {
+    setSelectedCompanyId(newCompanyId);
+    setTestResult(null);
+  };
+
   const translations = {
     fr: {
       title: "Debug Permissions",
+      selectCompany: "Sélectionner une entreprise",
       companyId: "ID Entreprise",
       companyName: "Entreprise",
       role: "Rôle détecté",
@@ -77,12 +88,12 @@ export function PermissionDebugPanel({ companyId, companyName }: PermissionDebug
       refresh: "Rafraîchir",
       loading: "Chargement...",
       rawPermissions: "Permissions brutes",
-      expandedPermissions: "Permissions étendues",
       permissionGroups: "Groupes de permissions",
-      noCompany: "Aucune entreprise sélectionnée",
+      noCompany: "Aucune entreprise disponible",
     },
     en: {
       title: "Permission Debug",
+      selectCompany: "Select a company",
       companyId: "Company ID",
       companyName: "Company",
       role: "Detected Role",
@@ -97,9 +108,8 @@ export function PermissionDebugPanel({ companyId, companyName }: PermissionDebug
       refresh: "Refresh",
       loading: "Loading...",
       rawPermissions: "Raw Permissions",
-      expandedPermissions: "Expanded Permissions",
       permissionGroups: "Permission Groups",
-      noCompany: "No company selected",
+      noCompany: "No company available",
     },
   };
 
@@ -109,14 +119,11 @@ export function PermissionDebugPanel({ companyId, companyName }: PermissionDebug
     switch (roleName) {
       case "Owner": return "default";
       case "Admin": return "secondary";
-      case "Accountant": return "outline";
-      case "Employee": return "outline";
-      case "Viewer": return "outline";
       default: return "outline";
     }
   };
 
-  if (!companyId) {
+  if (companies.length === 0) {
     return (
       <Card className="border-dashed border-amber-300 bg-amber-50/50 dark:bg-amber-950/20">
         <CardHeader className="pb-2">
@@ -155,6 +162,23 @@ export function PermissionDebugPanel({ companyId, companyName }: PermissionDebug
 
         <CollapsibleContent>
           <CardContent className="space-y-4 pt-0">
+            {/* Company Selector */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t.selectCompany}</Label>
+              <Select value={selectedCompanyId} onValueChange={handleCompanyChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.selectCompany} />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Context Info */}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="space-y-1">
@@ -163,13 +187,13 @@ export function PermissionDebugPanel({ companyId, companyName }: PermissionDebug
                   {t.companyId}
                 </div>
                 <code className="text-xs bg-muted px-2 py-1 rounded block truncate">
-                  {companyId}
+                  {selectedCompanyId}
                 </code>
               </div>
-              {companyName && (
+              {selectedCompany && (
                 <div className="space-y-1">
                   <div className="text-muted-foreground">{t.companyName}</div>
-                  <div className="font-medium">{companyName}</div>
+                  <div className="font-medium">{selectedCompany.name}</div>
                 </div>
               )}
               <div className="space-y-1">
