@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
@@ -71,12 +71,20 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
   const [isOpen, setIsOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Refs to track previous values and prevent loops
+  const prevCompanyRef = useRef<string | null>(null);
+  const prevUserRef = useRef<string | null>(null);
+
   const selectedCompany = companies.find(c => c.id === selectedCompanyId);
   const canDebugPermissions = can(PERMISSIONS.DEBUG_PERMISSIONS_READ);
   const isInspectingSelf = selectedUserId === user?.id;
 
   // Load company members when company changes
   useEffect(() => {
+    // Skip if company hasn't actually changed
+    if (prevCompanyRef.current === selectedCompanyId) return;
+    prevCompanyRef.current = selectedCompanyId;
+
     if (!selectedCompanyId || !canDebugPermissions) {
       setCompanyMembers([]);
       return;
@@ -99,8 +107,9 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
         if (jsonData?.success && jsonData.members) {
           setCompanyMembers(jsonData.members);
           // Default to current user if they're in the list
-          if (user?.id && jsonData.members.some((m: CompanyMember) => m.user_id === user.id)) {
-            setSelectedUserId(user.id);
+          const currentUserInList = jsonData.members.find((m: CompanyMember) => m.user_id === user?.id);
+          if (currentUserInList) {
+            setSelectedUserId(user!.id);
           } else if (jsonData.members.length > 0) {
             setSelectedUserId(jsonData.members[0].user_id);
           }
@@ -115,68 +124,76 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
     loadMembers();
   }, [selectedCompanyId, canDebugPermissions, user?.id]);
 
-  // Load inspected user's permissions
-  useEffect(() => {
-    if (!selectedCompanyId || !selectedUserId) {
-      setInspectedUserData(null);
-      return;
-    }
-
-    // If inspecting self and not using debug RPC, use local data
-    if (isInspectingSelf) {
-      setInspectedUserData({
-        user_id: user?.id || "",
-        company_id: selectedCompanyId,
-        role_id: abilities.roleId || "",
-        role_name: abilities.roleName || "",
-        is_system_role: true,
-        member_status: abilities.memberStatus || "",
-        permissions: permissions,
+  // Load inspected user's permissions - only when user changes and not self
+  const loadUserPermissions = useCallback(async () => {
+    if (!selectedCompanyId || !selectedUserId || !canDebugPermissions) return;
+    if (isInspectingSelf) return; // Self data is derived, not fetched
+    
+    setLoadingUserData(true);
+    try {
+      const { data, error } = await supabase.rpc("get_user_permissions_for_debug", {
+        _company_id: selectedCompanyId,
+        _target_user_id: selectedUserId,
       });
+
+      if (error) {
+        console.error("Error loading user permissions:", error);
+        setInspectedUserData(null);
+        return;
+      }
+
+      const jsonData = data as unknown as InspectedUserData & { success?: boolean; error?: string };
+      if (jsonData?.success) {
+        setInspectedUserData(jsonData);
+      } else {
+        console.error("Error from RPC:", jsonData?.error);
+        setInspectedUserData(null);
+      }
+    } catch (err) {
+      console.error("Error loading user permissions:", err);
+    } finally {
+      setLoadingUserData(false);
+    }
+  }, [selectedCompanyId, selectedUserId, canDebugPermissions, isInspectingSelf]);
+
+  // Trigger load when selected user changes (for non-self users)
+  useEffect(() => {
+    if (isInspectingSelf) {
+      // For self, don't fetch - we'll derive from current permissions
       return;
     }
-
-    // For other users, use the debug RPC
-    const loadUserPermissions = async () => {
-      if (!canDebugPermissions) return;
-      
-      setLoadingUserData(true);
-      try {
-        const { data, error } = await supabase.rpc("get_user_permissions_for_debug", {
-          _company_id: selectedCompanyId,
-          _target_user_id: selectedUserId,
-        });
-
-        if (error) {
-          console.error("Error loading user permissions:", error);
-          setInspectedUserData(null);
-          return;
-        }
-
-        const jsonData = data as unknown as InspectedUserData & { success?: boolean; error?: string };
-        if (jsonData?.success) {
-          setInspectedUserData(jsonData);
-        } else {
-          console.error("Error from RPC:", jsonData?.error);
-          setInspectedUserData(null);
-        }
-      } catch (err) {
-        console.error("Error loading user permissions:", err);
-      } finally {
-        setLoadingUserData(false);
-      }
-    };
-
+    
+    // Skip if user hasn't actually changed
+    if (prevUserRef.current === selectedUserId) return;
+    prevUserRef.current = selectedUserId;
+    
     loadUserPermissions();
-  }, [selectedCompanyId, selectedUserId, canDebugPermissions, isInspectingSelf, user?.id, abilities, permissions]);
+  }, [selectedUserId, isInspectingSelf, loadUserPermissions]);
+
+  // Derive self data from current permissions (memoized to prevent loops)
+  const selfInspectedData = useMemo((): InspectedUserData | null => {
+    if (!isInspectingSelf || !selectedCompanyId || !user?.id) return null;
+    return {
+      user_id: user.id,
+      company_id: selectedCompanyId,
+      role_id: abilities.roleId || "",
+      role_name: abilities.roleName || "",
+      is_system_role: true,
+      member_status: abilities.memberStatus || "",
+      permissions: permissions,
+    };
+  }, [isInspectingSelf, selectedCompanyId, user?.id, abilities.roleId, abilities.roleName, abilities.memberStatus, permissions]);
+
+  // Final inspected data - either self or fetched
+  const finalInspectedData = isInspectingSelf ? selfInspectedData : inspectedUserData;
 
   const handleTestPermission = () => {
-    if (!testPermission.trim() || !inspectedUserData) {
+    if (!testPermission.trim() || !finalInspectedData) {
       setTestResult(null);
       return;
     }
     // Check if the inspected user has this permission
-    const hasPermission = inspectedUserData.permissions.includes(testPermission.trim());
+    const hasPermission = finalInspectedData.permissions.includes(testPermission.trim());
     setTestResult(hasPermission);
   };
 
@@ -198,12 +215,16 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
   };
 
   const handleCompanyChange = (newCompanyId: string) => {
+    prevCompanyRef.current = null; // Reset to force reload
+    prevUserRef.current = null;
     setSelectedCompanyId(newCompanyId);
     setTestResult(null);
     setInspectedUserData(null);
+    setCompanyMembers([]);
   };
 
   const handleUserChange = (newUserId: string) => {
+    prevUserRef.current = null; // Reset to force reload
     setSelectedUserId(newUserId);
     setTestResult(null);
   };
@@ -272,9 +293,9 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
   };
 
   const getSelectedMember = () => companyMembers.find(m => m.user_id === selectedUserId);
-  const displayPermissions = inspectedUserData?.permissions || [];
-  const displayRoleName = inspectedUserData?.role_name || null;
-  const displayMemberStatus = inspectedUserData?.member_status || null;
+  const displayPermissions = finalInspectedData?.permissions || [];
+  const displayRoleName = finalInspectedData?.role_name || null;
+  const displayMemberStatus = finalInspectedData?.member_status || null;
 
   if (companies.length === 0) {
     return (
