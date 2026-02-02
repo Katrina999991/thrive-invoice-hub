@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Archive, ArchiveRestore } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -103,7 +103,7 @@ export default function TimeTracking() {
   
   // Fetch entries based on permissions - employees only see their own
   const shouldFilterOwnOnly = !permissions.canViewAll;
-  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled, approveTimeEntry, unapproveTimeEntry } = useTimeEntries({ filterOwnOnly: shouldFilterOwnOnly });
+  const { timeEntries, loading, createTimeEntry, updateTimeEntry, deleteTimeEntry, getUnbilledEntries, markAsBilled, markAsUnbilled, approveTimeEntry, unapproveTimeEntry, archiveTimeEntry, unarchiveTimeEntry } = useTimeEntries({ filterOwnOnly: shouldFilterOwnOnly });
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -117,6 +117,7 @@ export default function TimeTracking() {
   const [filterClient, setFilterClient] = useState<string>("all");
   const [filterCreators, setFilterCreators] = useState<string[]>([]);
   const [filterApproval, setFilterApproval] = useState<string>("all"); // "all" | "pending" | "approved"
+  const [showArchived, setShowArchived] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isCreatorFilterOpen, setIsCreatorFilterOpen] = useState(false);
@@ -861,6 +862,15 @@ export default function TimeTracking() {
       return false;
     }
     
+    // Filtre par archive
+    const isArchived = (entry as any).is_archived || false;
+    if (!showArchived && isArchived) {
+      return false;
+    }
+    if (showArchived && !isArchived) {
+      return false;
+    }
+    
     // Filtre par date
     if (dateRange?.from) {
       const entryDate = new Date(entry.date);
@@ -1205,6 +1215,18 @@ export default function TimeTracking() {
                 </SelectContent>
               </Select>
             )}
+            {/* Archive toggle */}
+            <Button
+              variant={showArchived ? "default" : "outline"}
+              onClick={() => setShowArchived(!showArchived)}
+              className="w-full sm:w-auto"
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              {showArchived 
+                ? (language === "fr" ? "Voir actifs" : "Show active")
+                : (language === "fr" ? "Voir archivés" : "Show archived")
+              }
+            </Button>
             {(filterClient !== "all" || dateRange || filterCreators.length > 0 || filterApproval !== "all") && (
               <Button
                 variant="ghost"
@@ -1439,7 +1461,7 @@ export default function TimeTracking() {
                           )}
                           <TableCell>
                             <div className="flex gap-1">
-                              {canEdit && (
+                              {canEdit && !showArchived && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -1448,7 +1470,7 @@ export default function TimeTracking() {
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                               )}
-                              {canDelete && (
+                              {canDelete && !showArchived && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -1457,7 +1479,41 @@ export default function TimeTracking() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               )}
-                              {entry.is_billed && !canEdit && (
+                              {/* Archive button - only for billed entries */}
+                              {entry.is_billed && !showArchived && permissions.canMarkAsBilled && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => archiveTimeEntry(entry.id)}
+                                    >
+                                      <Archive className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {language === "fr" ? "Archiver" : "Archive"}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                              {/* Unarchive button */}
+                              {showArchived && permissions.canMarkAsBilled && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => unarchiveTimeEntry(entry.id)}
+                                    >
+                                      <ArchiveRestore className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {language === "fr" ? "Désarchiver" : "Unarchive"}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                              {entry.is_billed && !canEdit && !showArchived && (
                                 <PermissionDeniedTooltip message={language === "fr" ? "Entrée facturée - lecture seule" : "Billed entry - read only"}>
                                   <Lock className="h-4 w-4 text-muted-foreground" />
                                 </PermissionDeniedTooltip>
@@ -1544,7 +1600,7 @@ export default function TimeTracking() {
                           </div>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          {canEdit && (
+                          {canEdit && !showArchived && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1554,7 +1610,7 @@ export default function TimeTracking() {
                               <Pencil className="h-4 w-4" />
                             </Button>
                           )}
-                          {canDelete && (
+                          {canDelete && !showArchived && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1564,7 +1620,29 @@ export default function TimeTracking() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {entry.is_billed && !canEdit && (
+                          {/* Archive button - only for billed entries */}
+                          {entry.is_billed && !showArchived && permissions.canMarkAsBilled && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => archiveTimeEntry(entry.id)}
+                            >
+                              <Archive className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {/* Unarchive button */}
+                          {showArchived && permissions.canMarkAsBilled && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => unarchiveTimeEntry(entry.id)}
+                            >
+                              <ArchiveRestore className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {entry.is_billed && !canEdit && !showArchived && (
                             <Lock className="h-4 w-4 text-muted-foreground mt-2" />
                           )}
                         </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useLanguage } from "./useLanguage";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -34,6 +35,7 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { language } = useLanguage();
 
   const fetchTimeEntries = async () => {
     if (!user) return;
@@ -344,6 +346,42 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
     }
   };
 
+  const archiveTimeEntry = async (entryId: string) => {
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .update({ is_archived: true })
+        .eq("id", entryId);
+
+      if (error) throw error;
+      
+      toast.success(language === "fr" ? "Entrée archivée" : "Entry archived");
+      await fetchTimeEntries();
+    } catch (error: any) {
+      console.error("Error archiving time entry:", error);
+      toast.error(language === "fr" ? "Erreur lors de l'archivage" : "Error archiving entry");
+      throw error;
+    }
+  };
+
+  const unarchiveTimeEntry = async (entryId: string) => {
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .update({ is_archived: false })
+        .eq("id", entryId);
+
+      if (error) throw error;
+      
+      toast.success(language === "fr" ? "Entrée désarchivée" : "Entry unarchived");
+      await fetchTimeEntries();
+    } catch (error: any) {
+      console.error("Error unarchiving time entry:", error);
+      toast.error(language === "fr" ? "Erreur lors du désarchivage" : "Error unarchiving entry");
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchTimeEntries();
   }, [user, filterOwnOnly]);
@@ -359,6 +397,8 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
     markAsUnbilled,
     approveTimeEntry,
     unapproveTimeEntry,
+    archiveTimeEntry,
+    unarchiveTimeEntry,
     refetch: fetchTimeEntries,
   };
 };
