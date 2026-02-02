@@ -53,13 +53,10 @@ export function useCompanyMembers(companyId: string | null) {
     }
 
     try {
-      // Fetch members with profile info
+      // Fetch members
       const { data: membersData, error: membersError } = await supabase
         .from("company_members")
-        .select(`
-          *,
-          profile:profiles!company_members_user_id_fkey(display_name, username)
-        `)
+        .select("*")
         .eq("company_id", companyId);
 
       if (membersError) throw membersError;
@@ -75,14 +72,31 @@ export function useCompanyMembers(companyId: string | null) {
 
       setRoles(rolesData || []);
 
+      // Fetch profiles for all member user_ids
+      const userIds = (membersData || []).map(m => m.user_id);
+      let profilesMap: Record<string, { display_name?: string; username?: string }> = {};
+      
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, display_name, username")
+          .in("user_id", userIds);
+        
+        if (profilesData) {
+          profilesMap = profilesData.reduce((acc, p) => {
+            acc[p.user_id] = { display_name: p.display_name, username: p.username };
+            return acc;
+          }, {} as Record<string, { display_name?: string; username?: string }>);
+        }
+      }
+
       // Map role names and display names to members
       const membersWithRoles = (membersData || []).map(member => {
-        const profile = member.profile as { display_name?: string; username?: string } | null;
+        const profile = profilesMap[member.user_id];
         return {
           ...member,
           role_name: rolesData?.find(r => r.id === member.role_id)?.name || "Unknown",
-          user_display_name: profile?.display_name || profile?.username || null,
-          profile: undefined // Remove nested profile from final object
+          user_display_name: profile?.display_name || profile?.username || null
         };
       });
 
