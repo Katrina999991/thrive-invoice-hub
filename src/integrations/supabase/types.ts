@@ -1663,11 +1663,16 @@ export type Database = {
         Args: { _company_id: string }
         Returns: number
       }
+      create_company_role: {
+        Args: { _company_id: string; _description?: string; _name: string }
+        Returns: string
+      }
       create_default_roles_for_company: {
         Args: { _company_id: string; _owner_user_id: string }
         Returns: undefined
       }
       decrypt_sensitive: { Args: { ciphertext: string }; Returns: string }
+      delete_company_role: { Args: { _role_id: string }; Returns: undefined }
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
       generate_quote_number: { Args: { company_id: string }; Returns: string }
@@ -1693,9 +1698,33 @@ export type Database = {
           quotes_enabled: boolean
         }[]
       }
+      get_company_roles: {
+        Args: { _company_id: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "company_roles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_current_user_email: { Args: never; Returns: string }
       get_role_company_id: { Args: { _role_id: string }; Returns: string }
       get_role_company_id_safe: { Args: { _role_id: string }; Returns: string }
+      get_role_permissions: {
+        Args: { _role_id: string }
+        Returns: {
+          permission: string
+        }[]
+      }
       get_user_permissions: {
         Args: { _company_id: string; _user_id: string }
         Returns: string[]
@@ -1758,6 +1787,14 @@ export type Database = {
         Returns: string
       }
       reset_monthly_usage: { Args: never; Returns: undefined }
+      set_role_permissions: {
+        Args: { _permissions: string[]; _role_id: string }
+        Returns: undefined
+      }
+      update_company_role: {
+        Args: { _description?: string; _name: string; _role_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "accountant" | "employee" | "viewer"
