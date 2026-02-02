@@ -958,7 +958,6 @@ Cordialement,
           </CardContent>
         </Card>
 
-        {isOwner && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -973,7 +972,7 @@ Cordialement,
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {planLimits?.plan_type === 'free' && (
+              {isOwner && planLimits?.plan_type === 'free' && (
                 <div className="p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg">
                   <p className="text-sm text-amber-800 dark:text-amber-200">
                     {language === "fr" 
@@ -997,49 +996,53 @@ Cordialement,
                       ? "Votre compte Stripe est configuré et prêt à recevoir des paiements. Vous pouvez maintenant générer des liens de paiement pour vos factures." 
                       : "Your Stripe account is set up and ready to receive payments. You can now generate payment links for your invoices."}
                   </p>
-                  {stripeAccountId && (
+                  {/* Account ID only visible to Owner */}
+                  {isOwner && stripeAccountId && (
                     <p className="text-xs text-muted-foreground font-mono">
                       {language === "fr" ? "ID du compte: " : "Account ID: "}
                       {stripeAccountId}
                     </p>
                   )}
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={openDashboard}
-                      disabled={isStripeLoading}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      {isStripeLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {language === "fr" ? "Chargement..." : "Loading..."}
-                        </>
-                      ) : (
-                        <>{language === "fr" ? "Accéder à mon dashboard Stripe" : "Access my Stripe dashboard"}</>
-                      )}
-                    </Button>
-                    <Button 
-                      onClick={async () => {
-                        const result = await resetStripeAccount();
-                        if (result.success) {
-                          await loadStripeAccount();
-                        }
-                      }}
-                      disabled={isStripeLoading}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      {isStripeLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {language === "fr" ? "Chargement..." : "Loading..."}
-                        </>
-                      ) : (
-                        <>{language === "fr" ? "Changer de compte" : "Change account"}</>
-                      )}
-                    </Button>
-                  </div>
+                  {/* Action buttons only visible to Owner */}
+                  {isOwner && (
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={openDashboard}
+                        disabled={isStripeLoading}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        {isStripeLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {language === "fr" ? "Chargement..." : "Loading..."}
+                          </>
+                        ) : (
+                          <>{language === "fr" ? "Accéder à mon dashboard Stripe" : "Access my Stripe dashboard"}</>
+                        )}
+                      </Button>
+                      <Button 
+                        onClick={async () => {
+                          const result = await resetStripeAccount();
+                          if (result.success) {
+                            await loadStripeAccount();
+                          }
+                        }}
+                        disabled={isStripeLoading}
+                        variant="destructive"
+                        className="flex-1"
+                      >
+                        {isStripeLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {language === "fr" ? "Chargement..." : "Loading..."}
+                          </>
+                        ) : (
+                          <>{language === "fr" ? "Changer de compte" : "Change account"}</>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : stripeAccountId && !onboardingComplete ? (
                 <div className="space-y-4">
@@ -1051,84 +1054,105 @@ Cordialement,
                         : "Incomplete Stripe setup"}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {language === "fr" 
-                      ? "Vous avez commencé la configuration de votre compte Stripe mais ne l'avez pas terminée. Vous pouvez continuer ou annuler pour changer de compte." 
-                      : "You started setting up your Stripe account but didn't complete it. You can continue or cancel to change accounts."}
-                  </p>
-                  {stripeAccountId && (
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {language === "fr" ? "ID du compte: " : "Account ID: "}
-                      {stripeAccountId}
+                  {isOwner ? (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        {language === "fr" 
+                          ? "Vous avez commencé la configuration de votre compte Stripe mais ne l'avez pas terminée. Vous pouvez continuer ou annuler pour changer de compte." 
+                          : "You started setting up your Stripe account but didn't complete it. You can continue or cancel to change accounts."}
+                      </p>
+                      {stripeAccountId && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {language === "fr" ? "ID du compte: " : "Account ID: "}
+                          {stripeAccountId}
+                        </p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={startOnboarding}
+                          disabled={isStripeLoading}
+                          className="flex-1"
+                        >
+                          {isStripeLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {language === "fr" ? "Chargement..." : "Loading..."}
+                            </>
+                          ) : (
+                            <>{language === "fr" ? "Continuer la configuration" : "Continue setup"}</>
+                          )}
+                        </Button>
+                        <Button 
+                          onClick={async () => {
+                            const result = await resetStripeAccount();
+                            if (result.success) {
+                              await loadStripeAccount();
+                            }
+                          }}
+                          disabled={isStripeLoading}
+                          variant="outline"
+                        >
+                          {language === "fr" ? "Annuler et changer" : "Cancel and change"}
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {language === "fr" 
+                        ? "Contactez le propriétaire de l'entreprise pour terminer la configuration Stripe." 
+                        : "Contact the company owner to complete Stripe setup."}
                     </p>
                   )}
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={startOnboarding}
-                      disabled={isStripeLoading}
-                      className="flex-1"
-                    >
-                      {isStripeLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {language === "fr" ? "Chargement..." : "Loading..."}
-                        </>
-                      ) : (
-                        <>{language === "fr" ? "Continuer la configuration" : "Continue setup"}</>
-                      )}
-                    </Button>
-                    <Button 
-                      onClick={async () => {
-                        const result = await resetStripeAccount();
-                        if (result.success) {
-                          await loadStripeAccount();
-                        }
-                      }}
-                      disabled={isStripeLoading}
-                      variant="outline"
-                    >
-                      {language === "fr" ? "Annuler et changer" : "Cancel and change"}
-                    </Button>
-                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {language === "fr" 
-                      ? "Stripe Connect vous permet de recevoir des paiements directement sur votre compte Stripe. Vos clients pourront payer leurs factures en ligne." 
-                      : "Stripe Connect allows you to receive payments directly to your Stripe account. Your clients will be able to pay their invoices online."}
-                  </p>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">
-                      {language === "fr" ? "Fonctionnalités:" : "Features:"}
-                    </p>
-                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                      <li>{language === "fr" ? "Cartes bancaires (Visa, Mastercard, Amex)" : "Credit cards (Visa, Mastercard, Amex)"}</li>
-                      <li>{language === "fr" ? "Liens de paiement sécurisés" : "Secure payment links"}</li>
-                      <li>{language === "fr" ? "Notifications automatiques" : "Automatic notifications"}</li>
-                      <li>{language === "fr" ? "Suivi des paiements en temps réel" : "Real-time payment tracking"}</li>
-                    </ul>
-                  </div>
-                  <Button 
-                    onClick={startOnboarding}
-                    disabled={isStripeLoading}
-                    className="w-full"
-                  >
-                    {isStripeLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {language === "fr" ? "Chargement..." : "Loading..."}
-                      </>
-                    ) : (
-                      <>{language === "fr" ? "Connecter Stripe" : "Connect Stripe"}</>
-                    )}
-                  </Button>
+                  {isOwner ? (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        {language === "fr" 
+                          ? "Stripe Connect vous permet de recevoir des paiements directement sur votre compte Stripe. Vos clients pourront payer leurs factures en ligne." 
+                          : "Stripe Connect allows you to receive payments directly to your Stripe account. Your clients will be able to pay their invoices online."}
+                      </p>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">
+                          {language === "fr" ? "Fonctionnalités:" : "Features:"}
+                        </p>
+                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                          <li>{language === "fr" ? "Cartes bancaires (Visa, Mastercard, Amex)" : "Credit cards (Visa, Mastercard, Amex)"}</li>
+                          <li>{language === "fr" ? "Liens de paiement sécurisés" : "Secure payment links"}</li>
+                          <li>{language === "fr" ? "Notifications automatiques" : "Automatic notifications"}</li>
+                          <li>{language === "fr" ? "Suivi des paiements en temps réel" : "Real-time payment tracking"}</li>
+                        </ul>
+                      </div>
+                      <Button 
+                        onClick={startOnboarding}
+                        disabled={isStripeLoading}
+                        className="w-full"
+                      >
+                        {isStripeLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {language === "fr" ? "Chargement..." : "Loading..."}
+                          </>
+                        ) : (
+                          <>{language === "fr" ? "Connecter Stripe" : "Connect Stripe"}</>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2 p-3 bg-muted text-muted-foreground rounded-lg">
+                      <span className="text-sm">
+                        {language === "fr" 
+                          ? "Aucun compte Stripe n'est connecté. Contactez le propriétaire de l'entreprise pour configurer les paiements." 
+                          : "No Stripe account is connected. Contact the company owner to set up payments."}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
-        )}
 
         <Card>
           <CardHeader>
