@@ -1485,6 +1485,7 @@ export type Database = {
           hours: number
           id: string
           invoice_id: string | null
+          is_archived: boolean
           is_billed: boolean
           notes: string | null
           source: string | null
@@ -1505,6 +1506,7 @@ export type Database = {
           hours?: number
           id?: string
           invoice_id?: string | null
+          is_archived?: boolean
           is_billed?: boolean
           notes?: string | null
           source?: string | null
@@ -1525,6 +1527,7 @@ export type Database = {
           hours?: number
           id?: string
           invoice_id?: string | null
+          is_archived?: boolean
           is_billed?: boolean
           notes?: string | null
           source?: string | null
