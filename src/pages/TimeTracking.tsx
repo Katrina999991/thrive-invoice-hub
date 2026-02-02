@@ -463,6 +463,11 @@ export default function TimeTracking() {
     }
   }, [timeRanges, useTimeRange]);
 
+  // Reset selection when billing status filter changes
+  useEffect(() => {
+    setSelectedEntries([]);
+  }, [filterBillingStatus]);
+
   const addTimeRange = () => {
     setTimeRanges([...timeRanges, { id: crypto.randomUUID(), start_time: "", end_time: "" }]);
   };
@@ -917,19 +922,29 @@ export default function TimeTracking() {
   // Obtenir les entrées non facturées filtrées
   const unbilledFilteredEntries = filteredEntries.filter(entry => !entry.is_billed);
 
-  // Vérifier si toutes les entrées non facturées du même client sont sélectionnées
-  const allSameClientSelected = selectedClientId 
+  // Obtenir les entrées facturées filtrées (pour archivage en lot)
+  const billedFilteredEntries = filteredEntries.filter(entry => entry.is_billed && !(entry as any).is_archived);
+
+  // Mode de sélection : "invoice" (unbilled) ou "archive" (billed)
+  const selectionMode = filterBillingStatus === "billed" ? "archive" : "invoice";
+  const selectableEntries = selectionMode === "archive" ? billedFilteredEntries : unbilledFilteredEntries;
+
+  // Vérifier si toutes les entrées sélectionnables sont sélectionnées
+  const allSameClientSelected = selectionMode === "invoice" && selectedClientId 
     ? unbilledFilteredEntries.filter(e => e.client_id === selectedClientId).every(e => selectedEntries.includes(e.id))
-    : unbilledFilteredEntries.every(e => selectedEntries.includes(e.id));
+    : selectableEntries.every(e => selectedEntries.includes(e.id));
   
   const someSelected = selectedEntries.length > 0 && !allSameClientSelected;
 
   const handleSelectAll = () => {
-    if (unbilledFilteredEntries.length === 0) return;
+    if (selectableEntries.length === 0) return;
     
     if (allSameClientSelected && selectedEntries.length > 0) {
       // Tout désélectionner
       setSelectedEntries([]);
+    } else if (selectionMode === "archive") {
+      // Sélectionner toutes les entrées facturées
+      setSelectedEntries(selectableEntries.map(e => e.id));
     } else {
       // Sélectionner toutes les entrées non facturées du premier client ou toutes si aucune sélection
       const firstClientId = selectedClientId || unbilledFilteredEntries[0]?.client_id;
@@ -937,6 +952,20 @@ export default function TimeTracking() {
         .filter(e => !firstClientId || e.client_id === firstClientId)
         .map(e => e.id);
       setSelectedEntries(entriesToSelect);
+    }
+  };
+
+  // Archiver les entrées sélectionnées
+  const handleBulkArchive = async () => {
+    if (selectedEntries.length === 0) return;
+    
+    try {
+      for (const entryId of selectedEntries) {
+        await archiveTimeEntry(entryId);
+      }
+      setSelectedEntries([]);
+    } catch (error) {
+      console.error("Error bulk archiving:", error);
     }
   };
 
@@ -971,11 +1000,18 @@ export default function TimeTracking() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          {/* Invoice button - only show if user can link to invoices */}
-          {selectedEntries.length > 0 && permissions.canLinkToInvoice && (
+          {/* Invoice button - only show if user can link to invoices and in invoice mode */}
+          {selectedEntries.length > 0 && permissions.canLinkToInvoice && selectionMode === "invoice" && (
             <Button onClick={() => setShowInvoiceConfirm(true)} disabled={isCreatingInvoice} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
               {language === "fr" ? "Facture" : "Invoice"} ({selectedEntries.length})
+            </Button>
+          )}
+          {/* Archive button - only show when in archive mode with selected entries */}
+          {selectedEntries.length > 0 && permissions.canMarkAsBilled && selectionMode === "archive" && (
+            <Button onClick={handleBulkArchive} className="flex-1 sm:flex-none">
+              <Archive className="mr-2 h-4 w-4" />
+              {language === "fr" ? "Archiver" : "Archive"} ({selectedEntries.length})
             </Button>
           )}
           {/* Timer button - only show if user can create entries */}
@@ -1283,14 +1319,15 @@ export default function TimeTracking() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {/* Checkbox column - only show if user can link to invoices */}
-                      {permissions.canLinkToInvoice && (
+                      {/* Checkbox column - show for invoice or archive mode */}
+                      {((permissions.canLinkToInvoice && selectionMode === "invoice") || 
+                        (permissions.canMarkAsBilled && selectionMode === "archive")) && (
                         <TableHead className="w-12">
                           <Checkbox
                             checked={allSameClientSelected && selectedEntries.length > 0}
                             onCheckedChange={handleSelectAll}
                             aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
-                            disabled={unbilledFilteredEntries.length === 0}
+                            disabled={selectableEntries.length === 0}
                             className={someSelected ? "data-[state=checked]:bg-primary" : ""}
                             {...(someSelected && { "data-state": "indeterminate" })}
                           />
@@ -1335,14 +1372,16 @@ export default function TimeTracking() {
                       
                       return (
                         <TableRow key={entry.id}>
-                          {/* Checkbox cell - only show if user can link to invoices */}
-                          {permissions.canLinkToInvoice && (
+                          {/* Checkbox cell - show for unbilled entries or billed entries in archive mode */}
+                          {((permissions.canLinkToInvoice && selectionMode === "invoice") || 
+                            (permissions.canMarkAsBilled && selectionMode === "archive")) && (
                             <TableCell>
-                              {!entry.is_billed && (
+                              {((selectionMode === "invoice" && !entry.is_billed) || 
+                                (selectionMode === "archive" && entry.is_billed && !(entry as any).is_archived)) && (
                                 <Checkbox
                                   checked={selectedEntries.includes(entry.id)}
                                   onCheckedChange={() => toggleSelection(entry.id)}
-                                  disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
+                                  disabled={selectionMode === "invoice" && selectedClientId !== null && entry.client_id !== selectedClientId}
                                 />
                               )}
                             </TableCell>
@@ -1550,19 +1589,23 @@ export default function TimeTracking() {
 
               {/* Mobile Card View */}
               <div className="md:hidden space-y-3">
-                {/* Select All on Mobile - only show if user can link to invoices */}
-                {permissions.canLinkToInvoice && (
+                {/* Select All on Mobile - show for invoice or archive mode */}
+                {((permissions.canLinkToInvoice && selectionMode === "invoice") || 
+                  (permissions.canMarkAsBilled && selectionMode === "archive")) && (
                   <div className="flex items-center gap-2 pb-2 border-b">
                     <Checkbox
                       checked={allSameClientSelected && selectedEntries.length > 0}
                       onCheckedChange={handleSelectAll}
                       aria-label={language === "fr" ? "Tout sélectionner" : "Select all"}
-                      disabled={unbilledFilteredEntries.length === 0}
+                      disabled={selectableEntries.length === 0}
                       className={someSelected ? "data-[state=checked]:bg-primary" : ""}
                       {...(someSelected && { "data-state": "indeterminate" })}
                     />
                     <span className="text-sm text-muted-foreground">
-                      {language === "fr" ? "Tout sélectionner" : "Select all"}
+                      {selectionMode === "archive" 
+                        ? (language === "fr" ? "Sélectionner pour archiver" : "Select to archive")
+                        : (language === "fr" ? "Tout sélectionner" : "Select all")
+                      }
                     </span>
                   </div>
                 )}
@@ -1599,12 +1642,13 @@ export default function TimeTracking() {
                     <div key={entry.id} className="border rounded-lg p-3 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-start gap-2 flex-1 min-w-0">
-                          {/* Checkbox for invoicing - only show if user can link to invoices */}
-                          {!entry.is_billed && permissions.canLinkToInvoice && (
+                          {/* Checkbox - show for unbilled in invoice mode or billed in archive mode */}
+                          {((selectionMode === "invoice" && !entry.is_billed && permissions.canLinkToInvoice) || 
+                            (selectionMode === "archive" && entry.is_billed && !(entry as any).is_archived && permissions.canMarkAsBilled)) && (
                             <Checkbox
                               checked={selectedEntries.includes(entry.id)}
                               onCheckedChange={() => toggleSelection(entry.id)}
-                              disabled={selectedClientId !== null && entry.client_id !== selectedClientId}
+                              disabled={selectionMode === "invoice" && selectedClientId !== null && entry.client_id !== selectedClientId}
                               className="mt-1"
                             />
                           )}
