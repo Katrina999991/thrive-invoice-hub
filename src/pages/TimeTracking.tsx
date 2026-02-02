@@ -1296,7 +1296,7 @@ export default function TimeTracking() {
                 className="w-full sm:w-auto"
               >
                 <Filter className="mr-2 h-4 w-4" />
-                {language === "fr" ? "Réinitialiser" : "Reset"}
+                {language === "fr" ? "Réinitialiser les filtres" : "Reset filters"}
               </Button>
             )}
           </div>
