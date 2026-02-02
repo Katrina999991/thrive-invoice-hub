@@ -82,16 +82,16 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
   const canDebugPermissions = can(PERMISSIONS.DEBUG_PERMISSIONS_READ);
   const isInspectingSelf = selectedUserId === user?.id;
 
-  // Load company members when company changes
+  // Load company members when company changes or canDebugPermissions becomes true
   useEffect(() => {
-    // Skip if company hasn't actually changed
-    if (prevCompanyRef.current === selectedCompanyId) return;
-    prevCompanyRef.current = selectedCompanyId;
-
     if (!selectedCompanyId || !canDebugPermissions) {
       setCompanyMembers([]);
       return;
     }
+
+    // Skip if company hasn't actually changed and we already have members
+    if (prevCompanyRef.current === selectedCompanyId && companyMembers.length > 0) return;
+    prevCompanyRef.current = selectedCompanyId;
 
     const loadMembers = async () => {
       setLoadingMembers(true);
@@ -125,7 +125,7 @@ export function PermissionDebugPanel({ companies, initialCompanyId }: Permission
     };
 
     loadMembers();
-  }, [selectedCompanyId, canDebugPermissions, user?.id]);
+  }, [selectedCompanyId, canDebugPermissions, user?.id, companyMembers.length]);
 
   // Load inspected user's permissions - only when user changes and not self
   const loadUserPermissions = useCallback(async () => {
