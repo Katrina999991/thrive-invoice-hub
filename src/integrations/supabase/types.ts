@@ -1663,6 +1663,10 @@ export type Database = {
       encrypt_sensitive: { Args: { plaintext: string }; Returns: string }
       generate_invoice_number: { Args: { company_id: string }; Returns: string }
       generate_quote_number: { Args: { company_id: string }; Returns: string }
+      get_company_members_for_debug: {
+        Args: { _company_id: string }
+        Returns: Json
+      }
       get_company_plan_limits: {
         Args: { _company_id: string }
         Returns: {
@@ -1686,6 +1690,10 @@ export type Database = {
       get_user_permissions: {
         Args: { _company_id: string; _user_id: string }
         Returns: string[]
+      }
+      get_user_permissions_for_debug: {
+        Args: { _company_id: string; _target_user_id: string }
+        Returns: Json
       }
       get_user_plan_limits: {
         Args: { user_uuid: string }

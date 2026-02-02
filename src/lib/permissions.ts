@@ -95,6 +95,9 @@ export const PERMISSIONS = {
   // Billing
   BILLING_VIEW: "billing:view",
   BILLING_MANAGE: "billing:manage",
+
+  // Debug
+  DEBUG_PERMISSIONS_READ: "debug:permissions_read",
 } as const;
 
 export type PermissionKey = typeof PERMISSIONS[keyof typeof PERMISSIONS];
@@ -300,6 +303,13 @@ export const PERMISSION_GROUPS = {
     permissions: [
       PERMISSIONS.BILLING_VIEW,
       PERMISSIONS.BILLING_MANAGE,
+    ],
+  },
+  debug: {
+    labelFr: "Debug",
+    labelEn: "Debug",
+    permissions: [
+      PERMISSIONS.DEBUG_PERMISSIONS_READ,
     ],
   },
 } as const;
