@@ -93,18 +93,20 @@ export function useCompanyRoles(companyId: string | null) {
   const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(false);
 
+  // Use RPC function to fetch permissions (bypasses RLS)
   const fetchRolePermissions = useCallback(async (roleId: string) => {
     if (!roleId) return [];
 
     try {
-      const { data, error } = await supabase
-        .from("role_permissions")
-        .select("permission")
-        .eq("role_id", roleId);
+      const { data, error } = await supabase.rpc("get_role_permissions", {
+        _role_id: roleId
+      });
 
       if (error) throw error;
 
-      const permissions = (data || []).map(p => p.permission);
+      // RPC returns array of {permission: string} objects
+      const rawData = data as { permission: string }[] | null;
+      const permissions = (rawData || []).map(p => p.permission);
       setRolePermissions(prev => ({ ...prev, [roleId]: permissions }));
       return permissions;
     } catch (error) {
@@ -113,21 +115,17 @@ export function useCompanyRoles(companyId: string | null) {
     }
   }, []);
 
+  // Use RPC function to create role (bypasses RLS)
   const createRole = async (name: string, description?: string): Promise<CompanyRole | null> => {
     if (!companyId) return null;
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("company_roles")
-        .insert({
-          company_id: companyId,
-          name,
-          description: description || null,
-          is_system: false
-        })
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc("create_company_role", {
+        _company_id: companyId,
+        _name: name,
+        _description: description || null
+      });
 
       if (error) throw error;
 
@@ -138,7 +136,9 @@ export function useCompanyRoles(companyId: string | null) {
           : `Role "${name}" has been created successfully.`
       });
 
-      return data;
+      // The RPC returns the role data as JSON - parse it properly
+      const roleData = typeof data === 'string' ? JSON.parse(data) : data;
+      return roleData as CompanyRole;
     } catch (error: any) {
       console.error("Error creating role:", error);
       toast({
@@ -152,13 +152,15 @@ export function useCompanyRoles(companyId: string | null) {
     }
   };
 
+  // Use RPC function to update role (bypasses RLS)
   const updateRole = async (roleId: string, name: string, description?: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("company_roles")
-        .update({ name, description: description || null })
-        .eq("id", roleId);
+      const { error } = await supabase.rpc("update_company_role", {
+        _role_id: roleId,
+        _name: name,
+        _description: description || null
+      });
 
       if (error) throw error;
 
@@ -180,13 +182,13 @@ export function useCompanyRoles(companyId: string | null) {
     }
   };
 
+  // Use RPC function to delete role (bypasses RLS)
   const deleteRole = async (roleId: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("company_roles")
-        .delete()
-        .eq("id", roleId);
+      const { error } = await supabase.rpc("delete_company_role", {
+        _role_id: roleId
+      });
 
       if (error) throw error;
 
@@ -208,25 +210,16 @@ export function useCompanyRoles(companyId: string | null) {
     }
   };
 
+  // Use RPC function to set permissions (bypasses RLS)
   const setPermissions = async (roleId: string, permissions: string[]) => {
     setLoading(true);
     try {
-      // Delete existing permissions
-      const { error: deleteError } = await supabase
-        .from("role_permissions")
-        .delete()
-        .eq("role_id", roleId);
+      const { error } = await supabase.rpc("set_role_permissions", {
+        _role_id: roleId,
+        _permissions: permissions
+      });
 
-      if (deleteError) throw deleteError;
-
-      // Insert new permissions
-      if (permissions.length > 0) {
-        const { error: insertError } = await supabase
-          .from("role_permissions")
-          .insert(permissions.map(p => ({ role_id: roleId, permission: p })));
-
-        if (insertError) throw insertError;
-      }
+      if (error) throw error;
 
       setRolePermissions(prev => ({ ...prev, [roleId]: permissions }));
 
