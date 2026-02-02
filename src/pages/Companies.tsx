@@ -782,13 +782,13 @@ const Companies = () => {
   const { t, language } = useLanguage();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompanies();
   const { checkLimit, planLimits } = useSubscription();
-  const { hasPermission, isOwner, isAdmin } = useSelectedCompany();
+  const { can, isOwner } = useSelectedCompany();
   const navigate = useNavigate();
 
-  // Permission checks - only Owner and Admin can modify companies
-  const canCreateCompany = isOwner || isAdmin;
-  const canEditCompany = isOwner || isAdmin;
-  const canDeleteCompany = isOwner;
+  // Permission checks - use centralized permission system
+  const canCreateCompany = can("companies:create");
+  const canEditCompany = can("companies:edit");
+  const canDeleteCompany = can("companies:delete") || isOwner;
 
   // Helper function to format complete address
   const formatAddress = (company: Company) => {
