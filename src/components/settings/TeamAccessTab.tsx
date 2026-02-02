@@ -301,13 +301,13 @@ export function TeamAccessTab() {
                         <TableCell className="font-medium">
                           {member.user_id === user?.id ? (
                             <span className="flex items-center gap-2">
-                              {member.user_email || member.user_id.slice(0, 8)}
+                              {member.user_display_name || member.user_email || member.user_id.slice(0, 8)}
                               <Badge variant="outline" className="text-xs">
                                 {language === "fr" ? "Vous" : "You"}
                               </Badge>
                             </span>
                           ) : (
-                            member.user_email || member.user_id.slice(0, 8)
+                            member.user_display_name || member.user_email || member.user_id.slice(0, 8)
                           )}
                         </TableCell>
                         <TableCell>

@@ -11,6 +11,7 @@ export interface CompanyMember {
   status: "active" | "suspended";
   created_at: string;
   user_email?: string;
+  user_display_name?: string;
   role_name?: string;
 }
 
@@ -52,10 +53,13 @@ export function useCompanyMembers(companyId: string | null) {
     }
 
     try {
-      // Fetch members
+      // Fetch members with profile info
       const { data: membersData, error: membersError } = await supabase
         .from("company_members")
-        .select("*")
+        .select(`
+          *,
+          profile:profiles!company_members_user_id_fkey(display_name, username)
+        `)
         .eq("company_id", companyId);
 
       if (membersError) throw membersError;
@@ -71,11 +75,16 @@ export function useCompanyMembers(companyId: string | null) {
 
       setRoles(rolesData || []);
 
-      // Map role names to members
-      const membersWithRoles = (membersData || []).map(member => ({
-        ...member,
-        role_name: rolesData?.find(r => r.id === member.role_id)?.name || "Unknown"
-      }));
+      // Map role names and display names to members
+      const membersWithRoles = (membersData || []).map(member => {
+        const profile = member.profile as { display_name?: string; username?: string } | null;
+        return {
+          ...member,
+          role_name: rolesData?.find(r => r.id === member.role_id)?.name || "Unknown",
+          user_display_name: profile?.display_name || profile?.username || null,
+          profile: undefined // Remove nested profile from final object
+        };
+      });
 
       setMembers(membersWithRoles);
     } catch (error) {
