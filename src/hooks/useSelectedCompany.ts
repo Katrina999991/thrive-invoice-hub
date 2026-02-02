@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useUserCompanies } from "./useUserCompanies";
-import { useCompanyPermissions } from "./useCompanyPermissions";
+import { usePermissions } from "./usePermissions";
 
 /**
  * Hook to manage selected company context and permissions
@@ -17,42 +17,43 @@ export function useSelectedCompany(initialCompanyId?: string) {
     return "";
   }, [selectedCompanyId, companyIds]);
 
-  // Get permissions for the selected company
-  const { permissions, hasPermission, loading: permissionsLoading } = useCompanyPermissions(effectiveCompanyId || null);
+  // Get permissions for the selected company using centralized hook
+  const { 
+    can, 
+    canAll,
+    canAny,
+    permissions, 
+    abilities,
+    loading: permissionsLoading,
+    refetch: refetchPermissions,
+    invalidatePermissions
+  } = usePermissions(effectiveCompanyId || null);
 
-  // Get role info for selected company
+  // Get membership info for selected company
   const currentMembership = useMemo(() => {
     return memberships.find(m => m.company_id === effectiveCompanyId);
   }, [memberships, effectiveCompanyId]);
 
-  const isOwner = useMemo(() => {
-    return currentMembership?.role.name === "Owner";
-  }, [currentMembership]);
+  // Common permission checks using centralized can()
+  const hasPermission = useCallback((permission: string) => {
+    return can(permission);
+  }, [can]);
 
-  const isAdmin = useMemo(() => {
-    return currentMembership?.role.name === "Admin" || isOwner;
-  }, [currentMembership, isOwner]);
-
-  const isViewer = useMemo(() => {
-    return currentMembership?.role.name === "Viewer";
-  }, [currentMembership]);
-
-  // Common permission checks
   const canCreate = useCallback((module: string) => {
-    return hasPermission(`${module}:create`);
-  }, [hasPermission]);
+    return can(`${module}:create`);
+  }, [can]);
 
   const canEdit = useCallback((module: string) => {
-    return hasPermission(`${module}:edit`);
-  }, [hasPermission]);
+    return can(`${module}:edit`);
+  }, [can]);
 
   const canDelete = useCallback((module: string) => {
-    return hasPermission(`${module}:delete`);
-  }, [hasPermission]);
+    return can(`${module}:delete`);
+  }, [can]);
 
   const canView = useCallback((module: string) => {
-    return hasPermission(`${module}:view`);
-  }, [hasPermission]);
+    return can(`${module}:view`);
+  }, [can]);
 
   return {
     // Company selection
@@ -62,18 +63,26 @@ export function useSelectedCompany(initialCompanyId?: string) {
     companyIds,
     currentMembership,
     
-    // Role info
-    isOwner,
-    isAdmin,
-    isViewer,
+    // Role info (from centralized abilities)
+    isOwner: abilities.isOwner,
+    isAdmin: abilities.isAdmin,
+    isViewer: abilities.isViewer,
+    roleName: abilities.roleName,
     
-    // Permissions
+    // Permissions - centralized
     permissions,
     hasPermission,
+    can,
+    canAll,
+    canAny,
     canCreate,
     canEdit,
     canDelete,
     canView,
+    
+    // Cache management
+    refetchPermissions,
+    invalidatePermissions,
     
     // Loading state
     loading: companiesLoading || permissionsLoading,
