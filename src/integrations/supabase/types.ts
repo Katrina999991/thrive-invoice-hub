@@ -1716,6 +1716,10 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: string
       }
+      get_user_role_name_in_company: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: string
+      }
       has_permission: {
         Args: { _company_id: string; _permission: string; _user_id: string }
         Returns: boolean
