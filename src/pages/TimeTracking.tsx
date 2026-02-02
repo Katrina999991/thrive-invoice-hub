@@ -117,6 +117,7 @@ export default function TimeTracking() {
   const [filterClient, setFilterClient] = useState<string>("all");
   const [filterCreators, setFilterCreators] = useState<string[]>([]);
   const [filterApproval, setFilterApproval] = useState<string>("all"); // "all" | "pending" | "approved"
+  const [filterBillingStatus, setFilterBillingStatus] = useState<string>("all"); // "all" | "unbilled" | "billed"
   const [showArchived, setShowArchived] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -861,6 +862,14 @@ export default function TimeTracking() {
     if (filterApproval === "pending" && ((entry as any).approved_at || entry.user_id === user?.id)) {
       return false;
     }
+
+    // Filtre par statut de facturation
+    if (filterBillingStatus === "billed" && !entry.is_billed) {
+      return false;
+    }
+    if (filterBillingStatus === "unbilled" && entry.is_billed) {
+      return false;
+    }
     
     // Filtre par archive
     const isArchived = (entry as any).is_archived || false;
@@ -1215,6 +1224,17 @@ export default function TimeTracking() {
                 </SelectContent>
               </Select>
             )}
+            {/* Billing status filter */}
+            <Select value={filterBillingStatus} onValueChange={setFilterBillingStatus}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{language === "fr" ? "Tous statuts" : "All statuses"}</SelectItem>
+                <SelectItem value="unbilled">{language === "fr" ? "Non facturé" : "Unbilled"}</SelectItem>
+                <SelectItem value="billed">{language === "fr" ? "Facturé" : "Billed"}</SelectItem>
+              </SelectContent>
+            </Select>
             {/* Archive toggle */}
             <Button
               variant={showArchived ? "default" : "outline"}
@@ -1227,7 +1247,7 @@ export default function TimeTracking() {
                 : (language === "fr" ? "Voir archivés" : "Show archived")
               }
             </Button>
-            {(filterClient !== "all" || dateRange || filterCreators.length > 0 || filterApproval !== "all") && (
+            {(filterClient !== "all" || dateRange || filterCreators.length > 0 || filterApproval !== "all" || filterBillingStatus !== "all") && (
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -1235,6 +1255,7 @@ export default function TimeTracking() {
                   setFilterCreators([]);
                   setDateRange(undefined);
                   setFilterApproval("all");
+                  setFilterBillingStatus("all");
                 }}
                 className="w-full sm:w-auto"
               >
