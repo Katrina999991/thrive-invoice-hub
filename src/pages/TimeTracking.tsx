@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -120,6 +120,7 @@ export default function TimeTracking() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isCreatorFilterOpen, setIsCreatorFilterOpen] = useState(false);
+  const [dateSortOrder, setDateSortOrder] = useState<"asc" | "desc">("desc");
   const [useTimeRange, setUseTimeRange] = useState(false);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
     { id: crypto.randomUUID(), start_time: "", end_time: "" }
@@ -882,6 +883,18 @@ export default function TimeTracking() {
     return true;
   });
 
+  // Trier les entrées par date
+  const sortedEntries = useMemo(() => {
+    return [...filteredEntries].sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateSortOrder === "asc") {
+        return dateCompare !== 0 ? dateCompare : a.created_at.localeCompare(b.created_at);
+      } else {
+        return dateCompare !== 0 ? -dateCompare : -a.created_at.localeCompare(b.created_at);
+      }
+    });
+  }, [filteredEntries, dateSortOrder]);
+
   // Obtenir les entrées non facturées filtrées
   const unbilledFilteredEntries = filteredEntries.filter(entry => !entry.is_billed);
 
@@ -1214,7 +1227,7 @@ export default function TimeTracking() {
             <div className="text-center py-8 text-muted-foreground">
               {language === "fr" ? "Chargement..." : "Loading..."}
             </div>
-          ) : filteredEntries.length === 0 ? (
+          ) : sortedEntries.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {language === "fr"
                 ? "Aucune heure enregistrée"
@@ -1240,7 +1253,21 @@ export default function TimeTracking() {
                           />
                         </TableHead>
                       )}
-                      <TableHead>{language === "fr" ? "Date" : "Date"}</TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 -ml-2 font-medium"
+                          onClick={() => setDateSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                        >
+                          {language === "fr" ? "Date" : "Date"}
+                          {dateSortOrder === "asc" ? (
+                            <ArrowUp className="ml-1 h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="ml-1 h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableHead>
                       <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
                       <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
                       {permissions.canViewAll && (
@@ -1257,7 +1284,7 @@ export default function TimeTracking() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredEntries.map((entry) => {
+                    {sortedEntries.map((entry) => {
                       const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                       const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
                       const isApproved = !!(entry as any).approved_at;
@@ -1463,7 +1490,24 @@ export default function TimeTracking() {
                   </div>
                 )}
 
-                {filteredEntries.map((entry) => {
+                {/* Date sort button for mobile */}
+                <div className="flex items-center justify-between pb-2 border-b">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2"
+                    onClick={() => setDateSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                  >
+                    {language === "fr" ? "Tri par date" : "Sort by date"}
+                    {dateSortOrder === "asc" ? (
+                      <ArrowUp className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ArrowDown className="ml-1 h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+
+                {sortedEntries.map((entry) => {
                   const [year, month, day] = entry.date.split('-').map(Number);
                   const localDate = new Date(year, month - 1, day);
                   const formattedDate = format(localDate, "d MMM yyyy", {
