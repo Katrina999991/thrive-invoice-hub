@@ -133,8 +133,8 @@ const PublicPricing = () => {
         },
         pro: {
           name: "Pro",
-          price: "34,99 $ CAD",
-          yearlyPrice: "349 $ CAD",
+          price: "29,99 $ CAD",
+          yearlyPrice: "299 $ CAD",
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
@@ -298,8 +298,8 @@ const PublicPricing = () => {
         },
         pro: {
           name: "Pro",
-          price: "$34.99 CAD",
-          yearlyPrice: "$349 CAD",
+          price: "$29.99 CAD",
+          yearlyPrice: "$299 CAD",
           period: "/month",
           yearlyPeriod: "/year",
           description: "Built for growing businesses and multi-company management",

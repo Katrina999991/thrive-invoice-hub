@@ -16,12 +16,12 @@ export const STRIPE_CONFIG = {
     monthly: {
       productId: "prod_TMfqkVpmz307cM",
       priceId: "price_1SPwUnLH2WFAQEA6Ec9bPKok",
-      amount: 34.99,
+      amount: 29.99,
     },
     yearly: {
       productId: "prod_TMfrCqT8V9f97H",
       priceId: "price_1SPwVYLH2WFAQEA6s2kfAyzS",
-      amount: 349.00,
+      amount: 299.00,
     },
   },
 } as const;
