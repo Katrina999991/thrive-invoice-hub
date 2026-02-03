@@ -499,7 +499,7 @@ const Index = () => {
         },
         pro: {
           name: "Pro",
-          price: "$34.99 CAD",
+          price: "$29.99 CAD",
           period: "/month",
           description: "For agencies and multi-company",
           features: [
