@@ -520,6 +520,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (emailError) {
       console.error('Error sending email:', emailError);
+      
+      // Log failed manual reminder if emailType is 'overdue'
+      if (emailType === 'overdue' && authHeader) {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(token);
+        if (user) {
+          await supabase.from('invoice_reminder_logs').insert({
+            invoice_id: invoiceId,
+            user_id: user.id,
+            client_id: invoice.client_id,
+            reminder_type: 'manual',
+            status: 'failed',
+            error_message: emailError.message || 'Failed to send email',
+          });
+        }
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Failed to send invoice email.' }),
         {
@@ -530,6 +547,27 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('Email sent successfully:', emailData);
+
+    // Log successful manual reminder if emailType is 'overdue'
+    if (emailType === 'overdue' && authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) {
+        const { error: logError } = await supabase.from('invoice_reminder_logs').insert({
+          invoice_id: invoiceId,
+          user_id: user.id,
+          client_id: invoice.client_id,
+          reminder_type: 'manual',
+          status: 'sent',
+          error_message: null,
+        });
+        if (logError) {
+          console.error('Error logging manual reminder:', logError);
+        } else {
+          console.log('Manual reminder logged successfully');
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({ message: 'Invoice email sent successfully!', emailData }),
