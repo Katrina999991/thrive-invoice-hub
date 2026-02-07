@@ -33,12 +33,15 @@ export const ALL_PERMISSIONS = [
   { key: "quotes:edit", module: "quotes", action: "edit" },
   { key: "quotes:send", module: "quotes", action: "send" },
   { key: "quotes:delete", module: "quotes", action: "delete" },
-  // Expenses
-  { key: "expenses:view", module: "expenses", action: "view" },
+  // Expenses (granular permissions)
+  { key: "expenses:view_own", module: "expenses", action: "view_own" },
+  { key: "expenses:view_all", module: "expenses", action: "view_all" },
   { key: "expenses:create", module: "expenses", action: "create" },
-  { key: "expenses:edit", module: "expenses", action: "edit" },
+  { key: "expenses:edit_own", module: "expenses", action: "edit_own" },
+  { key: "expenses:edit_all", module: "expenses", action: "edit_all" },
   { key: "expenses:approve", module: "expenses", action: "approve" },
-  { key: "expenses:delete", module: "expenses", action: "delete" },
+  { key: "expenses:delete_own", module: "expenses", action: "delete_own" },
+  { key: "expenses:delete_all", module: "expenses", action: "delete_all" },
   // Products
   { key: "products:view", module: "products", action: "view" },
   { key: "products:edit", module: "products", action: "edit" },
