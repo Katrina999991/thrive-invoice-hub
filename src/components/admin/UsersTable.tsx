@@ -167,8 +167,18 @@ export function UsersTable() {
   const filteredUsers = users.filter((user) => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.display_name?.toLowerCase().includes(searchLower)
+      (user.email?.toLowerCase().includes(searchLower) ||
+      user.display_name?.toLowerCase().includes(searchLower)) &&
+      !EXCLUDED_EMAILS.includes(user.email?.toLowerCase() || "")
+    );
+  });
+
+  const filteredTestUsers = users.filter((user) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (user.email?.toLowerCase().includes(searchLower) ||
+      user.display_name?.toLowerCase().includes(searchLower)) &&
+      EXCLUDED_EMAILS.includes(user.email?.toLowerCase() || "")
     );
   });
 
@@ -322,115 +332,149 @@ export function UsersTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {filteredUsers.length === 0 && filteredTestUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       {t.noUsers}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.email}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {user.display_name || "-"}
-                          {isNewUser(user.created_at) && (
-                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                              {t.new}
-                            </Badge>
-                          )}
-                          {(user.invoices_count > 0 || user.quotes_count > 0 || user.expenses_count > 0) && (
-                            <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs">
-                              {t.active}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          <span title={format(new Date(user.created_at), "PPpp", { locale })}>
-                            {format(new Date(user.created_at), "PP", { locale })}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {user.last_sign_in_at
-                          ? formatDistanceToNow(new Date(user.last_sign_in_at), {
-                              addSuffix: true,
-                              locale,
-                            })
-                          : t.never}
-                      </TableCell>
-                      <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-2">
-                          {/* Stripe - visible status */}
-                          <span 
-                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${
-                              user.stripe_connected 
-                                ? 'bg-purple-500/20 text-purple-600' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            <CreditCard className="h-3 w-3" />
-                            {user.stripe_connected ? '✓' : '✕'}
-                          </span>
-                          
-                          {/* Companies - visible count with color hierarchy */}
-                          <span 
-                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${
-                              user.companies_count === 0 
-                                ? 'bg-muted text-muted-foreground' 
-                                : user.companies_count === 1 
-                                  ? 'bg-blue-500/20 text-blue-600' 
-                                  : 'bg-emerald-500/20 text-emerald-600'
-                            }`}
-                          >
-                            <Building2 className="h-3 w-3" />
-                            {user.companies_count}
-                          </span>
-                          
-                          {/* Invoices - count with hierarchy */}
-                          <span 
-                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}
-                            title={t.hasInvoices}
-                          >
-                            <FileText className="h-3 w-3" />
-                            {user.invoices_count}
-                          </span>
-                          
-                          {/* Quotes - count with hierarchy */}
-                          <span 
-                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}
-                            title={t.hasQuotes}
-                          >
-                            <Receipt className="h-3 w-3" />
-                            {user.quotes_count}
-                          </span>
-                          
-                          {/* Expenses - count with hierarchy */}
-                          <span 
-                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}
-                            title={t.hasExpenses}
-                          >
-                            <Receipt className="h-3 w-3" />
-                            {user.expenses_count}
-                          </span>
-                          
-                          {/* Clients - count with hierarchy */}
-                          <span 
-                            className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}
-                            title={t.hasClients}
-                          >
-                            <UserRound className="h-3 w-3" />
-                            {user.clients_count}
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  <>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {user.display_name || "-"}
+                            {isNewUser(user.created_at) && (
+                              <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                                {t.new}
+                              </Badge>
+                            )}
+                            {(user.invoices_count > 0 || user.quotes_count > 0 || user.expenses_count > 0) && (
+                              <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs">
+                                {t.active}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            <span title={format(new Date(user.created_at), "PPpp", { locale })}>
+                              {format(new Date(user.created_at), "PP", { locale })}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {user.last_sign_in_at
+                            ? formatDistanceToNow(new Date(user.last_sign_in_at), {
+                                addSuffix: true,
+                                locale,
+                              })
+                            : t.never}
+                        </TableCell>
+                        <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
+                              <CreditCard className="h-3 w-3" />
+                              {user.stripe_connected ? '✓' : '✕'}
+                            </span>
+                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
+                              <Building2 className="h-3 w-3" />
+                              {user.companies_count}
+                            </span>
+                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`} title={t.hasInvoices}>
+                              <FileText className="h-3 w-3" />
+                              {user.invoices_count}
+                            </span>
+                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`} title={t.hasQuotes}>
+                              <Receipt className="h-3 w-3" />
+                              {user.quotes_count}
+                            </span>
+                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`} title={t.hasExpenses}>
+                              <Receipt className="h-3 w-3" />
+                              {user.expenses_count}
+                            </span>
+                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`} title={t.hasClients}>
+                              <UserRound className="h-3 w-3" />
+                              {user.clients_count}
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+
+                    {/* Separator + Test/Internal users */}
+                    {filteredTestUsers.length > 0 && (
+                      <>
+                        <TableRow>
+                          <TableCell colSpan={6} className="bg-muted/50 py-2 text-center">
+                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                              {language === "fr" ? "Comptes test / internes" : "Test / Internal accounts"}
+                              {" "}({filteredTestUsers.length})
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                        {filteredTestUsers.map((user) => (
+                          <TableRow key={user.id} className="opacity-60">
+                            <TableCell className="font-medium">{user.email}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {user.display_name || "-"}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-3 w-3 text-muted-foreground" />
+                                <span title={format(new Date(user.created_at), "PPpp", { locale })}>
+                                  {format(new Date(user.created_at), "PP", { locale })}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {user.last_sign_in_at
+                                ? formatDistanceToNow(new Date(user.last_sign_in_at), {
+                                    addSuffix: true,
+                                    locale,
+                                  })
+                                : t.never}
+                            </TableCell>
+                            <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
+                                  <CreditCard className="h-3 w-3" />
+                                  {user.stripe_connected ? '✓' : '✕'}
+                                </span>
+                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
+                                  <Building2 className="h-3 w-3" />
+                                  {user.companies_count}
+                                </span>
+                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}>
+                                  <FileText className="h-3 w-3" />
+                                  {user.invoices_count}
+                                </span>
+                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}>
+                                  <Receipt className="h-3 w-3" />
+                                  {user.quotes_count}
+                                </span>
+                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}>
+                                  <Receipt className="h-3 w-3" />
+                                  {user.expenses_count}
+                                </span>
+                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}>
+                                  <UserRound className="h-3 w-3" />
+                                  {user.clients_count}
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    )}
+                  </>
                 )}
               </TableBody>
             </Table>
