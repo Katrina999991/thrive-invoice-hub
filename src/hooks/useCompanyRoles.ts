@@ -36,7 +36,7 @@ export const ALL_PERMISSIONS = [
   // Expenses (granular permissions)
   { key: "expenses:view_own", module: "expenses", action: "view_own" },
   { key: "expenses:view_all", module: "expenses", action: "view_all" },
-  { key: "expenses:create", module: "expenses", action: "create" },
+  
   { key: "expenses:edit_own", module: "expenses", action: "edit_own" },
   { key: "expenses:edit_all", module: "expenses", action: "edit_all" },
   { key: "expenses:approve", module: "expenses", action: "approve" },
@@ -51,7 +51,7 @@ export const ALL_PERMISSIONS = [
   { key: "inventory:view", module: "inventory", action: "view" },
   { key: "inventory:adjust", module: "inventory", action: "adjust" },
   // Time Tracking (granular permissions)
-  { key: "time_tracking:create", module: "time_tracking", action: "create" },
+  
   { key: "time_tracking:view_own", module: "time_tracking", action: "view_own" },
   { key: "time_tracking:view_all", module: "time_tracking", action: "view_all" },
   { key: "time_tracking:create_own", module: "time_tracking", action: "create_own" },
