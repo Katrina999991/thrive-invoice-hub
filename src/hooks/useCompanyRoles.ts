@@ -35,6 +35,7 @@ export const ALL_PERMISSIONS = [
   { key: "quotes:delete", module: "quotes", action: "delete" },
   // Expenses (granular permissions)
   { key: "expenses:view_own", module: "expenses", action: "view_own" },
+  { key: "expenses:create_own", module: "expenses", action: "create_own" },
   { key: "expenses:view_all", module: "expenses", action: "view_all" },
   
   { key: "expenses:edit_own", module: "expenses", action: "edit_own" },
