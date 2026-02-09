@@ -33,6 +33,7 @@ export const ALL_PERMISSIONS = [
   { key: "quotes:edit", module: "quotes", action: "edit" },
   { key: "quotes:send", module: "quotes", action: "send" },
   { key: "quotes:delete", module: "quotes", action: "delete" },
+  { key: "quotes:approve", module: "quotes", action: "approve" },
   // Expenses (granular permissions)
   { key: "expenses:view_own", module: "expenses", action: "view_own" },
   { key: "expenses:create_own", module: "expenses", action: "create_own" },
@@ -51,6 +52,7 @@ export const ALL_PERMISSIONS = [
   // Inventory
   { key: "inventory:view", module: "inventory", action: "view" },
   { key: "inventory:adjust", module: "inventory", action: "adjust" },
+  { key: "inventory:edit", module: "inventory", action: "edit" },
   // Time Tracking (granular permissions)
   
   { key: "time_tracking:view_own", module: "time_tracking", action: "view_own" },
@@ -78,7 +80,10 @@ export const ALL_PERMISSIONS = [
   { key: "access:remove", module: "access", action: "remove" },
   { key: "access:manage_roles", module: "access", action: "manage_roles" },
   // Billing
+  { key: "billing:view", module: "billing", action: "view" },
   { key: "billing:manage", module: "billing", action: "manage" },
+  // Debug
+  { key: "debug:permissions_read", module: "debug", action: "permissions_read" },
 ];
 
 export const PERMISSION_MODULES = [
@@ -93,7 +98,8 @@ export const PERMISSION_MODULES = [
   "reports",
   "settings",
   "access",
-  "billing"
+  "billing",
+  "debug"
 ];
 
 export function useCompanyRoles(companyId: string | null) {
