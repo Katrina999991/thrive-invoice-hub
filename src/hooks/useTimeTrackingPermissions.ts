@@ -14,7 +14,6 @@ export type TimeTrackingPermission =
   | "time_tracking:delete_own"
   | "time_tracking:delete_all"
   | "time_tracking:approve"
-  | "time_tracking:export"
   | "time_tracking:mark_as_billed"
   | "time_tracking:link_to_invoice";
 
@@ -64,7 +63,7 @@ export function useTimeTrackingPermissions(
     const canDeleteOwn = hasPermission(PERMISSIONS.TIME_TRACKING_DELETE_OWN);
     const canDeleteAll = hasPermission(PERMISSIONS.TIME_TRACKING_DELETE_ALL);
     const canApprove = hasPermission(PERMISSIONS.TIME_TRACKING_APPROVE);
-    const canExport = hasPermission(PERMISSIONS.TIME_TRACKING_EXPORT);
+    const canExport = false; // Export permission removed
     const canMarkAsBilled = hasPermission(PERMISSIONS.TIME_TRACKING_MARK_AS_BILLED);
     const canLinkToInvoice = hasPermission(PERMISSIONS.TIME_TRACKING_LINK_TO_INVOICE);
 

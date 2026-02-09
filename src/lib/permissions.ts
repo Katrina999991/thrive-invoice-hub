@@ -35,19 +35,15 @@ export const PERMISSIONS = {
   QUOTES_DELETE: "quotes:delete",
   QUOTES_APPROVE: "quotes:approve",
 
-  // Expenses - Base
-  EXPENSES_VIEW: "expenses:view",
-  EXPENSES_CREATE: "expenses:create",
-  EXPENSES_EDIT: "expenses:edit",
-  EXPENSES_DELETE: "expenses:delete",
-  EXPENSES_APPROVE: "expenses:approve",
   // Expenses - Granular
   EXPENSES_VIEW_OWN: "expenses:view_own",
   EXPENSES_VIEW_ALL: "expenses:view_all",
+  EXPENSES_CREATE_OWN: "expenses:create_own",
   EXPENSES_EDIT_OWN: "expenses:edit_own",
   EXPENSES_EDIT_ALL: "expenses:edit_all",
   EXPENSES_DELETE_OWN: "expenses:delete_own",
   EXPENSES_DELETE_ALL: "expenses:delete_all",
+  EXPENSES_APPROVE: "expenses:approve",
 
   // Products
   PRODUCTS_VIEW: "products:view",
@@ -74,9 +70,10 @@ export const PERMISSIONS = {
   TIME_TRACKING_DELETE_OWN: "time_tracking:delete_own",
   TIME_TRACKING_DELETE_ALL: "time_tracking:delete_all",
   TIME_TRACKING_APPROVE: "time_tracking:approve",
-  TIME_TRACKING_EXPORT: "time_tracking:export",
   TIME_TRACKING_MARK_AS_BILLED: "time_tracking:mark_as_billed",
   TIME_TRACKING_LINK_TO_INVOICE: "time_tracking:link_to_invoice",
+  TIME_TRACKING_VIEW_ARCHIVED: "time_tracking:view_archived",
+  TIME_TRACKING_ARCHIVE: "time_tracking:archive",
 
   // Reports
   REPORTS_VIEW: "reports:view",
@@ -220,11 +217,9 @@ export const PERMISSION_GROUPS = {
     permissions: [
       PERMISSIONS.EXPENSES_VIEW_OWN,
       PERMISSIONS.EXPENSES_VIEW_ALL,
-      PERMISSIONS.EXPENSES_CREATE,
-      PERMISSIONS.EXPENSES_EDIT,
+      PERMISSIONS.EXPENSES_CREATE_OWN,
       PERMISSIONS.EXPENSES_EDIT_OWN,
       PERMISSIONS.EXPENSES_EDIT_ALL,
-      PERMISSIONS.EXPENSES_DELETE,
       PERMISSIONS.EXPENSES_DELETE_OWN,
       PERMISSIONS.EXPENSES_DELETE_ALL,
       PERMISSIONS.EXPENSES_APPROVE,
@@ -253,21 +248,18 @@ export const PERMISSION_GROUPS = {
     labelFr: "Suivi du temps",
     labelEn: "Time Tracking",
     permissions: [
-      PERMISSIONS.TIME_TRACKING_VIEW,
       PERMISSIONS.TIME_TRACKING_VIEW_OWN,
       PERMISSIONS.TIME_TRACKING_VIEW_ALL,
-      PERMISSIONS.TIME_TRACKING_CREATE,
       PERMISSIONS.TIME_TRACKING_CREATE_OWN,
-      PERMISSIONS.TIME_TRACKING_EDIT,
       PERMISSIONS.TIME_TRACKING_EDIT_OWN,
       PERMISSIONS.TIME_TRACKING_EDIT_ALL,
-      PERMISSIONS.TIME_TRACKING_DELETE,
       PERMISSIONS.TIME_TRACKING_DELETE_OWN,
       PERMISSIONS.TIME_TRACKING_DELETE_ALL,
       PERMISSIONS.TIME_TRACKING_APPROVE,
-      PERMISSIONS.TIME_TRACKING_EXPORT,
       PERMISSIONS.TIME_TRACKING_MARK_AS_BILLED,
       PERMISSIONS.TIME_TRACKING_LINK_TO_INVOICE,
+      PERMISSIONS.TIME_TRACKING_VIEW_ARCHIVED,
+      PERMISSIONS.TIME_TRACKING_ARCHIVE,
     ],
   },
   reports: {
