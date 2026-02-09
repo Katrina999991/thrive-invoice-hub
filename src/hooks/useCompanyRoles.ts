@@ -44,7 +44,9 @@ export const ALL_PERMISSIONS = [
   { key: "expenses:delete_all", module: "expenses", action: "delete_all" },
   // Products
   { key: "products:view", module: "products", action: "view" },
+  { key: "products:create", module: "products", action: "create" },
   { key: "products:edit", module: "products", action: "edit" },
+  { key: "products:delete", module: "products", action: "delete" },
   // Inventory
   { key: "inventory:view", module: "inventory", action: "view" },
   { key: "inventory:adjust", module: "inventory", action: "adjust" },
