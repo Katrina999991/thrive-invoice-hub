@@ -64,6 +64,8 @@ export const ALL_PERMISSIONS = [
   
   { key: "time_tracking:mark_as_billed", module: "time_tracking", action: "mark_as_billed" },
   { key: "time_tracking:link_to_invoice", module: "time_tracking", action: "link_to_invoice" },
+  { key: "time_tracking:view_archived", module: "time_tracking", action: "view_archived" },
+  { key: "time_tracking:archive", module: "time_tracking", action: "archive" },
   // Reports
   { key: "reports:view", module: "reports", action: "view" },
   { key: "reports:export", module: "reports", action: "export" },
