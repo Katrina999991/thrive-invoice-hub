@@ -218,7 +218,6 @@ export const PERMISSION_GROUPS = {
     labelFr: "Dépenses",
     labelEn: "Expenses",
     permissions: [
-      PERMISSIONS.EXPENSES_VIEW,
       PERMISSIONS.EXPENSES_VIEW_OWN,
       PERMISSIONS.EXPENSES_VIEW_ALL,
       PERMISSIONS.EXPENSES_CREATE,
