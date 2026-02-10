@@ -41,6 +41,7 @@ export function TeamAccessTab() {
   const [roleToDelete, setRoleToDelete] = useState<CompanyRole | null>(null);
   const [showRemoveMemberDialog, setShowRemoveMemberDialog] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
+  const [debugPanelKey, setDebugPanelKey] = useState(0);
 
   const { hasPermission, loading: permissionsLoading } = useCompanyPermissions(selectedCompanyId);
   const { members, roles, invites, loading: membersLoading, updateMemberRole, removeMember, inviteMember, cancelInvite, refetch } = useCompanyMembers(selectedCompanyId);
@@ -120,6 +121,7 @@ export function TeamAccessTab() {
     if (editingRole) {
       fetchRolePermissions(editingRole.id);
     }
+    setDebugPanelKey(prev => prev + 1);
     refetch();
   };
 
@@ -737,6 +739,7 @@ export function TeamAccessTab() {
       {/* Permission Debug Panel - For Owners/Admins */}
       {(isOwner || canManageRoles) && companies.length > 0 && (
         <PermissionDebugPanel 
+          key={debugPanelKey}
           companies={companies.map(c => ({ id: c.id, name: c.name }))}
           initialCompanyId={selectedCompanyId}
         />
