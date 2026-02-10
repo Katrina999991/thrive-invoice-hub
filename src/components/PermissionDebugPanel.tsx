@@ -57,7 +57,7 @@ interface PermissionDebugPanelProps {
   refreshTrigger?: number;
 }
 
-export function PermissionDebugPanel({ companies, initialCompanyId }: PermissionDebugPanelProps) {
+export function PermissionDebugPanel({ companies, initialCompanyId, refreshTrigger }: PermissionDebugPanelProps) {
   const { language } = useLanguage();
   const { user } = useAuth();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>(initialCompanyId || companies[0]?.id || "");
