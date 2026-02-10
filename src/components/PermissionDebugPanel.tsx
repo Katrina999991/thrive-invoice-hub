@@ -54,6 +54,7 @@ interface InspectedUserData {
 interface PermissionDebugPanelProps {
   companies: CompanyOption[];
   initialCompanyId?: string | null;
+  refreshTrigger?: number;
 }
 
 export function PermissionDebugPanel({ companies, initialCompanyId }: PermissionDebugPanelProps) {
