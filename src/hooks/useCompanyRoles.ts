@@ -52,7 +52,6 @@ export const ALL_PERMISSIONS = [
   // Inventory
   { key: "inventory:view", module: "inventory", action: "view" },
   { key: "inventory:adjust", module: "inventory", action: "adjust" },
-  { key: "inventory:edit", module: "inventory", action: "edit" },
   // Time Tracking (granular permissions)
   
   { key: "time_tracking:view_own", module: "time_tracking", action: "view_own" },

@@ -240,7 +240,6 @@ export const PERMISSION_GROUPS = {
     permissions: [
       PERMISSIONS.INVENTORY_VIEW,
       PERMISSIONS.INVENTORY_ADJUST,
-      PERMISSIONS.INVENTORY_EDIT,
     ],
   },
   timeTracking: {
