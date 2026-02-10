@@ -121,6 +121,7 @@ export function TeamAccessTab() {
     if (editingRole) {
       fetchRolePermissions(editingRole.id);
     }
+    setDebugPanelKey(prev => prev + 1);
     refetch();
   };
 
