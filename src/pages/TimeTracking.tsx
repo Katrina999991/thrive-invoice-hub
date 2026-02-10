@@ -460,6 +460,41 @@ export default function TimeTracking() {
     if (useTimeRange) {
       const total = calculateTotalHours();
       form.setValue("hours", total);
+      
+      // Recalculate billed minutes when time ranges change for a timer entry
+      if (timerEntryData?.isFromTimer) {
+        const totalMinutesFromRanges = timeRanges.reduce((acc, range) => {
+          if (!range.start_time || !range.end_time) return acc;
+          const [sh, sm] = range.start_time.split(':').map(Number);
+          const [eh, em] = range.end_time.split(':').map(Number);
+          let startMin = sh * 60 + sm;
+          let endMin = eh * 60 + em;
+          if (endMin < startMin) endMin += 24 * 60;
+          return acc + (endMin - startMin);
+        }, 0);
+        
+        const newRawMinutes = totalMinutesFromRanges;
+        const clientId = form.getValues("client_id");
+        const client = clients.find(c => c.id === clientId);
+        let newBilledMinutes = newRawMinutes;
+        if (client?.time_rounding_enabled && client.time_rounding_increment_minutes && client.time_rounding_method) {
+          newBilledMinutes = roundDuration(
+            newRawMinutes,
+            client.time_rounding_increment_minutes as RoundingIncrement,
+            client.time_rounding_method as RoundingMethod
+          );
+        }
+        
+        setTimerEntryData({
+          isFromTimer: true,
+          durationRawMinutes: newRawMinutes,
+          durationBilledMinutes: newBilledMinutes
+        });
+        
+        // Update form hours to billed hours
+        const billedHours = minutesToHours(newBilledMinutes);
+        form.setValue("hours", billedHours.toFixed(2));
+      }
     }
   }, [timeRanges, useTimeRange]);
 
