@@ -54,7 +54,6 @@ export const PERMISSIONS = {
   // Inventory
   INVENTORY_VIEW: "inventory:view",
   INVENTORY_ADJUST: "inventory:adjust",
-  INVENTORY_EDIT: "inventory:edit",
 
   // Time Tracking - Base
   TIME_TRACKING_VIEW: "time_tracking:view",
