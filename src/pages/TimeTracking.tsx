@@ -1415,12 +1415,13 @@ export default function TimeTracking() {
                               const hasRounding = isTimerEntry && rawMin !== null && billedMin !== null && rawMin !== billedMin;
                               
                               if (hasRounding) {
+                                const billedHours = minutesToHours(billedMin);
                                 return (
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <span className="cursor-help">
-                                          {entry.hours}h
+                                          {billedHours}h
                                           <span className="ml-1 text-xs text-primary">≈</span>
                                         </span>
                                       </TooltipTrigger>
@@ -1428,7 +1429,7 @@ export default function TimeTracking() {
                                         <p className="text-xs">
                                           {language === "fr" ? "Temps réel" : "Actual"}: {minutesToHours(rawMin)}h
                                           <br />
-                                          {language === "fr" ? "Facturable" : "Billable"}: {minutesToHours(billedMin)}h
+                                          {language === "fr" ? "Facturable" : "Billable"}: {billedHours}h
                                         </p>
                                       </TooltipContent>
                                     </Tooltip>
@@ -1440,7 +1441,12 @@ export default function TimeTracking() {
                           </TableCell>
                           <TableCell className="text-right">${entry.hourly_rate}/h</TableCell>
                           <TableCell className="text-right font-medium">
-                            ${(entry.hours * entry.hourly_rate).toFixed(2)}
+                            {(() => {
+                              const billedMin = (entry as any).duration_billed_minutes;
+                              const isTimerEntry = (entry as any).source === 'timer';
+                              const displayHours = (isTimerEntry && billedMin !== null) ? minutesToHours(billedMin) : entry.hours;
+                              return `$${(displayHours * entry.hourly_rate).toFixed(2)}`;
+                            })()}
                           </TableCell>
                           <TableCell>
                             {/* Status dropdown - only editable if user can mark as billed */}
@@ -1723,12 +1729,13 @@ export default function TimeTracking() {
                             const hasRounding = isTimerEntry && rawMin !== null && billedMin !== null && rawMin !== billedMin;
                             
                             if (hasRounding) {
+                              const billedHours = minutesToHours(billedMin);
                               return (
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <span className="cursor-help">
-                                        {entry.hours}h
+                                        {billedHours}h
                                         <span className="ml-0.5 text-xs text-primary">≈</span>
                                       </span>
                                     </TooltipTrigger>
@@ -1736,7 +1743,7 @@ export default function TimeTracking() {
                                       <p className="text-xs">
                                         {language === "fr" ? "Temps réel" : "Actual"}: {minutesToHours(rawMin)}h
                                         <br />
-                                        {language === "fr" ? "Facturable" : "Billable"}: {minutesToHours(billedMin)}h
+                                        {language === "fr" ? "Facturable" : "Billable"}: {billedHours}h
                                       </p>
                                     </TooltipContent>
                                   </Tooltip>
@@ -1747,7 +1754,12 @@ export default function TimeTracking() {
                           })()}
                           {" × $"}{entry.hourly_rate}
                         </span>
-                        <span className="font-semibold">${(entry.hours * entry.hourly_rate).toFixed(2)}</span>
+                        {(() => {
+                          const billedMin = (entry as any).duration_billed_minutes;
+                          const isTimerEntry = (entry as any).source === 'timer';
+                          const displayHours = (isTimerEntry && billedMin !== null) ? minutesToHours(billedMin) : entry.hours;
+                          return <span className="font-semibold">${(displayHours * entry.hourly_rate).toFixed(2)}</span>;
+                        })()}
                       </div>
                       
                       <div className="flex flex-wrap gap-2 pt-1">
