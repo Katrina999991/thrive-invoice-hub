@@ -739,9 +739,9 @@ export function TeamAccessTab() {
       {/* Permission Debug Panel - For Owners/Admins */}
       {(isOwner || canManageRoles) && companies.length > 0 && (
         <PermissionDebugPanel 
-          key={debugPanelKey}
           companies={companies.map(c => ({ id: c.id, name: c.name }))}
           initialCompanyId={selectedCompanyId}
+          refreshTrigger={debugPanelKey}
         />
       )}
     </div>
