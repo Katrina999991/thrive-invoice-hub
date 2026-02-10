@@ -174,6 +174,20 @@ export function PermissionDebugPanel({ companies, initialCompanyId, refreshTrigg
     loadUserPermissions();
   }, [selectedUserId, isInspectingSelf, loadUserPermissions]);
 
+  // Re-fetch when refreshTrigger changes (e.g., after role permissions are saved)
+  useEffect(() => {
+    if (refreshTrigger === undefined || refreshTrigger === 0) return;
+    
+    // Refresh current user's permissions
+    refetch();
+    
+    // Also refresh inspected user if not self
+    if (!isInspectingSelf && selectedUserId && canDebugPermissions) {
+      prevUserRef.current = null; // Reset to allow re-fetch
+      loadUserPermissions();
+    }
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Derive self data from current permissions (memoized to prevent loops)
   const selfInspectedData = useMemo((): InspectedUserData | null => {
     if (!isInspectingSelf || !selectedCompanyId || !user?.id) return null;
