@@ -103,7 +103,10 @@ export function TeamAccessTab() {
     if (!roleName.trim()) return;
 
     if (editingRole) {
-      await updateRole(editingRole.id, roleName, roleDescription);
+      // For system roles, only update permissions (don't try to rename)
+      if (!editingRole.is_system) {
+        await updateRole(editingRole.id, roleName, roleDescription);
+      }
       await setPermissions(editingRole.id, selectedPermissions);
     } else {
       const newRole = await createRole(roleName, roleDescription);
