@@ -178,14 +178,27 @@ export function PermissionDebugPanel({ companies, initialCompanyId, refreshTrigg
   useEffect(() => {
     if (refreshTrigger === undefined || refreshTrigger === 0) return;
     
-    // Refresh current user's permissions
-    refetch();
-    
-    // Also refresh inspected user if not self
-    if (!isInspectingSelf && selectedUserId && canDebugPermissions) {
-      prevUserRef.current = null; // Reset to allow re-fetch
-      loadUserPermissions();
-    }
+    const doRefresh = async () => {
+      // Refresh current user's permissions
+      await refetch();
+      
+      // Also refresh inspected user if not self (direct fetch, bypass guards)
+      if (!isInspectingSelf && selectedUserId && selectedCompanyId && canDebugPermissions) {
+        try {
+          const { data } = await supabase.rpc("get_user_permissions_for_debug", {
+            _company_id: selectedCompanyId,
+            _target_user_id: selectedUserId,
+          });
+          const jsonData = data as unknown as InspectedUserData & { success?: boolean };
+          if (jsonData?.success) {
+            setInspectedUserData(jsonData);
+          }
+        } catch (err) {
+          console.error("Error refreshing user permissions:", err);
+        }
+      }
+    };
+    doRefresh();
   }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Derive self data from current permissions (memoized to prevent loops)
