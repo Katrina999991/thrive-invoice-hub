@@ -1451,9 +1451,11 @@ export default function TimeTracking() {
                               const dateStr = format(localDate, "d MMM yyyy", {
                                 locale: language === "fr" ? fr : undefined,
                               });
-                              if (entry.created_at) {
-                                const createdDate = new Date(entry.created_at);
-                                const timeStr = format(createdDate, "HH:mm");
+                              const startTime = entry.source === 'timer' && entry.time_entry_ranges?.length
+                                ? entry.time_entry_ranges[0].start_time
+                                : entry.created_at;
+                              if (startTime) {
+                                const timeStr = format(new Date(startTime), "HH:mm");
                                 return <div><div>{dateStr}</div><div className="text-xs text-muted-foreground">{timeStr}</div></div>;
                               }
                               return dateStr;
@@ -1703,8 +1705,11 @@ export default function TimeTracking() {
                   const formattedDate = format(localDate, "d MMM yyyy", {
                     locale: language === "fr" ? fr : undefined,
                   });
-                  const createdTimeStr = entry.created_at 
-                    ? format(new Date(entry.created_at), "HH:mm") 
+                  const startTimeSource = entry.source === 'timer' && entry.time_entry_ranges?.length
+                    ? entry.time_entry_ranges[0].start_time
+                    : entry.created_at;
+                  const createdTimeStr = startTimeSource 
+                    ? format(new Date(startTimeSource), "HH:mm") 
                     : null;
                   const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                   const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
