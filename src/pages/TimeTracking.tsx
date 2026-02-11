@@ -1455,7 +1455,9 @@ export default function TimeTracking() {
                                 ? entry.time_entry_ranges[0].start_time
                                 : entry.created_at;
                               if (startTime) {
-                                const timeStr = format(new Date(startTime), "HH:mm");
+                                const timeStr = entry.source === 'timer' && entry.time_entry_ranges?.length
+                                  ? startTime.substring(0, 5)
+                                  : format(new Date(startTime), "HH:mm");
                                 return <div><div>{dateStr}</div><div className="text-xs text-muted-foreground">{timeStr}</div></div>;
                               }
                               return dateStr;
@@ -1709,7 +1711,9 @@ export default function TimeTracking() {
                     ? entry.time_entry_ranges[0].start_time
                     : entry.created_at;
                   const createdTimeStr = startTimeSource 
-                    ? format(new Date(startTimeSource), "HH:mm") 
+                    ? (entry.source === 'timer' && entry.time_entry_ranges?.length
+                      ? startTimeSource.substring(0, 5)
+                      : format(new Date(startTimeSource), "HH:mm"))
                     : null;
                   const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                   const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
