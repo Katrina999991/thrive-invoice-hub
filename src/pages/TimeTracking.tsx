@@ -1448,9 +1448,15 @@ export default function TimeTracking() {
                             {(() => {
                               const [year, month, day] = entry.date.split('-').map(Number);
                               const localDate = new Date(year, month - 1, day);
-                              return format(localDate, "d MMM yyyy", {
+                              const dateStr = format(localDate, "d MMM yyyy", {
                                 locale: language === "fr" ? fr : undefined,
                               });
+                              if (entry.source !== 'timer' && entry.created_at) {
+                                const createdDate = new Date(entry.created_at);
+                                const timeStr = format(createdDate, "HH:mm");
+                                return <div><div>{dateStr}</div><div className="text-xs text-muted-foreground">{timeStr}</div></div>;
+                              }
+                              return dateStr;
                             })()}
                           </TableCell>
                           <TableCell>{entry.clients?.name || "-"}</TableCell>
@@ -1697,6 +1703,9 @@ export default function TimeTracking() {
                   const formattedDate = format(localDate, "d MMM yyyy", {
                     locale: language === "fr" ? fr : undefined,
                   });
+                  const createdTimeStr = (entry.source !== 'timer' && entry.created_at) 
+                    ? format(new Date(entry.created_at), "HH:mm") 
+                    : null;
                   const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                   const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
                   const isApproved = !!(entry as any).approved_at;
@@ -1778,7 +1787,7 @@ export default function TimeTracking() {
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                        <span className="text-muted-foreground">{formattedDate}</span>
+                        <span className="text-muted-foreground">{formattedDate}{createdTimeStr && ` · ${createdTimeStr}`}</span>
                         <span>
                           {(() => {
                             const rawMin = (entry as any).duration_raw_minutes;
