@@ -648,6 +648,14 @@ export default function TimeTracking() {
       setTimeRanges([{ id: crypto.randomUUID(), start_time: "", end_time: "" }]);
     }
     
+    // Try to match description to an existing service
+    const matchingService = services.find(s => s.name === entry.description);
+    if (matchingService) {
+      setUseCustomDescription(false);
+    } else {
+      setUseCustomDescription(true);
+    }
+    
     form.reset({
       client_id: entry.client_id || "",
       company_id: entry.company_id || "",
@@ -656,7 +664,7 @@ export default function TimeTracking() {
       hourly_rate: entry.hourly_rate.toString(),
       date: entry.date,
       notes: entry.notes || "",
-      service_id: "",
+      service_id: matchingService ? matchingService.id : "custom",
     });
     setIsDialogOpen(true);
   };
