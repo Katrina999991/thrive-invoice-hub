@@ -554,19 +554,23 @@ export default function TimeTracking() {
       : undefined;
     
     if (editingEntry) {
-      await updateTimeEntry(
-        editingEntry,
-        {
-          client_id: data.client_id,
-          company_id: data.company_id || null,
-          description: data.description,
-          hours: parseFloat(hours || "0"),
-          hourly_rate: parseFloat(data.hourly_rate),
-          date: data.date,
-          notes: data.notes || null,
-        },
-        ranges
-      );
+      const updateData: any = {
+        client_id: data.client_id,
+        company_id: data.company_id || null,
+        description: data.description,
+        hours: parseFloat(hours || "0"),
+        hourly_rate: parseFloat(data.hourly_rate),
+        date: data.date,
+        notes: data.notes || null,
+      };
+      
+      // Include updated rounding data for timer entries
+      if (timerEntryData?.isFromTimer) {
+        updateData.duration_raw_minutes = timerEntryData.durationRawMinutes;
+        updateData.duration_billed_minutes = timerEntryData.durationBilledMinutes;
+      }
+      
+      await updateTimeEntry(editingEntry, updateData, ranges);
     } else {
       // Build the entry data with timer-specific fields if applicable
       const entryData: any = {
