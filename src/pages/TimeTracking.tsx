@@ -1451,7 +1451,7 @@ export default function TimeTracking() {
                               const dateStr = format(localDate, "d MMM yyyy", {
                                 locale: language === "fr" ? fr : undefined,
                               });
-                              if (entry.source !== 'timer' && entry.created_at) {
+                              if (entry.created_at) {
                                 const createdDate = new Date(entry.created_at);
                                 const timeStr = format(createdDate, "HH:mm");
                                 return <div><div>{dateStr}</div><div className="text-xs text-muted-foreground">{timeStr}</div></div>;
@@ -1703,7 +1703,7 @@ export default function TimeTracking() {
                   const formattedDate = format(localDate, "d MMM yyyy", {
                     locale: language === "fr" ? fr : undefined,
                   });
-                  const createdTimeStr = (entry.source !== 'timer' && entry.created_at) 
+                  const createdTimeStr = entry.created_at 
                     ? format(new Date(entry.created_at), "HH:mm") 
                     : null;
                   const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
