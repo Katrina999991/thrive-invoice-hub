@@ -618,6 +618,17 @@ export default function TimeTracking() {
   const handleEdit = (entry: typeof timeEntries[0]) => {
     setEditingEntry(entry.id);
     
+    // Restore timerEntryData if this was a timer-sourced entry
+    if (entry.source === 'timer' && entry.duration_raw_minutes != null) {
+      setTimerEntryData({
+        isFromTimer: true,
+        durationRawMinutes: entry.duration_raw_minutes,
+        durationBilledMinutes: entry.duration_billed_minutes ?? entry.duration_raw_minutes,
+      });
+    } else {
+      setTimerEntryData(null);
+    }
+    
     // Si l'entrée a des plages horaires, les charger
     if (entry.time_entry_ranges && entry.time_entry_ranges.length > 0) {
       setUseTimeRange(true);
