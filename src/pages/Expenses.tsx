@@ -843,10 +843,15 @@ const Expenses = () => {
                     placeholder={t("expenses.amountPlaceholder")}
                     value={newExpense.amount}
                     onChange={(e) => {
-                      setNewExpense({...newExpense, amount: e.target.value});
-                      // Update original total if amount changed manually
-                      const taxTotal = newExpense.taxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
-                      const newTotal = (parseFloat(e.target.value) || 0) + taxTotal;
+                      const newAmount = parseFloat(e.target.value) || 0;
+                      // Auto-calculate tax amounts from percentages
+                      const updatedTaxes = newExpense.taxes.map(tax => ({
+                        ...tax,
+                        amount: tax.percentage ? Math.round(newAmount * tax.percentage) / 100 : (tax.amount || 0)
+                      }));
+                      const taxTotal = updatedTaxes.reduce((sum, tax) => sum + (tax.amount || 0), 0);
+                      const newTotal = newAmount + taxTotal;
+                      setNewExpense(prev => ({ ...prev, amount: e.target.value, taxes: updatedTaxes }));
                       setOriginalReceiptTotal(newTotal);
                       setTotalAmountInput(newTotal.toFixed(2));
                     }}
@@ -944,15 +949,20 @@ const Expenses = () => {
                     if (receiptData && !taxesUserModified) {
                       applyTaxSplitForCompany(value);
                     } else {
-                      // No receipt data - initialize with empty taxes from company
+                      // No receipt data - initialize taxes from company and auto-calculate amounts
                       const selectedCompany = companies.find(c => c.id === value);
                       const companyTaxes = selectedCompany?.taxes as any[] || [];
+                      const currentAmount = parseFloat(newExpense.amount) || 0;
                       const initialTaxes = companyTaxes.map((tax: any) => ({
                         name: tax.name,
                         percentage: tax.percentage,
-                        amount: 0
+                        amount: currentAmount > 0 ? Math.round(currentAmount * tax.percentage) / 100 : 0
                       }));
+                      const taxTotal = initialTaxes.reduce((sum: number, tax: any) => sum + (tax.amount || 0), 0);
+                      const newTotal = currentAmount + taxTotal;
                       setNewExpense(prev => ({ ...prev, company_id: value, taxes: initialTaxes }));
+                      setOriginalReceiptTotal(newTotal);
+                      setTotalAmountInput(newTotal > 0 ? newTotal.toFixed(2) : "");
                     }
                   }}
                 >
@@ -1082,12 +1092,19 @@ const Expenses = () => {
                         placeholder="5"
                         value={tax.percentage || ""}
                         onChange={(e) => {
+                          const newPercentage = parseFloat(e.target.value) || 0;
+                          const currentAmount = parseFloat(newExpense.amount) || 0;
                           const updatedTaxes = [...newExpense.taxes];
                           updatedTaxes[index] = {
                             ...updatedTaxes[index],
-                            percentage: parseFloat(e.target.value) || 0
+                            percentage: newPercentage,
+                            amount: currentAmount > 0 ? Math.round(currentAmount * newPercentage) / 100 : 0
                           };
+                          const taxTotal = updatedTaxes.reduce((sum, t) => sum + (t.amount || 0), 0);
+                          const newTotal = currentAmount + taxTotal;
                           setNewExpense({...newExpense, taxes: updatedTaxes});
+                          setOriginalReceiptTotal(newTotal);
+                          setTotalAmountInput(newTotal > 0 ? newTotal.toFixed(2) : "");
                           if (taxesAutoAdded) setTaxesUserModified(true);
                         }}
                       />
