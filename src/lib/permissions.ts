@@ -108,6 +108,7 @@ export type PermissionKey = typeof PERMISSIONS[keyof typeof PERMISSIONS];
  */
 const HIERARCHICAL_PERMISSIONS: Record<string, string[]> = {
   "expenses:view": ["expenses:view_own", "expenses:view_all"],
+  "expenses:create": ["expenses:create_own"],
   "expenses:edit": ["expenses:edit_own", "expenses:edit_all"],
   "expenses:delete": ["expenses:delete_own", "expenses:delete_all"],
   "time_tracking:view": ["time_tracking:view_own", "time_tracking:view_all"],
