@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check, User, Filter } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check, User, Filter, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
