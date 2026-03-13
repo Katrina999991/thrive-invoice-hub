@@ -1,0 +1,1 @@
+ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS tax_recoverable_percent numeric DEFAULT 100;

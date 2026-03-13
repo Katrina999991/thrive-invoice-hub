@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check, User, Filter } from "lucide-react";
+import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, ExternalLink, X, Building2, CheckCircle, Archive, ArchiveRestore, Search, Sparkles, AlertCircle, Check, User, Filter, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
@@ -95,7 +95,8 @@ const Expenses = () => {
     vendor: "",
     status: "paid",
     taxes: [] as Array<{ name: string; percentage: number; amount?: number }>,
-    deductible_percent: null as number | null
+    deductible_percent: null as number | null,
+    tax_recoverable_percent: 100 as number | null
   });
   
   // Deduction suggestion state
@@ -538,7 +539,8 @@ const Expenses = () => {
         vendor: newExpense.vendor || null,
         status: newExpense.status,
         taxes: newExpense.taxes,
-        deductible_percent: newExpense.deductible_percent
+        deductible_percent: newExpense.deductible_percent,
+        tax_recoverable_percent: newExpense.tax_recoverable_percent
       } as any);
     } else {
       // Add new expense
@@ -552,7 +554,8 @@ const Expenses = () => {
         vendor: newExpense.vendor || null,
         status: newExpense.status,
         taxes: newExpense.taxes,
-        deductible_percent: newExpense.deductible_percent
+        deductible_percent: newExpense.deductible_percent,
+        tax_recoverable_percent: newExpense.tax_recoverable_percent
       } as any);
     }
 
@@ -570,7 +573,8 @@ const Expenses = () => {
       vendor: "",
       status: "paid",
       taxes: [],
-      deductible_percent: null
+      deductible_percent: null,
+      tax_recoverable_percent: 100
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
@@ -670,7 +674,8 @@ const Expenses = () => {
       vendor: expense.vendor || "",
       status: expense.status,
       taxes: (expense as any).taxes || [],
-      deductible_percent: (expense as any).deductible_percent ?? null
+      deductible_percent: (expense as any).deductible_percent ?? null,
+      tax_recoverable_percent: (expense as any).tax_recoverable_percent ?? 100
     });
     setDeductionManuallySet((expense as any).deductible_percent != null);
     setIsDialogOpen(true);
@@ -1048,6 +1053,58 @@ const Expenses = () => {
                     {language === "fr" ? "↩ Réinitialiser à la suggestion" : "↩ Reset to suggestion"}
                   </Button>
                 )}
+              </div>
+
+              {/* Tax Recoverable Percentage Section */}
+              <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="tax_recoverable_percent" className="text-sm font-semibold">
+                    {language === "fr" ? "Taxes récupérables (%)" : "Tax recoverable (%)"}
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                        <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 text-sm">
+                      {language === "fr"
+                        ? "Pourcentage des taxes payées sur cette dépense pouvant être récupérées (TPS/TVQ/TVA). Peut différer du pourcentage déductible."
+                        : "Percentage of the taxes paid on this expense that can be recovered (GST/QST/VAT). This may differ from the deductible percentage."}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="tax_recoverable_percent"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="100"
+                    value={newExpense.tax_recoverable_percent ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value === "" ? null : Math.min(100, Math.max(0, parseFloat(e.target.value)));
+                      setNewExpense({ ...newExpense, tax_recoverable_percent: val });
+                    }}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
+                  {newExpense.tax_recoverable_percent != null && newExpense.taxes.length > 0 && (
+                    (() => {
+                      const totalTax = newExpense.taxes.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+                      if (totalTax > 0) {
+                        const recoverable = totalTax * (newExpense.tax_recoverable_percent / 100);
+                        return (
+                          <span className="text-sm text-muted-foreground ml-auto">
+                            = ${recoverable.toFixed(2)} {language === "fr" ? "récupérable" : "recoverable"}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -1650,6 +1707,12 @@ const Expenses = () => {
                         <div className="text-xs text-muted-foreground">
                           {(expense as any).deductible_percent}% {language === "fr" ? "déductible" : "deductible"}
                           {" "}(${(Number(expense.amount) * ((expense as any).deductible_percent / 100)).toFixed(2)})
+                        </div>
+                      )}
+                      {(expense as any).tax_recoverable_percent != null && (expense as any).tax_recoverable_percent !== 100 && ((expense as any).taxes as any[] || []).length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          {(expense as any).tax_recoverable_percent}% {language === "fr" ? "taxes récupérables" : "tax recoverable"}
+                          {" "}(${(((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0) * ((expense as any).tax_recoverable_percent / 100)).toFixed(2)})
                         </div>
                       )}
                     </div>
