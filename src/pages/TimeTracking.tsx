@@ -1106,6 +1106,13 @@ export default function TimeTracking() {
               {language === "fr" ? "Facture" : "Invoice"} ({selectedEntries.length})
             </Button>
           )}
+          {/* Unbill button - only show when in archive mode (billed) with selected entries */}
+          {selectedEntries.length > 0 && permissions.canMarkAsBilled && selectionMode === "archive" && (
+            <Button variant="outline" onClick={handleBulkUnbill} className="flex-1 sm:flex-none">
+              <RotateCcw className="mr-2 h-4 w-4" />
+              {language === "fr" ? "Non facturé" : "Unbill"} ({selectedEntries.length})
+            </Button>
+          )}
           {/* Archive button - only show when in archive mode with selected entries */}
           {selectedEntries.length > 0 && permissions.canMarkAsBilled && selectionMode === "archive" && (
             <Button onClick={handleBulkArchive} className="flex-1 sm:flex-none">
