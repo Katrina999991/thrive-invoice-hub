@@ -537,7 +537,8 @@ const Expenses = () => {
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
         status: newExpense.status,
-        taxes: newExpense.taxes
+        taxes: newExpense.taxes,
+        deductible_percent: newExpense.deductible_percent
       } as any);
     } else {
       // Add new expense
@@ -550,7 +551,8 @@ const Expenses = () => {
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
         status: newExpense.status,
-        taxes: newExpense.taxes
+        taxes: newExpense.taxes,
+        deductible_percent: newExpense.deductible_percent
       } as any);
     }
 
