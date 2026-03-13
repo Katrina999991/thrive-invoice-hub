@@ -674,7 +674,8 @@ const Expenses = () => {
       vendor: expense.vendor || "",
       status: expense.status,
       taxes: (expense as any).taxes || [],
-      deductible_percent: (expense as any).deductible_percent ?? null
+      deductible_percent: (expense as any).deductible_percent ?? null,
+      tax_recoverable_percent: (expense as any).tax_recoverable_percent ?? 100
     });
     setDeductionManuallySet((expense as any).deductible_percent != null);
     setIsDialogOpen(true);
