@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Archive, ArchiveRestore, RotateCcw } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
