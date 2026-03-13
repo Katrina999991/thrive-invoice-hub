@@ -1709,6 +1709,12 @@ const Expenses = () => {
                           {" "}(${(Number(expense.amount) * ((expense as any).deductible_percent / 100)).toFixed(2)})
                         </div>
                       )}
+                      {(expense as any).tax_recoverable_percent != null && (expense as any).tax_recoverable_percent !== 100 && ((expense as any).taxes as any[] || []).length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          {(expense as any).tax_recoverable_percent}% {language === "fr" ? "taxes récupérables" : "tax recoverable"}
+                          {" "}(${(((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0) * ((expense as any).tax_recoverable_percent / 100)).toFixed(2)})
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       {/* Approve button */}
