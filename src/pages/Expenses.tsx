@@ -539,7 +539,8 @@ const Expenses = () => {
         vendor: newExpense.vendor || null,
         status: newExpense.status,
         taxes: newExpense.taxes,
-        deductible_percent: newExpense.deductible_percent
+        deductible_percent: newExpense.deductible_percent,
+        tax_recoverable_percent: newExpense.tax_recoverable_percent
       } as any);
     } else {
       // Add new expense
