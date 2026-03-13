@@ -1107,6 +1107,7 @@ const Expenses = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
                 <Label htmlFor="expense_date">{t("expenses.date")} <span className="text-destructive">*</span></Label>
                 <Input
                   id="expense_date"
