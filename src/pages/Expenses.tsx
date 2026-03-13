@@ -596,6 +596,31 @@ const Expenses = () => {
     return null; // Don't change amount if no original total
   };
 
+  // Auto-suggest deduction percentage when category or company changes
+  useEffect(() => {
+    if (deductionManuallySet) return;
+    if (!newExpense.category) {
+      setDeductionSuggestion(null);
+      return;
+    }
+    
+    // Find company jurisdiction
+    const selectedCompany = companies.find(c => c.id === newExpense.company_id);
+    const country = selectedCompany?.country || null;
+    const provinceState = selectedCompany?.province_state || null;
+    
+    const suggestion = getDeductionSuggestion(newExpense.category, country, provinceState);
+    if (suggestion) {
+      setDeductionSuggestion({
+        percent: suggestion.percent,
+        note: language === "fr" ? suggestion.note_fr : suggestion.note_en
+      });
+      setNewExpense(prev => ({ ...prev, deductible_percent: suggestion.percent }));
+    } else {
+      setDeductionSuggestion(null);
+    }
+  }, [newExpense.category, newExpense.company_id, companies, language, deductionManuallySet]);
+
   // Auto-suggest category based on learned mappings when description changes
   useEffect(() => {
     // Only suggest if:
