@@ -678,6 +678,7 @@ export type Database = {
           receipt_url: string | null
           status: string
           tax_auto_source: string | null
+          tax_recoverable_percent: number | null
           tax_user_overridden: boolean | null
           taxes: Json | null
           updated_at: string
@@ -703,6 +704,7 @@ export type Database = {
           receipt_url?: string | null
           status?: string
           tax_auto_source?: string | null
+          tax_recoverable_percent?: number | null
           tax_user_overridden?: boolean | null
           taxes?: Json | null
           updated_at?: string
@@ -728,6 +730,7 @@ export type Database = {
           receipt_url?: string | null
           status?: string
           tax_auto_source?: string | null
+          tax_recoverable_percent?: number | null
           tax_user_overridden?: boolean | null
           taxes?: Json | null
           updated_at?: string
