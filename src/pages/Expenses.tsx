@@ -642,8 +642,10 @@ const Expenses = () => {
       notes: expense.notes || "",
       vendor: expense.vendor || "",
       status: expense.status,
-      taxes: (expense as any).taxes || []
+      taxes: (expense as any).taxes || [],
+      deductible_percent: (expense as any).deductible_percent ?? null
     });
+    setDeductionManuallySet((expense as any).deductible_percent != null);
     setIsDialogOpen(true);
   };
 
