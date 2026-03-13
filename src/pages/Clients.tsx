@@ -511,6 +511,18 @@ const Clients = () => {
                     : "Automatically send reminder email 1 day after due date"}
                 </Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="simplified_invoice_line"
+                  checked={newClient.simplified_invoice_line}
+                  onCheckedChange={(checked) => setNewClient({...newClient, simplified_invoice_line: !!checked})}
+                />
+                <Label htmlFor="simplified_invoice_line" className="text-sm font-normal cursor-pointer">
+                  {language === "fr" 
+                    ? "Afficher le total du suivi de temps comme une seule ligne sur la facture" 
+                    : "Show time tracking total as a single invoice line"}
+                </Label>
+              </div>
               
               {/* Time Rounding Settings */}
               <ClientTimeRoundingSettings
