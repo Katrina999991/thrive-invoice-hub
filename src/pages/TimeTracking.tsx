@@ -782,7 +782,7 @@ export default function TimeTracking() {
         const combinedNotes = allNotes.length > 0 ? allNotes.join(" | ") : null;
         
         items = [{
-          description: `${description} (${totalHours}h)`,
+          description: description,
           quantity: 1,
           unit_price: totalAmount,
           total: totalAmount,
