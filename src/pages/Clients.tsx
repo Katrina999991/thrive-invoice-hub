@@ -50,6 +50,7 @@ const Clients = () => {
     created_at: new Date().toISOString().split('T')[0],
     include_payment_link: false,
     send_overdue_email_auto: false,
+    simplified_invoice_line: false,
     time_rounding_enabled: false,
     time_rounding_increment_minutes: 15,
     time_rounding_method: "nearest"
