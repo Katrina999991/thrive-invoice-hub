@@ -25,6 +25,7 @@ import { ReceiptScanner, ExtractedReceiptData } from "@/components/ReceiptScanne
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { processTaxSplit } from "@/lib/taxSplitUtils";
+import { getDeductionSuggestion } from "@/lib/deductionRules";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
@@ -93,8 +94,16 @@ const Expenses = () => {
     notes: "",
     vendor: "",
     status: "paid",
-    taxes: [] as Array<{ name: string; percentage: number; amount?: number }>
+    taxes: [] as Array<{ name: string; percentage: number; amount?: number }>,
+    deductible_percent: null as number | null
   });
+  
+  // Deduction suggestion state
+  const [deductionSuggestion, setDeductionSuggestion] = useState<{
+    percent: number;
+    note: string;
+  } | null>(null);
+  const [deductionManuallySet, setDeductionManuallySet] = useState(false);
   
   // Smart category tracking
   const [suggestedCategoryInfo, setSuggestedCategoryInfo] = useState<{
@@ -528,7 +537,8 @@ const Expenses = () => {
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
         status: newExpense.status,
-        taxes: newExpense.taxes
+        taxes: newExpense.taxes,
+        deductible_percent: newExpense.deductible_percent
       } as any);
     } else {
       // Add new expense
@@ -541,7 +551,8 @@ const Expenses = () => {
         notes: newExpense.notes || null,
         vendor: newExpense.vendor || null,
         status: newExpense.status,
-        taxes: newExpense.taxes
+        taxes: newExpense.taxes,
+        deductible_percent: newExpense.deductible_percent
       } as any);
     }
 
@@ -558,7 +569,8 @@ const Expenses = () => {
       notes: "",
       vendor: "",
       status: "paid",
-      taxes: []
+      taxes: [],
+      deductible_percent: null
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
@@ -568,6 +580,8 @@ const Expenses = () => {
     setTaxHelperText(null);
     setTaxesAutoAdded(false);
     setTaxesUserModified(false);
+    setDeductionSuggestion(null);
+    setDeductionManuallySet(false);
     setOriginalReceiptTotal(null);
     setTotalAmountInput("");
   };
@@ -581,6 +595,31 @@ const Expenses = () => {
     }
     return null; // Don't change amount if no original total
   };
+
+  // Auto-suggest deduction percentage when category or company changes
+  useEffect(() => {
+    if (deductionManuallySet) return;
+    if (!newExpense.category) {
+      setDeductionSuggestion(null);
+      return;
+    }
+    
+    // Find company jurisdiction
+    const selectedCompany = companies.find(c => c.id === newExpense.company_id);
+    const country = selectedCompany?.country || null;
+    const provinceState = selectedCompany?.province_state || null;
+    
+    const suggestion = getDeductionSuggestion(newExpense.category, country, provinceState);
+    if (suggestion) {
+      setDeductionSuggestion({
+        percent: suggestion.percent,
+        note: language === "fr" ? suggestion.note_fr : suggestion.note_en
+      });
+      setNewExpense(prev => ({ ...prev, deductible_percent: suggestion.percent }));
+    } else {
+      setDeductionSuggestion(null);
+    }
+  }, [newExpense.category, newExpense.company_id, companies, language, deductionManuallySet]);
 
   // Auto-suggest category based on learned mappings when description changes
   useEffect(() => {
@@ -630,8 +669,10 @@ const Expenses = () => {
       notes: expense.notes || "",
       vendor: expense.vendor || "",
       status: expense.status,
-      taxes: (expense as any).taxes || []
+      taxes: (expense as any).taxes || [],
+      deductible_percent: (expense as any).deductible_percent ?? null
     });
+    setDeductionManuallySet((expense as any).deductible_percent != null);
     setIsDialogOpen(true);
   };
 
@@ -1164,7 +1205,89 @@ const Expenses = () => {
                     </div>
                   </div>
                 )}
+               </div>
+              
+              {/* Deductible Percentage Section */}
+              <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="deductible_percent" className="text-sm font-semibold">
+                    {language === "fr" ? "Déductible (%)" : "Deductible (%)"}
+                  </Label>
+                  {deductionSuggestion && !deductionManuallySet && (
+                    <Badge variant="secondary" className="text-xs gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      {language === "fr" ? "Suggéré" : "Suggested"}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="deductible_percent"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    placeholder={language === "fr" ? "Ex: 50, 100" : "e.g. 50, 100"}
+                    value={newExpense.deductible_percent ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value === "" ? null : Math.min(100, Math.max(0, parseFloat(e.target.value)));
+                      setNewExpense({ ...newExpense, deductible_percent: val });
+                      setDeductionManuallySet(true);
+                    }}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
+                  {newExpense.deductible_percent != null && parseFloat(newExpense.amount) > 0 && (
+                    <span className="text-sm text-muted-foreground ml-auto">
+                      = ${(parseFloat(newExpense.amount) * (newExpense.deductible_percent / 100)).toFixed(2)} {language === "fr" ? "déductible" : "deductible"}
+                    </span>
+                  )}
+                </div>
+                {deductionSuggestion && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 shrink-0" />
+                    {deductionSuggestion.note}
+                  </p>
+                )}
+                {!deductionSuggestion && !deductionManuallySet && (
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr" 
+                      ? "Sélectionnez une catégorie pour obtenir une suggestion automatique" 
+                      : "Select a category to get an automatic suggestion"}
+                  </p>
+                )}
+                {deductionManuallySet && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-6 px-2"
+                    onClick={() => {
+                      setDeductionManuallySet(false);
+                      // Re-trigger auto suggestion
+                      const selectedCompany = companies.find(c => c.id === newExpense.company_id);
+                      const suggestion = getDeductionSuggestion(
+                        newExpense.category,
+                        selectedCompany?.country,
+                        selectedCompany?.province_state
+                      );
+                      if (suggestion) {
+                        setDeductionSuggestion({
+                          percent: suggestion.percent,
+                          note: language === "fr" ? suggestion.note_fr : suggestion.note_en
+                        });
+                        setNewExpense(prev => ({ ...prev, deductible_percent: suggestion.percent }));
+                      } else {
+                        setDeductionSuggestion(null);
+                        setNewExpense(prev => ({ ...prev, deductible_percent: null }));
+                      }
+                    }}
+                  >
+                    {language === "fr" ? "↩ Réinitialiser à la suggestion" : "↩ Reset to suggestion"}
+                  </Button>
+                )}
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="vendor">{t("expenses.vendor")}</Label>
                 <Input
@@ -1520,6 +1643,12 @@ const Expenses = () => {
                         <div className="text-xs text-muted-foreground">
                           {language === "fr" ? "Taxes: " : "Taxes: "}
                           ${((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0).toFixed(2)}
+                        </div>
+                      )}
+                      {(expense as any).deductible_percent != null && (
+                        <div className="text-xs text-muted-foreground">
+                          {(expense as any).deductible_percent}% {language === "fr" ? "déductible" : "deductible"}
+                          {" "}(${(Number(expense.amount) * ((expense as any).deductible_percent / 100)).toFixed(2)})
                         </div>
                       )}
                     </div>
