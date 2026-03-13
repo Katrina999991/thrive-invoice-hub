@@ -567,7 +567,8 @@ const Expenses = () => {
       notes: "",
       vendor: "",
       status: "paid",
-      taxes: []
+      taxes: [],
+      deductible_percent: null
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
@@ -577,6 +578,8 @@ const Expenses = () => {
     setTaxHelperText(null);
     setTaxesAutoAdded(false);
     setTaxesUserModified(false);
+    setDeductionSuggestion(null);
+    setDeductionManuallySet(false);
     setOriginalReceiptTotal(null);
     setTotalAmountInput("");
   };
