@@ -94,8 +94,16 @@ const Expenses = () => {
     notes: "",
     vendor: "",
     status: "paid",
-    taxes: [] as Array<{ name: string; percentage: number; amount?: number }>
+    taxes: [] as Array<{ name: string; percentage: number; amount?: number }>,
+    deductible_percent: null as number | null
   });
+  
+  // Deduction suggestion state
+  const [deductionSuggestion, setDeductionSuggestion] = useState<{
+    percent: number;
+    note: string;
+  } | null>(null);
+  const [deductionManuallySet, setDeductionManuallySet] = useState(false);
   
   // Smart category tracking
   const [suggestedCategoryInfo, setSuggestedCategoryInfo] = useState<{
