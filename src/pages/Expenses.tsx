@@ -573,7 +573,8 @@ const Expenses = () => {
       vendor: "",
       status: "paid",
       taxes: [],
-      deductible_percent: null
+      deductible_percent: null,
+      tax_recoverable_percent: 100
     });
     setEditingExpense(null);
     setIsDialogOpen(false);
