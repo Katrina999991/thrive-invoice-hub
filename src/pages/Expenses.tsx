@@ -25,6 +25,7 @@ import { ReceiptScanner, ExtractedReceiptData } from "@/components/ReceiptScanne
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { processTaxSplit } from "@/lib/taxSplitUtils";
+import { getDeductionSuggestion } from "@/lib/deductionRules";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
