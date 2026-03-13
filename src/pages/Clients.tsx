@@ -222,6 +222,7 @@ const Clients = () => {
       created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       include_payment_link: client.include_payment_link || false,
       send_overdue_email_auto: client.send_overdue_email_auto || false,
+      simplified_invoice_line: client.simplified_invoice_line || false,
       time_rounding_enabled: client.time_rounding_enabled || false,
       time_rounding_increment_minutes: client.time_rounding_increment_minutes || 15,
       time_rounding_method: client.time_rounding_method || "nearest"
