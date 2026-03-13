@@ -667,6 +667,7 @@ export type Database = {
           client_id: string | null
           company_id: string | null
           created_at: string
+          deductible_percent: number | null
           description: string
           expense_date: string
           id: string
@@ -691,6 +692,7 @@ export type Database = {
           client_id?: string | null
           company_id?: string | null
           created_at?: string
+          deductible_percent?: number | null
           description: string
           expense_date?: string
           id?: string
@@ -715,6 +717,7 @@ export type Database = {
           client_id?: string | null
           company_id?: string | null
           created_at?: string
+          deductible_percent?: number | null
           description?: string
           expense_date?: string
           id?: string
