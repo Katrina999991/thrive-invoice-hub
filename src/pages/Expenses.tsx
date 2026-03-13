@@ -1645,6 +1645,12 @@ const Expenses = () => {
                           ${((expense as any).taxes as any[] || []).reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0).toFixed(2)}
                         </div>
                       )}
+                      {(expense as any).deductible_percent != null && (
+                        <div className="text-xs text-muted-foreground">
+                          {(expense as any).deductible_percent}% {language === "fr" ? "déductible" : "deductible"}
+                          {" "}(${(Number(expense.amount) * ((expense as any).deductible_percent / 100)).toFixed(2)})
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       {/* Approve button */}
