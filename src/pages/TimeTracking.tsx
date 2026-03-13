@@ -1054,6 +1054,20 @@ export default function TimeTracking() {
     }
   };
 
+  // Marquer les entrées sélectionnées comme non facturées
+  const handleBulkUnbill = async () => {
+    if (selectedEntries.length === 0) return;
+    
+    try {
+      for (const entryId of selectedEntries) {
+        await markAsUnbilled(entryId);
+      }
+      setSelectedEntries([]);
+    } catch (error) {
+      console.error("Error bulk unbilling:", error);
+    }
+  };
+
   // Permission denied message component
   const PermissionDeniedTooltip = ({ children, message }: { children: React.ReactNode; message: string }) => (
     <TooltipProvider>
