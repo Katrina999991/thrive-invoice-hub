@@ -167,6 +167,7 @@ const Clients = () => {
         created_at: newClient.created_at,
         include_payment_link: newClient.include_payment_link,
         send_overdue_email_auto: newClient.send_overdue_email_auto,
+        simplified_invoice_line: newClient.simplified_invoice_line,
         time_rounding_enabled: newClient.time_rounding_enabled,
         time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
         time_rounding_method: newClient.time_rounding_method
