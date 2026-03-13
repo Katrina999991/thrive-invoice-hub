@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Archive, ArchiveRestore, RotateCcw } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -1054,6 +1054,20 @@ export default function TimeTracking() {
     }
   };
 
+  // Marquer les entrées sélectionnées comme non facturées
+  const handleBulkUnbill = async () => {
+    if (selectedEntries.length === 0) return;
+    
+    try {
+      for (const entryId of selectedEntries) {
+        await markAsUnbilled(entryId);
+      }
+      setSelectedEntries([]);
+    } catch (error) {
+      console.error("Error bulk unbilling:", error);
+    }
+  };
+
   // Permission denied message component
   const PermissionDeniedTooltip = ({ children, message }: { children: React.ReactNode; message: string }) => (
     <TooltipProvider>
@@ -1090,6 +1104,13 @@ export default function TimeTracking() {
             <Button onClick={() => setShowInvoiceConfirm(true)} disabled={isCreatingInvoice} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
               {language === "fr" ? "Facture" : "Invoice"} ({selectedEntries.length})
+            </Button>
+          )}
+          {/* Unbill button - only show when in archive mode (billed) with selected entries */}
+          {selectedEntries.length > 0 && permissions.canMarkAsBilled && selectionMode === "archive" && (
+            <Button variant="outline" onClick={handleBulkUnbill} className="flex-1 sm:flex-none">
+              <RotateCcw className="mr-2 h-4 w-4" />
+              {language === "fr" ? "Non facturé" : "Unbill"} ({selectedEntries.length})
             </Button>
           )}
           {/* Archive button - only show when in archive mode with selected entries */}
