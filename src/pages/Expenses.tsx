@@ -95,7 +95,8 @@ const Expenses = () => {
     vendor: "",
     status: "paid",
     taxes: [] as Array<{ name: string; percentage: number; amount?: number }>,
-    deductible_percent: null as number | null
+    deductible_percent: null as number | null,
+    tax_recoverable_percent: 100 as number | null
   });
   
   // Deduction suggestion state
