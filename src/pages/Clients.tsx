@@ -50,6 +50,7 @@ const Clients = () => {
     created_at: new Date().toISOString().split('T')[0],
     include_payment_link: false,
     send_overdue_email_auto: false,
+    simplified_invoice_line: false,
     time_rounding_enabled: false,
     time_rounding_increment_minutes: 15,
     time_rounding_method: "nearest"
@@ -147,6 +148,7 @@ const Clients = () => {
         notes: newClient.notes,
         include_payment_link: newClient.include_payment_link,
         send_overdue_email_auto: newClient.send_overdue_email_auto,
+        simplified_invoice_line: newClient.simplified_invoice_line,
         time_rounding_enabled: newClient.time_rounding_enabled,
         time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
         time_rounding_method: newClient.time_rounding_method
@@ -165,6 +167,7 @@ const Clients = () => {
         created_at: newClient.created_at,
         include_payment_link: newClient.include_payment_link,
         send_overdue_email_auto: newClient.send_overdue_email_auto,
+        simplified_invoice_line: newClient.simplified_invoice_line,
         time_rounding_enabled: newClient.time_rounding_enabled,
         time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
         time_rounding_method: newClient.time_rounding_method
@@ -188,6 +191,7 @@ const Clients = () => {
       created_at: new Date().toISOString().split('T')[0],
       include_payment_link: false,
       send_overdue_email_auto: false,
+      simplified_invoice_line: false,
       time_rounding_enabled: false,
       time_rounding_increment_minutes: 15,
       time_rounding_method: "nearest"
@@ -218,6 +222,7 @@ const Clients = () => {
       created_at: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       include_payment_link: client.include_payment_link || false,
       send_overdue_email_auto: client.send_overdue_email_auto || false,
+      simplified_invoice_line: client.simplified_invoice_line || false,
       time_rounding_enabled: client.time_rounding_enabled || false,
       time_rounding_increment_minutes: client.time_rounding_increment_minutes || 15,
       time_rounding_method: client.time_rounding_method || "nearest"
@@ -504,6 +509,18 @@ const Clients = () => {
                   {language === "fr" 
                     ? "Envoyer automatiquement un email de rappel 1 jour après la date d'échéance" 
                     : "Automatically send reminder email 1 day after due date"}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="simplified_invoice_line"
+                  checked={newClient.simplified_invoice_line}
+                  onCheckedChange={(checked) => setNewClient({...newClient, simplified_invoice_line: !!checked})}
+                />
+                <Label htmlFor="simplified_invoice_line" className="text-sm font-normal cursor-pointer">
+                  {language === "fr" 
+                    ? "Afficher le total du suivi de temps comme une seule ligne sur la facture" 
+                    : "Show time tracking total as a single invoice line"}
                 </Label>
               </div>
               

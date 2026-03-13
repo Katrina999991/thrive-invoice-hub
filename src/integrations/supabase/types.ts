@@ -142,6 +142,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           send_overdue_email_auto: boolean | null
+          simplified_invoice_line: boolean | null
           time_rounding_enabled: boolean | null
           time_rounding_increment_minutes: number | null
           time_rounding_method: string | null
@@ -162,6 +163,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           send_overdue_email_auto?: boolean | null
+          simplified_invoice_line?: boolean | null
           time_rounding_enabled?: boolean | null
           time_rounding_increment_minutes?: number | null
           time_rounding_method?: string | null
@@ -182,6 +184,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           send_overdue_email_auto?: boolean | null
+          simplified_invoice_line?: boolean | null
           time_rounding_enabled?: boolean | null
           time_rounding_increment_minutes?: number | null
           time_rounding_method?: string | null
