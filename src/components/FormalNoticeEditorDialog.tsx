@@ -385,6 +385,7 @@ Sincerely,
                   {language === 'fr' ? 'Variables disponibles' : 'Available variables'}:{' '}
                   <code className="text-xs">{'{{client_name}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_number}}'}</code>,{' '}
+                  <code className="text-xs">{'{{invoice_description}}'}</code>,{' '}
                   <code className="text-xs">{'{{amount_due}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_due_date}}'}</code>,{' '}
                   <code className="text-xs">{'{{formal_notice_due_date}}'}</code>,{' '}
