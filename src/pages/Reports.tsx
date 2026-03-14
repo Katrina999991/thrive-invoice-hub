@@ -1667,7 +1667,7 @@ const Reports = () => {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(language === 'fr' ? 'Details des factures' : 'Invoice Details', margin, yOffset);
+      doc.text(language === 'fr' ? 'Détails des factures' : 'Invoice Details', margin, yOffset);
       yOffset += 8;
       
       const invoiceTableData = invoiceDetails.map(inv => {
