@@ -8170,21 +8170,21 @@ const Reports = () => {
                         </TableRow>
                       ))}
                       {/* Totals */}
-                      <TableRow className="bg-muted/30 hover:bg-muted/40 border-t-2 border-border">
-                        <TableCell className="py-2.5 font-bold text-sm">TOTAL</TableCell>
-                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums text-chart-2">
+                      <TableRow className="bg-muted/40 hover:bg-muted/50 border-t-2 border-border/60">
+                        <TableCell className="py-3 font-bold text-sm">TOTAL</TableCell>
+                        <TableCell className="py-3 text-right text-sm font-bold tabular-nums text-chart-2">
                           {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                         </TableCell>
-                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums text-chart-3">
+                        <TableCell className="py-3 text-right text-sm font-bold tabular-nums text-chart-3">
                           {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                         </TableCell>
-                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums">
+                        <TableCell className="py-3 text-right text-sm font-bold tabular-nums">
                           {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                         </TableCell>
-                        <TableCell className="py-2.5 text-center text-xs font-semibold text-muted-foreground">
+                        <TableCell className="py-3 text-center text-xs font-bold text-muted-foreground">
                           {taxData.taxSummary.reduce((s, t) => s + (t.invoiceCount || 0), 0)}
                         </TableCell>
-                        <TableCell className="py-2.5 text-center text-xs font-semibold text-muted-foreground">
+                        <TableCell className="py-3 text-center text-xs font-bold text-muted-foreground">
                           {taxData.taxSummary.reduce((s, t) => s + (t.expenseCount || 0), 0)}
                         </TableCell>
                       </TableRow>
