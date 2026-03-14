@@ -268,6 +268,17 @@ Thank you for your attention,
                   ))}
                 </div>
               </div>
+
+              {/* Payment button info */}
+              {includePaymentLink && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs text-foreground">
+                  <p>
+                    {language === "fr"
+                      ? "✓ Un bouton de paiement sera automatiquement ajouté à la fin de l'email."
+                      : "✓ A payment button will be automatically added at the end of the email."}
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="preview" className="mt-4">
