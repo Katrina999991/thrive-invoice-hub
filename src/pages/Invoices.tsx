@@ -2670,6 +2670,7 @@ Best regards,
         pdfBlob={null}
         onGeneratePdf={generateInvoiceReportPdfBlob}
         defaultSubject={language === "fr" ? "Rapport des Factures" : "Invoice Report"}
+        companyId={companies?.[0]?.id}
       />
 
       {/* Bulk Status Change Dialog */}
