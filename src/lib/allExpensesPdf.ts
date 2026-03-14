@@ -151,11 +151,6 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
   doc.text(periodText, margin, yPosition);
   yPosition += 6;
 
-  // Company filter
-  if (companyFilterName) {
-    doc.text(`${t.companyCol}: ${companyFilterName}`, margin, yPosition);
-    yPosition += 6;
-  }
 
   doc.setTextColor(...COLORS.gray);
   doc.setFontSize(9);
