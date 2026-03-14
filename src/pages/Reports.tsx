@@ -1707,6 +1707,12 @@ const Reports = () => {
           3: { cellWidth: 30, halign: 'right' },
           4: { cellWidth: 25, halign: 'right' },
           5: { cellWidth: 28 }
+        },
+        didParseCell: (data) => {
+          // Bold total-like last row if needed
+          if (data.row.index === invoiceTableData.length - 1 && invoiceTableData.length > 1) {
+            // No total row here, just ensure consistent styling
+          }
         }
       });
     }
