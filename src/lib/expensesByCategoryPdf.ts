@@ -225,16 +225,21 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
         cat.category,
         cat.count.toString(),
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(cat.total_amount),
+        cat.avg_deductible_percent.toFixed(0) + '%',
+        new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(cat.total_deductible_amount),
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(cat.total_amount / cat.count),
         percentage
       ];
     });
 
     const totalCount = sortedCategories.reduce((sum, cat) => sum + cat.count, 0);
+    const totalDeductible = sortedCategories.reduce((sum, cat) => sum + cat.total_deductible_amount, 0);
     tableData.push([
       t.totalRow,
       totalCount.toString(),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses),
+      '',
+      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalDeductible),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses / totalCount),
       '100%'
     ]);
