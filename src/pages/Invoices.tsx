@@ -1948,6 +1948,22 @@ Best regards,
                   </div>
                 )}
 
+                {/* Final Reminder Info in View Dialog */}
+                {viewingInvoice && (viewingInvoice as any).final_reminder_sent && (
+                  <div className="p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium text-amber-800 dark:text-amber-300">{t("invoices.finalReminderSent")}</span>
+                    </div>
+                    <div className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+                      <p>{t("invoices.finalReminderSentOn")}: {new Date((viewingInvoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                      {(viewingInvoice as any).final_reminder_response_due_at && (
+                        <p>{t("invoices.responseExpectedBefore")}: {new Date((viewingInvoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <Button onClick={() => setIsViewDialogOpen(false)}>
                     Close
