@@ -860,6 +860,9 @@ export type Database = {
           client_id: string | null
           created_at: string
           due_date: string | null
+          final_reminder_email_body: string | null
+          final_reminder_email_subject: string | null
+          final_reminder_recipient: string | null
           final_reminder_response_due_at: string | null
           final_reminder_sent: boolean
           final_reminder_sent_at: string | null
@@ -885,6 +888,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           due_date?: string | null
+          final_reminder_email_body?: string | null
+          final_reminder_email_subject?: string | null
+          final_reminder_recipient?: string | null
           final_reminder_response_due_at?: string | null
           final_reminder_sent?: boolean
           final_reminder_sent_at?: string | null
@@ -910,6 +916,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           due_date?: string | null
+          final_reminder_email_body?: string | null
+          final_reminder_email_subject?: string | null
+          final_reminder_recipient?: string | null
           final_reminder_response_due_at?: string | null
           final_reminder_sent?: boolean
           final_reminder_sent_at?: string | null
