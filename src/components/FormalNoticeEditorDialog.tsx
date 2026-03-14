@@ -372,7 +372,8 @@ Sincerely,
                   <code className="text-xs">{'{{invoice_due_date}}'}</code>,{' '}
                   <code className="text-xs">{'{{formal_notice_due_date}}'}</code>,{' '}
                   <code className="text-xs">{'{{company_name}}'}</code>,{' '}
-                  <code className="text-xs">{'{{company_address}}'}</code>
+                  <code className="text-xs">{'{{company_address}}'}</code>,{' '}
+                  <code className="text-xs">{'{{invoice_payment_link}}'}</code>
                 </p>
               </div>
 
