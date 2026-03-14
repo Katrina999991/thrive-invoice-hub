@@ -1900,21 +1900,21 @@ const Reports = () => {
     
     // Total expenses
     doc.text(
-      `${language === 'fr' ? 'Total des depenses' : 'Total Expenses'}:`,
+      `${language === 'fr' ? 'Total des dépenses' : 'Total Expenses'}:`,
       margin + 5,
       yOffset + 22
     );
     doc.setFont('helvetica', 'bold');
     doc.text(
       totalExpenseAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
-      margin + 70,
+      margin + 75,
       yOffset + 22
     );
     
     // Total tax credits
     doc.setFont('helvetica', 'normal');
     doc.text(
-      `${language === 'fr' ? 'Total credits de taxes' : 'Total Tax Credits'}:`,
+      `${language === 'fr' ? 'Total crédits de taxes' : 'Total Tax Credits'}:`,
       margin + 5,
       yOffset + 32
     );
@@ -1922,7 +1922,7 @@ const Reports = () => {
     doc.setTextColor(249, 115, 22); // Orange
     doc.text(
       taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
-      margin + 70,
+      margin + 75,
       yOffset + 32
     );
     doc.setTextColor(0, 0, 0);
@@ -1930,7 +1930,7 @@ const Reports = () => {
     // Number of expenses
     doc.setFont('helvetica', 'normal');
     doc.text(
-      `${language === 'fr' ? 'Nombre de depenses' : 'Number of Expenses'}: ${expenseDetails.length}`,
+      `${language === 'fr' ? 'Nombre de dépenses' : 'Number of Expenses'}: ${expenseDetails.length}`,
       margin + 5,
       yOffset + 42
     );
