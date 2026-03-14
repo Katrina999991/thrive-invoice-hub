@@ -2351,7 +2351,7 @@ const Reports = () => {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.text(
-      `${language === 'fr' ? 'Taxes collectées (ventes)' : 'Collected Taxes (Sales)'}`,
+      `${language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}:`,
       labelX, yOffset + 26
     );
     doc.setFont('helvetica', 'bold');
