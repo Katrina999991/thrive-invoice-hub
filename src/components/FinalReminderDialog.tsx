@@ -144,7 +144,6 @@ Thank you for your attention,
     { key: '{{invoice_due_date}}', label: language === 'fr' ? "Date d'échéance" : 'Due date' },
     { key: '{{final_reminder_due_date}}', label: language === 'fr' ? 'Date limite de réponse' : 'Response deadline' },
     { key: '{{company_name}}', label: language === 'fr' ? "Nom de l'entreprise" : 'Company name' },
-    { key: '{{invoice_payment_link}}', label: language === 'fr' ? 'Lien de paiement' : 'Payment link' },
   ];
 
   return (
