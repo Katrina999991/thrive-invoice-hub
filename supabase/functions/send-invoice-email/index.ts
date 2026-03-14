@@ -260,7 +260,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Déterminer les emails à utiliser
     let emailsToSend: string[] = [];
     
-    if (selectedEmails && selectedEmails.length > 0) {
+    if (customRecipient) {
+      // Use custom recipient (e.g., for final reminders)
+      emailsToSend = [customRecipient];
+    } else if (selectedEmails && selectedEmails.length > 0) {
       // Utiliser les emails sélectionnés
       emailsToSend = selectedEmails;
     } else if (client?.email) {
