@@ -8033,57 +8033,92 @@ const Reports = () => {
 
           {/* KPI Summary Cards */}
           {taxData && (taxData.totalInvoiceTaxAmount > 0 || taxData.totalExpenseTaxAmount > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Net Amount Payable */}
-              <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
-                  </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground mt-2">
-                    {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {language === 'fr'
-                      ? `${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} collectées − ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} crédits`
-                      : `${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} collected − ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} credits`}
-                  </p>
-                </CardContent>
-              </Card>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Net Amount Payable */}
+                <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
+                  <CardContent className="p-4 pl-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
+                    </p>
+                    <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">
+                      {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <div className="mt-2 space-y-0.5">
+                      <p className="text-xs tabular-nums text-muted-foreground">
+                        {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} {language === 'fr' ? 'collectées' : 'collected'}
+                      </p>
+                      <p className="text-xs tabular-nums text-muted-foreground">
+                        − {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} {language === 'fr' ? 'crédits' : 'credits'}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Collected Taxes */}
-              <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-chart-2" />
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
-                  </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground mt-2">
-                    {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {language === 'fr' ? 'Sur factures payées' : 'From paid invoices'}
-                  </p>
-                </CardContent>
-              </Card>
+                {/* Collected Taxes */}
+                <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 w-1 bg-chart-2" />
+                  <CardContent className="p-4 pl-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
+                    </p>
+                    <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">
+                      {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {language === 'fr' ? 'Sur factures payées' : 'From paid invoices'}
+                    </p>
+                  </CardContent>
+                </Card>
 
-              {/* Tax Credits */}
-              <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-chart-3" />
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
+                {/* Tax Credits */}
+                <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 w-1 bg-chart-3" />
+                  <CardContent className="p-4 pl-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
+                    </p>
+                    <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">
+                      {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {language === 'fr' ? 'Crédits récupérables sur dépenses' : 'Recoverable credits from expenses'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Tax Calculation Summary */}
+              <Card className="shadow-sm border-0 bg-card/60">
+                <CardContent className="p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    {language === 'fr' ? 'Calcul des taxes' : 'Tax Calculation'}
                   </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground mt-2">
-                    {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {language === 'fr' ? 'Crédits récupérables sur dépenses' : 'Recoverable credits from expenses'}
-                  </p>
+                  <div className="space-y-1.5 max-w-sm">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}</span>
+                      <span className="tabular-nums font-medium text-chart-2">
+                        {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{language === 'fr' ? 'Crédits récupérables' : 'Recoverable Credits'}</span>
+                      <span className="tabular-nums font-medium text-chart-3">
+                        − {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                      </span>
+                    </div>
+                    <div className="border-t border-border my-1" />
+                    <div className="flex items-center justify-between text-sm pt-0.5">
+                      <span className="font-semibold">{language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}</span>
+                      <span className="tabular-nums font-bold text-base">
+                        {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
+            </>
           )}
 
           {/* No data message */}
