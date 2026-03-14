@@ -2534,11 +2534,11 @@ const Reports = () => {
         head: [[
           language === 'fr' ? 'Date' : 'Date',
           language === 'fr' ? 'Fournisseur' : 'Vendor',
-          language === 'fr' ? 'Categorie' : 'Category',
+          language === 'fr' ? 'Catégorie' : 'Category',
           language === 'fr' ? 'Montant' : 'Amount',
           language === 'fr' ? 'Taxes' : 'Taxes',
           language === 'fr' ? '% Récupérable' : 'Recoverable %',
-          language === 'fr' ? 'Taxe récupérable' : 'Recoverable Tax',
+          language === 'fr' ? 'Montant récupérable' : 'Recoverable Tax Amount',
           language === 'fr' ? 'Type' : 'Type'
         ]],
         body: expenseTableData,
