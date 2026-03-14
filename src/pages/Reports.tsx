@@ -7128,7 +7128,7 @@ const Reports = () => {
             ) : expenseReportData ? (
               <div className="space-y-4">
                 {/* Résumé des dépenses */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{t("reports.expenses.totalExpenses")}</CardTitle>
@@ -7137,6 +7137,21 @@ const Reports = () => {
                       <div className="text-2xl font-bold text-red-600">
                         {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(expenseReportData.totalExpenses)}
                       </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Dépenses déductibles' : 'Deductible Expenses'}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-primary">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(expenseReportData.totalDeductibleAmount)}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {expenseReportData.totalExpenses > 0 
+                          ? `${((expenseReportData.totalDeductibleAmount / expenseReportData.totalExpenses) * 100).toFixed(1)}% ${language === 'fr' ? 'du total' : 'of total'}`
+                          : ''}
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
