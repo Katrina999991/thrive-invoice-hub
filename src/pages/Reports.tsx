@@ -2508,7 +2508,7 @@ const Reports = () => {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(language === 'fr' ? 'Annexe B: Detail des depenses (credits de taxes)' : 'Appendix B: Expense Details (Tax Credits)', margin, yOffset);
+      doc.text(language === 'fr' ? 'Annexe B : Détails des dépenses (Crédits de taxes)' : 'Appendix B: Expense Details (Tax Credits)', margin, yOffset);
       yOffset += 8;
       
       const expenseTableData = expenseDetails.map(exp => {
