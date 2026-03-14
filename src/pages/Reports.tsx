@@ -2039,7 +2039,7 @@ const Reports = () => {
     logExport('taxes_paid_expenses', 'pdf', language === 'fr' ? 'Telechargement PDF rapport taxes depenses' : 'Taxes paid on expenses PDF download');
   };
 
-  const exportTaxesPaidToExcel = () => {
+  const exportTaxesPaidToExcel = async () => {
     if (!taxData || taxData.totalExpenseTaxAmount === 0) return;
     
     const wb = XLSX.utils.book_new();
@@ -2081,6 +2081,69 @@ const Reports = () => {
     
     applyWorksheetFormatting(summaryWs, { headerRowIndex: 10 });
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
+    
+    // Fetch expense details for the detail sheet
+    try {
+      let query = supabase
+        .from('expenses')
+        .select(`
+          id, description, expense_date, amount, category, vendor, status,
+          taxes, tax_recoverable_percent, company_id,
+          companies ( name )
+        `)
+        .eq('user_id', user?.id || '')
+        .eq('status', 'paid')
+        .neq('taxes', '[]');
+
+      if (taxEffectiveStart) query = query.gte('expense_date', taxEffectiveStart.toISOString().split('T')[0]);
+      if (taxEffectiveEnd) query = query.lte('expense_date', taxEffectiveEnd.toISOString().split('T')[0]);
+      if (taxSelectedCompany && taxSelectedCompany !== 'all') query = query.eq('company_id', taxSelectedCompany);
+
+      const { data: expenseDetails } = await query.order('expense_date', { ascending: false });
+      
+      if (expenseDetails && expenseDetails.length > 0) {
+        const detailHeaders = [
+          language === 'fr' ? 'Date' : 'Date',
+          language === 'fr' ? 'Fournisseur' : 'Vendor',
+          language === 'fr' ? 'Catégorie' : 'Category',
+          language === 'fr' ? 'Montant avant taxes' : 'Amount Before Tax',
+          language === 'fr' ? 'Type de taxe' : 'Tax Type',
+          language === 'fr' ? 'Montant taxe' : 'Tax Amount',
+          language === 'fr' ? '% Récupérable' : 'Recov. %',
+          language === 'fr' ? 'Taxe récupérable' : 'Recoverable Tax',
+          language === 'fr' ? 'Entreprise' : 'Company'
+        ];
+        
+        const detailRows: any[][] = [];
+        expenseDetails.forEach(exp => {
+          const expTaxes = (exp.taxes as any[]) || [];
+          const recoverablePct = exp.tax_recoverable_percent != null ? Number(exp.tax_recoverable_percent) : 100;
+          const companyName = (exp.companies as any)?.name || '-';
+          const translatedCategory = getTranslatedCategoryName(exp.category);
+          
+          expTaxes.forEach((tax: any) => {
+            const taxAmount = Number(tax.amount) || 0;
+            const recoverableAmount = taxAmount * (recoverablePct / 100);
+            detailRows.push([
+              format(new Date(exp.expense_date), 'dd/MM/yyyy'),
+              exp.vendor || '-',
+              translatedCategory,
+              Number(exp.amount || 0),
+              tax.name || '-',
+              taxAmount,
+              recoverablePct,
+              recoverableAmount,
+              companyName
+            ]);
+          });
+        });
+        
+        const detailWs = createFormattedSheet(detailHeaders, detailRows);
+        XLSX.utils.book_append_sheet(wb, detailWs, language === 'fr' ? 'Détails' : 'Details');
+      }
+    } catch (err) {
+      console.error('Error fetching expense details for Excel:', err);
+    }
     
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
@@ -7924,7 +7987,7 @@ const Reports = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="taxes" className="space-y-4">
+        <TabsContent value="taxes" className="space-y-3">
           {/* Filters */}
           <Card className="shadow-sm border-0 bg-card/80 backdrop-blur-sm">
             <CardContent className="p-4">
@@ -8033,57 +8096,92 @@ const Reports = () => {
 
           {/* KPI Summary Cards */}
           {taxData && (taxData.totalInvoiceTaxAmount > 0 || taxData.totalExpenseTaxAmount > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Net Amount Payable */}
-              <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
-                  </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground mt-2">
-                    {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {language === 'fr'
-                      ? `${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} collectées − ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} crédits`
-                      : `${taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} collected − ${taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} credits`}
-                  </p>
-                </CardContent>
-              </Card>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Net Amount Payable */}
+                <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
+                  <CardContent className="p-4 pl-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
+                    </p>
+                    <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">
+                      {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <div className="mt-2 space-y-0.5">
+                      <p className="text-xs tabular-nums text-muted-foreground">
+                        {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} {language === 'fr' ? 'collectées' : 'collected'}
+                      </p>
+                      <p className="text-xs tabular-nums text-muted-foreground">
+                        − {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })} {language === 'fr' ? 'crédits' : 'credits'}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Collected Taxes */}
-              <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-chart-2" />
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
-                  </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground mt-2">
-                    {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {language === 'fr' ? 'Sur factures payées' : 'From paid invoices'}
-                  </p>
-                </CardContent>
-              </Card>
+                {/* Collected Taxes */}
+                <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 w-1 bg-chart-2" />
+                  <CardContent className="p-4 pl-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
+                    </p>
+                    <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">
+                      {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {language === 'fr' ? 'Sur factures payées' : 'From paid invoices'}
+                    </p>
+                  </CardContent>
+                </Card>
 
-              {/* Tax Credits */}
-              <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-chart-3" />
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
+                {/* Tax Credits */}
+                <Card className="shadow-sm border-0 bg-card relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 w-1 bg-chart-3" />
+                  <CardContent className="p-4 pl-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
+                    </p>
+                    <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">
+                      {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {language === 'fr' ? 'Crédits récupérables sur dépenses' : 'Recoverable credits from expenses'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Tax Calculation Summary */}
+              <Card className="shadow-sm border-0 bg-card/60">
+                <CardContent className="p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    {language === 'fr' ? 'Calcul des taxes' : 'Tax Calculation'}
                   </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground mt-2">
-                    {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {language === 'fr' ? 'Crédits récupérables sur dépenses' : 'Recoverable credits from expenses'}
-                  </p>
+                  <div className="space-y-1.5 max-w-sm">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}</span>
+                      <span className="tabular-nums font-medium text-chart-2">
+                        {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{language === 'fr' ? 'Crédits récupérables' : 'Recoverable Credits'}</span>
+                      <span className="tabular-nums font-medium text-chart-3">
+                        − {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                      </span>
+                    </div>
+                    <div className="border-t border-border my-1" />
+                    <div className="flex items-center justify-between text-sm pt-0.5">
+                      <span className="font-semibold">{language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}</span>
+                      <span className="tabular-nums font-bold text-base">
+                        {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
+            </>
           )}
 
           {/* No data message */}
@@ -8101,10 +8199,10 @@ const Reports = () => {
           {/* Tax Type Breakdown */}
           {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
             <Card className="shadow-sm border-0">
-              <CardHeader className="pb-0 pt-4 px-5">
+              <CardHeader className="pb-0 pt-3 px-4">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("reports.taxes.totalByType")}</CardTitle>
               </CardHeader>
-              <CardContent className="px-5 pb-4 pt-3">
+              <CardContent className="px-4 pb-3 pt-2.5">
                 <div className="rounded-lg border overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -8135,21 +8233,21 @@ const Reports = () => {
                         </TableRow>
                       ))}
                       {/* Totals */}
-                      <TableRow className="bg-muted/30 hover:bg-muted/40 border-t-2 border-border">
-                        <TableCell className="py-2.5 font-bold text-sm">TOTAL</TableCell>
-                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums text-chart-2">
+                      <TableRow className="bg-muted/40 hover:bg-muted/50 border-t-2 border-border/60">
+                        <TableCell className="py-3 font-bold text-sm">TOTAL</TableCell>
+                        <TableCell className="py-3 text-right text-sm font-bold tabular-nums text-chart-2">
                           {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                         </TableCell>
-                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums text-chart-3">
+                        <TableCell className="py-3 text-right text-sm font-bold tabular-nums text-chart-3">
                           {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                         </TableCell>
-                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums">
+                        <TableCell className="py-3 text-right text-sm font-bold tabular-nums">
                           {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                         </TableCell>
-                        <TableCell className="py-2.5 text-center text-xs font-semibold text-muted-foreground">
+                        <TableCell className="py-3 text-center text-xs font-bold text-muted-foreground">
                           {taxData.taxSummary.reduce((s, t) => s + (t.invoiceCount || 0), 0)}
                         </TableCell>
-                        <TableCell className="py-2.5 text-center text-xs font-semibold text-muted-foreground">
+                        <TableCell className="py-3 text-center text-xs font-bold text-muted-foreground">
                           {taxData.taxSummary.reduce((s, t) => s + (t.expenseCount || 0), 0)}
                         </TableCell>
                       </TableRow>
@@ -8163,13 +8261,13 @@ const Reports = () => {
           {/* Exports */}
           {taxData && (taxData.totalInvoiceTaxAmount > 0 || taxData.totalExpenseTaxAmount > 0) && (
             <Card className="shadow-sm border-0">
-              <CardHeader className="pb-0 pt-4 px-5">
+              <CardHeader className="pb-0 pt-3 px-4">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{language === 'fr' ? 'Exports' : 'Exports'}</CardTitle>
               </CardHeader>
-              <CardContent className="px-5 pb-4 pt-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <CardContent className="px-4 pb-3 pt-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {/* Summary */}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
                       <p className="text-sm font-medium truncate">{t("reports.taxes.download")}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{t("reports.taxes.exportDesc")}</p>
@@ -8186,7 +8284,7 @@ const Reports = () => {
 
                   {/* Taxes Collected */}
                   {taxData.totalInvoiceTaxAmount > 0 && (
-                    <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                       <div className="min-w-0 mr-3">
                         <p className="text-sm font-medium truncate">{getReportTranslation('taxesCollectedSales', language)}</p>
                         <p className="text-[11px] text-muted-foreground truncate">{getReportTranslation('taxesCollectedSalesDesc', language)}</p>
@@ -8203,7 +8301,7 @@ const Reports = () => {
                   )}
 
                   {/* Taxes Paid */}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
                       <p className="text-sm font-medium truncate">{getReportTranslation('taxesPaidExpenses', language)}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{getReportTranslation('taxesPaidExpensesDesc', language)}</p>
@@ -8219,7 +8317,7 @@ const Reports = () => {
                   </div>
 
                   {/* Net Tax Report */}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
                       <p className="text-sm font-medium truncate">{getReportTranslation('netTaxReport', language)}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{getReportTranslation('netTaxReportDesc', language)}</p>
