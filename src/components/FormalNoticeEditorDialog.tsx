@@ -90,13 +90,13 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   }, [invoice.invoice_items, clientLang]);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
+    return new Date(dateStr).toLocaleDateString(clientLang === 'fr' ? 'fr-CA' : 'en-CA');
   };
 
   const defaultDueDate = new Date();
   defaultDueDate.setDate(defaultDueDate.getDate() + 10);
 
-  const defaultBody = language === 'fr'
+  const defaultBody = clientLang === 'fr'
     ? `Madame, Monsieur,
 
 Malgré nos rappels précédents, le solde de la facture {{invoice_number}}${invoiceDescription ? ', concernant {{invoice_description}},' : ','} d'un montant de {{amount_due}}, demeure impayé.
@@ -133,12 +133,12 @@ Sincerely,
 {{company_address}}`;
 
   // Form state
-  const [title, setTitle] = useState(language === 'fr' ? 'Mise en demeure' : 'Formal Notice');
+  const [title, setTitle] = useState(clientLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [recipient, setRecipient] = useState(clientName);
   const [recipientAddr, setRecipientAddr] = useState(clientAddress);
   const [subject, setSubject] = useState(
-    language === 'fr'
+    clientLang === 'fr'
       ? `Mise en demeure concernant la facture ${invoice.invoice_number}`
       : `Formal notice regarding invoice ${invoice.invoice_number}`
   );
