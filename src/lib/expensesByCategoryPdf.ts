@@ -245,7 +245,7 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
     ]);
 
     autoTable(doc, {
-      head: [[t.category, t.count, t.totalAmount, t.avgAmount, t.percentage]],
+      head: [[t.category, t.count, t.totalAmount, t.deductiblePct, t.deductibleAmount, t.avgAmount, t.percentage]],
       body: tableData,
       startY: yPosition,
       margin: { left: margin, right: margin },
