@@ -1786,18 +1786,9 @@ const Reports = () => {
       let query = supabase
         .from('expenses')
         .select(`
-          id,
-          description,
-          expense_date,
-          amount,
-          category,
-          vendor,
-          status,
-          taxes,
-          company_id,
-          companies (
-            name
-          )
+          id, description, expense_date, amount, category, vendor, status,
+          taxes, tax_recoverable_percent, company_id,
+          companies ( name )
         `)
         .eq('user_id', user?.id || '')
         .eq('status', 'paid')
