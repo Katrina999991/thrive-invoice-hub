@@ -2424,6 +2424,22 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          {invoice.status !== 'paid' && invoice.status !== 'draft' && canSendInvoices && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-destructive text-destructive hover:bg-destructive/10"
+                                  onClick={() => setFormalNoticeInvoice(invoice)}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === 'fr' ? 'Mise en demeure' : 'Formal notice'}</p>
+                              </TooltipContent>
+                            </Tooltip>
                           {stripeAccountId && invoice.status !== "paid" && (
                             invoice.payment_link ? (
                               <>
