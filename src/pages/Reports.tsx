@@ -2422,9 +2422,9 @@ const Reports = () => {
       autoTable(doc, {
         head: [[
           language === 'fr' ? 'Type de taxe' : 'Tax Type',
-          language === 'fr' ? 'Collecte' : 'Collected',
-          language === 'fr' ? 'Credits' : 'Credits',
-          language === 'fr' ? 'Net a payer' : 'Net Payable'
+          language === 'fr' ? 'Collectées' : 'Collected',
+          language === 'fr' ? 'Crédits' : 'Credits',
+          language === 'fr' ? 'Net à payer' : 'Net Payable'
         ]],
         body: netByTaxTypeData,
         startY: yOffset,
