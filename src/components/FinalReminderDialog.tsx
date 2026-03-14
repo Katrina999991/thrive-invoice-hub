@@ -16,6 +16,7 @@ interface FinalReminderDialogProps {
     invoice_number: string;
     total: number;
     due_date: string | null;
+    payment_link: string | null;
     final_reminder_sent?: boolean;
     final_reminder_sent_at?: string | null;
     final_reminder_response_due_at?: string | null;
@@ -26,6 +27,7 @@ interface FinalReminderDialogProps {
       name: string;
       email: string | null;
       contact_person: string | null;
+      include_payment_link?: boolean | null;
     };
   };
   companyName?: string;
@@ -53,6 +55,12 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
     ? `Dernier rappel de paiement — Facture ${invoice.invoice_number}`
     : `Final Payment Reminder — Invoice ${invoice.invoice_number}`;
 
+  const includePaymentLink = invoice.clients?.include_payment_link === true && !!invoice.payment_link;
+
+  const paymentLinkBlock = language === "fr"
+    ? `\n\nLien de paiement :\n{{invoice_payment_link}}`
+    : `\n\nPayment link:\n{{invoice_payment_link}}`;
+
   const defaultBody = language === "fr"
     ? `Bonjour {{client_name}},
 
@@ -60,7 +68,7 @@ Ceci est un dernier rappel concernant la facture {{invoice_number}} d'un montant
 
 La facture était échue le {{invoice_due_date}}. Nous vous demandons de bien vouloir effectuer le paiement ou nous répondre au plus tard le {{final_reminder_due_date}}.
 
-Sans réponse de votre part avant cette date, nous serons dans l'obligation de prendre les mesures nécessaires.
+Sans réponse de votre part avant cette date, nous serons dans l'obligation de prendre les mesures nécessaires.${includePaymentLink ? paymentLinkBlock : ''}
 
 Merci de votre attention,
 
@@ -71,7 +79,7 @@ This is a final reminder regarding invoice {{invoice_number}} for an amount of {
 
 The invoice was due on {{invoice_due_date}}. We kindly request that you make the payment or respond no later than {{final_reminder_due_date}}.
 
-If we do not hear from you by this date, we will be obligated to take further action.
+If we do not hear from you by this date, we will be obligated to take further action.${includePaymentLink ? paymentLinkBlock : ''}
 
 Thank you for your attention,
 
@@ -104,7 +112,8 @@ Thank you for your attention,
       .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, formatDate(invoice.due_date))
       .replace(/\{\{final_reminder_due_date\}\}/g, formatDate(responseDueDate))
-      .replace(/\{\{company_name\}\}/g, company || '—');
+      .replace(/\{\{company_name\}\}/g, company || '—')
+      .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
   };
 
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, responseDueDate, clientName, company]);
@@ -132,6 +141,7 @@ Thank you for your attention,
     { key: '{{invoice_due_date}}', label: language === 'fr' ? "Date d'échéance" : 'Due date' },
     { key: '{{final_reminder_due_date}}', label: language === 'fr' ? 'Date limite de réponse' : 'Response deadline' },
     { key: '{{company_name}}', label: language === 'fr' ? "Nom de l'entreprise" : 'Company name' },
+    { key: '{{invoice_payment_link}}', label: language === 'fr' ? 'Lien de paiement' : 'Payment link' },
   ];
 
   return (

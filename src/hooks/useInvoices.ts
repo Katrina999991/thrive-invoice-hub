@@ -58,7 +58,8 @@ export const useInvoices = () => {
                 email,
                 company_id,
                 address,
-                notes
+                notes,
+                include_payment_link
               ),
               invoice_items (
                 id,
@@ -94,7 +95,8 @@ export const useInvoices = () => {
               email,
               company_id,
               address,
-              notes
+              notes,
+              include_payment_link
             ),
             invoice_items (
               id,
