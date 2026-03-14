@@ -25,6 +25,9 @@ interface FormalNoticeEditorDialogProps {
     due_date: string | null;
     payment_link: string | null;
     status: string;
+    invoice_items?: Array<{
+      description: string;
+    }>;
     clients?: {
       name: string;
       email: string | null;
@@ -69,6 +72,19 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const clientName = invoice.clients?.contact_person || invoice.clients?.name || '';
   const clientAddress = invoice.clients?.address || '';
 
+  // Generate short invoice description from items
+  const invoiceDescription = useMemo(() => {
+    const items = invoice.invoice_items || [];
+    if (items.length === 0) return '';
+    const firstDesc = items[0].description || '';
+    const truncated = firstDesc.length > 80 ? firstDesc.slice(0, 77) + '...' : firstDesc;
+    if (items.length === 1) return truncated;
+    const suffix = language === 'fr' ? ' et autres articles' : ' and other items';
+    const maxLen = 80 - suffix.length;
+    const base = firstDesc.length > maxLen ? firstDesc.slice(0, maxLen - 3) + '...' : firstDesc;
+    return base + suffix;
+  }, [invoice.invoice_items, language]);
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
   };
@@ -79,7 +95,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const defaultBody = language === 'fr'
     ? `Madame, Monsieur,
 
-Malgré nos rappels précédents, le solde de la facture {{invoice_number}}, d'un montant de {{amount_due}}, demeure impayé.
+Malgré nos rappels précédents, le solde de la facture {{invoice_number}}${invoiceDescription ? ', concernant {{invoice_description}},' : ','} d'un montant de {{amount_due}}, demeure impayé.
 
 Cette facture était échue depuis le {{invoice_due_date}}.
 
@@ -96,7 +112,7 @@ Veuillez agréer nos salutations distinguées.
 {{company_address}}`
     : `Dear Sir/Madam,
 
-Despite our previous reminders, the balance of invoice {{invoice_number}}, in the amount of {{amount_due}}, remains unpaid.
+Despite our previous reminders, the balance of invoice {{invoice_number}}${invoiceDescription ? ', regarding {{invoice_description}},' : ','} in the amount of {{amount_due}}, remains unpaid.
 
 This invoice was due on {{invoice_due_date}}.
 
@@ -144,6 +160,7 @@ Sincerely,
       .replace(/\{\{client_name\}\}/g, clientName)
       .replace(/\{\{client_address\}\}/g, clientAddress)
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
+      .replace(/\{\{invoice_description\}\}/g, invoiceDescription)
       .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
@@ -368,6 +385,7 @@ Sincerely,
                   {language === 'fr' ? 'Variables disponibles' : 'Available variables'}:{' '}
                   <code className="text-xs">{'{{client_name}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_number}}'}</code>,{' '}
+                  <code className="text-xs">{'{{invoice_description}}'}</code>,{' '}
                   <code className="text-xs">{'{{amount_due}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_due_date}}'}</code>,{' '}
                   <code className="text-xs">{'{{formal_notice_due_date}}'}</code>,{' '}
