@@ -1982,22 +1982,24 @@ const Reports = () => {
           language === 'fr' ? 'Categorie' : 'Category',
           language === 'fr' ? 'Montant' : 'Amount',
           language === 'fr' ? 'Taxes' : 'Taxes',
-          language === 'fr' ? 'Type' : 'Type',
-          language === 'fr' ? 'Statut' : 'Status'
+          language === 'fr' ? 'Recup. %' : 'Recov. %',
+          language === 'fr' ? 'Credit recup.' : 'Recov. Credit',
+          language === 'fr' ? 'Type' : 'Type'
         ]],
         body: expenseTableData,
         startY: yOffset,
         theme: 'striped',
-        headStyles: { fillColor: [100, 116, 139], fontStyle: 'bold', fontSize: 8 },
-        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [100, 116, 139], fontStyle: 'bold', fontSize: 7 },
+        styles: { fontSize: 6.5, cellPadding: 2 },
         columnStyles: {
-          0: { cellWidth: 20 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 30 },
-          3: { cellWidth: 25, halign: 'right' },
-          4: { cellWidth: 22, halign: 'right' },
-          5: { cellWidth: 25 },
-          6: { cellWidth: 18 }
+          0: { cellWidth: 18 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 24 },
+          3: { cellWidth: 22, halign: 'right' },
+          4: { cellWidth: 20, halign: 'right' },
+          5: { cellWidth: 14, halign: 'center' },
+          6: { cellWidth: 22, halign: 'right' },
+          7: { cellWidth: 22 }
         }
       });
     }
