@@ -162,7 +162,18 @@ export const useInvoices = () => {
         }
       }
       
-      setInvoices(data || []);
+      // Decrypt client email/phone fields for each invoice
+      const invoicesWithDecryptedClients = await Promise.all(
+        (data || []).map(async (invoice: any) => {
+          if (invoice.clients) {
+            const decryptedClient = await decryptFields('clients', invoice.clients);
+            return { ...invoice, clients: decryptedClient };
+          }
+          return invoice;
+        })
+      );
+
+      setInvoices(invoicesWithDecryptedClients || []);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       toast({
