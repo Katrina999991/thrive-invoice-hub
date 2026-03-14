@@ -2186,6 +2186,16 @@ Best regards,
                   <Button variant="outline" size="sm" onClick={() => openEmailDialog(invoice)}>
                     <Send className="h-4 w-4" />
                   </Button>
+                  {invoice.status !== 'paid' && invoice.status !== 'draft' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                      onClick={() => setFinalReminderInvoice(invoice)}
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                    </Button>
+                  )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-destructive">
