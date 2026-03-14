@@ -860,6 +860,9 @@ export type Database = {
           client_id: string | null
           created_at: string
           due_date: string | null
+          final_reminder_response_due_at: string | null
+          final_reminder_sent: boolean
+          final_reminder_sent_at: string | null
           id: string
           invoice_number: string
           is_archived: boolean
@@ -882,6 +885,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           due_date?: string | null
+          final_reminder_response_due_at?: string | null
+          final_reminder_sent?: boolean
+          final_reminder_sent_at?: string | null
           id?: string
           invoice_number: string
           is_archived?: boolean
@@ -904,6 +910,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           due_date?: string | null
+          final_reminder_response_due_at?: string | null
+          final_reminder_sent?: boolean
+          final_reminder_sent_at?: string | null
           id?: string
           invoice_number?: string
           is_archived?: boolean
