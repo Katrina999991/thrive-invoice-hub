@@ -287,6 +287,24 @@ Thank you for your attention,
                 <div className="p-4 text-sm whitespace-pre-wrap leading-relaxed bg-background">
                   {previewBody}
                 </div>
+                {/* Payment button preview */}
+                {includePaymentLink && (
+                  <div className="px-4 pb-4 bg-background">
+                    <div className="mt-2 pt-2">
+                      <p className="font-semibold text-sm mb-2">
+                        {clientLang === "fr" ? "Payer en ligne :" : "Pay online:"}
+                      </p>
+                      <a
+                        href={invoice.payment_link || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-md font-semibold text-sm no-underline hover:opacity-90 transition-opacity"
+                      >
+                        {clientLang === "fr" ? "Payer la facture" : "Pay Invoice"}
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 p-2 rounded bg-muted text-xs text-muted-foreground">
