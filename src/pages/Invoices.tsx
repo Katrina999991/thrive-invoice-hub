@@ -2837,6 +2837,16 @@ Best regards,
           }}
         />
       )}
+
+      {/* Formal Notice Dialog */}
+      {formalNoticeInvoice && (
+        <FormalNoticeEditorDialog
+          open={!!formalNoticeInvoice}
+          onOpenChange={(open) => !open && setFormalNoticeInvoice(null)}
+          invoice={formalNoticeInvoice as any}
+          company={companies.find(c => c.id === clients.find(cl => cl.id === formalNoticeInvoice.client_id)?.company_id) as any}
+        />
+      )}
     </div>
   );
 };
