@@ -2039,7 +2039,7 @@ const Reports = () => {
     logExport('taxes_paid_expenses', 'pdf', language === 'fr' ? 'Telechargement PDF rapport taxes depenses' : 'Taxes paid on expenses PDF download');
   };
 
-  const exportTaxesPaidToExcel = () => {
+  const exportTaxesPaidToExcel = async () => {
     if (!taxData || taxData.totalExpenseTaxAmount === 0) return;
     
     const wb = XLSX.utils.book_new();
@@ -2081,6 +2081,69 @@ const Reports = () => {
     
     applyWorksheetFormatting(summaryWs, { headerRowIndex: 10 });
     XLSX.utils.book_append_sheet(wb, summaryWs, getReportTranslation('summary', language));
+    
+    // Fetch expense details for the detail sheet
+    try {
+      let query = supabase
+        .from('expenses')
+        .select(`
+          id, description, expense_date, amount, category, vendor, status,
+          taxes, tax_recoverable_percent, company_id,
+          companies ( name )
+        `)
+        .eq('user_id', user?.id || '')
+        .eq('status', 'paid')
+        .neq('taxes', '[]');
+
+      if (taxEffectiveStart) query = query.gte('expense_date', taxEffectiveStart.toISOString().split('T')[0]);
+      if (taxEffectiveEnd) query = query.lte('expense_date', taxEffectiveEnd.toISOString().split('T')[0]);
+      if (taxSelectedCompany && taxSelectedCompany !== 'all') query = query.eq('company_id', taxSelectedCompany);
+
+      const { data: expenseDetails } = await query.order('expense_date', { ascending: false });
+      
+      if (expenseDetails && expenseDetails.length > 0) {
+        const detailHeaders = [
+          language === 'fr' ? 'Date' : 'Date',
+          language === 'fr' ? 'Fournisseur' : 'Vendor',
+          language === 'fr' ? 'Catégorie' : 'Category',
+          language === 'fr' ? 'Montant avant taxes' : 'Amount Before Tax',
+          language === 'fr' ? 'Type de taxe' : 'Tax Type',
+          language === 'fr' ? 'Montant taxe' : 'Tax Amount',
+          language === 'fr' ? '% Récupérable' : 'Recov. %',
+          language === 'fr' ? 'Taxe récupérable' : 'Recoverable Tax',
+          language === 'fr' ? 'Entreprise' : 'Company'
+        ];
+        
+        const detailRows: any[][] = [];
+        expenseDetails.forEach(exp => {
+          const expTaxes = (exp.taxes as any[]) || [];
+          const recoverablePct = exp.tax_recoverable_percent != null ? Number(exp.tax_recoverable_percent) : 100;
+          const companyName = (exp.companies as any)?.name || '-';
+          const translatedCategory = getTranslatedCategoryName(exp.category);
+          
+          expTaxes.forEach((tax: any) => {
+            const taxAmount = Number(tax.amount) || 0;
+            const recoverableAmount = taxAmount * (recoverablePct / 100);
+            detailRows.push([
+              format(new Date(exp.expense_date), 'dd/MM/yyyy'),
+              exp.vendor || '-',
+              translatedCategory,
+              Number(exp.amount || 0),
+              tax.name || '-',
+              taxAmount,
+              recoverablePct,
+              recoverableAmount,
+              companyName
+            ]);
+          });
+        });
+        
+        const detailWs = createFormattedSheet(detailHeaders, detailRows);
+        XLSX.utils.book_append_sheet(wb, detailWs, language === 'fr' ? 'Détails' : 'Details');
+      }
+    } catch (err) {
+      console.error('Error fetching expense details for Excel:', err);
+    }
     
     // Generate filename and save
     const companyFilter = taxSelectedCompany && taxSelectedCompany !== 'all' 
