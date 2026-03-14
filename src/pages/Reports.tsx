@@ -1517,7 +1517,7 @@ const Reports = () => {
     // ========== HEADER ==========
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'fr' ? 'Taxes collectees (Ventes)' : 'Taxes Collected (Sales)', pageWidth / 2, 25, { align: 'center' });
+    doc.text(language === 'fr' ? 'Taxes collectées (Ventes)' : 'Taxes Collected (Sales)', pageWidth / 2, 25, { align: 'center' });
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
@@ -1528,7 +1528,7 @@ const Reports = () => {
     if (taxEffectiveStart && taxEffectiveEnd) {
       doc.setFontSize(10);
       doc.text(
-        `${language === 'fr' ? 'Periode' : 'Period'}: ${format(taxEffectiveStart, 'dd MMMM yyyy', { locale: dateLocale })} - ${format(taxEffectiveEnd, 'dd MMMM yyyy', { locale: dateLocale })}`,
+        `${language === 'fr' ? 'Période' : 'Period'}: ${format(taxEffectiveStart, 'dd MMMM yyyy', { locale: dateLocale })} – ${format(taxEffectiveEnd, 'dd MMMM yyyy', { locale: dateLocale })}`,
         pageWidth / 2,
         yOffset,
         { align: 'center' }
@@ -1540,7 +1540,7 @@ const Reports = () => {
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.text(
-      `${language === 'fr' ? 'Genere le' : 'Generated on'}: ${format(new Date(), 'dd MMMM yyyy, HH:mm', { locale: dateLocale })}`,
+      `${language === 'fr' ? 'Généré le' : 'Generated on'}: ${format(new Date(), 'dd MMMM yyyy, HH:mm', { locale: dateLocale })}`,
       pageWidth / 2,
       yOffset,
       { align: 'center' }
