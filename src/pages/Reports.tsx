@@ -1956,12 +1956,11 @@ const Reports = () => {
       yOffset += 8;
       
       const expenseTableData = expenseDetails.map(exp => {
-        // Get tax info from expense taxes array
         const expenseTaxes = (exp.taxes as any[]) || [];
         const totalTaxAmount = expenseTaxes.reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0);
         const taxTypes = expenseTaxes.map((t: any) => t.name).join(', ') || '-';
-        
-        // Get translated category name
+        const recoverablePct = exp.tax_recoverable_percent != null ? Number(exp.tax_recoverable_percent) : 100;
+        const recoverableAmount = totalTaxAmount * (recoverablePct / 100);
         const translatedCategory = getTranslatedCategoryName(exp.category);
         
         return [
@@ -1970,8 +1969,9 @@ const Reports = () => {
           translatedCategory,
           Number(exp.amount || 0).toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
           totalTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
-          taxTypes,
-          exp.status === 'paid' ? (language === 'fr' ? 'Paye' : 'Paid') : (language === 'fr' ? 'Non paye' : 'Unpaid')
+          `${recoverablePct}%`,
+          recoverableAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+          taxTypes
         ];
       });
       
