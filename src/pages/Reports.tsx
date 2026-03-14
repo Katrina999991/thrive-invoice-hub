@@ -1163,7 +1163,7 @@ const Reports = () => {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(249, 115, 22);
     doc.text(
-      `− ${taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
+      `-${taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
       valueX, yOffset + 22, { align: 'right' }
     );
     doc.setTextColor(0, 0, 0);
@@ -2395,7 +2395,7 @@ const Reports = () => {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(249, 115, 22);
     doc.text(
-      `− ${taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
+      `-${taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
       valueX, yOffset + 36, { align: 'right' }
     );
     doc.setTextColor(0, 0, 0);
