@@ -145,7 +145,10 @@ const handler = async (req: Request): Promise<Response> => {
       ccEmails,
       invoiceTemplate,
       invoiceColor,
-      hidePdfBranding
+      hidePdfBranding,
+      isFinalReminder,
+      customRecipient,
+      responseDueDate
     } = validationResult.data;
 
     // Get authorization header to identify the user
