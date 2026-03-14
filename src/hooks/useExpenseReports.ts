@@ -174,7 +174,9 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
         .map(([category, data]) => ({
           category,
           total_amount: data.total_amount,
-          count: data.count
+          count: data.count,
+          total_deductible_amount: data.total_deductible,
+          avg_deductible_percent: data.deductible_pct_sum / data.count
         }))
         .sort((a, b) => b.total_amount - a.total_amount);
 
