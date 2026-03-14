@@ -343,7 +343,7 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
           data.cell.styles.fillColor = COLORS.lightGray;
         }
         // Style status column
-        if (data.column.index === 8 && data.section === 'body' && data.row.index < tableData.length - 1) {
+        if (data.column.index === 10 && data.section === 'body' && data.row.index < tableData.length - 1) {
           const statusText = data.cell.raw as string;
           if (statusText === t.paid) {
             data.cell.styles.textColor = COLORS.green;
