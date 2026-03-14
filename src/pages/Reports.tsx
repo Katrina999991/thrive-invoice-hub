@@ -8136,10 +8136,10 @@ const Reports = () => {
           {/* Tax Type Breakdown */}
           {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
             <Card className="shadow-sm border-0">
-              <CardHeader className="pb-0 pt-4 px-5">
+              <CardHeader className="pb-0 pt-3 px-4">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("reports.taxes.totalByType")}</CardTitle>
               </CardHeader>
-              <CardContent className="px-5 pb-4 pt-3">
+              <CardContent className="px-4 pb-3 pt-2.5">
                 <div className="rounded-lg border overflow-hidden">
                   <Table>
                     <TableHeader>
