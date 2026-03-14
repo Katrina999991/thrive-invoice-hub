@@ -169,15 +169,9 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
   doc.text(periodText, margin, yPosition);
   yPosition += 6;
 
-  // Filter info
-  let filterText = t.allExpenses;
-  if (companyFilterName) {
-    filterText = `${t.companyCol}: ${companyFilterName}`;
-  } else if (categoryFilterName) {
-    filterText = `${t.category}: ${categoryFilterName}`;
-  }
-  if (filterText !== t.allExpenses) {
-    doc.text(`${t.filter}: ${filterText}`, margin, yPosition);
+  // Filter info (only show category filter since company is already shown above)
+  if (categoryFilterName) {
+    doc.text(`${t.filter}: ${t.category}: ${categoryFilterName}`, margin, yPosition);
     yPosition += 6;
   }
 
