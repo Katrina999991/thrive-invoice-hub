@@ -1253,11 +1253,11 @@ const Reports = () => {
     
     yOffset += 55;
     
-    // ========== TOTALS BY TAX TYPE ==========
+    // ========== BREAKDOWN BY TAX TYPE ==========
     if (taxData.taxSummary.length > 0) {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(language === 'fr' ? 'Totaux par type de taxe' : 'Totals by Tax Type', margin, yOffset);
+      doc.text(language === 'fr' ? 'Répartition par type de taxe' : 'Breakdown by Tax Type', margin, yOffset);
       yOffset += 10;
       
       // Create tax type cards
