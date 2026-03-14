@@ -33,6 +33,7 @@ interface FormalNoticeEditorDialogProps {
       email: string | null;
       contact_person: string | null;
       address?: string | null;
+      language?: string | null;
     };
   };
   company?: {
