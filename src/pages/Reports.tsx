@@ -2330,7 +2330,6 @@ const Reports = () => {
     
     // Date range
     let yOffset = 45;
-    let yOffset = 45;
     const reportEndDate = taxEffectiveEnd || new Date();
     if (taxEffectiveStart) {
       doc.setFontSize(10);
