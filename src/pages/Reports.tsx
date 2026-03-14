@@ -2384,7 +2384,7 @@ const Reports = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.text(
-      `${language === 'fr' ? 'Montant net à payer' : 'Net Amount Payable'}`,
+      `${language === 'fr' ? 'Montant net à payer' : 'Net Amount Payable'}:`,
       labelX, yOffset + 52
     );
     doc.setTextColor(59, 130, 246);
