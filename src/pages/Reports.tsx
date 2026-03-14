@@ -9648,6 +9648,7 @@ const Reports = () => {
         }
         companyName={selectedCompanyForEmail?.name || companies?.[0]?.name}
         companyEmail={selectedCompanyForEmail?.email || companies?.[0]?.email || undefined}
+        companyId={selectedCompanyForEmail?.id || companies?.[0]?.id}
         defaultSubject={language === 'fr'
           ? `Rapport Clients par entreprise${selectedCompanyForEmail ? ` - ${selectedCompanyForEmail.name}` : ''}`
           : `Clients by Company Report${selectedCompanyForEmail ? ` - ${selectedCompanyForEmail.name}` : ''}`
