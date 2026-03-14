@@ -64,7 +64,7 @@ const Invoices = () => {
   const [showArchived, setShowArchived] = useState(false);
   
   // Database hooks
-  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, archiveInvoice, refetch: fetchInvoices } = useInvoices();
+  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, archiveInvoice, sendFinalReminder, refetch: fetchInvoices } = useInvoices();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
