@@ -112,7 +112,8 @@ Thank you for your attention,
       .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, formatDate(invoice.due_date))
       .replace(/\{\{final_reminder_due_date\}\}/g, formatDate(responseDueDate))
-      .replace(/\{\{company_name\}\}/g, company || '—');
+      .replace(/\{\{company_name\}\}/g, company || '—')
+      .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
   };
 
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, responseDueDate, clientName, company]);
