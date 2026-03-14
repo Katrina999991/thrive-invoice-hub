@@ -182,31 +182,37 @@ export function processTaxSplit(
   } | null,
   language: 'fr' | 'en' = 'fr'
 ): TaxSplitResult {
+  const total = receiptData.total_amount || 0;
+  const subtotal = receiptData.subtotal_amount;
+  const taxLines = receiptData.tax_lines || [];
+  const hasExplicitTaxes = taxLines.length > 0 && taxLines.some(t => t.amount > 0);
+  
+  // Use subtotal from OCR if available and valid, otherwise fall back to total
+  const bestBeforeTax = (subtotal != null && subtotal > 0 && subtotal <= total) 
+    ? subtotal 
+    : total;
+
   const defaultResult: TaxSplitResult = {
-    amountBeforeTax: receiptData.total_amount || 0,
+    amountBeforeTax: bestBeforeTax,
     taxes: [],
     helperText: null,
     helperTextType: null,
-    originalTotal: receiptData.total_amount || 0,
+    originalTotal: total,
     source: null
   };
   
   // If no company selected or no total, return default
-  if (!companySettings || !receiptData.total_amount) {
+  if (!companySettings || !total) {
     return defaultResult;
   }
   
   const { expense_tax_handling, taxes: companyTaxes } = companySettings;
-  const { total_amount, subtotal_amount, tax_lines, tax_included_hint } = receiptData;
-  const taxLines = tax_lines || [];
+  const { tax_included_hint } = receiptData;
   
   // Handle 'never' mode
   if (expense_tax_handling === 'never') {
     return defaultResult;
   }
-  
-  // Check if we have explicit taxes from receipt
-  const hasExplicitTaxes = taxLines.length > 0 && taxLines.some(t => t.amount > 0);
   
   // CRITICAL: For Amazon-style invoices, the "subtotal" field may actually include taxes.
   // Always compute amount_before_tax = total - sum(taxes) when tax_lines exist.
