@@ -2544,8 +2544,14 @@ const Reports = () => {
         body: expenseTableData,
         startY: yOffset,
         theme: 'striped',
-        headStyles: { fillColor: [249, 115, 22], fontSize: 7 },
-        styles: { fontSize: 7 },
+        headStyles: { fillColor: [249, 115, 22], fontStyle: 'bold', fontSize: 7 },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: {
+          3: { halign: 'right' },
+          4: { halign: 'right' },
+          5: { halign: 'center' },
+          6: { halign: 'right' }
+        },
         didDrawPage: () => {
           addFooter();
           pageNumber++;
