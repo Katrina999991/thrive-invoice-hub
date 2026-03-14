@@ -2481,8 +2481,12 @@ const Reports = () => {
         body: invoiceTableData,
         startY: yOffset,
         theme: 'striped',
-        headStyles: { fillColor: [34, 197, 94] },
-        styles: { fontSize: 8 },
+        headStyles: { fillColor: [34, 197, 94], fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 3 },
+        columnStyles: {
+          3: { halign: 'right' },
+          4: { halign: 'right' }
+        },
         didDrawPage: () => {
           addFooter();
           pageNumber++;
