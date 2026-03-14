@@ -190,11 +190,11 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
         const companyTaxes = invoice.clients?.companies?.taxes || [];
 
         if (Array.isArray(companyTaxes) && companyTaxes.length > 0) {
-          const totalRate = companyTaxes.reduce((sum: number, tax: any) => sum + (Number(tax?.percentage) || 0), 0);
-          companyTaxes.forEach((tax: any) => {
+          const totalRate = (companyTaxes as any[]).reduce((sum: number, tax: any) => sum + (Number(tax?.percentage) || 0), 0);
+          (companyTaxes as any[]).forEach((tax: any) => {
             const taxName = tax?.name || 'Taxe';
             const taxPercentage = Number(tax?.percentage) || 0;
-            const proportionalAmount = totalRate > 0 ? (taxAmount * taxPercentage) / totalRate : 0;
+            const proportionalAmount = Number(totalRate) > 0 ? (taxAmount * taxPercentage) / Number(totalRate) : 0;
             addInvoiceTax(taxName, proportionalAmount, invoiceId, taxSummaryMap, monthData, yearData);
           });
         } else {
