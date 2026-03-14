@@ -118,21 +118,29 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
       const totalUnpaidExpenses = expensesData
         .filter(expense => expense.status === 'unpaid')
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
+      const totalDeductibleAmount = expensesData.reduce((sum, expense) => {
+        const deductPct = expense.deductible_percent != null ? Number(expense.deductible_percent) : 100;
+        return sum + (Number(expense.amount) * deductPct / 100);
+      }, 0);
 
       // Group by category
-      const categoryMap = new Map<string, { total_amount: number; count: number }>();
+      const categoryMap = new Map<string, { total_amount: number; count: number; total_deductible: number; deductible_pct_sum: number }>();
       expensesData.forEach(expense => {
         const category = expense.category || 'Uncategorized';
         const amount = Number(expense.amount);
+        const deductPct = expense.deductible_percent != null ? Number(expense.deductible_percent) : 100;
+        const deductAmt = amount * deductPct / 100;
 
         if (categoryMap.has(category)) {
           const existing = categoryMap.get(category)!;
           categoryMap.set(category, {
             total_amount: existing.total_amount + amount,
-            count: existing.count + 1
+            count: existing.count + 1,
+            total_deductible: existing.total_deductible + deductAmt,
+            deductible_pct_sum: existing.deductible_pct_sum + deductPct
           });
         } else {
-          categoryMap.set(category, { total_amount: amount, count: 1 });
+          categoryMap.set(category, { total_amount: amount, count: 1, total_deductible: deductAmt, deductible_pct_sum: deductPct });
         }
       });
 
