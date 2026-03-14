@@ -94,6 +94,7 @@ const Invoices = () => {
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
+  const [finalReminderInvoice, setFinalReminderInvoice] = useState<Invoice | null>(null);
 
   // Bulk selection state
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
