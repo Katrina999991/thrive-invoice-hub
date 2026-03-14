@@ -439,6 +439,78 @@ export const useInvoices = () => {
     }
   };
 
+  const sendFinalReminder = async (invoiceId: string, responseDueDate: string) => {
+    if (!user) return;
+
+    try {
+      const invoice = invoices.find(inv => inv.id === invoiceId);
+      const now = new Date().toISOString();
+
+      // Update invoice with final reminder fields
+      const { error } = await supabase
+        .from("invoices")
+        .update({
+          final_reminder_sent: true,
+          final_reminder_sent_at: now,
+          final_reminder_response_due_at: responseDueDate
+        } as any)
+        .eq("id", invoiceId);
+
+      if (error) throw error;
+
+      // Send the email via the existing edge function with emailType "overdue"
+      const invoiceTemplate = localStorage.getItem("invoice-template") || "classic";
+      const invoiceColor = localStorage.getItem("invoice-color") || "blue";
+      const hidePdfBranding = localStorage.getItem("hide-pdf-branding") === "true";
+
+      await supabase.functions.invoke('send-invoice-email', {
+        body: {
+          invoiceId,
+          emailType: 'overdue',
+          invoiceTemplate,
+          invoiceColor,
+          hidePdfBranding,
+          isFinalReminder: true,
+          responseDueDate
+        }
+      });
+
+      await fetchInvoices();
+
+      // Invalidate dashboard cache
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
+      // Log audit event
+      logAuditEvent({
+        userId: user.id,
+        userName: username || user.email?.split('@')[0] || 'User',
+        category: 'sales',
+        eventType: 'final_reminder_sent',
+        description: `Dernier rappel de paiement envoyé pour la facture ${invoice?.invoice_number}. Date limite de réponse : ${responseDueDate}`,
+        relatedEntityType: 'invoice',
+        relatedEntityId: invoiceId,
+        metadata: {
+          invoice_number: invoice?.invoice_number,
+          total: invoice?.total,
+          response_due_date: responseDueDate,
+          sent_at: now
+        }
+      });
+
+      toast({
+        title: "Success",
+        description: "Final payment reminder sent successfully"
+      });
+    } catch (error) {
+      console.error("Error sending final reminder:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send final reminder",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     fetchInvoices();
   }, [user]);
@@ -450,6 +522,7 @@ export const useInvoices = () => {
     updateInvoice,
     deleteInvoice,
     archiveInvoice,
+    sendFinalReminder,
     refetch: fetchInvoices
   };
 };

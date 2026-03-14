@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import { FinalReminderDialog } from "@/components/FinalReminderDialog";
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -63,7 +64,7 @@ const Invoices = () => {
   const [showArchived, setShowArchived] = useState(false);
   
   // Database hooks
-  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, archiveInvoice, refetch: fetchInvoices } = useInvoices();
+  const { invoices, loading, createInvoice, updateInvoice, deleteInvoice, archiveInvoice, sendFinalReminder, refetch: fetchInvoices } = useInvoices();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -93,6 +94,7 @@ const Invoices = () => {
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
+  const [finalReminderInvoice, setFinalReminderInvoice] = useState<Invoice | null>(null);
 
   // Bulk selection state
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
@@ -1946,6 +1948,22 @@ Best regards,
                   </div>
                 )}
 
+                {/* Final Reminder Info in View Dialog */}
+                {viewingInvoice && (viewingInvoice as any).final_reminder_sent && (
+                  <div className="p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium text-amber-800 dark:text-amber-300">{t("invoices.finalReminderSent")}</span>
+                    </div>
+                    <div className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+                      <p>{t("invoices.finalReminderSentOn")}: {new Date((viewingInvoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                      {(viewingInvoice as any).final_reminder_response_due_at && (
+                        <p>{t("invoices.responseExpectedBefore")}: {new Date((viewingInvoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <Button onClick={() => setIsViewDialogOpen(false)}>
                     Close
@@ -2143,6 +2161,12 @@ Best regards,
                     {invoice.status === 'paid' && t("invoices.statusPaid")}
                     {invoice.status === 'overdue' && t("invoices.statusOverdue")}
                   </Badge>
+                  {(invoice as any).final_reminder_sent && (
+                    <Badge variant="outline" className="shrink-0 border-amber-500 text-amber-700 dark:text-amber-400 text-[10px]">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      {t("invoices.finalReminderSent")}
+                    </Badge>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                   <div>
@@ -2154,6 +2178,14 @@ Best regards,
                     <span className="ml-1">{invoice.due_date}</span>
                   </div>
                 </div>
+                {(invoice as any).final_reminder_sent && (
+                  <div className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-2 mb-3 space-y-0.5">
+                    <p>{t("invoices.finalReminderSentOn")}: {new Date((invoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                    {(invoice as any).final_reminder_response_due_at && (
+                      <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                    )}
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={() => {
                     setViewingInvoice(invoice);
@@ -2170,6 +2202,16 @@ Best regards,
                   <Button variant="outline" size="sm" onClick={() => openEmailDialog(invoice)}>
                     <Send className="h-4 w-4" />
                   </Button>
+                  {invoice.status !== 'paid' && invoice.status !== 'draft' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                      onClick={() => setFinalReminderInvoice(invoice)}
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                    </Button>
+                  )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-destructive">
@@ -2232,38 +2274,60 @@ Best regards,
                     </TableCell>
                     <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                     <TableCell>
-                      {canEditInvoices ? (
-                        <Select 
-                          value={invoice.status} 
-                          onValueChange={(value) => {
-                            const updates: any = { status: value };
-                            if (invoice.status === "paid" && value !== "paid") {
-                              updates.paid_at = null;
-                            }
-                            updateInvoice(invoice.id, updates);
-                          }}
-                        >
-                          <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
-                            <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
-                            <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                            <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Badge 
-                          variant={invoice.status === "paid" ? "default" : "secondary"}
-                          className={invoice.status === "paid" ? "bg-green-600 text-white" : ""}
-                        >
-                          {invoice.status === "draft" ? t("invoices.statusDraft") :
-                           invoice.status === "sent" ? t("invoices.statusSent") :
-                           invoice.status === "paid" ? t("invoices.statusPaid") :
-                           invoice.status === "overdue" ? t("invoices.statusOverdue") : invoice.status}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {canEditInvoices ? (
+                          <Select 
+                            value={invoice.status} 
+                            onValueChange={(value) => {
+                              const updates: any = { status: value };
+                              if (invoice.status === "paid" && value !== "paid") {
+                                updates.paid_at = null;
+                              }
+                              updateInvoice(invoice.id, updates);
+                            }}
+                          >
+                            <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                              <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                              <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                              <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge 
+                            variant={invoice.status === "paid" ? "default" : "secondary"}
+                            className={invoice.status === "paid" ? "bg-green-600 text-white" : ""}
+                          >
+                            {invoice.status === "draft" ? t("invoices.statusDraft") :
+                             invoice.status === "sent" ? t("invoices.statusSent") :
+                             invoice.status === "paid" ? t("invoices.statusPaid") :
+                             invoice.status === "overdue" ? t("invoices.statusOverdue") : invoice.status}
+                          </Badge>
+                        )}
+                        {(invoice as any).final_reminder_sent && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400 cursor-help px-1.5 py-0.5">
+                                  <AlertTriangle className="h-3 w-3" />
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <div className="space-y-1 text-xs">
+                                  <p className="font-medium">{t("invoices.finalReminderSent")}</p>
+                                  <p>{t("invoices.finalReminderSentOn")}: {new Date((invoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                                  {(invoice as any).final_reminder_response_due_at && (
+                                    <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{invoice.issue_date}</TableCell>
                     <TableCell>{invoice.due_date}</TableCell>
@@ -2326,6 +2390,23 @@ Best regards,
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>{language === 'fr' ? 'Envoyer par email' : 'Send email'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {invoice.status !== 'paid' && invoice.status !== 'draft' && canSendInvoices && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                  onClick={() => setFinalReminderInvoice(invoice)}
+                                >
+                                  <AlertTriangle className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{(invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder")}</p>
                               </TooltipContent>
                             </Tooltip>
                           )}
@@ -2712,6 +2793,16 @@ Best regards,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Final Reminder Dialog */}
+      {finalReminderInvoice && (
+        <FinalReminderDialog
+          open={!!finalReminderInvoice}
+          onOpenChange={(open) => !open && setFinalReminderInvoice(null)}
+          invoice={finalReminderInvoice as any}
+          onSend={sendFinalReminder}
+        />
+      )}
     </div>
   );
 };
