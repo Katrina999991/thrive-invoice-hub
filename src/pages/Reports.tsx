@@ -1908,6 +1908,14 @@ const Reports = () => {
       yOffset += 8;
     }
     
+    // Display mode
+    doc.setFontSize(10);
+    doc.text(
+      `${language === 'fr' ? 'Affichage' : 'Display'}: ${taxViewMode === 'monthly' ? (language === 'fr' ? 'Mensuel' : 'Monthly') : (language === 'fr' ? 'Annuel' : 'Yearly')}`,
+      pageWidth / 2, yOffset, { align: 'center' }
+    );
+    yOffset += 8;
+    
     // Generated date
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
