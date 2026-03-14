@@ -103,35 +103,50 @@ export const ReceiptScanner = ({ onDataExtracted, companyId, userId }: ReceiptSc
         
         onDataExtracted(extractedData);
         
-        // Show appropriate message based on category source
-        let categoryMessage = "";
-        if (extractedData.category_source === "learned_vendor") {
-          categoryMessage = language === "fr" 
-            ? " (catégorie apprise du vendeur)"
-            : " (category learned from vendor)";
-        } else if (extractedData.category_source === "learned_keyword") {
-          categoryMessage = language === "fr"
-            ? " (catégorie apprise des mots-clés)"
-            : " (category learned from keywords)";
-        } else if (extractedData.category_source === "ai_suggestion" && extractedData.category_confidence > 0.5) {
-          categoryMessage = language === "fr"
-            ? " (catégorie suggérée par l'IA)"
-            : " (AI-suggested category)";
-        }
+        // Check if extraction is partial (missing key fields)
+        const hasAmount = extractedData.amount != null || extractedData.total_amount != null || extractedData.subtotal_amount != null;
+        const hasVendor = extractedData.vendor != null;
+        const isPartial = !hasAmount || !hasVendor;
         
-        toast({
-          title: language === "fr" ? "Données extraites" : "Data extracted",
-          description: (language === "fr" 
-            ? "Les informations ont été extraites avec succès"
-            : "Information has been extracted successfully") + categoryMessage,
-        });
+        if (isPartial) {
+          toast({
+            title: language === "fr" ? "Extraction partielle" : "Partial extraction",
+            description: language === "fr"
+              ? "Certaines informations ont été détectées, mais veuillez vérifier les valeurs avant d'enregistrer."
+              : "Some information was detected, but please review the values before saving.",
+          });
+        } else {
+          // Show appropriate message based on category source
+          let categoryMessage = "";
+          if (extractedData.category_source === "learned_vendor") {
+            categoryMessage = language === "fr" 
+              ? " (catégorie apprise du vendeur)"
+              : " (category learned from vendor)";
+          } else if (extractedData.category_source === "learned_keyword") {
+            categoryMessage = language === "fr"
+              ? " (catégorie apprise des mots-clés)"
+              : " (category learned from keywords)";
+          } else if (extractedData.category_source === "ai_suggestion" && extractedData.category_confidence > 0.5) {
+            categoryMessage = language === "fr"
+              ? " (catégorie suggérée par l'IA)"
+              : " (AI-suggested category)";
+          }
+          
+          toast({
+            title: language === "fr" ? "Données extraites" : "Data extracted",
+            description: (language === "fr" 
+              ? "Les informations ont été extraites avec succès"
+              : "Information has been extracted successfully") + categoryMessage,
+          });
+        }
       }
     } catch (error) {
       console.error("Error scanning receipt:", error);
       toast({
-        title: language === "fr" ? "Erreur" : "Error",
-        description: error instanceof Error ? error.message : (language === "fr" ? "Erreur lors du scan" : "Error scanning receipt"),
-        variant: "destructive",
+        title: language === "fr" ? "Extraction non disponible" : "Extraction unavailable",
+        description: language === "fr" 
+          ? "Nous n'avons pas pu extraire les détails de ce reçu. Vous pouvez quand même entrer les informations manuellement. Essayez de prendre une photo plus claire ou de télécharger une image de meilleure qualité."
+          : "We couldn't automatically extract the details from this receipt. You can still enter the information manually. Try taking a clearer photo or uploading a higher-quality image.",
       });
     } finally {
       setIsScanning(false);
