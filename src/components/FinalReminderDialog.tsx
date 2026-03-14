@@ -44,6 +44,9 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
   const { t, language } = useLanguage();
   const isResend = invoice.final_reminder_sent;
 
+  // Use CLIENT language for email content, UI language for labels
+  const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
+
   const clientName = invoice.clients?.contact_person || invoice.clients?.name || '';
   const clientEmail = invoice.clients?.email || '';
   const company = companyName || '';
@@ -52,17 +55,17 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
   const defaultDueDate = new Date();
   defaultDueDate.setDate(defaultDueDate.getDate() + 7);
 
-  const defaultSubject = language === "fr"
+  const defaultSubject = clientLang === "fr"
     ? `Dernier rappel de paiement — Facture ${invoice.invoice_number}`
     : `Final Payment Reminder — Invoice ${invoice.invoice_number}`;
 
   const includePaymentLink = invoice.clients?.include_payment_link === true && !!invoice.payment_link;
 
-  const paymentLinkBlock = language === "fr"
+  const paymentLinkBlock = clientLang === "fr"
     ? `\n\nLien de paiement :\n{{invoice_payment_link}}`
     : `\n\nPayment link:\n{{invoice_payment_link}}`;
 
-  const defaultBody = language === "fr"
+  const defaultBody = clientLang === "fr"
     ? `Bonjour {{client_name}},
 
 Ceci est un dernier rappel concernant la facture {{invoice_number}} d'un montant de {{amount_due}}.
