@@ -66,6 +66,9 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
   
+  // URL pattern for making links clickable
+  const urlPattern = /^https?:\/\/\S+$/;
+  
   // Split body into paragraphs preserving newlines
   const paragraphs = data.body.split('\n');
   for (const paragraph of paragraphs) {
@@ -81,7 +84,17 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
       y = margin;
     }
     
-    doc.text(lines, margin, y);
+    // Check if this paragraph is a URL — render as clickable text link
+    if (urlPattern.test(paragraph.trim())) {
+      doc.setTextColor(0, 60, 180);
+      doc.text(lines, margin, y);
+      // Add clickable link annotation
+      const textWidth = doc.getTextWidth(paragraph.trim());
+      doc.link(margin, y - 4, Math.min(textWidth, contentWidth), 6, { url: paragraph.trim() });
+      doc.setTextColor(30, 30, 30);
+    } else {
+      doc.text(lines, margin, y);
+    }
     y += lines.length * 5 + 2;
   }
 

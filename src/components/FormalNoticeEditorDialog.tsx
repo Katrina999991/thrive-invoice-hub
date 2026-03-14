@@ -23,6 +23,7 @@ interface FormalNoticeEditorDialogProps {
     invoice_number: string;
     total: number;
     due_date: string | null;
+    payment_link: string | null;
     status: string;
     clients?: {
       name: string;
@@ -82,9 +83,12 @@ Malgré nos rappels précédents, le solde de la facture {{invoice_number}}, d'u
 
 Cette facture était échue depuis le {{invoice_due_date}}.
 
-Par la présente, nous vous mettons en demeure de procéder au paiement complet du montant dû au plus tard le {{formal_notice_due_date}}.
+ Par la présente, nous vous mettons en demeure de procéder au paiement complet du montant dû au plus tard le {{formal_notice_due_date}}.
 
-À défaut de recevoir le paiement ou une réponse de votre part dans ce délai, nous nous réservons le droit d'entreprendre les démarches appropriées.
+À défaut de recevoir le paiement ou une réponse de votre part dans ce délai, nous nous réservons le droit d'entreprendre les démarches appropriées.${invoice.payment_link ? `
+
+Vous pouvez effectuer le paiement en ligne à l'adresse suivante :
+{{invoice_payment_link}}` : ''}
 
 Veuillez agréer nos salutations distinguées.
 
@@ -98,7 +102,10 @@ This invoice was due on {{invoice_due_date}}.
 
 We hereby formally demand that you proceed with the full payment of the amount owed no later than {{formal_notice_due_date}}.
 
-If we do not receive payment or a response from you within this period, we reserve the right to take appropriate action.
+If we do not receive payment or a response from you within this period, we reserve the right to take appropriate action.${invoice.payment_link ? `
+
+You can make your payment online at the following address:
+{{invoice_payment_link}}` : ''}
 
 Sincerely,
 
@@ -142,7 +149,8 @@ Sincerely,
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
       .replace(/\{\{today_date\}\}/g, formatDate(date))
       .replace(/\{\{company_name\}\}/g, company?.name || '')
-      .replace(/\{\{company_address\}\}/g, companyAddress);
+      .replace(/\{\{company_address\}\}/g, companyAddress)
+      .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
   };
 
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
@@ -364,7 +372,8 @@ Sincerely,
                   <code className="text-xs">{'{{invoice_due_date}}'}</code>,{' '}
                   <code className="text-xs">{'{{formal_notice_due_date}}'}</code>,{' '}
                   <code className="text-xs">{'{{company_name}}'}</code>,{' '}
-                  <code className="text-xs">{'{{company_address}}'}</code>
+                  <code className="text-xs">{'{{company_address}}'}</code>,{' '}
+                  <code className="text-xs">{'{{invoice_payment_link}}'}</code>
                 </p>
               </div>
 
