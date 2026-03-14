@@ -149,10 +149,6 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
   doc.text(periodText, margin, yPosition);
   yPosition += 6;
 
-  if (companyFilterName) {
-    doc.text(`${t.company}: ${companyFilterName}`, margin, yPosition);
-    yPosition += 6;
-  }
 
   doc.setTextColor(...COLORS.gray);
   doc.setFontSize(9);
