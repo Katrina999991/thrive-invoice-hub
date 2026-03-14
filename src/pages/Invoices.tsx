@@ -2777,6 +2777,16 @@ Best regards,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Final Reminder Dialog */}
+      {finalReminderInvoice && (
+        <FinalReminderDialog
+          open={!!finalReminderInvoice}
+          onOpenChange={(open) => !open && setFinalReminderInvoice(null)}
+          invoice={finalReminderInvoice as any}
+          onSend={sendFinalReminder}
+        />
+      )}
     </div>
   );
 };
