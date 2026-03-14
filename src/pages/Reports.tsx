@@ -1982,8 +1982,8 @@ const Reports = () => {
           language === 'fr' ? 'Categorie' : 'Category',
           language === 'fr' ? 'Montant' : 'Amount',
           language === 'fr' ? 'Taxes' : 'Taxes',
-          language === 'fr' ? 'Recup. %' : 'Recov. %',
-          language === 'fr' ? 'Credit recup.' : 'Recov. Credit',
+          language === 'fr' ? '% Récupérable' : 'Recoverable %',
+          language === 'fr' ? 'Taxe récupérable' : 'Recoverable Tax',
           language === 'fr' ? 'Type' : 'Type'
         ]],
         body: expenseTableData,
