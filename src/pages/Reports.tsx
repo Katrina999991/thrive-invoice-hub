@@ -2342,7 +2342,7 @@ const Reports = () => {
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'fr' ? 'Résumé' : 'Summary', margin + 8, yOffset + 12);
+    doc.text(language === 'fr' ? 'Résumé du calcul' : 'Tax Calculation Summary', margin + 8, yOffset + 12);
     
     const labelX = margin + 8;
     const valueX = margin + 130;
