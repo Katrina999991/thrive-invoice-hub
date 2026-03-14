@@ -1343,7 +1343,7 @@ const Reports = () => {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(language === 'fr' ? 'Tableau recapitulatif' : 'Summary Table', margin, yOffset);
+      doc.text(language === 'fr' ? 'Résumé' : 'Summary', margin, yOffset);
       yOffset += 8;
       
       const summaryTableData = taxData.taxSummary.map(tax => [
