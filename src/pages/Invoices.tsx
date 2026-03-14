@@ -2331,6 +2331,9 @@ Best regards,
                                   {(invoice as any).final_reminder_response_due_at && (
                                     <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
                                   )}
+                                  {(invoice as any).final_reminder_recipient && (
+                                    <p>{language === "fr" ? "Envoyé à" : "Sent to"}: {(invoice as any).final_reminder_recipient}</p>
+                                  )}
                                 </div>
                               </TooltipContent>
                             </Tooltip>
