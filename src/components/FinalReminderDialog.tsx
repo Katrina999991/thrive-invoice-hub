@@ -193,6 +193,15 @@ Thank you for your attention,
             </TabsList>
 
             <TabsContent value="compose" className="space-y-4 mt-4">
+              {/* No email warning */}
+              {!clientEmail && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-sm text-destructive">
+                  {language === "fr"
+                    ? "Ce client n'a pas d'adresse email enregistrée. Veuillez saisir une adresse email ci-dessous."
+                    : "This client has no email address on file. Please enter an email address below."}
+                </div>
+              )}
+
               {/* Recipient */}
               <div className="space-y-2">
                 <Label htmlFor="fr-recipient">
@@ -203,7 +212,7 @@ Thank you for your attention,
                   type="email"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  placeholder={clientEmail || "email@example.com"}
+                  placeholder="email@example.com"
                 />
               </div>
 
