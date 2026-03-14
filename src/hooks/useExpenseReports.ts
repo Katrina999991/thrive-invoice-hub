@@ -6,6 +6,8 @@ export interface ExpenseByCategory {
   category: string;
   total_amount: number;
   count: number;
+  total_deductible_amount: number;
+  avg_deductible_percent: number;
 }
 
 export interface ExpenseByCompany {
@@ -25,12 +27,15 @@ export interface ExpenseDetail {
   company_name?: string;
   vendor?: string;
   taxes?: Array<{ name: string; percentage: number; amount?: number }>;
+  deductible_percent: number;
+  deductible_amount: number;
 }
 
 export interface ExpenseReportData {
   totalExpenses: number;
   totalPaidExpenses: number;
   totalUnpaidExpenses: number;
+  totalDeductibleAmount: number;
   expensesByCategory: ExpenseByCategory[];
   expensesByCompany: ExpenseByCompany[];
   expenseDetails: ExpenseDetail[];
