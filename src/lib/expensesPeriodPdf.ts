@@ -210,8 +210,8 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
 
   const summaryCards = [
     { label: t.totalExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses), color: COLORS.red },
+    { label: language === 'fr' ? 'Dépenses déductibles' : 'Deductible Expenses', value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalDeductibleAmount), color: COLORS.primary },
     { label: t.paidExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalPaidExpenses), color: COLORS.green },
-    { label: t.unpaidExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalUnpaidExpenses), color: COLORS.orange }
   ];
 
   summaryCards.forEach((card, index) => {
@@ -278,11 +278,14 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expense.amount),
         taxDisplay,
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expenseTotal),
+        expense.deductible_percent.toFixed(0) + '%',
+        new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expense.deductible_amount),
         expense.status === 'paid' ? t.paid : t.unpaid
       ];
     });
 
     // Add totals row
+    const totalDeductible = sortedExpenses.reduce((sum, e) => sum + e.deductible_amount, 0);
     tableData.push([
       t.totalRow,
       '',
@@ -292,11 +295,13 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalAmount),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalTaxes),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalWithTaxes),
+      '',
+      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalDeductible),
       ''
     ]);
 
     autoTable(doc, {
-      head: [[t.date, t.description, t.category, t.companyCol, t.vendor, t.amount, t.taxes, t.total, t.status]],
+      head: [[t.date, t.description, t.category, t.companyCol, t.vendor, t.amount, t.taxes, t.total, language === 'fr' ? 'Déd. %' : 'Ded. %', language === 'fr' ? 'Montant déd.' : 'Ded. Amt', t.status]],
       body: tableData,
       startY: yPosition,
       margin: { left: margin, right: margin },
@@ -319,15 +324,17 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
         fillColor: [250, 250, 250],
       },
       columnStyles: {
-        0: { halign: 'left', cellWidth: 22 },
-        1: { halign: 'left', cellWidth: 45 },
-        2: { halign: 'left', cellWidth: 30 },
-        3: { halign: 'left', cellWidth: 35 },
-        4: { halign: 'left', cellWidth: 30 },
-        5: { halign: 'right', cellWidth: 25 },
-        6: { halign: 'left', cellWidth: 45 },
-        7: { halign: 'right', cellWidth: 25 },
-        8: { halign: 'center', cellWidth: 20 },
+        0: { halign: 'left', cellWidth: 20 },
+        1: { halign: 'left', cellWidth: 35 },
+        2: { halign: 'left', cellWidth: 25 },
+        3: { halign: 'left', cellWidth: 30 },
+        4: { halign: 'left', cellWidth: 25 },
+        5: { halign: 'right', cellWidth: 22 },
+        6: { halign: 'left', cellWidth: 35 },
+        7: { halign: 'right', cellWidth: 22 },
+        8: { halign: 'right', cellWidth: 16 },
+        9: { halign: 'right', cellWidth: 22 },
+        10: { halign: 'center', cellWidth: 18 },
       },
       didParseCell: (data) => {
         // Style the totals row
@@ -336,7 +343,7 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
           data.cell.styles.fillColor = COLORS.lightGray;
         }
         // Style status column
-        if (data.column.index === 8 && data.section === 'body' && data.row.index < tableData.length - 1) {
+        if (data.column.index === 10 && data.section === 'body' && data.row.index < tableData.length - 1) {
           const statusText = data.cell.raw as string;
           if (statusText === t.paid) {
             data.cell.styles.textColor = COLORS.green;

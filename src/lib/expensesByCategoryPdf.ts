@@ -41,12 +41,15 @@ const getTranslations = (language: 'fr' | 'en') => {
     generatedOn: 'Généré le',
     summary: 'Résumé',
     totalExpenses: 'Total des dépenses',
+    deductibleExpenses: 'Dépenses déductibles',
     totalCategories: 'Nombre de catégories',
     avgPerCategory: 'Moyenne par catégorie',
     categoryDetails: 'Détail par catégorie',
     category: 'Catégorie',
     count: 'Nombre',
     totalAmount: 'Montant total',
+    deductiblePct: 'Déd. %',
+    deductibleAmount: 'Montant déd.',
     avgAmount: 'Montant moyen',
     percentage: '% du total',
     totalRow: 'TOTAL',
@@ -64,12 +67,15 @@ const getTranslations = (language: 'fr' | 'en') => {
     generatedOn: 'Generated on',
     summary: 'Summary',
     totalExpenses: 'Total Expenses',
+    deductibleExpenses: 'Deductible Expenses',
     totalCategories: 'Number of Categories',
     avgPerCategory: 'Average per Category',
     categoryDetails: 'Category Details',
     category: 'Category',
     count: 'Count',
     totalAmount: 'Total Amount',
+    deductiblePct: 'Ded. %',
+    deductibleAmount: 'Ded. Amount',
     avgAmount: 'Average Amount',
     percentage: '% of Total',
     totalRow: 'TOTAL',
@@ -176,8 +182,8 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
 
   const summaryCards = [
     { label: t.totalExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses), color: COLORS.red },
-    { label: t.totalCategories, value: reportData.expensesByCategory.length.toString(), color: COLORS.primary },
-    { label: t.avgPerCategory, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(avgPerCategory), color: COLORS.dark }
+    { label: t.deductibleExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalDeductibleAmount), color: COLORS.primary },
+    { label: t.totalCategories, value: reportData.expensesByCategory.length.toString(), color: COLORS.dark },
   ];
 
   summaryCards.forEach((card, index) => {
@@ -219,22 +225,27 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
         cat.category,
         cat.count.toString(),
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(cat.total_amount),
+        cat.avg_deductible_percent.toFixed(0) + '%',
+        new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(cat.total_deductible_amount),
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(cat.total_amount / cat.count),
         percentage
       ];
     });
 
     const totalCount = sortedCategories.reduce((sum, cat) => sum + cat.count, 0);
+    const totalDeductible = sortedCategories.reduce((sum, cat) => sum + cat.total_deductible_amount, 0);
     tableData.push([
       t.totalRow,
       totalCount.toString(),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses),
+      '',
+      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalDeductible),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses / totalCount),
       '100%'
     ]);
 
     autoTable(doc, {
-      head: [[t.category, t.count, t.totalAmount, t.avgAmount, t.percentage]],
+      head: [[t.category, t.count, t.totalAmount, t.deductiblePct, t.deductibleAmount, t.avgAmount, t.percentage]],
       body: tableData,
       startY: yPosition,
       margin: { left: margin, right: margin },
@@ -258,10 +269,12 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
       },
       columnStyles: {
         0: { halign: 'left', cellWidth: 'auto' },
-        1: { halign: 'right', cellWidth: 25 },
-        2: { halign: 'right', cellWidth: 35 },
-        3: { halign: 'right', cellWidth: 35 },
-        4: { halign: 'right', cellWidth: 25 },
+        1: { halign: 'right', cellWidth: 20 },
+        2: { halign: 'right', cellWidth: 30 },
+        3: { halign: 'right', cellWidth: 20 },
+        4: { halign: 'right', cellWidth: 30 },
+        5: { halign: 'right', cellWidth: 30 },
+        6: { halign: 'right', cellWidth: 20 },
       },
       didParseCell: (data) => {
         if (data.row.index === tableData.length - 1) {

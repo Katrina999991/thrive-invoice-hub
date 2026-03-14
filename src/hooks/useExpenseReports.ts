@@ -6,6 +6,8 @@ export interface ExpenseByCategory {
   category: string;
   total_amount: number;
   count: number;
+  total_deductible_amount: number;
+  avg_deductible_percent: number;
 }
 
 export interface ExpenseByCompany {
@@ -25,12 +27,15 @@ export interface ExpenseDetail {
   company_name?: string;
   vendor?: string;
   taxes?: Array<{ name: string; percentage: number; amount?: number }>;
+  deductible_percent: number;
+  deductible_amount: number;
 }
 
 export interface ExpenseReportData {
   totalExpenses: number;
   totalPaidExpenses: number;
   totalUnpaidExpenses: number;
+  totalDeductibleAmount: number;
   expensesByCategory: ExpenseByCategory[];
   expensesByCompany: ExpenseByCompany[];
   expenseDetails: ExpenseDetail[];
@@ -62,6 +67,7 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
           company_id,
           vendor,
           taxes,
+          deductible_percent,
           companies (
             name
           )
@@ -93,6 +99,7 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
           totalExpenses: 0,
           totalPaidExpenses: 0,
           totalUnpaidExpenses: 0,
+          totalDeductibleAmount: 0,
           expensesByCategory: [],
           expensesByCompany: [],
           expenseDetails: []
@@ -111,21 +118,29 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
       const totalUnpaidExpenses = expensesData
         .filter(expense => expense.status === 'unpaid')
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
+      const totalDeductibleAmount = expensesData.reduce((sum, expense) => {
+        const deductPct = expense.deductible_percent != null ? Number(expense.deductible_percent) : 100;
+        return sum + (Number(expense.amount) * deductPct / 100);
+      }, 0);
 
       // Group by category
-      const categoryMap = new Map<string, { total_amount: number; count: number }>();
+      const categoryMap = new Map<string, { total_amount: number; count: number; total_deductible: number; deductible_pct_sum: number }>();
       expensesData.forEach(expense => {
         const category = expense.category || 'Uncategorized';
         const amount = Number(expense.amount);
+        const deductPct = expense.deductible_percent != null ? Number(expense.deductible_percent) : 100;
+        const deductAmt = amount * deductPct / 100;
 
         if (categoryMap.has(category)) {
           const existing = categoryMap.get(category)!;
           categoryMap.set(category, {
             total_amount: existing.total_amount + amount,
-            count: existing.count + 1
+            count: existing.count + 1,
+            total_deductible: existing.total_deductible + deductAmt,
+            deductible_pct_sum: existing.deductible_pct_sum + deductPct
           });
         } else {
-          categoryMap.set(category, { total_amount: amount, count: 1 });
+          categoryMap.set(category, { total_amount: amount, count: 1, total_deductible: deductAmt, deductible_pct_sum: deductPct });
         }
       });
 
@@ -159,7 +174,9 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
         .map(([category, data]) => ({
           category,
           total_amount: data.total_amount,
-          count: data.count
+          count: data.count,
+          total_deductible_amount: data.total_deductible,
+          avg_deductible_percent: data.deductible_pct_sum / data.count
         }))
         .sort((a, b) => b.total_amount - a.total_amount);
 
@@ -173,22 +190,28 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
         .sort((a, b) => b.total_amount - a.total_amount);
 
       // Prepare expense details
-      const expenseDetails: ExpenseDetail[] = expensesData.map(expense => ({
-        id: expense.id,
-        description: expense.description,
-        amount: Number(expense.amount),
-        category: expense.category || 'Uncategorized',
-        expense_date: expense.expense_date,
-        status: expense.status,
-        company_name: expense.companies?.name,
-        vendor: expense.vendor,
-        taxes: expense.taxes || []
-      }));
+      const expenseDetails: ExpenseDetail[] = expensesData.map(expense => {
+        const deductPct = expense.deductible_percent != null ? Number(expense.deductible_percent) : 100;
+        return {
+          id: expense.id,
+          description: expense.description,
+          amount: Number(expense.amount),
+          category: expense.category || 'Uncategorized',
+          expense_date: expense.expense_date,
+          status: expense.status,
+          company_name: expense.companies?.name,
+          vendor: expense.vendor,
+          taxes: expense.taxes || [],
+          deductible_percent: deductPct,
+          deductible_amount: Number(expense.amount) * deductPct / 100
+        };
+      });
 
       setReportData({
         totalExpenses,
         totalPaidExpenses,
         totalUnpaidExpenses,
+        totalDeductibleAmount,
         expensesByCategory,
         expensesByCompany,
         expenseDetails

@@ -205,9 +205,13 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expense.amount),
         taxDisplay,
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expenseTotal),
+        expense.deductible_percent.toFixed(0) + '%',
+        new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expense.deductible_amount),
         expense.status === 'paid' ? t.paid : t.unpaid
       ];
     });
+
+    const totalDeductible = sortedExpenses.reduce((sum, e) => sum + e.deductible_amount, 0);
 
     // Add totals row
     tableData.push([
@@ -219,11 +223,13 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalAmount),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalTaxes),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(grandTotal),
+      '',
+      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalDeductible),
       ''
     ]);
 
     autoTable(doc, {
-      head: [[t.date, t.description, t.category, t.companyCol, t.vendor, t.amount, t.taxes, t.total, t.status]],
+      head: [[t.date, t.description, t.category, t.companyCol, t.vendor, t.amount, t.taxes, t.total, language === 'fr' ? 'Déd. %' : 'Ded. %', language === 'fr' ? 'Montant déd.' : 'Ded. Amt', t.status]],
       body: tableData,
       startY: yPosition,
       margin: { left: margin, right: margin },
@@ -246,15 +252,17 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
         fillColor: [250, 250, 250],
       },
       columnStyles: {
-        0: { halign: 'left', cellWidth: 22 },
-        1: { halign: 'left', cellWidth: 50 },
-        2: { halign: 'left', cellWidth: 30 },
-        3: { halign: 'left', cellWidth: 35 },
-        4: { halign: 'left', cellWidth: 30 },
-        5: { halign: 'right', cellWidth: 25 },
-        6: { halign: 'left', cellWidth: 40 },
-        7: { halign: 'right', cellWidth: 25 },
-        8: { halign: 'center', cellWidth: 20 },
+        0: { halign: 'left', cellWidth: 20 },
+        1: { halign: 'left', cellWidth: 40 },
+        2: { halign: 'left', cellWidth: 25 },
+        3: { halign: 'left', cellWidth: 30 },
+        4: { halign: 'left', cellWidth: 25 },
+        5: { halign: 'right', cellWidth: 22 },
+        6: { halign: 'left', cellWidth: 32 },
+        7: { halign: 'right', cellWidth: 22 },
+        8: { halign: 'right', cellWidth: 16 },
+        9: { halign: 'right', cellWidth: 22 },
+        10: { halign: 'center', cellWidth: 18 },
       },
       didParseCell: (data) => {
         // Style the totals row
@@ -263,7 +271,7 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
           data.cell.styles.fillColor = COLORS.lightGray;
         }
         // Color the status column
-        if (data.column.index === 8 && data.section === 'body' && data.row.index < tableData.length - 1) {
+        if (data.column.index === 10 && data.section === 'body' && data.row.index < tableData.length - 1) {
           const statusText = data.cell.raw as string;
           if (statusText === t.paid) {
             data.cell.styles.textColor = COLORS.green;
