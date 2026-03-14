@@ -1960,6 +1960,12 @@ Best regards,
                       {(viewingInvoice as any).final_reminder_response_due_at && (
                         <p>{t("invoices.responseExpectedBefore")}: {new Date((viewingInvoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
                       )}
+                      {(viewingInvoice as any).final_reminder_recipient && (
+                        <p>{language === "fr" ? "Envoyé à" : "Sent to"}: {(viewingInvoice as any).final_reminder_recipient}</p>
+                      )}
+                      {(viewingInvoice as any).final_reminder_email_subject && (
+                        <p>{language === "fr" ? "Objet" : "Subject"}: {(viewingInvoice as any).final_reminder_email_subject}</p>
+                      )}
                     </div>
                   </div>
                 )}
