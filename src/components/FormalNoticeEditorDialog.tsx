@@ -95,7 +95,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const defaultBody = language === 'fr'
     ? `Madame, Monsieur,
 
-Malgré nos rappels précédents, le solde de la facture {{invoice_number}}, d'un montant de {{amount_due}}, demeure impayé.
+Malgré nos rappels précédents, le solde de la facture {{invoice_number}}${invoiceDescription ? ', concernant {{invoice_description}},' : ','} d'un montant de {{amount_due}}, demeure impayé.
 
 Cette facture était échue depuis le {{invoice_due_date}}.
 
