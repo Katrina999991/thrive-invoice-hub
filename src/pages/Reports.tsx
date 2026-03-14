@@ -8198,11 +8198,11 @@ const Reports = () => {
           {/* Exports */}
           {taxData && (taxData.totalInvoiceTaxAmount > 0 || taxData.totalExpenseTaxAmount > 0) && (
             <Card className="shadow-sm border-0">
-              <CardHeader className="pb-0 pt-4 px-5">
+              <CardHeader className="pb-0 pt-3 px-4">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{language === 'fr' ? 'Exports' : 'Exports'}</CardTitle>
               </CardHeader>
-              <CardContent className="px-5 pb-4 pt-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <CardContent className="px-4 pb-3 pt-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {/* Summary */}
                   <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
