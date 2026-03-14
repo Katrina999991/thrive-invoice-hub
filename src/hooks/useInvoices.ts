@@ -19,6 +19,7 @@ export const useInvoices = () => {
   const { user, username } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { decryptFields } = useEncryption();
 
   const fetchInvoices = async () => {
     if (!user) return;
