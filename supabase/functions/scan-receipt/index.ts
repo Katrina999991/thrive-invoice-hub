@@ -371,7 +371,7 @@ serve(async (req) => {
         user_id: userId,
         company_id: companyId || null,
         vendor: scanVendor,
-        total_amount: totalAmount,
+        total_amount: ocrTotal,
         status: "success"
       });
       console.log("Receipt scan logged successfully");
