@@ -182,8 +182,8 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
 
   const summaryCards = [
     { label: t.totalExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses), color: COLORS.red },
-    { label: t.totalCategories, value: reportData.expensesByCategory.length.toString(), color: COLORS.primary },
-    { label: t.avgPerCategory, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(avgPerCategory), color: COLORS.dark }
+    { label: t.deductibleExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalDeductibleAmount), color: COLORS.primary },
+    { label: t.totalCategories, value: reportData.expensesByCategory.length.toString(), color: COLORS.dark },
   ];
 
   summaryCards.forEach((card, index) => {
