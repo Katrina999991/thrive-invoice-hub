@@ -2476,7 +2476,7 @@ const Reports = () => {
           language === 'fr' ? 'Date' : 'Date',
           language === 'fr' ? 'Client' : 'Client',
           language === 'fr' ? 'Montant taxable' : 'Taxable Amount',
-          language === 'fr' ? 'Taxe collectee' : 'Tax Collected'
+          language === 'fr' ? 'Taxe collectée' : 'Tax Collected'
         ]],
         body: invoiceTableData,
         startY: yOffset,
