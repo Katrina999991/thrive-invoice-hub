@@ -2961,6 +2961,8 @@ const Reports = () => {
       language === 'fr' ? 'Catégorie' : 'Category',
       language === 'fr' ? 'Nombre' : 'Count',
       language === 'fr' ? 'Montant total' : 'Total Amount',
+      language === 'fr' ? 'Déductible %' : 'Deductible %',
+      language === 'fr' ? 'Montant déductible' : 'Deductible Amount',
       language === 'fr' ? 'Montant moyen' : 'Average Amount',
       language === 'fr' ? '% du total' : '% of Total'
     ];
@@ -2976,6 +2978,8 @@ const Reports = () => {
         `"${(cat.category || '').replace(/"/g, '""')}"`,
         cat.count,
         cat.total_amount.toFixed(2),
+        cat.avg_deductible_percent.toFixed(1),
+        cat.total_deductible_amount.toFixed(2),
         (cat.total_amount / cat.count).toFixed(2),
         percentage
       ];
