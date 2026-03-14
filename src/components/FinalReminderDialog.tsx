@@ -28,6 +28,7 @@ interface FinalReminderDialogProps {
       email: string | null;
       contact_person: string | null;
       include_payment_link?: boolean | null;
+      language?: string | null;
     };
   };
   companyName?: string;
@@ -43,6 +44,9 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
   const { t, language } = useLanguage();
   const isResend = invoice.final_reminder_sent;
 
+  // Use CLIENT language for email content, UI language for labels
+  const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
+
   const clientName = invoice.clients?.contact_person || invoice.clients?.name || '';
   const clientEmail = invoice.clients?.email || '';
   const company = companyName || '';
@@ -51,17 +55,17 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
   const defaultDueDate = new Date();
   defaultDueDate.setDate(defaultDueDate.getDate() + 7);
 
-  const defaultSubject = language === "fr"
+  const defaultSubject = clientLang === "fr"
     ? `Dernier rappel de paiement — Facture ${invoice.invoice_number}`
     : `Final Payment Reminder — Invoice ${invoice.invoice_number}`;
 
   const includePaymentLink = invoice.clients?.include_payment_link === true && !!invoice.payment_link;
 
-  const paymentLinkBlock = language === "fr"
+  const paymentLinkBlock = clientLang === "fr"
     ? `\n\nLien de paiement :\n{{invoice_payment_link}}`
     : `\n\nPayment link:\n{{invoice_payment_link}}`;
 
-  const defaultBody = language === "fr"
+  const defaultBody = clientLang === "fr"
     ? `Bonjour {{client_name}},
 
 Ceci est un dernier rappel concernant la facture {{invoice_number}} d'un montant de {{amount_due}}.
@@ -85,8 +89,12 @@ Thank you for your attention,
 
 {{company_name}}`;
 
+  // Validate that stored recipient looks like an email, not a UUID
+  const storedRecipient = invoice.final_reminder_recipient;
+  const isValidEmail = storedRecipient && storedRecipient.includes('@');
+  
   const [recipient, setRecipient] = useState(
-    invoice.final_reminder_recipient || clientEmail
+    isValidEmail ? storedRecipient : clientEmail
   );
   const [subject, setSubject] = useState(
     invoice.final_reminder_email_subject || defaultSubject
@@ -189,6 +197,15 @@ Thank you for your attention,
             </TabsList>
 
             <TabsContent value="compose" className="space-y-4 mt-4">
+              {/* No email warning */}
+              {!clientEmail && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-sm text-destructive">
+                  {language === "fr"
+                    ? "Ce client n'a pas d'adresse email enregistrée. Veuillez saisir une adresse email ci-dessous."
+                    : "This client has no email address on file. Please enter an email address below."}
+                </div>
+              )}
+
               {/* Recipient */}
               <div className="space-y-2">
                 <Label htmlFor="fr-recipient">
@@ -199,7 +216,7 @@ Thank you for your attention,
                   type="email"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  placeholder={clientEmail || "email@example.com"}
+                  placeholder="email@example.com"
                 />
               </div>
 
