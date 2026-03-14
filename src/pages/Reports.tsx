@@ -8204,7 +8204,7 @@ const Reports = () => {
               <CardContent className="px-4 pb-3 pt-2.5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {/* Summary */}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
                       <p className="text-sm font-medium truncate">{t("reports.taxes.download")}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{t("reports.taxes.exportDesc")}</p>
@@ -8221,7 +8221,7 @@ const Reports = () => {
 
                   {/* Taxes Collected */}
                   {taxData.totalInvoiceTaxAmount > 0 && (
-                    <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                       <div className="min-w-0 mr-3">
                         <p className="text-sm font-medium truncate">{getReportTranslation('taxesCollectedSales', language)}</p>
                         <p className="text-[11px] text-muted-foreground truncate">{getReportTranslation('taxesCollectedSalesDesc', language)}</p>
@@ -8238,7 +8238,7 @@ const Reports = () => {
                   )}
 
                   {/* Taxes Paid */}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
                       <p className="text-sm font-medium truncate">{getReportTranslation('taxesPaidExpenses', language)}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{getReportTranslation('taxesPaidExpensesDesc', language)}</p>
@@ -8254,7 +8254,7 @@ const Reports = () => {
                   </div>
 
                   {/* Net Tax Report */}
-                  <div className="flex items-center justify-between py-2.5 px-3.5 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md border bg-muted/10 hover:bg-muted/20 transition-colors">
                     <div className="min-w-0 mr-3">
                       <p className="text-sm font-medium truncate">{getReportTranslation('netTaxReport', language)}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{getReportTranslation('netTaxReportDesc', language)}</p>
