@@ -160,6 +160,7 @@ Sincerely,
       .replace(/\{\{client_name\}\}/g, clientName)
       .replace(/\{\{client_address\}\}/g, clientAddress)
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
+      .replace(/\{\{invoice_description\}\}/g, invoiceDescription)
       .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
