@@ -1121,28 +1121,60 @@ const Reports = () => {
     // ========== TAX SUMMARY SECTION ==========
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'fr' ? 'Resume des taxes' : 'Tax Summary', margin, yOffset);
+    doc.text(language === 'fr' ? 'Résumé des taxes' : 'Tax Summary', margin, yOffset);
     yOffset += 10;
     
-    // Net Amount Payable box
-    doc.setFillColor(240, 249, 255); // Light blue background
-    doc.roundedRect(margin, yOffset, pageWidth - (margin * 2), 35, 3, 3, 'F');
+    // Tax Calculation box
+    doc.setFillColor(248, 250, 252); // Light gray background
+    doc.roundedRect(margin, yOffset, pageWidth - (margin * 2), 55, 3, 3, 'F');
     
+    const labelX = margin + 8;
+    const valueX = margin + 120;
+    
+    // Collected Taxes
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(
-      language === 'fr' ? 'Montant net a remettre' : 'Net Amount Payable',
-      margin + 5,
-      yOffset + 10
+      language === 'fr' ? 'Taxes collectées' : 'Collected Taxes',
+      labelX, yOffset + 12
     );
-    
-    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(59, 130, 246); // Blue
+    doc.setTextColor(34, 197, 94);
+    doc.text(
+      taxData.totalInvoiceTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+      valueX, yOffset + 12, { align: 'right' }
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    // Recoverable Credits
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      language === 'fr' ? 'Crédits récupérables' : 'Recoverable Credits',
+      labelX, yOffset + 22
+    );
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(249, 115, 22);
+    doc.text(
+      `− ${taxData.totalExpenseTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' })}`,
+      valueX, yOffset + 22, { align: 'right' }
+    );
+    doc.setTextColor(0, 0, 0);
+    
+    // Separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(labelX, yOffset + 28, valueX, yOffset + 28);
+    
+    // Net Amount Payable
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(
+      language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable',
+      labelX, yOffset + 38
+    );
+    doc.setTextColor(59, 130, 246);
     doc.text(
       taxData.totalTaxAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
-      margin + 5,
-      yOffset + 22
+      valueX, yOffset + 38, { align: 'right' }
     );
     doc.setTextColor(0, 0, 0);
     
@@ -1151,15 +1183,14 @@ const Reports = () => {
     doc.setTextColor(100, 100, 100);
     doc.text(
       language === 'fr' 
-        ? 'Taxes collectees sur les ventes moins les credits de taxes sur les depenses' 
+        ? 'Taxes collectées sur les ventes moins les crédits de taxes sur les dépenses' 
         : 'Taxes collected on revenue minus tax credits from expenses',
-      margin + 5,
-      yOffset + 30
+      labelX, yOffset + 48
     );
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
     
-    yOffset += 45;
+    yOffset += 65;
     
     // Collected Taxes & Tax Credits side by side
     const boxWidth = (pageWidth - (margin * 2) - 10) / 2;
