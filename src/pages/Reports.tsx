@@ -1893,7 +1893,7 @@ const Reports = () => {
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'fr' ? 'Resume' : 'Summary', margin + 5, yOffset + 10);
+    doc.text(language === 'fr' ? 'Résumé' : 'Summary', margin + 5, yOffset + 10);
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
