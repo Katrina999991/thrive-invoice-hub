@@ -2440,6 +2440,7 @@ Best regards,
                                 <p>{language === 'fr' ? 'Mise en demeure' : 'Formal notice'}</p>
                               </TooltipContent>
                             </Tooltip>
+                          )}
                           {stripeAccountId && invoice.status !== "paid" && (
                             invoice.payment_link ? (
                               <>
