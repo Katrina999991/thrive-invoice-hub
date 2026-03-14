@@ -61,10 +61,6 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
 
   const includePaymentLink = invoice.clients?.include_payment_link === true && !!invoice.payment_link;
 
-  const paymentLinkBlock = clientLang === "fr"
-    ? `\n\nLien de paiement :\n{{invoice_payment_link}}`
-    : `\n\nPayment link:\n{{invoice_payment_link}}`;
-
   const defaultBody = clientLang === "fr"
     ? `Bonjour {{client_name}},
 
@@ -72,7 +68,7 @@ Ceci est un dernier rappel concernant la facture {{invoice_number}} d'un montant
 
 La facture était échue le {{invoice_due_date}}. Nous vous demandons de bien vouloir effectuer le paiement ou nous répondre au plus tard le {{final_reminder_due_date}}.
 
-Sans réponse de votre part avant cette date, nous serons dans l'obligation de prendre les mesures nécessaires.${includePaymentLink ? paymentLinkBlock : ''}
+Sans réponse de votre part avant cette date, nous serons dans l'obligation de prendre les mesures nécessaires.
 
 Merci de votre attention,
 
@@ -83,7 +79,7 @@ This is a final reminder regarding invoice {{invoice_number}} for an amount of {
 
 The invoice was due on {{invoice_due_date}}. We kindly request that you make the payment or respond no later than {{final_reminder_due_date}}.
 
-If we do not hear from you by this date, we will be obligated to take further action.${includePaymentLink ? paymentLinkBlock : ''}
+If we do not hear from you by this date, we will be obligated to take further action.
 
 Thank you for your attention,
 
