@@ -1086,7 +1086,7 @@ const Reports = () => {
     // ========== HEADER ==========
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'fr' ? 'Rapport de taxes' : 'Taxes Report', pageWidth / 2, 25, { align: 'center' });
+    doc.text(language === 'fr' ? 'Rapport de taxes' : 'Tax Report', pageWidth / 2, 25, { align: 'center' });
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
