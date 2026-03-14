@@ -2377,6 +2377,23 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          {invoice.status !== 'paid' && invoice.status !== 'draft' && canSendInvoices && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                  onClick={() => setFinalReminderInvoice(invoice)}
+                                >
+                                  <AlertTriangle className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{(invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder")}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           {stripeAccountId && invoice.status !== "paid" && (
                             invoice.payment_link ? (
                               <>
