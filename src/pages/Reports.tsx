@@ -2365,7 +2365,7 @@ const Reports = () => {
     // Tax Credits
     doc.setFont('helvetica', 'normal');
     doc.text(
-      `${language === 'fr' ? 'Crédits de taxes (dépenses)' : 'Tax Credits (Expenses)'}`,
+      `${language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}:`,
       labelX, yOffset + 36
     );
     doc.setFont('helvetica', 'bold');
