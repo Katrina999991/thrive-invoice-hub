@@ -28,6 +28,7 @@ interface FinalReminderDialogProps {
       email: string | null;
       contact_person: string | null;
       include_payment_link?: boolean | null;
+      language?: string | null;
     };
   };
   companyName?: string;

@@ -97,7 +97,8 @@ export const useInvoices = () => {
               company_id,
               address,
               notes,
-              include_payment_link
+              include_payment_link,
+              language
             ),
             invoice_items (
               id,
