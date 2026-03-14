@@ -439,7 +439,12 @@ export const useInvoices = () => {
     }
   };
 
-  const sendFinalReminder = async (invoiceId: string, responseDueDate: string) => {
+  const sendFinalReminder = async (invoiceId: string, data: {
+    responseDueDate: string;
+    recipient: string;
+    subject: string;
+    body: string;
+  }) => {
     if (!user) return;
 
     try {
@@ -452,7 +457,10 @@ export const useInvoices = () => {
         .update({
           final_reminder_sent: true,
           final_reminder_sent_at: now,
-          final_reminder_response_due_at: responseDueDate
+          final_reminder_response_due_at: data.responseDueDate,
+          final_reminder_email_subject: data.subject,
+          final_reminder_email_body: data.body,
+          final_reminder_recipient: data.recipient,
         } as any)
         .eq("id", invoiceId);
 
@@ -471,7 +479,10 @@ export const useInvoices = () => {
           invoiceColor,
           hidePdfBranding,
           isFinalReminder: true,
-          responseDueDate
+          responseDueDate: data.responseDueDate,
+          customRecipient: data.recipient,
+          customSubject: data.subject,
+          customBody: data.body,
         }
       });
 
@@ -486,13 +497,15 @@ export const useInvoices = () => {
         userName: username || user.email?.split('@')[0] || 'User',
         category: 'sales',
         eventType: 'final_reminder_sent',
-        description: `Dernier rappel de paiement envoyé pour la facture ${invoice?.invoice_number}. Date limite de réponse : ${responseDueDate}`,
+        description: `Dernier rappel de paiement envoyé pour la facture ${invoice?.invoice_number} à ${data.recipient}. Date limite de réponse : ${data.responseDueDate}`,
         relatedEntityType: 'invoice',
         relatedEntityId: invoiceId,
         metadata: {
           invoice_number: invoice?.invoice_number,
           total: invoice?.total,
-          response_due_date: responseDueDate,
+          response_due_date: data.responseDueDate,
+          recipient: data.recipient,
+          subject: data.subject,
           sent_at: now
         }
       });

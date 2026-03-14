@@ -1960,6 +1960,12 @@ Best regards,
                       {(viewingInvoice as any).final_reminder_response_due_at && (
                         <p>{t("invoices.responseExpectedBefore")}: {new Date((viewingInvoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
                       )}
+                      {(viewingInvoice as any).final_reminder_recipient && (
+                        <p>{language === "fr" ? "Envoyé à" : "Sent to"}: {(viewingInvoice as any).final_reminder_recipient}</p>
+                      )}
+                      {(viewingInvoice as any).final_reminder_email_subject && (
+                        <p>{language === "fr" ? "Objet" : "Subject"}: {(viewingInvoice as any).final_reminder_email_subject}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -2184,6 +2190,9 @@ Best regards,
                     {(invoice as any).final_reminder_response_due_at && (
                       <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
                     )}
+                    {(invoice as any).final_reminder_recipient && (
+                      <p>{language === "fr" ? "Envoyé à" : "Sent to"}: {(invoice as any).final_reminder_recipient}</p>
+                    )}
                   </div>
                 )}
                 <div className="flex gap-2 flex-wrap">
@@ -2321,6 +2330,9 @@ Best regards,
                                   <p>{t("invoices.finalReminderSentOn")}: {new Date((invoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
                                   {(invoice as any).final_reminder_response_due_at && (
                                     <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                                  )}
+                                  {(invoice as any).final_reminder_recipient && (
+                                    <p>{language === "fr" ? "Envoyé à" : "Sent to"}: {(invoice as any).final_reminder_recipient}</p>
                                   )}
                                 </div>
                               </TooltipContent>
@@ -2800,7 +2812,10 @@ Best regards,
           open={!!finalReminderInvoice}
           onOpenChange={(open) => !open && setFinalReminderInvoice(null)}
           invoice={finalReminderInvoice as any}
-          onSend={sendFinalReminder}
+          companyName={companies.find(c => c.id === clients.find(cl => cl.id === finalReminderInvoice.client_id)?.company_id)?.name || ''}
+          onSend={async (invoiceId, data) => {
+            await sendFinalReminder(invoiceId, data);
+          }}
         />
       )}
     </div>
