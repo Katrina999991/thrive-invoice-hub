@@ -2047,17 +2047,15 @@ const Reports = () => {
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      
-      // Page number (right side)
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
+      // Page number (right side)
       doc.text(
         `Page ${i} / ${pageCount}`,
         pageWidth - margin,
         pageHeight - 10,
         { align: 'right' }
       );
-      
       // Branding (center) - only if not hidden
       if (!hidePdfBranding) {
         doc.text(
@@ -2067,6 +2065,7 @@ const Reports = () => {
           { align: 'center' }
         );
       }
+      doc.setTextColor(0, 0, 0);
     }
     
     // Generate filename and save
