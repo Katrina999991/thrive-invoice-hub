@@ -2800,7 +2800,10 @@ Best regards,
           open={!!finalReminderInvoice}
           onOpenChange={(open) => !open && setFinalReminderInvoice(null)}
           invoice={finalReminderInvoice as any}
-          onSend={sendFinalReminder}
+          companyName={companies.find(c => c.id === clients.find(cl => cl.id === finalReminderInvoice.client_id)?.company_id)?.name || ''}
+          onSend={async (invoiceId, data) => {
+            await sendFinalReminder(invoiceId, data);
+          }}
         />
       )}
     </div>
