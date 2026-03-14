@@ -7207,12 +7207,15 @@ const Reports = () => {
                         />
                         <YAxis />
                         <RechartsTooltip 
-                          formatter={(value: number) => [
+                          formatter={(value: number, name: string) => [
                             new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                            'Amount'
+                            name === 'total_deductible_amount' 
+                              ? (language === 'fr' ? 'Déductible' : 'Deductible')
+                              : (language === 'fr' ? 'Total' : 'Total')
                           ]}
                         />
-                        <Bar dataKey="total_amount" fill="#ef4444" />
+                        <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
+                        <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
                       </BarChart>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
