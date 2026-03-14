@@ -269,10 +269,12 @@ export const generateExpensesByCategoryPdf = async (options: ExpensesByCategoryP
       },
       columnStyles: {
         0: { halign: 'left', cellWidth: 'auto' },
-        1: { halign: 'right', cellWidth: 25 },
-        2: { halign: 'right', cellWidth: 35 },
-        3: { halign: 'right', cellWidth: 35 },
-        4: { halign: 'right', cellWidth: 25 },
+        1: { halign: 'right', cellWidth: 20 },
+        2: { halign: 'right', cellWidth: 30 },
+        3: { halign: 'right', cellWidth: 20 },
+        4: { halign: 'right', cellWidth: 30 },
+        5: { halign: 'right', cellWidth: 30 },
+        6: { halign: 'right', cellWidth: 20 },
       },
       didParseCell: (data) => {
         if (data.row.index === tableData.length - 1) {
