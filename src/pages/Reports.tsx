@@ -7934,38 +7934,30 @@ const Reports = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="taxes" className="space-y-4">
-          <div className="grid gap-4">
-            {/* Filtres pour le rapport de taxes */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("reports.taxes.filters")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Filtre par compagnie */}
-                  <div className="space-y-2">
-                    <Label>{t("reports.taxes.company")}</Label>
+        <TabsContent value="taxes" className="space-y-2">
+          <div className="grid gap-3">
+            {/* Compact Filters Card */}
+            <Card className="shadow-sm">
+              <CardContent className="pt-4 pb-3 px-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.company")}</Label>
                     <Select value={taxSelectedCompany} onValueChange={setTaxSelectedCompany}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9">
                         <SelectValue placeholder={t("reports.taxes.allCompanies")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">{t("reports.taxes.allCompanies")}</SelectItem>
                         {companies.map(company => (
-                          <SelectItem key={company.id} value={company.id}>
-                            {company.name}
-                          </SelectItem>
+                          <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Filtre de période */}
-                  <div className="space-y-2">
-                    <Label>{t("reports.taxes.periodType")}</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.periodType")}</Label>
                     <Select value={taxDateFilter} onValueChange={(value: 'custom' | 'month' | 'year') => setTaxDateFilter(value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -7975,12 +7967,10 @@ const Reports = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Mode d'affichage */}
-                  <div className="space-y-2">
-                    <Label>{t("reports.taxes.display")}</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.display")}</Label>
                     <Select value={taxViewMode} onValueChange={(value: 'monthly' | 'yearly') => setTaxViewMode(value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -7991,410 +7981,270 @@ const Reports = () => {
                   </div>
                 </div>
 
-                {/* Sélection de dates selon le type */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Date pickers row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   {taxDateFilter === 'custom' && (
                     <>
-                      <div className="space-y-2">
-                        <Label>{t("reports.taxes.startDate")}</Label>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.startDate")}</Label>
                         <Popover open={taxStartOpen} onOpenChange={setTaxStartOpen}>
                           <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !taxStartDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
+                            <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal text-sm", !taxStartDate && "text-muted-foreground")}>
+                              <CalendarIcon className="mr-2 h-3.5 w-3.5" />
                               {taxStartDate ? format(taxStartDate, "dd/MM/yyyy") : t("reports.taxes.select")}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={taxStartDate}
-                              onSelect={(date) => {
-                                setTaxStartDate(date);
-                                setTaxStartOpen(false);
-                              }}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
+                            <Calendar mode="single" selected={taxStartDate} onSelect={(date) => { setTaxStartDate(date); setTaxStartOpen(false); }} initialFocus className="pointer-events-auto" />
                           </PopoverContent>
                         </Popover>
                       </div>
-                      <div className="space-y-2">
-                        <Label>{t("reports.taxes.endDate")}</Label>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.endDate")}</Label>
                         <Popover open={taxEndOpen} onOpenChange={setTaxEndOpen}>
                           <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !taxEndDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
+                            <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal text-sm", !taxEndDate && "text-muted-foreground")}>
+                              <CalendarIcon className="mr-2 h-3.5 w-3.5" />
                               {taxEndDate ? format(taxEndDate, "dd/MM/yyyy") : t("reports.taxes.select")}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={taxEndDate}
-                              onSelect={(date) => {
-                                setTaxEndDate(date);
-                                setTaxEndOpen(false);
-                              }}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
+                            <Calendar mode="single" selected={taxEndDate} onSelect={(date) => { setTaxEndDate(date); setTaxEndOpen(false); }} initialFocus className="pointer-events-auto" />
                           </PopoverContent>
                         </Popover>
                       </div>
                     </>
                   )}
-                  
                   {taxDateFilter === 'month' && (
-                    <div className="space-y-2">
-                      <Label>{t("reports.taxes.month")}</Label>
-                      <MonthYearPicker
-                        selectedDate={taxSelectedMonth}
-                        onDateChange={setTaxSelectedMonth}
-                        mode="month"
-                        t={t}
-                        language={language}
-                      />
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.month")}</Label>
+                      <MonthYearPicker selectedDate={taxSelectedMonth} onDateChange={setTaxSelectedMonth} mode="month" t={t} language={language} />
                     </div>
                   )}
-                  
                   {taxDateFilter === 'year' && (
-                    <div className="space-y-2">
-                      <Label>{t("reports.taxes.year")}</Label>
-                      <MonthYearPicker
-                        selectedDate={taxSelectedYear}
-                        onDateChange={setTaxSelectedYear}
-                        mode="year"
-                        t={t}
-                        language={language}
-                      />
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">{t("reports.taxes.year")}</Label>
+                      <MonthYearPicker selectedDate={taxSelectedYear} onDateChange={setTaxSelectedYear} mode="year" t={t} language={language} />
                     </div>
                   )}
                 </div>
+
+                {/* Active filter chips */}
+                {(taxSelectedCompany !== 'all' || taxEffectiveStart || taxEffectiveEnd) && (
+                  <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t">
+                    {taxSelectedCompany && taxSelectedCompany !== 'all' && (
+                      <Badge variant="secondary" className="text-xs font-normal px-2 py-0.5">
+                        {companies.find(c => c.id === taxSelectedCompany)?.name}
+                      </Badge>
+                    )}
+                    {taxEffectiveStart && taxEffectiveEnd && (
+                      <Badge variant="secondary" className="text-xs font-normal px-2 py-0.5">
+                        {format(taxEffectiveStart, "dd/MM/yyyy")} – {format(taxEffectiveEnd, "dd/MM/yyyy")}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-xs font-normal px-2 py-0.5">
+                      {taxViewMode === 'monthly' ? t("reports.taxes.monthly") : t("reports.taxes.yearly")}
+                    </Badge>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Résumé des taxes */}
-            {taxData && taxData.totalTaxAmount > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("reports.taxes.taxSummary")}</CardTitle>
-                  <CardDescription>
-                    {taxSelectedCompany && taxSelectedCompany !== 'all'
-                      ? `${t("reports.taxes.company")}: ${companies.find(c => c.id === taxSelectedCompany)?.name}`
-                      : t("reports.taxes.allCompanies")
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
-                      </p>
-                      <div className="text-3xl font-bold text-primary">
-                        {taxData.totalTaxAmount.toLocaleString('fr-FR', { 
-                          style: 'currency', 
-                          currency: 'CAD' 
-                        })}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {language === 'fr' 
-                          ? 'Taxes collectées sur les ventes moins les crédits de taxes sur les dépenses' 
-                          : 'Taxes collected on revenue minus tax credits from expenses'}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                      <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {language === 'fr' ? 'Collectées sur les factures payées' : 'Collected from paid invoices'}
-                        </p>
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                          {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { 
-                            style: 'currency', 
-                            currency: 'CAD' 
-                          })}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {language === 'fr' ? 'Crédits de taxes récupérables sur les dépenses' : 'Recoverable tax credits from expenses'}
-                        </p>
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                          {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { 
-                            style: 'currency', 
-                            currency: 'CAD' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <h4 className="text-lg font-semibold mb-4">{t("reports.taxes.totalByType")}</h4>
-                      <div className="space-y-3">
-                        {taxData.taxSummary.map((tax, index) => (
-                          <div key={index} className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex justify-between items-start mb-3">
-                              <span className="font-medium text-base">{tax.name}</span>
-                            <div className="text-right">
-                                <div className="text-sm text-muted-foreground mb-1">
-                                  {language === 'fr' ? 'Montant dû' : 'Amount Owed'}
-                                </div>
-                                <span className="text-xl font-semibold">
-                                  {tax.netAmount.toLocaleString('fr-FR', { 
-                                    style: 'currency', 
-                                    currency: 'CAD' 
-                                  })}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                              <div className="flex flex-col p-2 bg-green-50 dark:bg-green-950/30 rounded">
-                                <span className="text-muted-foreground mb-1">
-                                  {language === 'fr' ? 'Collectées' : 'Collected'}
-                                </span>
-                                <span className="font-semibold text-green-600 dark:text-green-400">
-                                  {tax.invoiceAmount.toLocaleString('fr-FR', { 
-                                    style: 'currency', 
-                                    currency: 'CAD' 
-                                  })}
-                                </span>
-                                <span className="text-xs text-muted-foreground mt-1">
-                                  {tax.invoiceCount || 0} {(tax.invoiceCount || 0) > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
-                                </span>
-                              </div>
-                              <div className="flex flex-col p-2 bg-orange-50 dark:bg-orange-950/30 rounded">
-                                <span className="text-muted-foreground mb-1">
-                                  {language === 'fr' ? 'Crédits' : 'Credits'}
-                                </span>
-                                <span className="font-semibold text-orange-600 dark:text-orange-400">
-                                  {tax.expenseAmount.toLocaleString('fr-FR', { 
-                                    style: 'currency', 
-                                    currency: 'CAD' 
-                                  })}
-                                </span>
-                                <span className="text-xs text-muted-foreground mt-1">
-                                  {tax.expenseCount || 0} {(tax.expenseCount || 0) > 1 ? (language === 'fr' ? 'dépenses' : 'expenses') : (language === 'fr' ? 'dépense' : 'expense')}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Message si aucune donnée de taxes */}
-            {taxData && taxData.totalTaxAmount === 0 && (
-              <Card>
-                <CardContent className="flex justify-center items-center h-96">
-                  <div className="text-center">
-                    <p className="text-lg font-medium">{t("reports.taxes.noData")}</p>
-                    <p className="text-muted-foreground">
-                      {t("reports.taxes.noDataDesc")}
+            {/* Tax Summary - Metric Cards */}
+            {taxData && (taxData.totalInvoiceTaxAmount > 0 || taxData.totalExpenseTaxAmount > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Net Amount Payable */}
+                <Card className="shadow-sm border-l-4 border-l-primary">
+                  <CardContent className="pt-4 pb-3 px-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}
                     </p>
+                    <p className="text-2xl font-bold text-primary mt-1">
+                      {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {language === 'fr' ? 'Collectées − Crédits' : 'Collected − Credits'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Collected Taxes */}
+                <Card className="shadow-sm border-l-4 border-l-green-500">
+                  <CardContent className="pt-4 pb-3 px-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}
+                    </p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+                      {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {language === 'fr' ? 'Sur factures payées' : 'From paid invoices'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Tax Credits */}
+                <Card className="shadow-sm border-l-4 border-l-orange-500">
+                  <CardContent className="pt-4 pb-3 px-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}
+                    </p>
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1">
+                      {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {language === 'fr' ? 'Crédits récupérables sur dépenses' : 'Recoverable credits from expenses'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* No data message */}
+            {taxData && taxData.totalInvoiceTaxAmount === 0 && taxData.totalExpenseTaxAmount === 0 && (
+              <Card className="shadow-sm">
+                <CardContent className="flex justify-center items-center py-16">
+                  <div className="text-center">
+                    <p className="text-base font-medium">{t("reports.taxes.noData")}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t("reports.taxes.noDataDesc")}</p>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Tableau résumé des taxes */}
+            {/* Tax Type Breakdown Table */}
             {taxData && taxData.taxSummary && taxData.taxSummary.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("reports.taxes.summaryCollected")}</CardTitle>
-                  <CardDescription>{t("reports.taxes.summaryDesc")}</CardDescription>
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <CardTitle className="text-base">{t("reports.taxes.totalByType")}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-4 pb-3">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("reports.taxes.taxType")}</TableHead>
-                        <TableHead className="text-right">{language === 'fr' ? 'Taxes collectées' : 'Collected Taxes'}</TableHead>
-                        <TableHead className="text-right">{language === 'fr' ? 'Crédits de taxes' : 'Tax Credits'}</TableHead>
-                        <TableHead className="text-right">{language === 'fr' ? 'Montant net à remettre' : 'Net Amount Payable'}</TableHead>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="h-9 text-xs">{t("reports.taxes.taxType")}</TableHead>
+                        <TableHead className="h-9 text-xs text-right">{language === 'fr' ? 'Collectées' : 'Collected'}</TableHead>
+                        <TableHead className="h-9 text-xs text-right">{language === 'fr' ? 'Crédits' : 'Credits'}</TableHead>
+                        <TableHead className="h-9 text-xs text-right">{language === 'fr' ? 'Net à remettre' : 'Net Payable'}</TableHead>
+                        <TableHead className="h-9 text-xs text-center">{language === 'fr' ? 'Fact.' : 'Inv.'}</TableHead>
+                        <TableHead className="h-9 text-xs text-center">{language === 'fr' ? 'Dép.' : 'Exp.'}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {taxData.taxSummary.map((tax, index) => (
                         <TableRow key={index}>
-                          <TableCell className="font-medium">{tax.name}</TableCell>
-                          <TableCell className="text-right text-green-600 dark:text-green-400">
-                            {tax.invoiceAmount.toLocaleString('fr-FR', { 
-                              style: 'currency', 
-                              currency: 'CAD' 
-                            })}
-                            <div className="text-xs text-muted-foreground">
-                              {tax.invoiceCount || 0} {(tax.invoiceCount || 0) > 1 ? t("reports.taxes.invoices") : t("reports.taxes.invoice")}
-                            </div>
+                          <TableCell className="py-2.5 font-medium text-sm">{tax.name}</TableCell>
+                          <TableCell className="py-2.5 text-right text-sm text-green-600 dark:text-green-400 font-medium tabular-nums">
+                            {tax.invoiceAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                           </TableCell>
-                          <TableCell className="text-right text-orange-600 dark:text-orange-400">
-                            {tax.expenseAmount.toLocaleString('fr-FR', { 
-                              style: 'currency', 
-                              currency: 'CAD' 
-                            })}
-                            <div className="text-xs text-muted-foreground">
-                              {tax.expenseCount || 0} {(tax.expenseCount || 0) > 1 ? (language === 'fr' ? 'dépenses' : 'expenses') : (language === 'fr' ? 'dépense' : 'expense')}
-                            </div>
+                          <TableCell className="py-2.5 text-right text-sm text-orange-600 dark:text-orange-400 font-medium tabular-nums">
+                            {tax.expenseAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                           </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {tax.netAmount.toLocaleString('fr-FR', { 
-                              style: 'currency', 
-                              currency: 'CAD' 
-                            })}
+                          <TableCell className="py-2.5 text-right text-sm font-semibold tabular-nums">
+                            {tax.netAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
                           </TableCell>
+                          <TableCell className="py-2.5 text-center text-xs text-muted-foreground">{tax.invoiceCount || 0}</TableCell>
+                          <TableCell className="py-2.5 text-center text-xs text-muted-foreground">{tax.expenseCount || 0}</TableCell>
                         </TableRow>
                       ))}
+                      {/* Totals row */}
+                      <TableRow className="border-t-2 bg-muted/30 hover:bg-muted/40">
+                        <TableCell className="py-2.5 font-bold text-sm">TOTAL</TableCell>
+                        <TableCell className="py-2.5 text-right text-sm text-green-600 dark:text-green-400 font-bold tabular-nums">
+                          {taxData.totalInvoiceTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-right text-sm text-orange-600 dark:text-orange-400 font-bold tabular-nums">
+                          {taxData.totalExpenseTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-right text-sm font-bold tabular-nums">
+                          {taxData.totalTaxAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'CAD' })}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-center text-xs text-muted-foreground font-semibold">
+                          {taxData.taxSummary.reduce((s, t) => s + (t.invoiceCount || 0), 0)}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-center text-xs text-muted-foreground font-semibold">
+                          {taxData.taxSummary.reduce((s, t) => s + (t.expenseCount || 0), 0)}
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </CardContent>
               </Card>
             )}
 
-            {/* Export buttons - Full Tax Report */}
-            {taxData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("reports.taxes.download")}</CardTitle>
-                  <CardDescription>{t("reports.taxes.exportDesc")}</CardDescription>
+            {/* Export Section - Compact Grid */}
+            {taxData && (taxData.totalInvoiceTaxAmount > 0 || taxData.totalExpenseTaxAmount > 0) && (
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <CardTitle className="text-base">{language === 'fr' ? 'Exports' : 'Exports'}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={exportTaxesToPDF} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.taxSummary.length === 0}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button 
-                      onClick={exportTaxesToExcel} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.taxSummary.length === 0}
-                    >
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Excel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                <CardContent className="px-4 pb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Summary Report */}
+                    <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{t("reports.taxes.download")}</p>
+                        <p className="text-xs text-muted-foreground">{t("reports.taxes.exportDesc")}</p>
+                      </div>
+                      <div className="flex gap-1.5 ml-3 shrink-0">
+                        <Button onClick={exportTaxesToPDF} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.taxSummary.length === 0}>
+                          <Download className="mr-1 h-3 w-3" />PDF
+                        </Button>
+                        <Button onClick={exportTaxesToExcel} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.taxSummary.length === 0}>
+                          <FileSpreadsheet className="mr-1 h-3 w-3" />Excel
+                        </Button>
+                      </div>
+                    </div>
 
-            {/* Export buttons - Taxes Collected (Sales) Only */}
-            {taxData && taxData.totalInvoiceTaxAmount > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{getReportTranslation('taxesCollectedSales', language)}</CardTitle>
-                  <CardDescription>{getReportTranslation('taxesCollectedSalesDesc', language)}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={exportTaxesCollectedToPDF} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.totalInvoiceTaxAmount === 0}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button 
-                      onClick={exportTaxesCollectedToExcel} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.totalInvoiceTaxAmount === 0}
-                    >
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Excel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    {/* Taxes Collected (Sales) */}
+                    {taxData.totalInvoiceTaxAmount > 0 && (
+                      <div className="flex items-center justify-between p-3 rounded-lg border bg-green-50/50 dark:bg-green-950/20">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{getReportTranslation('taxesCollectedSales', language)}</p>
+                          <p className="text-xs text-muted-foreground">{getReportTranslation('taxesCollectedSalesDesc', language)}</p>
+                        </div>
+                        <div className="flex gap-1.5 ml-3 shrink-0">
+                          <Button onClick={exportTaxesCollectedToPDF} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.totalInvoiceTaxAmount === 0}>
+                            <Download className="mr-1 h-3 w-3" />PDF
+                          </Button>
+                          <Button onClick={exportTaxesCollectedToExcel} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.totalInvoiceTaxAmount === 0}>
+                            <FileSpreadsheet className="mr-1 h-3 w-3" />Excel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
-            {/* Export buttons - Taxes Paid on Expenses Only */}
-            {taxData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{getReportTranslation('taxesPaidExpenses', language)}</CardTitle>
-                  <CardDescription>{getReportTranslation('taxesPaidExpensesDesc', language)}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={exportTaxesPaidToPDF} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.totalExpenseTaxAmount === 0}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button 
-                      onClick={exportTaxesPaidToExcel} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.totalExpenseTaxAmount === 0}
-                    >
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Excel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    {/* Taxes Paid on Expenses */}
+                    <div className="flex items-center justify-between p-3 rounded-lg border bg-orange-50/50 dark:bg-orange-950/20">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{getReportTranslation('taxesPaidExpenses', language)}</p>
+                        <p className="text-xs text-muted-foreground">{getReportTranslation('taxesPaidExpensesDesc', language)}</p>
+                      </div>
+                      <div className="flex gap-1.5 ml-3 shrink-0">
+                        <Button onClick={exportTaxesPaidToPDF} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.totalExpenseTaxAmount === 0}>
+                          <Download className="mr-1 h-3 w-3" />PDF
+                        </Button>
+                        <Button onClick={exportTaxesPaidToExcel} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.totalExpenseTaxAmount === 0}>
+                          <FileSpreadsheet className="mr-1 h-3 w-3" />Excel
+                        </Button>
+                      </div>
+                    </div>
 
-            {/* Export buttons - Net Tax Report */}
-            {taxData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{getReportTranslation('netTaxReport', language)}</CardTitle>
-                  <CardDescription>{getReportTranslation('netTaxReportDesc', language)}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={exportNetTaxReportToPDF} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.taxSummary.length === 0}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button 
-                      onClick={exportNetTaxReportToExcel} 
-                      variant="outline" 
-                      size="sm"
-                      disabled={!taxData || taxData.taxSummary.length === 0}
-                    >
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Excel
-                    </Button>
+                    {/* Net Tax Report */}
+                    <div className="flex items-center justify-between p-3 rounded-lg border bg-blue-50/50 dark:bg-blue-950/20">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{getReportTranslation('netTaxReport', language)}</p>
+                        <p className="text-xs text-muted-foreground">{getReportTranslation('netTaxReportDesc', language)}</p>
+                      </div>
+                      <div className="flex gap-1.5 ml-3 shrink-0">
+                        <Button onClick={exportNetTaxReportToPDF} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.taxSummary.length === 0}>
+                          <Download className="mr-1 h-3 w-3" />PDF
+                        </Button>
+                        <Button onClick={exportNetTaxReportToExcel} variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={taxData.taxSummary.length === 0}>
+                          <FileSpreadsheet className="mr-1 h-3 w-3" />Excel
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
