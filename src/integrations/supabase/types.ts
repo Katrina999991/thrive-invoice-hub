@@ -754,6 +754,65 @@ export type Database = {
           },
         ]
       }
+      invoice_formal_notices: {
+        Row: {
+          body: string | null
+          created_at: string
+          due_at: string | null
+          id: string
+          invoice_id: string
+          pdf_url: string | null
+          recipient: string | null
+          recipient_address: string | null
+          sent_at: string | null
+          sent_to: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          invoice_id: string
+          pdf_url?: string | null
+          recipient?: string | null
+          recipient_address?: string | null
+          sent_at?: string | null
+          sent_to?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          invoice_id?: string
+          pdf_url?: string | null
+          recipient?: string | null
+          recipient_address?: string | null
+          sent_at?: string | null
+          sent_to?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_formal_notices_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string

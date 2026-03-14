@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
+import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -95,6 +96,7 @@ const Invoices = () => {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
   const [finalReminderInvoice, setFinalReminderInvoice] = useState<Invoice | null>(null);
+  const [formalNoticeInvoice, setFormalNoticeInvoice] = useState<Invoice | null>(null);
 
   // Bulk selection state
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
@@ -2422,6 +2424,23 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          {invoice.status !== 'paid' && invoice.status !== 'draft' && canSendInvoices && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-destructive text-destructive hover:bg-destructive/10"
+                                  onClick={() => setFormalNoticeInvoice(invoice)}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === 'fr' ? 'Mise en demeure' : 'Formal notice'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           {stripeAccountId && invoice.status !== "paid" && (
                             invoice.payment_link ? (
                               <>
@@ -2816,6 +2835,16 @@ Best regards,
           onSend={async (invoiceId, data) => {
             await sendFinalReminder(invoiceId, data);
           }}
+        />
+      )}
+
+      {/* Formal Notice Dialog */}
+      {formalNoticeInvoice && (
+        <FormalNoticeEditorDialog
+          open={!!formalNoticeInvoice}
+          onOpenChange={(open) => !open && setFormalNoticeInvoice(null)}
+          invoice={formalNoticeInvoice as any}
+          company={companies.find(c => c.id === clients.find(cl => cl.id === formalNoticeInvoice.client_id)?.company_id) as any}
         />
       )}
     </div>
