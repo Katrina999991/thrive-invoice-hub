@@ -247,14 +247,35 @@ export function processTaxSplit(
         };
       });
     
+    // Validation: if computedBeforeTax >= total and taxes > 0, flag low confidence
+    const isReconciled = Math.abs((computedBeforeTax + taxSum) - total) <= 0.02;
+    
     return {
       amountBeforeTax: computedBeforeTax,
       taxes: mappedTaxes,
-      helperText: language === 'fr' 
-        ? 'Taxes ajoutées automatiquement depuis le reçu' 
-        : 'Taxes added automatically from receipt',
-      helperTextType: 'success',
-      originalTotal: total_amount,
+      helperText: isReconciled
+        ? (language === 'fr' 
+            ? 'Taxes ajoutées automatiquement depuis le reçu' 
+            : 'Taxes added automatically from receipt')
+        : (language === 'fr'
+            ? 'Les montants extraits ne concordent pas parfaitement. Veuillez vérifier.'
+            : 'Extracted amounts do not reconcile perfectly. Please verify.'),
+      helperTextType: isReconciled ? 'success' : 'warning',
+      originalTotal: total,
+      source: 'receipt'
+    };
+  }
+  
+  // If we have a subtotal from OCR but no tax lines, use it and warn
+  if (subtotal != null && subtotal > 0 && subtotal < total) {
+    return {
+      amountBeforeTax: subtotal,
+      taxes: [],
+      helperText: language === 'fr'
+        ? 'Sous-total détecté mais les taxes n\'ont pas pu être séparées. Veuillez vérifier.'
+        : 'Subtotal detected but taxes could not be separated. Please verify.',
+      helperTextType: 'warning',
+      originalTotal: total,
       source: 'receipt'
     };
   }
@@ -267,7 +288,7 @@ export function processTaxSplit(
   // In 'always' mode, try to calculate taxes from company rates
   if (expense_tax_handling === 'always' && companyTaxes.length > 0) {
     const rates = companyTaxes.map(t => t.percentage / 100);
-    const { base, taxes: calculatedTaxAmounts, valid } = calculateBaseFromTotal(total_amount, rates);
+    const { base, taxes: calculatedTaxAmounts, valid } = calculateBaseFromTotal(total, rates);
     
     if (valid) {
       const mappedTaxes = companyTaxes.map((tax, index) => ({
