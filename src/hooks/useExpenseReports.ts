@@ -67,6 +67,7 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
           company_id,
           vendor,
           taxes,
+          deductible_percent,
           companies (
             name
           )
