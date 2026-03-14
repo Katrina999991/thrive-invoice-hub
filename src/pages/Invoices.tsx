@@ -2258,38 +2258,60 @@ Best regards,
                     </TableCell>
                     <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
                     <TableCell>
-                      {canEditInvoices ? (
-                        <Select 
-                          value={invoice.status} 
-                          onValueChange={(value) => {
-                            const updates: any = { status: value };
-                            if (invoice.status === "paid" && value !== "paid") {
-                              updates.paid_at = null;
-                            }
-                            updateInvoice(invoice.id, updates);
-                          }}
-                        >
-                          <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
-                            <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
-                            <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                            <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Badge 
-                          variant={invoice.status === "paid" ? "default" : "secondary"}
-                          className={invoice.status === "paid" ? "bg-green-600 text-white" : ""}
-                        >
-                          {invoice.status === "draft" ? t("invoices.statusDraft") :
-                           invoice.status === "sent" ? t("invoices.statusSent") :
-                           invoice.status === "paid" ? t("invoices.statusPaid") :
-                           invoice.status === "overdue" ? t("invoices.statusOverdue") : invoice.status}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {canEditInvoices ? (
+                          <Select 
+                            value={invoice.status} 
+                            onValueChange={(value) => {
+                              const updates: any = { status: value };
+                              if (invoice.status === "paid" && value !== "paid") {
+                                updates.paid_at = null;
+                              }
+                              updateInvoice(invoice.id, updates);
+                            }}
+                          >
+                            <SelectTrigger className={`w-28 h-8 ${invoice.status === "paid" ? "bg-green-600 text-white hover:bg-green-700" : ""}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
+                              <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
+                              <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
+                              <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge 
+                            variant={invoice.status === "paid" ? "default" : "secondary"}
+                            className={invoice.status === "paid" ? "bg-green-600 text-white" : ""}
+                          >
+                            {invoice.status === "draft" ? t("invoices.statusDraft") :
+                             invoice.status === "sent" ? t("invoices.statusSent") :
+                             invoice.status === "paid" ? t("invoices.statusPaid") :
+                             invoice.status === "overdue" ? t("invoices.statusOverdue") : invoice.status}
+                          </Badge>
+                        )}
+                        {(invoice as any).final_reminder_sent && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400 cursor-help px-1.5 py-0.5">
+                                  <AlertTriangle className="h-3 w-3" />
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <div className="space-y-1 text-xs">
+                                  <p className="font-medium">{t("invoices.finalReminderSent")}</p>
+                                  <p>{t("invoices.finalReminderSentOn")}: {new Date((invoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                                  {(invoice as any).final_reminder_response_due_at && (
+                                    <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{invoice.issue_date}</TableCell>
                     <TableCell>{invoice.due_date}</TableCell>
