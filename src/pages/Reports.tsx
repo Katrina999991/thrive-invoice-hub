@@ -8979,6 +8979,7 @@ const Reports = () => {
         pdfBlob={null}
         companyName={companies?.[0]?.name}
         companyEmail={companies?.[0]?.email || undefined}
+        companyId={companies?.[0]?.id}
         onGeneratePdf={async () => {
           if (!filteredInventoryProducts || filteredInventoryProducts.length === 0) return null;
           
