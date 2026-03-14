@@ -1962,8 +1962,8 @@ const Reports = () => {
       autoTable(doc, {
         head: [[
           language === 'fr' ? 'Type de taxe' : 'Tax Type',
-          language === 'fr' ? 'Depenses' : 'Expenses',
-          language === 'fr' ? 'Credit de taxe' : 'Tax Credit'
+          language === 'fr' ? 'Dépenses' : 'Expenses',
+          language === 'fr' ? 'Crédit de taxe' : 'Tax Credit'
         ]],
         body: taxBreakdownData,
         startY: yOffset,
