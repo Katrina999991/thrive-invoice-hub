@@ -99,6 +99,7 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
           totalExpenses: 0,
           totalPaidExpenses: 0,
           totalUnpaidExpenses: 0,
+          totalDeductibleAmount: 0,
           expensesByCategory: [],
           expensesByCompany: [],
           expenseDetails: []
