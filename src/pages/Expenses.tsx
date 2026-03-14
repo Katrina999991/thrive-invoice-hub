@@ -369,15 +369,18 @@ const Expenses = () => {
       const hasExplicitTaxes = taxLines.length > 0 && taxLines.some((t: any) => t.amount > 0);
       
       let amountBeforeTax = total;
+      let showWarning = false;
       
-      // CRITICAL: For Amazon-style invoices, the "subtotal" may actually include taxes.
-      // Always compute amount_before_tax = total - sum(taxes) when tax_lines exist.
-      // This automatically accounts for discounts (already reflected in total_amount).
+      // When explicit tax lines exist, compute before-tax = total - sum(taxes)
       if (hasExplicitTaxes) {
         const taxSum = taxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
         amountBeforeTax = Math.round((total - taxSum) * 100) / 100;
+      } else if (data.subtotal_amount != null && data.subtotal_amount > 0 && data.subtotal_amount < total) {
+        // Use OCR subtotal when available and it's less than total (indicating taxes exist)
+        amountBeforeTax = data.subtotal_amount;
+        showWarning = true;
       }
-      // If no tax_lines, use total as amount (unknown pre-tax)
+      // If no tax_lines and no subtotal, use total as amount (no taxes detected)
       
       // Don't set taxes when no company is selected - taxes only shown with company + option enabled
       setNewExpense(prev => ({
@@ -392,7 +395,16 @@ const Expenses = () => {
       // Store original total for later tax adjustments
       setOriginalReceiptTotal(total);
       setTotalAmountInput(total.toFixed(2));
-      setTaxHelperText(null);
+      if (showWarning) {
+        setTaxHelperText({ 
+          text: language === "fr" 
+            ? "Sous-total détecté mais les taxes n'ont pas pu être séparées. Veuillez vérifier." 
+            : "Subtotal detected but taxes could not be separated. Please verify.",
+          type: 'warning' 
+        });
+      } else {
+        setTaxHelperText(null);
+      }
       setTaxesAutoAdded(false);
     }
     

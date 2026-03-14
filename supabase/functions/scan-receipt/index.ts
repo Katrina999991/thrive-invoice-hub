@@ -339,8 +339,31 @@ serve(async (req) => {
       }
     }
 
-    // Log the scan for usage tracking (before processing)
-    const totalAmount = extractedData.total_amount;
+    // Post-OCR validation: reconcile subtotal + taxes = total
+    const ocrTotal = extractedData.total_amount || extractedData.amount || 0;
+    const ocrSubtotal = extractedData.subtotal_amount;
+    const ocrTaxLines = extractedData.tax_lines || extractedData.taxes || [];
+    const ocrTaxSum = ocrTaxLines.reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+    
+    // If we have tax lines, compute the real subtotal as total - sum(taxes)
+    // This prevents the OCR's potentially incorrect subtotal from being used
+    if (ocrTaxSum > 0 && ocrTotal > 0) {
+      const computedSubtotal = Math.round((ocrTotal - ocrTaxSum) * 100) / 100;
+      
+      // If OCR subtotal doesn't match computed, override with computed value
+      if (ocrSubtotal == null || Math.abs(ocrSubtotal - computedSubtotal) > 0.02) {
+        console.log(`Subtotal correction: OCR said ${ocrSubtotal}, computed ${computedSubtotal} (total=${ocrTotal}, taxes=${ocrTaxSum})`);
+        extractedData.subtotal_amount = computedSubtotal;
+      }
+    }
+    
+    // If no taxes detected but subtotal equals total, that's fine (no-tax receipt)
+    // If subtotal > total, the OCR subtotal is wrong — clear it
+    if (ocrSubtotal != null && ocrSubtotal > ocrTotal) {
+      console.log(`Clearing invalid subtotal ${ocrSubtotal} > total ${ocrTotal}`);
+      extractedData.subtotal_amount = null;
+    }
+
     const scanVendor = extractedData.vendor || "";
     
     try {
@@ -348,7 +371,7 @@ serve(async (req) => {
         user_id: userId,
         company_id: companyId || null,
         vendor: scanVendor,
-        total_amount: totalAmount,
+        total_amount: ocrTotal,
         status: "success"
       });
       console.log("Receipt scan logged successfully");

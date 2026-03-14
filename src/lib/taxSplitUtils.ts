@@ -182,38 +182,43 @@ export function processTaxSplit(
   } | null,
   language: 'fr' | 'en' = 'fr'
 ): TaxSplitResult {
+  const total = receiptData.total_amount || 0;
+  const subtotal = receiptData.subtotal_amount;
+  const taxLines = receiptData.tax_lines || [];
+  const hasExplicitTaxes = taxLines.length > 0 && taxLines.some(t => t.amount > 0);
+  
+  // Use subtotal from OCR if available and valid, otherwise fall back to total
+  const bestBeforeTax = (subtotal != null && subtotal > 0 && subtotal <= total) 
+    ? subtotal 
+    : total;
+
   const defaultResult: TaxSplitResult = {
-    amountBeforeTax: receiptData.total_amount || 0,
+    amountBeforeTax: bestBeforeTax,
     taxes: [],
     helperText: null,
     helperTextType: null,
-    originalTotal: receiptData.total_amount || 0,
+    originalTotal: total,
     source: null
   };
   
   // If no company selected or no total, return default
-  if (!companySettings || !receiptData.total_amount) {
+  if (!companySettings || !total) {
     return defaultResult;
   }
   
   const { expense_tax_handling, taxes: companyTaxes } = companySettings;
-  const { total_amount, subtotal_amount, tax_lines, tax_included_hint } = receiptData;
-  const taxLines = tax_lines || [];
+  const { tax_included_hint } = receiptData;
   
   // Handle 'never' mode
   if (expense_tax_handling === 'never') {
     return defaultResult;
   }
   
-  // Check if we have explicit taxes from receipt
-  const hasExplicitTaxes = taxLines.length > 0 && taxLines.some(t => t.amount > 0);
-  
-  // CRITICAL: For Amazon-style invoices, the "subtotal" field may actually include taxes.
-  // Always compute amount_before_tax = total - sum(taxes) when tax_lines exist.
-  // This automatically accounts for discounts (already reflected in total_amount).
+  // When explicit tax lines exist, compute before-tax = total - sum(taxes).
+  // This is the most reliable approach regardless of what the OCR reported as subtotal.
   if (hasExplicitTaxes) {
     const taxSum = taxLines.reduce((sum, t) => sum + (t.amount || 0), 0);
-    const computedBeforeTax = Math.round((total_amount - taxSum) * 100) / 100;
+    const computedBeforeTax = Math.round((total - taxSum) * 100) / 100;
     
     // Map tax lines to company taxes
     const mappedTaxes = taxLines
@@ -241,14 +246,35 @@ export function processTaxSplit(
         };
       });
     
+    // Validation: if computedBeforeTax >= total and taxes > 0, flag low confidence
+    const isReconciled = Math.abs((computedBeforeTax + taxSum) - total) <= 0.02;
+    
     return {
       amountBeforeTax: computedBeforeTax,
       taxes: mappedTaxes,
-      helperText: language === 'fr' 
-        ? 'Taxes ajoutées automatiquement depuis le reçu' 
-        : 'Taxes added automatically from receipt',
-      helperTextType: 'success',
-      originalTotal: total_amount,
+      helperText: isReconciled
+        ? (language === 'fr' 
+            ? 'Taxes ajoutées automatiquement depuis le reçu' 
+            : 'Taxes added automatically from receipt')
+        : (language === 'fr'
+            ? 'Les montants extraits ne concordent pas parfaitement. Veuillez vérifier.'
+            : 'Extracted amounts do not reconcile perfectly. Please verify.'),
+      helperTextType: isReconciled ? 'success' : 'warning',
+      originalTotal: total,
+      source: 'receipt'
+    };
+  }
+  
+  // If we have a subtotal from OCR but no tax lines, use it and warn
+  if (subtotal != null && subtotal > 0 && subtotal < total) {
+    return {
+      amountBeforeTax: subtotal,
+      taxes: [],
+      helperText: language === 'fr'
+        ? 'Sous-total détecté mais les taxes n\'ont pas pu être séparées. Veuillez vérifier.'
+        : 'Subtotal detected but taxes could not be separated. Please verify.',
+      helperTextType: 'warning',
+      originalTotal: total,
       source: 'receipt'
     };
   }
@@ -261,7 +287,7 @@ export function processTaxSplit(
   // In 'always' mode, try to calculate taxes from company rates
   if (expense_tax_handling === 'always' && companyTaxes.length > 0) {
     const rates = companyTaxes.map(t => t.percentage / 100);
-    const { base, taxes: calculatedTaxAmounts, valid } = calculateBaseFromTotal(total_amount, rates);
+    const { base, taxes: calculatedTaxAmounts, valid } = calculateBaseFromTotal(total, rates);
     
     if (valid) {
       const mappedTaxes = companyTaxes.map((tax, index) => ({
@@ -277,7 +303,7 @@ export function processTaxSplit(
           ? 'Taxes calculées depuis les paramètres. Veuillez confirmer.' 
           : 'Taxes calculated from settings. Please confirm.',
         helperTextType: 'warning',
-        originalTotal: total_amount,
+        originalTotal: total,
         source: 'calculated'
       };
     }
