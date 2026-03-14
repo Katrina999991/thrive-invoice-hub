@@ -2459,7 +2459,7 @@ const Reports = () => {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(language === 'fr' ? 'Annexe A: Detail des factures (taxes collectees)' : 'Appendix A: Invoice Details (Collected Taxes)', margin, yOffset);
+      doc.text(language === 'fr' ? 'Annexe A : Détails des factures (Taxes collectées)' : 'Appendix A: Invoice Details (Collected Taxes)', margin, yOffset);
       yOffset += 8;
       
       const invoiceTableData = invoiceDetails.map(inv => [
