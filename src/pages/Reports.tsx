@@ -7924,7 +7924,7 @@ const Reports = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="taxes" className="space-y-4">
+        <TabsContent value="taxes" className="space-y-3">
           {/* Filters */}
           <Card className="shadow-sm border-0 bg-card/80 backdrop-blur-sm">
             <CardContent className="p-4">
