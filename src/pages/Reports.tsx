@@ -2909,6 +2909,8 @@ const Reports = () => {
       language === 'fr' ? 'Montant' : 'Amount',
       language === 'fr' ? 'Taxes' : 'Taxes',
       language === 'fr' ? 'Total' : 'Total',
+      language === 'fr' ? 'Déductible %' : 'Deductible %',
+      language === 'fr' ? 'Montant déductible' : 'Deductible Amount',
       language === 'fr' ? 'Statut' : 'Status'
     ];
     
@@ -2930,6 +2932,8 @@ const Reports = () => {
         expense.amount.toFixed(2),
         totalTaxAmount.toFixed(2),
         grandTotal.toFixed(2),
+        expense.deductible_percent.toFixed(1),
+        expense.deductible_amount.toFixed(2),
         expense.status
       ];
     });
