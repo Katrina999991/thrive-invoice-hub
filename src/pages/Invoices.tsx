@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
+import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
