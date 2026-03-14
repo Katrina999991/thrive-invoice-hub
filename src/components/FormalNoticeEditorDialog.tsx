@@ -73,6 +73,9 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const clientName = invoice.clients?.contact_person || invoice.clients?.name || '';
   const clientAddress = invoice.clients?.address || '';
 
+  // Use CLIENT language for document content, UI language for interface labels
+  const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
+
   // Generate short invoice description from items
   const invoiceDescription = useMemo(() => {
     const items = invoice.invoice_items || [];
@@ -80,11 +83,11 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
     const firstDesc = items[0].description || '';
     const truncated = firstDesc.length > 80 ? firstDesc.slice(0, 77) + '...' : firstDesc;
     if (items.length === 1) return truncated;
-    const suffix = language === 'fr' ? ' et autres articles' : ' and other items';
+    const suffix = clientLang === 'fr' ? ' et autres articles' : ' and other items';
     const maxLen = 80 - suffix.length;
     const base = firstDesc.length > maxLen ? firstDesc.slice(0, maxLen - 3) + '...' : firstDesc;
     return base + suffix;
-  }, [invoice.invoice_items, language]);
+  }, [invoice.invoice_items, clientLang]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
