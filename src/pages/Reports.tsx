@@ -2421,6 +2421,8 @@ const Reports = () => {
         const taxes = Array.isArray(exp.taxes) ? exp.taxes : [];
         const totalTaxes = taxes.reduce((sum: number, tax: any) => sum + (Number(tax.amount) || 0), 0);
         const taxTypes = taxes.map((t: any) => t.name).join(', ') || '-';
+        const recoverablePct = exp.tax_recoverable_percent != null ? Number(exp.tax_recoverable_percent) : 100;
+        const recoverableAmount = totalTaxes * (recoverablePct / 100);
         
         return [
           format(new Date(exp.expense_date), 'dd/MM/yyyy'),
@@ -2428,6 +2430,8 @@ const Reports = () => {
           exp.category || '-',
           Number(exp.amount || 0).toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
           totalTaxes.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
+          `${recoverablePct}%`,
+          recoverableAmount.toLocaleString(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }),
           taxTypes
         ];
       });
@@ -2438,7 +2442,9 @@ const Reports = () => {
           language === 'fr' ? 'Fournisseur' : 'Vendor',
           language === 'fr' ? 'Categorie' : 'Category',
           language === 'fr' ? 'Montant' : 'Amount',
-          language === 'fr' ? 'Credit taxe' : 'Tax Credit',
+          language === 'fr' ? 'Taxes' : 'Taxes',
+          language === 'fr' ? 'Recup. %' : 'Recov. %',
+          language === 'fr' ? 'Credit recup.' : 'Recov. Credit',
           language === 'fr' ? 'Type' : 'Type'
         ]],
         body: expenseTableData,
