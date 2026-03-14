@@ -2109,7 +2109,7 @@ const Reports = () => {
           language === 'fr' ? 'Montant avant taxes' : 'Amount Before Tax',
           language === 'fr' ? 'Type de taxe' : 'Tax Type',
           language === 'fr' ? 'Montant taxe' : 'Tax Amount',
-          language === 'fr' ? '% Récupérable' : 'Recov. %',
+          language === 'fr' ? '% Récupérable' : 'Recoverable %',
           language === 'fr' ? 'Taxe récupérable' : 'Recoverable Tax',
           language === 'fr' ? 'Entreprise' : 'Company'
         ];
