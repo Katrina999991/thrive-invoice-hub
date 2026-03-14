@@ -190,17 +190,22 @@ export const useExpenseReports = (startDate?: Date, endDate?: Date, filterType?:
         .sort((a, b) => b.total_amount - a.total_amount);
 
       // Prepare expense details
-      const expenseDetails: ExpenseDetail[] = expensesData.map(expense => ({
-        id: expense.id,
-        description: expense.description,
-        amount: Number(expense.amount),
-        category: expense.category || 'Uncategorized',
-        expense_date: expense.expense_date,
-        status: expense.status,
-        company_name: expense.companies?.name,
-        vendor: expense.vendor,
-        taxes: expense.taxes || []
-      }));
+      const expenseDetails: ExpenseDetail[] = expensesData.map(expense => {
+        const deductPct = expense.deductible_percent != null ? Number(expense.deductible_percent) : 100;
+        return {
+          id: expense.id,
+          description: expense.description,
+          amount: Number(expense.amount),
+          category: expense.category || 'Uncategorized',
+          expense_date: expense.expense_date,
+          status: expense.status,
+          company_name: expense.companies?.name,
+          vendor: expense.vendor,
+          taxes: expense.taxes || [],
+          deductible_percent: deductPct,
+          deductible_amount: Number(expense.amount) * deductPct / 100
+        };
+      });
 
       setReportData({
         totalExpenses,
