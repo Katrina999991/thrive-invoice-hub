@@ -7277,6 +7277,8 @@ const Reports = () => {
                             <TableHead>{t("reports.expenses.category")}</TableHead>
                             <TableHead className="text-right">{t("reports.expenses.count")}</TableHead>
                             <TableHead className="text-right">{t("reports.expenses.totalAmount")}</TableHead>
+                            <TableHead className="text-right">{language === 'fr' ? 'Déductible %' : 'Deductible %'}</TableHead>
+                            <TableHead className="text-right">{language === 'fr' ? 'Montant déductible' : 'Deductible Amount'}</TableHead>
                             <TableHead className="text-right">{t("reports.expenses.averageAmount")}</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -7287,6 +7289,12 @@ const Reports = () => {
                               <TableCell className="text-right">{category.count}</TableCell>
                               <TableCell className="text-right">
                                 {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(category.total_amount)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {category.avg_deductible_percent.toFixed(0)}%
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(category.total_deductible_amount)}
                               </TableCell>
                               <TableCell className="text-right">
                                 {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(category.total_amount / category.count)}
