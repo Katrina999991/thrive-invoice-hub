@@ -149,7 +149,8 @@ Sincerely,
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
       .replace(/\{\{today_date\}\}/g, formatDate(date))
       .replace(/\{\{company_name\}\}/g, company?.name || '')
-      .replace(/\{\{company_address\}\}/g, companyAddress);
+      .replace(/\{\{company_address\}\}/g, companyAddress)
+      .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
   };
 
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
