@@ -210,8 +210,8 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
 
   const summaryCards = [
     { label: t.totalExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalExpenses), color: COLORS.red },
+    { label: language === 'fr' ? 'Dépenses déductibles' : 'Deductible Expenses', value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalDeductibleAmount), color: COLORS.primary },
     { label: t.paidExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalPaidExpenses), color: COLORS.green },
-    { label: t.unpaidExpenses, value: new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(reportData.totalUnpaidExpenses), color: COLORS.orange }
   ];
 
   summaryCards.forEach((card, index) => {
