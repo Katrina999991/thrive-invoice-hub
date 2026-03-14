@@ -100,13 +100,16 @@ async function decryptClientData(client: any): Promise<any> {
 const SendInvoiceEmailSchema = z.object({
   invoiceId: z.string().uuid("Invalid invoice ID format"),
   customSubject: z.string().max(200, "Subject too long").optional(),
-  customMessage: z.string().max(2000, "Message too long").optional(),
+  customMessage: z.string().max(5000, "Message too long").optional(),
   emailType: z.enum(['new', 'overdue', 'payment_confirmation']).optional().default('new'),
   selectedEmails: z.array(z.string().email("Invalid email format")).max(10, "Too many recipients").optional(),
   ccEmails: z.array(z.string().email("Invalid email format")).max(10, "Too many CC recipients").optional().default([]),
   invoiceTemplate: z.string().optional().default("classic"),
   invoiceColor: z.string().optional().default("blue"),
   hidePdfBranding: z.boolean().optional().default(false),
+  isFinalReminder: z.boolean().optional().default(false),
+  customRecipient: z.string().email("Invalid recipient email").optional(),
+  responseDueDate: z.string().optional(),
 });
 
 const handler = async (req: Request): Promise<Response> => {
@@ -142,7 +145,10 @@ const handler = async (req: Request): Promise<Response> => {
       ccEmails,
       invoiceTemplate,
       invoiceColor,
-      hidePdfBranding
+      hidePdfBranding,
+      isFinalReminder,
+      customRecipient,
+      responseDueDate
     } = validationResult.data;
 
     // Get authorization header to identify the user
@@ -254,7 +260,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Déterminer les emails à utiliser
     let emailsToSend: string[] = [];
     
-    if (selectedEmails && selectedEmails.length > 0) {
+    if (customRecipient) {
+      // Use custom recipient (e.g., for final reminders)
+      emailsToSend = [customRecipient];
+    } else if (selectedEmails && selectedEmails.length > 0) {
       // Utiliser les emails sélectionnés
       emailsToSend = selectedEmails;
     } else if (client?.email) {

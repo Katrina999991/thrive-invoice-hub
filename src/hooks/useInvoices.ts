@@ -499,7 +499,7 @@ export const useInvoices = () => {
           responseDueDate: data.responseDueDate,
           customRecipient: data.recipient,
           customSubject: data.subject,
-          customBody: data.body,
+          customMessage: data.body,
         }
       });
 

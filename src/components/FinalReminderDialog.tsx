@@ -61,10 +61,6 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
 
   const includePaymentLink = invoice.clients?.include_payment_link === true && !!invoice.payment_link;
 
-  const paymentLinkBlock = clientLang === "fr"
-    ? `\n\nLien de paiement :\n{{invoice_payment_link}}`
-    : `\n\nPayment link:\n{{invoice_payment_link}}`;
-
   const defaultBody = clientLang === "fr"
     ? `Bonjour {{client_name}},
 
@@ -72,7 +68,7 @@ Ceci est un dernier rappel concernant la facture {{invoice_number}} d'un montant
 
 La facture était échue le {{invoice_due_date}}. Nous vous demandons de bien vouloir effectuer le paiement ou nous répondre au plus tard le {{final_reminder_due_date}}.
 
-Sans réponse de votre part avant cette date, nous serons dans l'obligation de prendre les mesures nécessaires.${includePaymentLink ? paymentLinkBlock : ''}
+Sans réponse de votre part avant cette date, nous serons dans l'obligation de prendre les mesures nécessaires.
 
 Merci de votre attention,
 
@@ -83,7 +79,7 @@ This is a final reminder regarding invoice {{invoice_number}} for an amount of {
 
 The invoice was due on {{invoice_due_date}}. We kindly request that you make the payment or respond no later than {{final_reminder_due_date}}.
 
-If we do not hear from you by this date, we will be obligated to take further action.${includePaymentLink ? paymentLinkBlock : ''}
+If we do not hear from you by this date, we will be obligated to take further action.
 
 Thank you for your attention,
 
@@ -120,8 +116,7 @@ Thank you for your attention,
       .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, formatDate(invoice.due_date))
       .replace(/\{\{final_reminder_due_date\}\}/g, formatDate(responseDueDate))
-      .replace(/\{\{company_name\}\}/g, company || '—')
-      .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
+      .replace(/\{\{company_name\}\}/g, company || '—');
   };
 
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, responseDueDate, clientName, company]);
@@ -149,7 +144,6 @@ Thank you for your attention,
     { key: '{{invoice_due_date}}', label: language === 'fr' ? "Date d'échéance" : 'Due date' },
     { key: '{{final_reminder_due_date}}', label: language === 'fr' ? 'Date limite de réponse' : 'Response deadline' },
     { key: '{{company_name}}', label: language === 'fr' ? "Nom de l'entreprise" : 'Company name' },
-    { key: '{{invoice_payment_link}}', label: language === 'fr' ? 'Lien de paiement' : 'Payment link' },
   ];
 
   return (
@@ -274,6 +268,17 @@ Thank you for your attention,
                   ))}
                 </div>
               </div>
+
+              {/* Payment button info */}
+              {includePaymentLink && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs text-foreground">
+                  <p>
+                    {language === "fr"
+                      ? "✓ Un bouton de paiement sera automatiquement ajouté à la fin de l'email."
+                      : "✓ A payment button will be automatically added at the end of the email."}
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="preview" className="mt-4">
@@ -293,6 +298,24 @@ Thank you for your attention,
                 <div className="p-4 text-sm whitespace-pre-wrap leading-relaxed bg-background">
                   {previewBody}
                 </div>
+                {/* Payment button preview */}
+                {includePaymentLink && (
+                  <div className="px-4 pb-4 bg-background">
+                    <div className="mt-2 pt-2">
+                      <p className="font-semibold text-sm mb-2">
+                        {clientLang === "fr" ? "Payer en ligne :" : "Pay online:"}
+                      </p>
+                      <a
+                        href={invoice.payment_link || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-md font-semibold text-sm no-underline hover:opacity-90 transition-opacity"
+                      >
+                        {clientLang === "fr" ? "Payer la facture" : "Pay Invoice"}
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 p-2 rounded bg-muted text-xs text-muted-foreground">
