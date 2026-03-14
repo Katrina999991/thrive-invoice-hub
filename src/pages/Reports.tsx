@@ -1940,7 +1940,7 @@ const Reports = () => {
     // ========== BREAKDOWN BY TAX TYPE ==========
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'fr' ? 'Repartition par type de taxe' : 'Breakdown by Tax Type', margin, yOffset);
+    doc.text(language === 'fr' ? 'Répartition par type de taxe' : 'Breakdown by Tax Type', margin, yOffset);
     yOffset += 8;
     
     if (taxData.taxSummary.length > 0) {
