@@ -301,7 +301,7 @@ export const generateExpensesPeriodPdf = async (options: ExpensesPeriodPdfOption
     ]);
 
     autoTable(doc, {
-      head: [[t.date, t.description, t.category, t.companyCol, t.vendor, t.amount, t.taxes, t.total, t.status]],
+      head: [[t.date, t.description, t.category, t.companyCol, t.vendor, t.amount, t.taxes, t.total, language === 'fr' ? 'Déd. %' : 'Ded. %', language === 'fr' ? 'Montant déd.' : 'Ded. Amt', t.status]],
       body: tableData,
       startY: yPosition,
       margin: { left: margin, right: margin },
