@@ -2429,9 +2429,13 @@ const Reports = () => {
         body: netByTaxTypeData,
         startY: yOffset,
         theme: 'striped',
-        headStyles: { fillColor: [59, 130, 246] },
-        styles: { fontSize: 9 },
-        footStyles: { fillColor: [229, 231, 235], textColor: [0, 0, 0], fontStyle: 'bold' },
+        headStyles: { fillColor: [59, 130, 246], fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          1: { halign: 'right' },
+          2: { halign: 'right' },
+          3: { halign: 'right' }
+        },
         didParseCell: (data) => {
           if (data.row.index === netByTaxTypeData.length - 1) {
             data.cell.styles.fillColor = [229, 231, 235];
