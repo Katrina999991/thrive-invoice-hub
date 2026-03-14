@@ -2145,6 +2145,12 @@ Best regards,
                     {invoice.status === 'paid' && t("invoices.statusPaid")}
                     {invoice.status === 'overdue' && t("invoices.statusOverdue")}
                   </Badge>
+                  {(invoice as any).final_reminder_sent && (
+                    <Badge variant="outline" className="shrink-0 border-amber-500 text-amber-700 dark:text-amber-400 text-[10px]">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      {t("invoices.finalReminderSent")}
+                    </Badge>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                   <div>
@@ -2156,6 +2162,14 @@ Best regards,
                     <span className="ml-1">{invoice.due_date}</span>
                   </div>
                 </div>
+                {(invoice as any).final_reminder_sent && (
+                  <div className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-2 mb-3 space-y-0.5">
+                    <p>{t("invoices.finalReminderSentOn")}: {new Date((invoice as any).final_reminder_sent_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                    {(invoice as any).final_reminder_response_due_at && (
+                      <p>{t("invoices.responseExpectedBefore")}: {new Date((invoice as any).final_reminder_response_due_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                    )}
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={() => {
                     setViewingInvoice(invoice);
