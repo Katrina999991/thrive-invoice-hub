@@ -89,8 +89,12 @@ Thank you for your attention,
 
 {{company_name}}`;
 
+  // Validate that stored recipient looks like an email, not a UUID
+  const storedRecipient = invoice.final_reminder_recipient;
+  const isValidEmail = storedRecipient && storedRecipient.includes('@');
+  
   const [recipient, setRecipient] = useState(
-    invoice.final_reminder_recipient || clientEmail
+    isValidEmail ? storedRecipient : clientEmail
   );
   const [subject, setSubject] = useState(
     invoice.final_reminder_email_subject || defaultSubject
