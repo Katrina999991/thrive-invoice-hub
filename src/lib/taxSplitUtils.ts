@@ -304,7 +304,7 @@ export function processTaxSplit(
           ? 'Taxes calculées depuis les paramètres. Veuillez confirmer.' 
           : 'Taxes calculated from settings. Please confirm.',
         helperTextType: 'warning',
-        originalTotal: total_amount,
+        originalTotal: total,
         source: 'calculated'
       };
     }
