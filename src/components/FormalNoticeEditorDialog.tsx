@@ -25,6 +25,9 @@ interface FormalNoticeEditorDialogProps {
     due_date: string | null;
     payment_link: string | null;
     status: string;
+    invoice_items?: Array<{
+      description: string;
+    }>;
     clients?: {
       name: string;
       email: string | null;
