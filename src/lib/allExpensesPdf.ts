@@ -205,9 +205,13 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expense.amount),
         taxDisplay,
         new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expenseTotal),
+        expense.deductible_percent.toFixed(0) + '%',
+        new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(expense.deductible_amount),
         expense.status === 'paid' ? t.paid : t.unpaid
       ];
     });
+
+    const totalDeductible = sortedExpenses.reduce((sum, e) => sum + e.deductible_amount, 0);
 
     // Add totals row
     tableData.push([
@@ -219,6 +223,8 @@ export const generateAllExpensesPdf = async (options: AllExpensesPdfOptions): Pr
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalAmount),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalTaxes),
       new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(grandTotal),
+      '',
+      new Intl.NumberFormat(currencyLocale, { style: 'currency', currency: 'CAD' }).format(totalDeductible),
       ''
     ]);
 
