@@ -232,16 +232,16 @@ export const EmailReportDialog = ({
                             <CommandItem
                               key={r.id}
                               onSelect={() => handleSelectRecipient(r)}
-                              className="flex items-center justify-between hover:[&_.recipient-primary]:text-accent-foreground hover:[&_.recipient-secondary]:text-accent-foreground/85 data-[selected=true]:[&_.recipient-primary]:text-accent-foreground data-[selected='true']:[&_.recipient-primary]:text-accent-foreground aria-selected:[&_.recipient-primary]:text-accent-foreground data-[selected=true]:[&_.recipient-secondary]:text-accent-foreground/85 data-[selected='true']:[&_.recipient-secondary]:text-accent-foreground/85 aria-selected:[&_.recipient-secondary]:text-accent-foreground/85"
+                              className="group flex items-center justify-between"
                             >
                               <div className="flex flex-col min-w-0">
-                                <span className="recipient-primary font-medium truncate">
+                                <span className="recipient-primary font-medium truncate text-foreground group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground group-data-[selected='true']:text-accent-foreground group-aria-selected:text-accent-foreground">
                                   {r.name}
                                   {r.role_note && (
-                                    <span className="recipient-secondary ml-1.5 text-muted-foreground font-normal">— {r.role_note}</span>
+                                    <span className="recipient-secondary ml-1.5 font-normal text-muted-foreground group-hover:text-accent-foreground/85 group-data-[selected=true]:text-accent-foreground/85 group-data-[selected='true']:text-accent-foreground/85 group-aria-selected:text-accent-foreground/85">— {r.role_note}</span>
                                   )}
                                 </span>
-                                <span className="recipient-secondary text-xs text-muted-foreground truncate">{r.email}</span>
+                                <span className="recipient-secondary text-xs truncate text-muted-foreground group-hover:text-accent-foreground/85 group-data-[selected=true]:text-accent-foreground/85 group-data-[selected='true']:text-accent-foreground/85 group-aria-selected:text-accent-foreground/85">{r.email}</span>
                               </div>
                               <Button
                                 variant="ghost"
