@@ -112,7 +112,7 @@ Veuillez agréer nos salutations distinguées.
 {{company_address}}`
     : `Dear Sir/Madam,
 
-Despite our previous reminders, the balance of invoice {{invoice_number}}, in the amount of {{amount_due}}, remains unpaid.
+Despite our previous reminders, the balance of invoice {{invoice_number}}${invoiceDescription ? ', regarding {{invoice_description}},' : ','} in the amount of {{amount_due}}, remains unpaid.
 
 This invoice was due on {{invoice_due_date}}.
 
