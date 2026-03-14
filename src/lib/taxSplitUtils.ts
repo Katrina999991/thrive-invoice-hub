@@ -214,12 +214,11 @@ export function processTaxSplit(
     return defaultResult;
   }
   
-  // CRITICAL: For Amazon-style invoices, the "subtotal" field may actually include taxes.
-  // Always compute amount_before_tax = total - sum(taxes) when tax_lines exist.
-  // This automatically accounts for discounts (already reflected in total_amount).
+  // When explicit tax lines exist, compute before-tax = total - sum(taxes).
+  // This is the most reliable approach regardless of what the OCR reported as subtotal.
   if (hasExplicitTaxes) {
     const taxSum = taxLines.reduce((sum, t) => sum + (t.amount || 0), 0);
-    const computedBeforeTax = Math.round((total_amount - taxSum) * 100) / 100;
+    const computedBeforeTax = Math.round((total - taxSum) * 100) / 100;
     
     // Map tax lines to company taxes
     const mappedTaxes = taxLines
