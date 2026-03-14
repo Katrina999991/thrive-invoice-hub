@@ -1891,9 +1891,21 @@ const Reports = () => {
       doc.setFontSize(10);
       doc.text(
         `${language === 'fr' ? 'Période' : 'Period'}: ${format(taxEffectiveStart, 'dd MMMM yyyy', { locale: dateLocale })} – ${format(taxEffectiveEnd, 'dd MMMM yyyy', { locale: dateLocale })}`,
-        pageWidth / 2,
-        yOffset,
-        { align: 'center' }
+        pageWidth / 2, yOffset, { align: 'center' }
+      );
+      yOffset += 8;
+    } else if (taxEffectiveStart) {
+      doc.setFontSize(10);
+      doc.text(
+        `${language === 'fr' ? 'Période : Depuis le' : 'Period: From'} ${format(taxEffectiveStart, 'dd MMMM yyyy', { locale: dateLocale })}`,
+        pageWidth / 2, yOffset, { align: 'center' }
+      );
+      yOffset += 8;
+    } else if (taxEffectiveEnd) {
+      doc.setFontSize(10);
+      doc.text(
+        `${language === 'fr' ? "Période : Jusqu'au" : 'Period: Until'} ${format(taxEffectiveEnd, 'dd MMMM yyyy', { locale: dateLocale })}`,
+        pageWidth / 2, yOffset, { align: 'center' }
       );
       yOffset += 8;
     }
