@@ -1991,7 +1991,7 @@ const Reports = () => {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(language === 'fr' ? 'Details des depenses' : 'Expense Details', margin, yOffset);
+      doc.text(language === 'fr' ? 'Détails des dépenses' : 'Expense Details', margin, yOffset);
       yOffset += 8;
       
       const expenseTableData = expenseDetails.map(exp => {
