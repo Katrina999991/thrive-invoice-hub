@@ -4812,6 +4812,8 @@ const Reports = () => {
       language === 'fr' ? 'Montant' : 'Amount',
       language === 'fr' ? 'Taxes' : 'Taxes',
       language === 'fr' ? 'Total' : 'Total',
+      language === 'fr' ? 'Déductible %' : 'Deductible %',
+      language === 'fr' ? 'Montant déductible' : 'Deductible Amount',
       language === 'fr' ? 'Statut' : 'Status'
     ]);
     
@@ -4823,6 +4825,7 @@ const Reports = () => {
     let totalAmount = 0;
     let totalTaxes = 0;
     let grandTotal = 0;
+    let totalDeductible = 0;
     
     sortedExpenses.forEach(expense => {
       const expenseTaxes = (expense.taxes || []).reduce((sum, tax) => sum + (tax.amount || 0), 0);
@@ -4831,6 +4834,7 @@ const Reports = () => {
       totalAmount += expense.amount;
       totalTaxes += expenseTaxes;
       grandTotal += expenseTotal;
+      totalDeductible += expense.deductible_amount;
       
       headerData.push([
         format(new Date(expense.expense_date), 'dd/MM/yyyy'),
@@ -4841,6 +4845,8 @@ const Reports = () => {
         expense.amount,
         expenseTaxes,
         expenseTotal,
+        expense.deductible_percent,
+        expense.deductible_amount,
         expense.status === 'paid' ? (language === 'fr' ? 'Payée' : 'Paid') : (language === 'fr' ? 'Impayée' : 'Unpaid')
       ]);
     });
@@ -4851,6 +4857,8 @@ const Reports = () => {
       totalAmount,
       totalTaxes,
       grandTotal,
+      '',
+      totalDeductible,
       ''
     ]);
     
