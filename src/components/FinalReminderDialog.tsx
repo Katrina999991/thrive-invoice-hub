@@ -16,6 +16,7 @@ interface FinalReminderDialogProps {
     invoice_number: string;
     total: number;
     due_date: string | null;
+    payment_link: string | null;
     final_reminder_sent?: boolean;
     final_reminder_sent_at?: string | null;
     final_reminder_response_due_at?: string | null;
@@ -26,6 +27,7 @@ interface FinalReminderDialogProps {
       name: string;
       email: string | null;
       contact_person: string | null;
+      include_payment_link?: boolean | null;
     };
   };
   companyName?: string;
