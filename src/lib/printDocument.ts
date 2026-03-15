@@ -43,51 +43,40 @@ export const printPdfBlob = (blob: Blob): void => {
     return;
   }
 
-  // --- Web / PWA path: hidden iframe with embedded PDF ---
+  // --- Web / PWA path: iframe with blob URL ---
   const iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:1px;height:1px;border:none;opacity:0;';
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-10000px';
+  iframe.style.left = '-10000px';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  iframe.src = blobUrl;
   document.body.appendChild(iframe);
 
-  let hasPrinted = false;
-
-  const doPrint = () => {
-    if (hasPrinted) return;
-    hasPrinted = true;
-    try {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-    } catch {
-      window.open(blobUrl, '_blank');
-    }
+  iframe.onload = () => {
+    // Delay to let the browser's built-in PDF viewer fully render the content
     setTimeout(() => {
-      try { document.body.removeChild(iframe); } catch { /* already removed */ }
-      URL.revokeObjectURL(blobUrl);
-    }, 120_000);
+      try {
+        iframe.contentWindow?.print();
+      } catch (e) {
+        console.error('Iframe print failed:', e);
+        window.open(blobUrl, '_blank');
+      } finally {
+        setTimeout(() => {
+          try { document.body.removeChild(iframe); } catch { /* noop */ }
+          URL.revokeObjectURL(blobUrl);
+        }, 60_000);
+      }
+    }, 1000);
   };
 
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-  if (iframeDoc) {
-    iframeDoc.open();
-    iframeDoc.write(
-      `<!DOCTYPE html><html><head><title>Print</title></head>` +
-      `<body style="margin:0;padding:0;">` +
-      `<embed src="${blobUrl}" type="application/pdf" width="100%" height="100%" ` +
-      `style="position:fixed;top:0;left:0;width:100%;height:100%;">` +
-      `</body></html>`
-    );
-    iframeDoc.close();
-
-    const embed = iframeDoc.querySelector('embed');
-    if (embed) {
-      embed.addEventListener('load', doPrint);
-    }
-    // Fallback timeout in case embed load event doesn't fire
-    setTimeout(doPrint, 1500);
-  } else {
+  iframe.onerror = () => {
+    console.error('Iframe failed to load.');
     window.open(blobUrl, '_blank');
     try { document.body.removeChild(iframe); } catch { /* noop */ }
     URL.revokeObjectURL(blobUrl);
-  }
+  };
 };
 
 /**
