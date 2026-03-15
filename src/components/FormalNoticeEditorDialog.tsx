@@ -8,12 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, Download, Printer, Send, Eye, FileText, Mail, History } from "lucide-react";
+import { Loader2, Save, Download, Send, Eye, FileText, Mail, History } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
 import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
-import { generateFormalNoticeHtml } from "@/lib/formalNoticeHtml";
-import { printHtmlContent } from "@/lib/printDocument";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -242,10 +240,6 @@ Sincerely,
     generateFormalNoticePdf(getPdfData(), 'download');
   };
 
-  const handlePrint = () => {
-    const html = generateFormalNoticeHtml(getPdfData());
-    printHtmlContent(html);
-  };
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
@@ -438,10 +432,6 @@ Sincerely,
                   <Download className="h-4 w-4 mr-2" />
                   PDF
                 </Button>
-                <Button variant="outline" onClick={handlePrint}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  {language === 'fr' ? 'Imprimer' : 'Print'}
-                </Button>
                 <Button onClick={handleSendEmail} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                   <Mail className="h-4 w-4 mr-2" />
                   {language === 'fr' ? 'Envoyer par email' : 'Send by email'}
@@ -483,10 +473,6 @@ Sincerely,
                 <Button variant="outline" onClick={handleDownloadPdf}>
                   <Download className="h-4 w-4 mr-2" />
                   PDF
-                </Button>
-                <Button variant="outline" onClick={handlePrint}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  {language === 'fr' ? 'Imprimer' : 'Print'}
                 </Button>
               </div>
             </TabsContent>
