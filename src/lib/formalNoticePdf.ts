@@ -71,15 +71,64 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   
   // Split body into paragraphs preserving newlines
   const paragraphs = data.body.split('\n');
-  for (const paragraph of paragraphs) {
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // Pre-calculate the height of the signature block (last non-empty paragraph + preceding empty lines)
+  // to keep closing formula + signature space + company name together
+  const getSignatureBlockStart = (): number => {
+    // Find the last non-empty paragraph index (company name)
+    let lastNonEmpty = paragraphs.length - 1;
+    while (lastNonEmpty >= 0 && paragraphs[lastNonEmpty].trim() === '') lastNonEmpty--;
+    if (lastNonEmpty < 0) return paragraphs.length;
+
+    // Walk backwards past empty lines (signature space)
+    let idx = lastNonEmpty - 1;
+    while (idx >= 0 && paragraphs[idx].trim() === '') idx--;
+
+    // Include the closing formula paragraph (e.g. "Veuillez agréer...")
+    if (idx >= 0) return idx;
+    return lastNonEmpty;
+  };
+
+  const signatureBlockStart = getSignatureBlockStart();
+
+  // Calculate the height of the signature block
+  const calcBlockHeight = (startIdx: number): number => {
+    let h = 0;
+    for (let i = startIdx; i < paragraphs.length; i++) {
+      if (paragraphs[i].trim() === '') {
+        h += 4;
+      } else {
+        const l = doc.splitTextToSize(paragraphs[i], contentWidth);
+        h += l.length * 5 + 2;
+      }
+    }
+    return h;
+  };
+
+  let signatureBlockMoved = false;
+
+  for (let pi = 0; pi < paragraphs.length; pi++) {
+    const paragraph = paragraphs[pi];
+
+    // When we reach the signature block, check if the whole block fits
+    if (pi === signatureBlockStart && !signatureBlockMoved) {
+      const blockHeight = calcBlockHeight(signatureBlockStart);
+      if (y + blockHeight > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+        signatureBlockMoved = true;
+      }
+    }
+
     if (paragraph.trim() === '') {
       y += 4;
       continue;
     }
     const lines = doc.splitTextToSize(paragraph, contentWidth);
     
-    // Check page break
-    if (y + lines.length * 5 > doc.internal.pageSize.getHeight() - margin) {
+    // Check page break (skip if inside signature block already checked)
+    if (pi < signatureBlockStart && y + lines.length * 5 > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
@@ -88,7 +137,6 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     if (urlPattern.test(paragraph.trim())) {
       doc.setTextColor(0, 60, 180);
       doc.text(lines, margin, y);
-      // Add clickable link annotation
       const textWidth = doc.getTextWidth(paragraph.trim());
       doc.link(margin, y - 4, Math.min(textWidth, contentWidth), 6, { url: paragraph.trim() });
       doc.setTextColor(30, 30, 30);
