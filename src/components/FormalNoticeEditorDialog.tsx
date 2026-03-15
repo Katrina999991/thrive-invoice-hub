@@ -140,6 +140,9 @@ You can make your payment online at the following address:
 
 Sincerely,
 
+
+
+
 {{company_name}}`;
 
   // Form state
