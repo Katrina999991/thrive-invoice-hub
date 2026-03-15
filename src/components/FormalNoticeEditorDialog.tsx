@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, Download, Printer, Send, Eye, FileText, Mail, History } from "lucide-react";
+import { Loader2, Save, Download, Send, Eye, FileText, Mail, History } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
 import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
