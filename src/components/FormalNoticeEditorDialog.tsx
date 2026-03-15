@@ -397,6 +397,7 @@ Sincerely,
                 />
                 <p className="text-xs text-muted-foreground">
                   {language === 'fr' ? 'Variables disponibles' : 'Available variables'}:{' '}
+                  <code className="text-xs">{'{{client_salutation}}'}</code>,{' '}
                   <code className="text-xs">{'{{client_name}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_number}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_description}}'}</code>,{' '}
