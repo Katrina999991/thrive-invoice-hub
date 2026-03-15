@@ -106,7 +106,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   defaultDueDate.setDate(defaultDueDate.getDate() + 10);
 
   const defaultBody = clientLang === 'fr'
-    ? `Madame, Monsieur,
+    ? `{{client_salutation}}
 
 Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}}, concernant {{invoice_description}}, d'un montant de {{amount_due}}, demeure impayé à ce jour.
 
