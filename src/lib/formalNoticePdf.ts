@@ -170,28 +170,7 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     return doc.output('blob');
   } else if (action === 'print') {
     const blob = doc.output('blob');
-    const blobUrl = URL.createObjectURL(blob);
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.top = '-10000px';
-    iframe.style.left = '-10000px';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    iframe.src = blobUrl;
-    document.body.appendChild(iframe);
-    iframe.onload = () => {
-      try {
-        iframe.contentWindow?.print();
-      } catch {
-        // Fallback: open in new tab if iframe print fails (cross-origin)
-        window.open(blobUrl, '_blank');
-      }
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(blobUrl);
-      }, 60000);
-    };
+    printPdfBlob(blob);
   } else {
     doc.save(`mise-en-demeure-${data.date}.pdf`);
   }
