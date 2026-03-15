@@ -48,66 +48,46 @@ export const printPdfBlob = (blob: Blob): void => {
   iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:1px;height:1px;border:none;opacity:0;';
   document.body.appendChild(iframe);
 
-  // Write an HTML page that embeds the PDF and auto-prints
-  // This avoids cross-origin issues with blob URLs set as iframe.src
+  let hasPrinted = false;
+
+  const doPrint = () => {
+    if (hasPrinted) return;
+    hasPrinted = true;
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch {
+      window.open(blobUrl, '_blank');
+    }
+    setTimeout(() => {
+      try { document.body.removeChild(iframe); } catch { /* already removed */ }
+      URL.revokeObjectURL(blobUrl);
+    }, 120_000);
+  };
+
   const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
   if (iframeDoc) {
     iframeDoc.open();
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head><title>Print</title></head>
-        <body style="margin:0;padding:0;">
-          <embed src="${blobUrl}" type="application/pdf" width="100%" height="100%" style="position:fixed;top:0;left:0;width:100%;height:100%;">
-        </body>
-      </html>
-    `);
+    iframeDoc.write(
+      `<!DOCTYPE html><html><head><title>Print</title></head>` +
+      `<body style="margin:0;padding:0;">` +
+      `<embed src="${blobUrl}" type="application/pdf" width="100%" height="100%" ` +
+      `style="position:fixed;top:0;left:0;width:100%;height:100%;">` +
+      `</body></html>`
+    );
     iframeDoc.close();
 
-    // Wait for the embed to load, then trigger print
     const embed = iframeDoc.querySelector('embed');
     if (embed) {
-      embed.addEventListener('load', () => {
-        triggerPrint(iframe, blobUrl);
-      });
-      // Some browsers don't fire load on embed — use a timeout fallback
-      setTimeout(() => {
-        triggerPrint(iframe, blobUrl);
-      }, 1500);
-    } else {
-      setTimeout(() => triggerPrint(iframe, blobUrl), 1500);
+      embed.addEventListener('load', doPrint);
     }
+    // Fallback timeout in case embed load event doesn't fire
+    setTimeout(doPrint, 1500);
   } else {
-    // iframeDoc not accessible — direct fallback
     window.open(blobUrl, '_blank');
-    cleanup(iframe, blobUrl);
+    try { document.body.removeChild(iframe); } catch { /* noop */ }
+    URL.revokeObjectURL(blobUrl);
   }
-};
-
-let printTriggered = false;
-
-const triggerPrint = (iframe: HTMLIFrameElement, blobUrl: string): void => {
-  if (printTriggered) return;
-  printTriggered = true;
-
-  try {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-  } catch {
-    // If print fails, fallback to opening in new tab
-    window.open(blobUrl, '_blank');
-  }
-
-  // Reset flag and schedule cleanup
-  setTimeout(() => {
-    printTriggered = false;
-    cleanup(iframe, blobUrl);
-  }, 120_000);
-};
-
-const cleanup = (iframe: HTMLIFrameElement, blobUrl: string): void => {
-  try { document.body.removeChild(iframe); } catch { /* already removed */ }
-  URL.revokeObjectURL(blobUrl);
 };
 
 /**
