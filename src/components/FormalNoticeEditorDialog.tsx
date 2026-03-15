@@ -170,6 +170,7 @@ Sincerely,
 
   const replaceVariables = (text: string): string => {
     return text
+      .replace(/\{\{client_salutation\}\}/g, clientSalutation)
       .replace(/\{\{client_name\}\}/g, clientName)
       .replace(/\{\{client_address\}\}/g, clientAddress)
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
