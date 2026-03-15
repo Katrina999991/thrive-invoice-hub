@@ -99,18 +99,18 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const defaultBody = clientLang === 'fr'
     ? `Madame, Monsieur,
 
-Malgré nos rappels précédents, le solde de la facture {{invoice_number}}, concernant {{invoice_description}}, d'un montant de {{amount_due}}, demeure impayé.
+Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}}, concernant {{invoice_description}}, d'un montant de {{amount_due}}, demeure impayé à ce jour.
 
-Cette facture était échue depuis le {{invoice_due_date}}.
+Cette facture était exigible depuis le {{invoice_due_date}}.
 
- Par la présente, nous vous mettons en demeure de procéder au paiement complet du montant dû au plus tard le {{formal_notice_due_date}}.
+Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme au plus tard le {{formal_notice_due_date}}.
 
-À défaut de recevoir le paiement ou une réponse de votre part dans ce délai, nous nous réservons le droit d'entreprendre les démarches appropriées.${invoice.payment_link ? `
+À défaut de recevoir le paiement ou une réponse de votre part dans ce délai, nous nous verrons dans l'obligation d'entreprendre les procédures nécessaires afin de recouvrer cette somme, sans autre avis.${invoice.payment_link ? `
 
-Vous pouvez effectuer le paiement en ligne à l'adresse suivante :
+Vous pouvez également effectuer le paiement en ligne à l'adresse suivante :
 {{invoice_payment_link}}` : ''}
 
-Veuillez agréer nos salutations distinguées.
+Veuillez agréer, Madame, Monsieur, nos salutations distinguées.
 
 {{company_name}}
 {{company_address}}`
