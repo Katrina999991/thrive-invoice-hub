@@ -76,6 +76,15 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   // Use CLIENT language for document content, UI language for interface labels
   const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
 
+  // Generate client salutation based on contact person availability
+  const clientSalutation = useMemo(() => {
+    const contact = invoice.clients?.contact_person;
+    if (contact && contact.trim()) {
+      return contact.trim() + ',';
+    }
+    return clientLang === 'fr' ? 'Madame, Monsieur,' : 'Dear Sir/Madam,';
+  }, [invoice.clients?.contact_person, clientLang]);
+
   // Generate short invoice description from items
   const invoiceDescription = useMemo(() => {
     const items = invoice.invoice_items || [];
@@ -97,7 +106,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   defaultDueDate.setDate(defaultDueDate.getDate() + 10);
 
   const defaultBody = clientLang === 'fr'
-    ? `Madame, Monsieur,
+    ? `{{client_salutation}}
 
 Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}}, concernant {{invoice_description}}, d'un montant de {{amount_due}}, demeure impayé à ce jour.
 
@@ -114,7 +123,7 @@ Veuillez agréer, Madame, Monsieur, nos salutations distinguées.
 
 {{company_name}}
 {{company_address}}`
-    : `Dear Sir/Madam,
+    : `{{client_salutation}}
 
 Despite our previous reminders, the balance of invoice {{invoice_number}}, regarding {{invoice_description}}, in the amount of {{amount_due}}, remains unpaid.
 
@@ -161,6 +170,7 @@ Sincerely,
 
   const replaceVariables = (text: string): string => {
     return text
+      .replace(/\{\{client_salutation\}\}/g, clientSalutation)
       .replace(/\{\{client_name\}\}/g, clientName)
       .replace(/\{\{client_address\}\}/g, clientAddress)
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
@@ -387,6 +397,7 @@ Sincerely,
                 />
                 <p className="text-xs text-muted-foreground">
                   {language === 'fr' ? 'Variables disponibles' : 'Available variables'}:{' '}
+                  <code className="text-xs">{'{{client_salutation}}'}</code>,{' '}
                   <code className="text-xs">{'{{client_name}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_number}}'}</code>,{' '}
                   <code className="text-xs">{'{{invoice_description}}'}</code>,{' '}
