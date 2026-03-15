@@ -121,8 +121,7 @@ Vous pouvez également effectuer le paiement en ligne à l'adresse suivante :
 
 Veuillez agréer, Madame, Monsieur, nos salutations distinguées.
 
-{{company_name}}
-{{company_address}}`
+{{company_name}}`
     : `{{client_salutation}}
 
 Despite our previous reminders, the balance of invoice {{invoice_number}}, regarding {{invoice_description}}, in the amount of {{amount_due}}, remains unpaid.
@@ -138,8 +137,7 @@ You can make your payment online at the following address:
 
 Sincerely,
 
-{{company_name}}
-{{company_address}}`;
+{{company_name}}`;
 
   // Form state
   const [title, setTitle] = useState(clientLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
