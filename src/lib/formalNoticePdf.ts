@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { printPdfBlob } from './printDocument';
 
 export interface FormalNoticePdfData {
   title: string;
