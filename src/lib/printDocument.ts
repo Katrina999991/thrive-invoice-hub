@@ -40,38 +40,74 @@ export const printPdfBlob = (blob: Blob): void => {
   // --- Native path (Capacitor / WebView bridge) ---
   if (env === 'native' && window.nativePrintHandler) {
     window.nativePrintHandler(blobUrl);
-    // Native handler is responsible for revoking if needed
     return;
   }
 
-  // --- Web / PWA path: hidden iframe ---
+  // --- Web / PWA path: hidden iframe with embedded PDF ---
   const iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:0;height:0;border:none;';
-  iframe.src = blobUrl;
+  iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:1px;height:1px;border:none;opacity:0;';
   document.body.appendChild(iframe);
 
-  iframe.onload = () => {
-    try {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-    } catch {
-      // Cross-origin or blocked — fallback to new tab
-      window.open(blobUrl, '_blank');
+  // Write an HTML page that embeds the PDF and auto-prints
+  // This avoids cross-origin issues with blob URLs set as iframe.src
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (iframeDoc) {
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head><title>Print</title></head>
+        <body style="margin:0;padding:0;">
+          <embed src="${blobUrl}" type="application/pdf" width="100%" height="100%" style="position:fixed;top:0;left:0;width:100%;height:100%;">
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+
+    // Wait for the embed to load, then trigger print
+    const embed = iframeDoc.querySelector('embed');
+    if (embed) {
+      embed.addEventListener('load', () => {
+        triggerPrint(iframe, blobUrl);
+      });
+      // Some browsers don't fire load on embed — use a timeout fallback
+      setTimeout(() => {
+        triggerPrint(iframe, blobUrl);
+      }, 1500);
+    } else {
+      setTimeout(() => triggerPrint(iframe, blobUrl), 1500);
     }
-
-    // Cleanup after a generous delay (user may still be in print dialog)
-    setTimeout(() => {
-      try { document.body.removeChild(iframe); } catch { /* already removed */ }
-      URL.revokeObjectURL(blobUrl);
-    }, 120_000);
-  };
-
-  iframe.onerror = () => {
-    // Iframe failed entirely — fallback
+  } else {
+    // iframeDoc not accessible — direct fallback
     window.open(blobUrl, '_blank');
-    try { document.body.removeChild(iframe); } catch { /* noop */ }
-    URL.revokeObjectURL(blobUrl);
-  };
+    cleanup(iframe, blobUrl);
+  }
+};
+
+let printTriggered = false;
+
+const triggerPrint = (iframe: HTMLIFrameElement, blobUrl: string): void => {
+  if (printTriggered) return;
+  printTriggered = true;
+
+  try {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+  } catch {
+    // If print fails, fallback to opening in new tab
+    window.open(blobUrl, '_blank');
+  }
+
+  // Reset flag and schedule cleanup
+  setTimeout(() => {
+    printTriggered = false;
+    cleanup(iframe, blobUrl);
+  }, 120_000);
+};
+
+const cleanup = (iframe: HTMLIFrameElement, blobUrl: string): void => {
+  try { document.body.removeChild(iframe); } catch { /* already removed */ }
+  URL.revokeObjectURL(blobUrl);
 };
 
 /**
