@@ -100,10 +100,10 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
 
   y += 10;
 
-  // Signature
+  // Signature (name only — address is already in the header)
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(0, 0, 0);
-  const sigLines = doc.splitTextToSize(data.senderName + (data.senderAddress ? '\n' + data.senderAddress : ''), contentWidth / 2);
+  const sigLines = doc.splitTextToSize(data.senderName, contentWidth / 2);
   
   if (y + sigLines.length * 5 > doc.internal.pageSize.getHeight() - margin) {
     doc.addPage();

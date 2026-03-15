@@ -137,8 +137,7 @@ You can make your payment online at the following address:
 
 Sincerely,
 
-{{company_name}}
-{{company_address}}`;
+{{company_name}}`;
 
   // Form state
   const [title, setTitle] = useState(clientLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
