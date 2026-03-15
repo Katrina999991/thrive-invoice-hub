@@ -240,10 +240,6 @@ Sincerely,
     generateFormalNoticePdf(getPdfData(), 'download');
   };
 
-  const handlePrint = () => {
-    const html = generateFormalNoticeHtml(getPdfData());
-    printHtmlContent(html);
-  };
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
