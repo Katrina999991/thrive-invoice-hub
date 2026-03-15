@@ -98,19 +98,7 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     y += lines.length * 5 + 2;
   }
 
-  y += 10;
-
-  // Signature (name only — address is already in the header)
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0, 0, 0);
-  const sigLines = doc.splitTextToSize(data.senderName, contentWidth / 2);
-  
-  if (y + sigLines.length * 5 > doc.internal.pageSize.getHeight() - margin) {
-    doc.addPage();
-    y = margin;
-  }
-  
-  doc.text(sigLines, margin, y);
+  // No extra signature block — company name is already in the body template via {{company_name}}
 
   if (action === 'blob') {
     return doc.output('blob');
