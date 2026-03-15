@@ -3,10 +3,8 @@
  * 
  * Supports: Web browsers, PWA, and future native apps (Capacitor/WebView).
  * 
- * Strategy:
- * 1. Native handler (Capacitor plugin or custom bridge) — if available
- * 2. Hidden iframe + print() — reliable cross-browser approach
- * 3. Fallback: open blob in new tab
+ * Strategy for web: Print HTML content via hidden iframe (no blob URLs, no new tabs).
+ * Strategy for native: Delegate to native handler.
  */
 
 declare global {
@@ -28,22 +26,24 @@ export const detectEnvironment = (): PrintEnvironment => {
 };
 
 /**
- * Print a PDF blob reliably across all environments.
- * 
- * @param blob - The PDF blob to print
- * @returns A cleanup function, or void
+ * Print HTML content reliably across all environments.
+ * No blob URLs, no new tabs — works in Brave, Chrome, Edge, Safari, PWA.
+ *
+ * @param htmlContent - Full HTML string to print
  */
-export const printPdfBlob = (blob: Blob): void => {
-  const blobUrl = URL.createObjectURL(blob);
+export const printHtmlContent = (htmlContent: string): void => {
   const env = detectEnvironment();
 
-  // --- Native path (Capacitor / WebView bridge) ---
+  // --- Native path ---
   if (env === 'native' && window.nativePrintHandler) {
+    // For native, generate a data URI and pass it
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
     window.nativePrintHandler(blobUrl);
     return;
   }
 
-  // --- Web / PWA path: iframe with blob URL ---
+  // --- Web / PWA path: hidden iframe with injected HTML ---
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
   iframe.style.top = '-10000px';
@@ -51,32 +51,41 @@ export const printPdfBlob = (blob: Blob): void => {
   iframe.style.width = '0';
   iframe.style.height = '0';
   iframe.style.border = 'none';
-  iframe.src = blobUrl;
   document.body.appendChild(iframe);
 
-  iframe.onload = () => {
-    // Delay to let the browser's built-in PDF viewer fully render the content
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    console.error('Cannot access iframe document');
+    document.body.removeChild(iframe);
+    return;
+  }
+
+  iframeDoc.open();
+  iframeDoc.write(htmlContent);
+  iframeDoc.close();
+
+  // Wait for content to render, then print
+  const triggerPrint = () => {
     setTimeout(() => {
       try {
+        iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       } catch (e) {
-        console.error('Iframe print failed:', e);
-        window.open(blobUrl, '_blank');
-      } finally {
-        setTimeout(() => {
-          try { document.body.removeChild(iframe); } catch { /* noop */ }
-          URL.revokeObjectURL(blobUrl);
-        }, 60_000);
+        console.error('Print failed:', e);
       }
-    }, 1000);
+      // Cleanup after print dialog closes
+      setTimeout(() => {
+        try { document.body.removeChild(iframe); } catch { /* noop */ }
+      }, 5000);
+    }, 500);
   };
 
-  iframe.onerror = () => {
-    console.error('Iframe failed to load.');
-    window.open(blobUrl, '_blank');
-    try { document.body.removeChild(iframe); } catch { /* noop */ }
-    URL.revokeObjectURL(blobUrl);
-  };
+  // Listen for load (images, fonts) or use timeout
+  if (iframe.contentWindow) {
+    iframe.contentWindow.onload = triggerPrint;
+  }
+  // Fallback if onload doesn't fire
+  setTimeout(triggerPrint, 2000);
 };
 
 /**
