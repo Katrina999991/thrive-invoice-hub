@@ -243,7 +243,8 @@ Sincerely,
   };
 
   const handlePrint = () => {
-    generateFormalNoticePdf(getPdfData(), 'print');
+    const html = generateFormalNoticeHtml(getPdfData());
+    printHtmlContent(html);
   };
 
   const handleSendEmail = () => {
