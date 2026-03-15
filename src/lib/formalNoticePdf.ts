@@ -121,11 +121,12 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   };
 
   let signatureBlockMoved = false;
+  let sigEmptyCount = 0; // track empty lines rendered in signature block
 
   for (let pi = 0; pi < paragraphs.length; pi++) {
     const paragraph = paragraphs[pi];
 
-    // When we reach the signature block, check if the whole block fits
+    // When we reach the signature block, check if the whole block fits on current page
     if (pi === signatureBlockStart && !signatureBlockMoved) {
       const blockHeight = calcBlockHeight(signatureBlockStart);
       if (y + blockHeight > pageHeight - margin) {
@@ -135,19 +136,32 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
       }
     }
 
+    const inSignatureBlock = pi >= signatureBlockStart;
+
     if (paragraph.trim() === '') {
-      y += 4;
+      // Inside signature block: cap empty lines at 3 for signature space
+      if (inSignatureBlock) {
+        sigEmptyCount++;
+        if (sigEmptyCount <= 3) {
+          y += 5;
+        }
+      } else {
+        y += 4;
+      }
       continue;
+    } else if (inSignatureBlock) {
+      sigEmptyCount = 0;
     }
+
     const lines = doc.splitTextToSize(paragraph, contentWidth);
-    
-    // Check page break (skip if inside signature block already checked)
-    if (pi < signatureBlockStart && y + lines.length * 5 > pageHeight - margin) {
+
+    // Page break for body paragraphs (not inside signature block)
+    if (!inSignatureBlock && y + lines.length * 5 > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
-    
-    // Check if this paragraph is a URL — render as clickable text link
+
+    // Render clickable URLs
     if (urlPattern.test(paragraph.trim())) {
       doc.setTextColor(0, 60, 180);
       doc.text(lines, margin, y);
