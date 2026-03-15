@@ -19,86 +19,100 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   const contentWidth = pageWidth - margin * 2;
   let y = margin;
 
-  // Sender info - top left
+  // --- SENDER INFO (top left) ---
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  const senderLines = doc.splitTextToSize(data.senderName + (data.senderAddress ? '\n' + data.senderAddress : ''), contentWidth / 2);
+  doc.setTextColor(80, 80, 80);
+  const senderLines = doc.splitTextToSize(
+    data.senderName + (data.senderAddress ? '\n' + data.senderAddress : ''),
+    contentWidth / 2
+  );
   doc.text(senderLines, margin, y);
-  y += senderLines.length * 5 + 5;
+  y += senderLines.length * 5 + 10;
 
-  // Date - top right
+  // --- DATE (aligned right) ---
+  doc.setFontSize(10);
   doc.setTextColor(60, 60, 60);
   doc.text(data.date, pageWidth - margin, y, { align: 'right' });
-  y += 15;
+  y += 12;
 
-  // Recipient
+  // --- RECIPIENT (left, below date) ---
   doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(0, 0, 0);
   const recipientBlock = data.recipientName + (data.recipientAddress ? '\n' + data.recipientAddress : '');
   const recipientLines = doc.splitTextToSize(recipientBlock, contentWidth / 2);
   doc.text(recipientLines, margin, y);
-  y += recipientLines.length * 5 + 15;
+  y += recipientLines.length * 5 + 20;
 
-  // Title
-  doc.setFontSize(16);
+  // --- TITLE (centered, with more spacing) ---
+  doc.setFontSize(15);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(180, 30, 30);
-  doc.text(data.title, pageWidth / 2, y, { align: 'center' });
+  doc.setTextColor(160, 25, 25);
+  doc.text(data.title.toUpperCase(), pageWidth / 2, y, { align: 'center' });
+  y += 8;
+
+  // Decorative line under title
+  doc.setDrawColor(160, 25, 25);
+  doc.setLineWidth(0.4);
+  const titleWidth = doc.getTextWidth(data.title.toUpperCase());
+  const lineStart = (pageWidth - titleWidth) / 2 - 5;
+  const lineEnd = (pageWidth + titleWidth) / 2 + 5;
+  doc.line(lineStart, y, lineEnd, y);
   y += 12;
 
-  // Line
-  doc.setDrawColor(180, 30, 30);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 10;
-
-  // Subject
-  doc.setFontSize(11);
+  // --- SUBJECT ---
+  doc.setFontSize(10.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
   const subjectLines = doc.splitTextToSize(`Objet : ${data.subject}`, contentWidth);
   doc.text(subjectLines, margin, y);
-  y += subjectLines.length * 6 + 8;
+  y += subjectLines.length * 5 + 8;
 
-  // Body
+  // --- BODY ---
   doc.setFontSize(10.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  
-  // URL pattern for making links clickable
+
   const urlPattern = /^https?:\/\/\S+$/;
-  
-  // Split body into paragraphs preserving newlines
   const paragraphs = data.body.split('\n');
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Pre-calculate the height of the signature block (last non-empty paragraph + preceding empty lines)
-  // to keep closing formula + signature space + company name together
+  // --- SIGNATURE BLOCK DETECTION ---
+  // Identify the start of the signature block: closing formula + empty lines (signature space) + company name
   const getSignatureBlockStart = (): number => {
-    // Find the last non-empty paragraph index (company name)
     let lastNonEmpty = paragraphs.length - 1;
     while (lastNonEmpty >= 0 && paragraphs[lastNonEmpty].trim() === '') lastNonEmpty--;
     if (lastNonEmpty < 0) return paragraphs.length;
 
-    // Walk backwards past empty lines (signature space)
+    // Walk backwards past empty lines (signature space — max 3 counted)
     let idx = lastNonEmpty - 1;
-    while (idx >= 0 && paragraphs[idx].trim() === '') idx--;
+    let emptyCount = 0;
+    while (idx >= 0 && paragraphs[idx].trim() === '' && emptyCount < 3) {
+      idx--;
+      emptyCount++;
+    }
 
-    // Include the closing formula paragraph (e.g. "Veuillez agréer...")
+    // Include the closing formula paragraph
     if (idx >= 0) return idx;
     return lastNonEmpty;
   };
 
   const signatureBlockStart = getSignatureBlockStart();
 
-  // Calculate the height of the signature block
+  // Calculate block height with a cap of 3 empty lines for signature space
   const calcBlockHeight = (startIdx: number): number => {
     let h = 0;
+    let consecutiveEmpty = 0;
     for (let i = startIdx; i < paragraphs.length; i++) {
       if (paragraphs[i].trim() === '') {
-        h += 4;
+        consecutiveEmpty++;
+        // Cap signature space at 3 empty lines (~15mm)
+        if (consecutiveEmpty <= 3) {
+          h += 5;
+        }
       } else {
+        consecutiveEmpty = 0;
         const l = doc.splitTextToSize(paragraphs[i], contentWidth);
         h += l.length * 5 + 2;
       }
