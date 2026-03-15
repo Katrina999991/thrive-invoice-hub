@@ -73,6 +73,9 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const clientName = invoice.clients?.contact_person || invoice.clients?.name || '';
   const clientAddress = invoice.clients?.address || '';
 
+  // Use CLIENT language for document content, UI language for interface labels
+  const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
+
   // Generate client salutation based on contact person availability
   const clientSalutation = useMemo(() => {
     const contact = invoice.clients?.contact_person;
@@ -81,9 +84,6 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
     }
     return clientLang === 'fr' ? 'Madame, Monsieur,' : 'Dear Sir/Madam,';
   }, [invoice.clients?.contact_person, clientLang]);
-
-  // Use CLIENT language for document content, UI language for interface labels
-  const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
 
   // Generate short invoice description from items
   const invoiceDescription = useMemo(() => {
