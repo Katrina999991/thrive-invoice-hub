@@ -121,6 +121,9 @@ Vous pouvez également effectuer le paiement en ligne à l'adresse suivante :
 
 Veuillez agréer, Madame, Monsieur, nos salutations distinguées.
 
+
+
+
 {{company_name}}`
     : `{{client_salutation}}
 
