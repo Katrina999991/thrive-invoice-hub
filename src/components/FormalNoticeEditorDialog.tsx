@@ -478,10 +478,6 @@ Sincerely,
                   <Download className="h-4 w-4 mr-2" />
                   PDF
                 </Button>
-                <Button variant="outline" onClick={handlePrint}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  {language === 'fr' ? 'Imprimer' : 'Print'}
-                </Button>
               </div>
             </TabsContent>
 
