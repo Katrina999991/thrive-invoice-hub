@@ -79,89 +79,77 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   const pageHeight = doc.internal.pageSize.getHeight();
 
   // --- SIGNATURE BLOCK DETECTION ---
-  // Identify the start of the signature block: closing formula + empty lines (signature space) + company name
-  const getSignatureBlockStart = (): number => {
-    let lastNonEmpty = paragraphs.length - 1;
-    while (lastNonEmpty >= 0 && paragraphs[lastNonEmpty].trim() === '') lastNonEmpty--;
-    if (lastNonEmpty < 0) return paragraphs.length;
+  // Signature block = closing formula + (empty lines) + company name (last non-empty paragraph)
+  const getSignatureBlockIndices = (): { closingIndex: number; companyIndex: number } | null => {
+    let companyIndex = paragraphs.length - 1;
+    while (companyIndex >= 0 && paragraphs[companyIndex].trim() === '') companyIndex--;
+    if (companyIndex < 0) return null;
 
-    // Walk backwards past empty lines (signature space — max 3 counted)
-    let idx = lastNonEmpty - 1;
-    let emptyCount = 0;
-    while (idx >= 0 && paragraphs[idx].trim() === '' && emptyCount < 3) {
-      idx--;
-      emptyCount++;
+    let closingIndex = companyIndex - 1;
+    while (closingIndex >= 0 && paragraphs[closingIndex].trim() === '') closingIndex--;
+    if (closingIndex < 0) return null;
+
+    // Ensure only empty lines between closing formula and company name
+    for (let i = closingIndex + 1; i < companyIndex; i++) {
+      if (paragraphs[i].trim() !== '') return null;
     }
 
-    // Include the closing formula paragraph
-    if (idx >= 0) return idx;
-    return lastNonEmpty;
+    return { closingIndex, companyIndex };
   };
 
-  const signatureBlockStart = getSignatureBlockStart();
+  const signatureBlock = getSignatureBlockIndices();
 
-  // Calculate block height with a cap of 3 empty lines for signature space
-  const calcBlockHeight = (startIdx: number): number => {
-    let h = 0;
-    let consecutiveEmpty = 0;
-    for (let i = startIdx; i < paragraphs.length; i++) {
-      if (paragraphs[i].trim() === '') {
-        consecutiveEmpty++;
-        // Cap signature space at 3 empty lines (~15mm)
-        if (consecutiveEmpty <= 3) {
-          h += 5;
-        }
-      } else {
-        consecutiveEmpty = 0;
-        const l = doc.splitTextToSize(paragraphs[i], contentWidth);
-        h += l.length * 5 + 2;
-      }
-    }
-    return h;
+  const getParagraphMetrics = (text: string) => {
+    const lines = doc.splitTextToSize(text, contentWidth);
+    const height = lines.length * 5 + 2;
+    return { lines, height };
   };
-
-  let signatureBlockMoved = false;
-  let sigEmptyCount = 0; // track empty lines rendered in signature block
 
   for (let pi = 0; pi < paragraphs.length; pi++) {
     const paragraph = paragraphs[pi];
 
-    // When we reach the signature block, check if the whole block fits on current page
-    if (pi === signatureBlockStart && !signatureBlockMoved) {
-      const blockHeight = calcBlockHeight(signatureBlockStart);
-      if (y + blockHeight > pageHeight - margin) {
+    // Render signature block as one indivisible unit with adaptive signature spacing (3 -> 2 -> 1 lines)
+    if (signatureBlock && pi === signatureBlock.closingIndex) {
+      const closing = getParagraphMetrics(paragraphs[signatureBlock.closingIndex]);
+      const company = getParagraphMetrics(paragraphs[signatureBlock.companyIndex]);
+
+      const getBlockHeight = (signatureLines: number) => closing.height + signatureLines * 5 + company.height;
+      const remainingSpace = pageHeight - margin - y;
+
+      let signatureLines = [3, 2, 1].find((lines) => getBlockHeight(lines) <= remainingSpace);
+
+      // Move to next page only if even 1 signature line cannot fit
+      if (!signatureLines) {
         doc.addPage();
         y = margin;
-        signatureBlockMoved = true;
+        const remainingAfterPageBreak = pageHeight - margin - y;
+        signatureLines = [3, 2, 1].find((lines) => getBlockHeight(lines) <= remainingAfterPageBreak) ?? 1;
       }
-    }
 
-    const inSignatureBlock = pi >= signatureBlockStart;
+      doc.text(closing.lines, margin, y);
+      y += closing.height;
+
+      y += signatureLines * 5;
+
+      doc.text(company.lines, margin, y);
+      y += company.height;
+
+      // Signature block is at the end of the letter content
+      break;
+    }
 
     if (paragraph.trim() === '') {
-      // Inside signature block: cap empty lines at 3 for signature space
-      if (inSignatureBlock) {
-        sigEmptyCount++;
-        if (sigEmptyCount <= 3) {
-          y += 5;
-        }
-      } else {
-        y += 4;
-      }
+      y += 4;
       continue;
-    } else if (inSignatureBlock) {
-      sigEmptyCount = 0;
     }
 
-    const lines = doc.splitTextToSize(paragraph, contentWidth);
+    const { lines, height } = getParagraphMetrics(paragraph);
 
-    // Page break for body paragraphs (not inside signature block)
-    if (!inSignatureBlock && y + lines.length * 5 > pageHeight - margin) {
+    if (y + height > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
 
-    // Render clickable URLs
     if (urlPattern.test(paragraph.trim())) {
       doc.setTextColor(0, 60, 180);
       doc.text(lines, margin, y);
@@ -171,7 +159,8 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     } else {
       doc.text(lines, margin, y);
     }
-    y += lines.length * 5 + 2;
+
+    y += height;
   }
 
   // No extra signature block — company name is already in the body template via {{company_name}}
