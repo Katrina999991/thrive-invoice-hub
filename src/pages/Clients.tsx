@@ -39,6 +39,7 @@ const Clients = () => {
 
   const [newClient, setNewClient] = useState({
     name: "",
+    contact_title: "",
     contact_person: "",
     company_id: "",
     email: "",
