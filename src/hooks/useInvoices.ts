@@ -96,6 +96,7 @@ export const useInvoices = () => {
             clients (
               name,
               contact_person,
+              contact_title,
               email,
               company_id,
               address,
