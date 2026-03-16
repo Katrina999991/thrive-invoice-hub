@@ -158,6 +158,7 @@ const Clients = () => {
     } else {
       await createClient({
         name: newClient.name,
+        contact_title: newClient.contact_title || null,
         contact_person: newClient.contact_person,
         company_id: newClient.company_id || null,
         email: emailsString,
