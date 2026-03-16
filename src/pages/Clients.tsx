@@ -655,7 +655,7 @@ const Clients = () => {
                     </div>
                     
                     {client.contact_person && (
-                      <p className="text-sm text-muted-foreground">{client.contact_person}</p>
+                      <p className="text-sm text-muted-foreground">{client.contact_title ? `${client.contact_title} ${client.contact_person}` : client.contact_person}</p>
                     )}
                     
                     {client.companies?.name && (
