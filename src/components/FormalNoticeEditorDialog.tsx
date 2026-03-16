@@ -32,6 +32,7 @@ interface FormalNoticeEditorDialogProps {
       name: string;
       email: string | null;
       contact_person: string | null;
+      contact_title?: string | null;
       address?: string | null;
       language?: string | null;
     };
