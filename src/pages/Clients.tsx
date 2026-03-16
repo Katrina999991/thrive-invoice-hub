@@ -340,13 +340,29 @@ const Clients = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">{t("clients.contactPerson")}</Label>
-                <Input
-                  id="contact_person"
-                  placeholder={t("clients.contactPlaceholder")}
-                  value={newClient.contact_person}
-                  onChange={(e) => setNewClient({...newClient, contact_person: e.target.value})}
-                />
+                <Label>{t("clients.contactPerson")}</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={newClient.contact_title}
+                    onValueChange={(value) => setNewClient({...newClient, contact_title: value})}
+                  >
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue placeholder={language === 'fr' ? 'Titre' : 'Title'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="M.">M.</SelectItem>
+                      <SelectItem value="Mme">Mme</SelectItem>
+                      <SelectItem value="Mx">Mx</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="contact_person"
+                    placeholder={t("clients.contactPlaceholder")}
+                    value={newClient.contact_person}
+                    onChange={(e) => setNewClient({...newClient, contact_person: e.target.value})}
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company_id">{t("clients.serviceProvider")} *</Label>
