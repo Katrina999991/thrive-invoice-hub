@@ -51,6 +51,7 @@ export interface ClientData {
   address?: string | null;
   phone?: string | null;
   contact_person?: string | null;
+  contact_title?: string | null;
   notes?: string | null;
   language?: string | null;
 }
