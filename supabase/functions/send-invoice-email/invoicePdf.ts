@@ -51,6 +51,7 @@ export interface ClientData {
   address?: string | null;
   phone?: string | null;
   contact_person?: string | null;
+  contact_title?: string | null;
   notes?: string | null;
   language?: string | null;
 }
@@ -399,8 +400,9 @@ export async function generateInvoicePdfForEmail(options: InvoicePdfOptions): Pr
     doc.text(client.name, leftMargin, nextY);
     nextY += 5;
     
-    if (client.contact_person) {
-      doc.text(client.contact_person, leftMargin, nextY);
+    const formattedContact = client.contact_person ? (client.contact_title ? `${client.contact_title} ${client.contact_person}` : client.contact_person) : null;
+    if (formattedContact) {
+      doc.text(formattedContact, leftMargin, nextY);
       nextY += 5;
     }
     if (client.address) {

@@ -132,6 +132,7 @@ export type Database = {
           address: string | null
           company_id: string | null
           contact_person: string | null
+          contact_title: string | null
           created_at: string
           email: string | null
           hourly_rate: number | null
@@ -153,6 +154,7 @@ export type Database = {
           address?: string | null
           company_id?: string | null
           contact_person?: string | null
+          contact_title?: string | null
           created_at?: string
           email?: string | null
           hourly_rate?: number | null
@@ -174,6 +176,7 @@ export type Database = {
           address?: string | null
           company_id?: string | null
           contact_person?: string | null
+          contact_title?: string | null
           created_at?: string
           email?: string | null
           hourly_rate?: number | null

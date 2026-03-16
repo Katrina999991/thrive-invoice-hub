@@ -231,6 +231,7 @@ const handler = async (req: Request): Promise<Response> => {
         clients (
           name,
           contact_person,
+          contact_title,
           email,
           address,
           phone,
@@ -397,6 +398,7 @@ const handler = async (req: Request): Promise<Response> => {
         address: client.address,
         phone: client.phone,
         contact_person: client.contact_person,
+        contact_title: client.contact_title,
         language: client.language
       } : null,
       company: company ? {

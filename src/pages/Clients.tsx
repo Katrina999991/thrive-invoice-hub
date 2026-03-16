@@ -39,6 +39,7 @@ const Clients = () => {
 
   const [newClient, setNewClient] = useState({
     name: "",
+    contact_title: "",
     contact_person: "",
     company_id: "",
     email: "",
@@ -138,6 +139,7 @@ const Clients = () => {
     if (editingClient) {
       await updateClient(editingClient.id, {
         name: newClient.name,
+        contact_title: newClient.contact_title || null,
         contact_person: newClient.contact_person,
         company_id: newClient.company_id || null,
         email: emailsString,
@@ -156,6 +158,7 @@ const Clients = () => {
     } else {
       await createClient({
         name: newClient.name,
+        contact_title: newClient.contact_title || null,
         contact_person: newClient.contact_person,
         company_id: newClient.company_id || null,
         email: emailsString,
@@ -180,6 +183,7 @@ const Clients = () => {
   const resetForm = () => {
     setNewClient({
       name: "",
+      contact_title: "",
       contact_person: "",
       company_id: "",
       email: "",
@@ -211,6 +215,7 @@ const Clients = () => {
     
     setNewClient({
       name: client.name,
+      contact_title: client.contact_title || "",
       contact_person: client.contact_person || "",
       company_id: client.company_id || "",
       email: client.email || "",
@@ -335,13 +340,29 @@ const Clients = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">{t("clients.contactPerson")}</Label>
-                <Input
-                  id="contact_person"
-                  placeholder={t("clients.contactPlaceholder")}
-                  value={newClient.contact_person}
-                  onChange={(e) => setNewClient({...newClient, contact_person: e.target.value})}
-                />
+                <Label>{t("clients.contactPerson")}</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={newClient.contact_title}
+                    onValueChange={(value) => setNewClient({...newClient, contact_title: value})}
+                  >
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue placeholder={language === 'fr' ? 'Titre' : 'Title'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="M.">M.</SelectItem>
+                      <SelectItem value="Mme">Mme</SelectItem>
+                      <SelectItem value="Mx">Mx</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="contact_person"
+                    placeholder={t("clients.contactPlaceholder")}
+                    value={newClient.contact_person}
+                    onChange={(e) => setNewClient({...newClient, contact_person: e.target.value})}
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company_id">{t("clients.serviceProvider")} *</Label>
@@ -634,7 +655,7 @@ const Clients = () => {
                     </div>
                     
                     {client.contact_person && (
-                      <p className="text-sm text-muted-foreground">{client.contact_person}</p>
+                      <p className="text-sm text-muted-foreground">{client.contact_title ? `${client.contact_title} ${client.contact_person}` : client.contact_person}</p>
                     )}
                     
                     {client.companies?.name && (
@@ -715,7 +736,7 @@ const Clients = () => {
                          </div>
                        </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <div className="font-medium">{client.contact_person || "—"}</div>
+                      <div className="font-medium">{client.contact_person ? (client.contact_title ? `${client.contact_title} ${client.contact_person}` : client.contact_person) : "—"}</div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <span className="text-sm font-medium text-primary">

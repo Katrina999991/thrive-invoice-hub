@@ -757,6 +757,7 @@ const Invoices = () => {
           address: client.address,
           phone: client.phone,
           contact_person: client.contact_person,
+          contact_title: (client as any).contact_title,
           notes: client.notes,
           language: client.language
         } : null,
@@ -1450,7 +1451,7 @@ Best regards,
                         <SelectItem key={client.id} value={client.id}>
                           <div className="flex flex-col">
                             <span className="font-medium">{client.name}</span>
-                            <span className="text-sm text-muted-foreground">{client.contact_person}</span>
+                            <span className="text-sm text-muted-foreground">{(client as any).contact_title ? `${(client as any).contact_title} ${client.contact_person}` : client.contact_person}</span>
                           </div>
                         </SelectItem>
                       ))}
