@@ -27,6 +27,7 @@ interface FinalReminderDialogProps {
       name: string;
       email: string | null;
       contact_person: string | null;
+      contact_title?: string | null;
       include_payment_link?: boolean | null;
       language?: string | null;
     };
@@ -47,7 +48,9 @@ export const FinalReminderDialog = ({ open, onOpenChange, invoice, companyName, 
   // Use CLIENT language for email content, UI language for labels
   const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
 
-  const clientName = invoice.clients?.contact_person || invoice.clients?.name || '';
+  const contactPerson = invoice.clients?.contact_person;
+  const contactTitle = invoice.clients?.contact_title;
+  const clientName = contactTitle && contactPerson ? `${contactTitle} ${contactPerson}` : (contactPerson || invoice.clients?.name || '');
   const clientEmail = invoice.clients?.email || '';
   const company = companyName || '';
 

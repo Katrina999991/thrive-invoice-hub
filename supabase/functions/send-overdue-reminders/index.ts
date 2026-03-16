@@ -117,6 +117,8 @@ serve(async (req) => {
           id,
           name,
           email,
+          contact_person,
+          contact_title,
           language,
           send_overdue_email_auto,
           include_payment_link,
@@ -226,11 +228,16 @@ Best regards,
       const dueDate = new Date(invoice.due_date);
       const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
 
+      // Format client display name with title
+      const clientDisplayName = client.contact_title && client.contact_person
+        ? `${client.contact_title} ${client.contact_person}`
+        : (client.contact_person || client.name);
+
       // Replace placeholders
       emailSubject = emailSubject
         .replace(/{invoice_number}/g, invoice.invoice_number)
         .replace(/{company_name}/g, company.name)
-        .replace(/{client_name}/g, client.name)
+        .replace(/{client_name}/g, clientDisplayName)
         .replace(/{issue_date}/g, new Date(invoice.issue_date).toLocaleDateString())
         .replace(/{due_date}/g, new Date(invoice.due_date).toLocaleDateString())
         .replace(/{total}/g, invoice.total.toFixed(2))
@@ -239,7 +246,7 @@ Best regards,
       emailMessage = emailMessage
         .replace(/{invoice_number}/g, invoice.invoice_number)
         .replace(/{company_name}/g, company.name)
-        .replace(/{client_name}/g, client.name)
+        .replace(/{client_name}/g, clientDisplayName)
         .replace(/{issue_date}/g, new Date(invoice.issue_date).toLocaleDateString())
         .replace(/{due_date}/g, new Date(invoice.due_date).toLocaleDateString())
         .replace(/{total}/g, invoice.total.toFixed(2))
