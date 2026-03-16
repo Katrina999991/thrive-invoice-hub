@@ -215,6 +215,7 @@ const Clients = () => {
     
     setNewClient({
       name: client.name,
+      contact_title: client.contact_title || "",
       contact_person: client.contact_person || "",
       company_id: client.company_id || "",
       email: client.email || "",
