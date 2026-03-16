@@ -183,6 +183,7 @@ const Clients = () => {
   const resetForm = () => {
     setNewClient({
       name: "",
+      contact_title: "",
       contact_person: "",
       company_id: "",
       email: "",
