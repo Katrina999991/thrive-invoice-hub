@@ -407,8 +407,9 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     doc.text(client.name, leftMargin, nextY);
     nextY += 5;
     
-    if (client.contact_person) {
-      doc.text(client.contact_person, leftMargin, nextY);
+    const formattedContact = formatContactPerson(client.contact_person, client.contact_title);
+    if (formattedContact) {
+      doc.text(formattedContact, leftMargin, nextY);
       nextY += 5;
     }
     if (client.address) {

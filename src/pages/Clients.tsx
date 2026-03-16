@@ -736,7 +736,7 @@ const Clients = () => {
                          </div>
                        </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <div className="font-medium">{client.contact_person || "—"}</div>
+                      <div className="font-medium">{client.contact_person ? (client.contact_title ? `${client.contact_title} ${client.contact_person}` : client.contact_person) : "—"}</div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <span className="text-sm font-medium text-primary">
