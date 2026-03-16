@@ -49,8 +49,16 @@ export interface ClientData {
   address?: string | null;
   phone?: string | null;
   contact_person?: string | null;
+  contact_title?: string | null;
   notes?: string | null;
   language?: string | null;
+}
+
+/** Combines contact_title and contact_person into a formatted string */
+export function formatContactPerson(contact_person?: string | null, contact_title?: string | null): string | null {
+  if (!contact_person) return null;
+  if (contact_title) return `${contact_title} ${contact_person}`;
+  return contact_person;
 }
 
 export interface CompanyData {
