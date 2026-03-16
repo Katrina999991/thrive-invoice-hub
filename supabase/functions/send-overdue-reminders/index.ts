@@ -117,6 +117,8 @@ serve(async (req) => {
           id,
           name,
           email,
+          contact_person,
+          contact_title,
           language,
           send_overdue_email_auto,
           include_payment_link,
