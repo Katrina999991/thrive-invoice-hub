@@ -317,6 +317,8 @@ const PublicPricing = () => {
             { text: "Advanced document customization", icon: "FileText" },
             { text: "Advanced inventory reports (stock value, sales by product)", icon: "Package" },
             { text: "Audit logs (unlimited history)", icon: "History" },
+            { text: "Final payment reminder", icon: "Mail" },
+            { text: "Formal notice (Mise en demeure)", icon: "FileX" },
             { text: "Priority support", icon: "UsersRound" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]

@@ -343,6 +343,8 @@ const Pricing = () => {
             { text: "Personnalisation avancée des documents", icon: "FileText" },
             { text: "Rapports d'inventaire avancés", icon: "Package" },
             { text: "Audit logs (historique illimité)", icon: "History" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
+            { text: "Mise en demeure", icon: "FileX" },
             { text: "Support prioritaire", icon: "UsersRound" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
