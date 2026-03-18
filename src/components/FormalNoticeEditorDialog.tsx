@@ -1145,6 +1145,7 @@ Sincerely,
                 {showSignaturePad && (
                   <div className="space-y-2" ref={signaturePadRef}>
                     <SignaturePad
+                      notifyOnLoad={false}
                       onSignatureReady={(val) => {
                         console.log('[FormalNotice] Signature ready:', !!val);
                         if (val) {
