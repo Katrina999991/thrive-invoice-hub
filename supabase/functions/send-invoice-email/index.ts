@@ -150,7 +150,9 @@ const handler = async (req: Request): Promise<Response> => {
       hidePdfBranding,
       isFinalReminder,
       customRecipient,
-      responseDueDate
+      responseDueDate,
+      isFormalNotice,
+      formalNoticePdfBase64
     } = validationResult.data;
 
     // Get authorization header to identify the user
