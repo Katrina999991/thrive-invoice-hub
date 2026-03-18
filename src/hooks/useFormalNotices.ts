@@ -17,6 +17,14 @@ export interface FormalNotice {
   sent_at: string | null;
   sent_to: string | null;
   pdf_url: string | null;
+  sending_method: string | null;
+  proof_status: string | null;
+  tracking_number: string | null;
+  delivered_date: string | null;
+  client_language: string | null;
+  country: string | null;
+  region: string | null;
+  risk_level: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +38,14 @@ export interface FormalNoticeInput {
   status?: string;
   sent_at?: string;
   sent_to?: string;
+  sending_method?: string;
+  proof_status?: string;
+  tracking_number?: string;
+  delivered_date?: string | null;
+  client_language?: string;
+  country?: string;
+  region?: string;
+  risk_level?: string;
 }
 
 export const useFormalNotices = (invoiceId?: string) => {
