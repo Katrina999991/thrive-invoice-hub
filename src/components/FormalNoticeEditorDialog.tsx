@@ -566,6 +566,32 @@ Sincerely,
                     <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
                   </div>
                 </div>
+
+                {/* Soft warnings */}
+                {proofReceipt && !deliveredDate && (
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                    ⚠ {t('Preuve de réception cochée mais aucune date de livraison saisie.', 'Proof of receipt checked but no delivery date entered.')}
+                  </p>
+                )}
+                {proofSending && !editingNotice?.sent_at && (
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                    ⚠ {t("Preuve d'envoi cochée mais la mise en demeure n'a pas encore été envoyée.", 'Proof of sending checked but the notice has not been sent yet.')}
+                  </p>
+                )}
+
+                {/* Save tracking button */}
+                {editingNotice && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveTracking}
+                    disabled={isSavingTracking}
+                  >
+                    {isSavingTracking && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    <Save className="h-4 w-4 mr-2" />
+                    {t('Enregistrer le suivi', 'Save tracking')}
+                  </Button>
+                )}
               </div>
 
               {/* Action buttons */}
