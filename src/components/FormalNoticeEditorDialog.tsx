@@ -12,15 +12,36 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Loader2, Save, Download, Send, Eye, FileText, Mail, History,
-  AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2,
+  AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2, PenLine,
 } from "lucide-react";
 import { useFormalNoticeAttachments } from "@/hooks/useFormalNoticeAttachments";
 import { ProofFileSection } from "@/components/ProofFileSection";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
-import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
+import { generateFormalNoticePdf, type FormalNoticePdfData, type SignatureData } from "@/lib/formalNoticePdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SignaturePad } from "@/components/SignaturePad";
+import { useUserSignature } from "@/hooks/useUserSignature";
+import {
+  detectNoticeLanguage,
+  normalizeCountry,
+  normalizeRegion,
+  getJurisdictionRules,
+  getDefaultDeliveryMethod,
+  deriveDeliveryStatus,
+  calculateDocumentationRisk,
+  deliveryMethods,
+  legalDisclaimer,
+  documentationRiskLabels,
+  deliveryStatusLabels,
+  deliveryStatusColors,
+  type DeliveryMethod,
+  type DeliveryStatus,
+  type DocumentationRisk,
+  type NoticeLang,
+  parseAddressForJurisdiction,
+} from "@/lib/formalNoticeConfig";
 import {
   detectNoticeLanguage,
   normalizeCountry,
