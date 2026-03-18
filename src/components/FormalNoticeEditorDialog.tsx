@@ -266,7 +266,7 @@ Cette facture était exigible depuis le {{invoice_due_date}}.
 
 Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme au plus tard le {{formal_notice_due_date}}.
 
-À défaut de recevoir le paiement ou une réponse de votre part dans ce délai, nous nous verrons dans l'obligation d'entreprendre les procédures nécessaires afin de recouvrer cette somme, sans autre avis.${invoice.payment_link ? `
+À défaut de recevoir votre paiement dans ce délai, nous nous verrons dans l'obligation d'entreprendre les recours nécessaires afin de recouvrer la somme due, sans autre avis, incluant notamment toute démarche appropriée auprès des instances compétentes, le tout à vos frais, incluant les intérêts et frais applicables.${invoice.payment_link ? `
 
 Vous pouvez également effectuer le paiement en ligne à l'adresse suivante :
 {{invoice_payment_link}}` : ''}
