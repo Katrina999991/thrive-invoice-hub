@@ -207,7 +207,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const handleProofSendingChange = (checked: boolean) => {
     setProofSending(checked);
     if (checked && !sentDate) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateIso();
       setSentDate(today);
       addAutoMessage(
         language === 'fr'
@@ -222,7 +222,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
     setProofReceipt(checked);
     if (checked) {
       if (!deliveredDate) {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateIso();
         setDeliveredDate(today);
         addAutoMessage(
           language === 'fr'
@@ -233,7 +233,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
       if (!proofSending) {
         setProofSending(true);
         if (!sentDate) {
-          setSentDate(new Date().toISOString().split('T')[0]);
+          setSentDate(getLocalDateIso());
         }
         addAutoMessage(
           language === 'fr'
