@@ -91,6 +91,13 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [signatureApplied, setSignatureApplied] = useState(false);
 
+  // Auto-apply signature when user has one and dialog opens
+  useEffect(() => {
+    if (open && hasSignature && userSignature) {
+      setSignatureApplied(true);
+    }
+  }, [open, hasSignature, userSignature]);
+
   // Auto-fill feedback messages
   const [autoMessages, setAutoMessages] = useState<string[]>([]);
   const autoMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
