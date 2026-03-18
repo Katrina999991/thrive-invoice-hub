@@ -707,7 +707,7 @@ Sincerely,
       setRecipientAddr(notice.recipient_address || clientAddress);
       setSubject(notice.subject || '');
       setBody(notice.body || '');
-      setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      setDueAt(notice.due_at || getLocalDateIso(defaultDueDate));
     }
     if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
     setTrackingNumber(notice.tracking_number || '');
