@@ -691,26 +691,47 @@ Sincerely,
                           {notice.sent_at && <p><span className="text-muted-foreground">{t('Envoyée le', 'Sent on')}:</span> {formatDate(notice.sent_at)}</p>}
                           {notice.sent_to && <p><span className="text-muted-foreground">{t('Envoyée à', 'Sent to')}:</span> {notice.sent_to}</p>}
                         </div>
-                        {notice.status !== 'sent' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => {
-                              setEditingNotice(notice);
-                              setRecipient(notice.recipient || clientName);
-                              setRecipientAddr(notice.recipient_address || clientAddress);
-                              setSubject(notice.subject || '');
-                              setBody(notice.body || '');
-                              setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
-                              if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
-                              if (notice.tracking_number) setTrackingNumber(notice.tracking_number);
-                              setActiveTab('editor');
-                            }}
-                          >
-                            {t('Modifier', 'Edit')}
-                          </Button>
-                        )}
+                        <div className="flex gap-2 mt-2">
+                          {notice.status !== 'sent' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingNotice(notice);
+                                setRecipient(notice.recipient || clientName);
+                                setRecipientAddr(notice.recipient_address || clientAddress);
+                                setSubject(notice.subject || '');
+                                setBody(notice.body || '');
+                                setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
+                                if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
+                                setTrackingNumber(notice.tracking_number || '');
+                                setProofSending(notice.proof_status === 'sent' || notice.proof_status === 'received');
+                                setProofReceipt(notice.proof_status === 'received');
+                                setDeliveredDate(notice.delivered_date || '');
+                                setActiveTab('editor');
+                              }}
+                            >
+                              {t('Modifier', 'Edit')}
+                            </Button>
+                          )}
+                          {notice.status === 'sent' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingNotice(notice);
+                                if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
+                                setTrackingNumber(notice.tracking_number || '');
+                                setProofSending(notice.proof_status === 'sent' || notice.proof_status === 'received');
+                                setProofReceipt(notice.proof_status === 'received');
+                                setDeliveredDate(notice.delivered_date || '');
+                                setActiveTab('editor');
+                              }}
+                            >
+                              {t('Modifier le suivi', 'Edit tracking')}
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
