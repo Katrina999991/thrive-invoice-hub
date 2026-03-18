@@ -293,7 +293,38 @@ Sincerely,
     }
   };
 
-  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
+  const handleSaveTracking = async () => {
+    if (!editingNotice) return;
+    setIsSavingTracking(true);
+    try {
+      const trackingData: FormalNoticeInput = {
+        sending_method: sendingMethod,
+        proof_status: proofStatus,
+        tracking_number: trackingNumber || undefined,
+        delivered_date: deliveredDate || null,
+        risk_level: riskLevel,
+      };
+      await updateNotice(editingNotice.id, trackingData, invoice.invoice_number);
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr'
+          ? 'Informations de suivi enregistrées'
+          : 'Tracking information saved',
+      });
+    } catch {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr'
+          ? "Impossible d'enregistrer les informations de suivi"
+          : 'Unable to save tracking information',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingTracking(false);
+    }
+  };
+
+
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
