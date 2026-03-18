@@ -128,6 +128,7 @@ const PublicPricing = () => {
             { text: "Export CSV (rapports dépenses et revenus)", icon: "FileSpreadsheet" },
             { text: "Paiements Stripe", icon: "CreditCard" },
             { text: "Suivi des heures", icon: "Clock" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
