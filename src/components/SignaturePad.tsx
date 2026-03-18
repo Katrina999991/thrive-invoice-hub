@@ -12,9 +12,10 @@ import { toast } from "sonner";
 interface SignaturePadProps {
   onSignatureReady?: (signatureData: string | null, name?: string, title?: string) => void;
   compact?: boolean;
+  notifyOnLoad?: boolean;
 }
 
-export const SignaturePad = ({ onSignatureReady, compact = false }: SignaturePadProps) => {
+export const SignaturePad = ({ onSignatureReady, compact = false, notifyOnLoad = true }: SignaturePadProps) => {
   const { language } = useLanguage();
   const { signature, isLoading, saveSignature, deleteSignature, hasSignature } = useUserSignature();
   const t = (fr: string, en: string) => language === "fr" ? fr : en;
@@ -44,10 +45,11 @@ export const SignaturePad = ({ onSignatureReady, compact = false }: SignaturePad
       } else if (signature.signature_type === "uploaded") {
         setUploadedData(signature.signature_value);
       }
-      // Notify parent
-      onSignatureReady?.(signature.signature_value, signature.signer_name || undefined, signature.signer_title || undefined);
+      if (notifyOnLoad) {
+        onSignatureReady?.(signature.signature_value, signature.signer_name || undefined, signature.signer_title || undefined);
+      }
     }
-  }, [signature]);
+  }, [notifyOnLoad, onSignatureReady, signature]);
 
   // Canvas setup
   useEffect(() => {
