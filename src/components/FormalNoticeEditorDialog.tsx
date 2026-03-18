@@ -367,7 +367,7 @@ Sincerely,
   });
 
   // ─── Build save data ────────────────────────────────────────────────
-  const proofStatus = proofReceipt ? 'received' : proofSending ? 'sent' : 'none';
+  const proofStatus = effectiveProofReceipt ? 'received' : effectiveProofSending ? 'sent' : 'none';
 
   const buildSaveData = (status: string): FormalNoticeInput => ({
     recipient,

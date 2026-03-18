@@ -212,11 +212,15 @@ export const useFormalNoticeAttachments = (noticeId?: string) => {
 
   const proofOfSendingFiles = attachments.filter(a => a.category === 'proof_of_sending');
   const hasProofFiles = proofOfSendingFiles.length > 0;
+  const proofOfReceiptFiles = attachments.filter(a => a.category === 'proof_of_receipt');
+  const hasReceiptFiles = proofOfReceiptFiles.length > 0;
 
   return {
     attachments,
     proofOfSendingFiles,
     hasProofFiles,
+    proofOfReceiptFiles,
+    hasReceiptFiles,
     loading,
     uploading,
     uploadFile,
