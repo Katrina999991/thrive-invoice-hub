@@ -539,7 +539,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailMessage,
       attachments: [
         {
-          filename: `invoice-${invoice.invoice_number}.pdf`,
+          filename: attachmentFilename,
           content: pdfBase64,
         },
       ],
