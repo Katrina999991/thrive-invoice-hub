@@ -14,6 +14,8 @@ import {
   Loader2, Save, Download, Send, Eye, FileText, Mail, History,
   AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2,
 } from "lucide-react";
+import { useFormalNoticeAttachments } from "@/hooks/useFormalNoticeAttachments";
+import { ProofFileSection } from "@/components/ProofFileSection";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
 import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
@@ -75,12 +77,12 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const { language } = useLanguage();
   const { toast } = useToast();
   const { notices, latestNotice, createNotice, updateNotice, markAsSent, refetch } = useFormalNotices(invoice.id);
-
   const [activeTab, setActiveTab] = useState("editor");
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [editingNotice, setEditingNotice] = useState<FormalNotice | null>(null);
+  const noticeAttachments = useFormalNoticeAttachments(editingNotice?.id);
 
   // Auto-fill feedback messages
   const [autoMessages, setAutoMessages] = useState<string[]>([]);
@@ -127,15 +129,20 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const deliveryStatus: DeliveryStatus = useMemo(() => deriveDeliveryStatus({
     proofOfReceipt: proofReceipt,
     deliveredDate,
-    proofOfSending: proofSending,
+    proofOfSending: proofSending || noticeAttachments.hasProofFiles,
     trackingNumber,
     sentAt: editingNotice?.sent_at || null,
     sentDate,
-  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate]);
+  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate, noticeAttachments.hasProofFiles]);
 
   const docRisk: DocumentationRisk = useMemo(
-    () => calculateDocumentationRisk(sendingMethod, proofSending, proofReceipt, trackingNumber),
-    [sendingMethod, proofSending, proofReceipt, trackingNumber],
+    () => calculateDocumentationRisk(
+      sendingMethod,
+      proofSending || noticeAttachments.hasProofFiles,
+      proofReceipt,
+      trackingNumber,
+    ),
+    [sendingMethod, proofSending, proofReceipt, trackingNumber, noticeAttachments.hasProofFiles],
   );
 
   // ─── Smart Field Interactions ────────────────────────────────────────
@@ -783,7 +790,33 @@ Sincerely,
                   />
                 </div>
 
-                {/* Auto-fill messages */}
+                {/* Proof of sending files */}
+                {editingNotice && (
+                  <ProofFileSection
+                    attachments={noticeAttachments.proofOfSendingFiles}
+                    uploading={noticeAttachments.uploading}
+                    hasProofFiles={noticeAttachments.hasProofFiles}
+                    maxFiles={noticeAttachments.MAX_FILES}
+                    onUpload={async (file) => {
+                      const result = await noticeAttachments.uploadFile(file, 'proof_of_sending', language);
+                      if (result && !proofSending) {
+                        setProofSending(true);
+                        if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                        addAutoMessage(
+                          language === 'fr'
+                            ? "Fichier de preuve détecté. La preuve d'envoi a été cochée automatiquement."
+                            : 'Proof file detected. Proof of sending was marked automatically.',
+                        );
+                      }
+                      return result;
+                    }}
+                    onDelete={async (att) => noticeAttachments.deleteAttachment(att, language)}
+                    onDownload={(att) => noticeAttachments.downloadFile(att)}
+                    onGetSignedUrl={(path) => noticeAttachments.getSignedUrl(path)}
+                    lang={language === 'fr' ? 'fr' : 'en'}
+                  />
+                )}
+
                 {autoMessages.length > 0 && (
                   <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
                     <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
@@ -812,7 +845,8 @@ Sincerely,
                     <span>✓ {nt('Montant clairement indiqué', 'Amount clearly stated')}</span>
                     <span>✓ {nt('Date limite incluse', 'Deadline included')}</span>
                     <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
-                    <span>{proofSending ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
+                    <span>{(proofSending || noticeAttachments.hasProofFiles) ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
+                    <span>{noticeAttachments.hasProofFiles ? '✓' : '—'} {nt("Fichiers de preuve joints", 'Proof files attached')}</span>
                     <span>{proofReceipt ? '✓' : '—'} {nt('Preuve de réception', 'Proof of receipt')}</span>
                   </div>
                 </div>
