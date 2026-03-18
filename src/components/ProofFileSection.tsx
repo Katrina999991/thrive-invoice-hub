@@ -12,6 +12,9 @@ interface ProofFileSectionProps {
   uploading: boolean;
   hasProofFiles: boolean;
   maxFiles: number;
+  sectionTitle?: string;
+  uploadLabel?: string;
+  helperText?: string;
   onUpload: (file: File) => Promise<FormalNoticeAttachment | null>;
   onDelete: (attachment: FormalNoticeAttachment) => Promise<boolean>;
   onDownload: (attachment: FormalNoticeAttachment) => void;
