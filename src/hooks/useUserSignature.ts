@@ -28,8 +28,6 @@ export function useUserSignature() {
         .maybeSingle();
       if (error) throw error;
       return data as unknown as UserSignature | null;
-      if (error) throw error;
-      return data as UserSignature | null;
     },
     enabled: !!user?.id,
   });
