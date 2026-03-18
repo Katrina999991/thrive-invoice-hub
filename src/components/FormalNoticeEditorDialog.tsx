@@ -90,6 +90,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const noticeAttachments = useFormalNoticeAttachments(editingNotice?.id);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [signatureApplied, setSignatureApplied] = useState(false);
+  const signaturePadRef = useRef<HTMLDivElement>(null);
 
   // Auto-apply signature when user has one and dialog opens
   useEffect(() => {
