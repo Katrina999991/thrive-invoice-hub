@@ -125,8 +125,7 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     } else {
       h += 18; // image height
     }
-    // Signer name
-    if (data.signature.signerName) h += 5;
+    // Signer name is part of the signature itself, not rendered separately
     // Signer title
     if (data.signature.signerTitle) h += 5;
     // Company name
