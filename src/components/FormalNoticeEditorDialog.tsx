@@ -500,7 +500,7 @@ Sincerely,
     }
   };
 
-  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
+  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(signatureApplied && hasSignature), 'download');
   const handleDownloadSignedPdf = () => {
     if (!hasSignature || !signatureApplied) {
       setShowSignaturePad(true);
