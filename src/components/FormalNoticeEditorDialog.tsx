@@ -500,7 +500,7 @@ Sincerely,
     }
   };
 
-  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
+  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(signatureApplied && hasSignature), 'download');
   const handleDownloadSignedPdf = () => {
     if (!hasSignature || !signatureApplied) {
       setShowSignaturePad(true);
@@ -525,7 +525,7 @@ Sincerely,
     setIsSending(true);
     try {
       if (!editingNotice) await handleSave('generated');
-      const pdfBlob = generateFormalNoticePdf(getPdfData(), 'blob') as Blob;
+      const pdfBlob = generateFormalNoticePdf(getPdfData(signatureApplied && hasSignature), 'blob') as Blob;
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
