@@ -12,15 +12,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Loader2, Save, Download, Send, Eye, FileText, Mail, History,
-  AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2,
+  AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2, PenLine,
 } from "lucide-react";
 import { useFormalNoticeAttachments } from "@/hooks/useFormalNoticeAttachments";
 import { ProofFileSection } from "@/components/ProofFileSection";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
-import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
+import { generateFormalNoticePdf, type FormalNoticePdfData, type SignatureData } from "@/lib/formalNoticePdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SignaturePad } from "@/components/SignaturePad";
+import { useUserSignature } from "@/hooks/useUserSignature";
 import {
   detectNoticeLanguage,
   normalizeCountry,
@@ -77,12 +79,15 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const { language } = useLanguage();
   const { toast } = useToast();
   const { notices, latestNotice, createNotice, updateNotice, markAsSent, refetch } = useFormalNotices(invoice.id);
+  const { signature: userSignature, hasSignature } = useUserSignature();
   const [activeTab, setActiveTab] = useState("editor");
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [editingNotice, setEditingNotice] = useState<FormalNotice | null>(null);
   const noticeAttachments = useFormalNoticeAttachments(editingNotice?.id);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [signatureApplied, setSignatureApplied] = useState(false);
 
   // Auto-fill feedback messages
   const [autoMessages, setAutoMessages] = useState<string[]>([]);
@@ -375,7 +380,23 @@ Sincerely,
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, dueAt, date]);
 
-  const getPdfData = (): FormalNoticePdfData => ({
+  const buildSignatureData = (): SignatureData | null => {
+    if (!signatureApplied || !hasSignature || !userSignature) return null;
+    return {
+      type: userSignature.signature_type,
+      value: userSignature.signature_value,
+      signerName: userSignature.signer_name || undefined,
+      signerTitle: userSignature.signer_title || undefined,
+      companyName: company?.name || undefined,
+      signedDate: formatDate(new Date().toISOString().split('T')[0]),
+      signedDateLabel: noticeLang === 'fr' ? 'Signé le' : 'Signed on',
+      legalNote: noticeLang === 'fr'
+        ? 'Cette signature est fournie à titre de représentation numérique.'
+        : 'This signature is a digital representation.',
+    };
+  };
+
+  const getPdfData = (withSignature = false): FormalNoticePdfData => ({
     title,
     date: formatDate(date),
     recipientName: recipient,
@@ -385,6 +406,7 @@ Sincerely,
     subject: previewSubject,
     body: previewBody,
     dueDate: formatDate(dueAt),
+    signature: withSignature ? buildSignatureData() : undefined,
   });
 
   // ─── Build save data ────────────────────────────────────────────────
@@ -470,6 +492,13 @@ Sincerely,
   };
 
   const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
+  const handleDownloadSignedPdf = () => {
+    if (!hasSignature || !signatureApplied) {
+      setShowSignaturePad(true);
+      return;
+    }
+    generateFormalNoticePdf(getPdfData(true), 'download');
+  };
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
@@ -990,6 +1019,80 @@ Sincerely,
                 )}
               </div>
 
+              <Separator />
+
+              {/* ── Signature Section ── */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <PenLine className="h-4 w-4" />
+                    {t('Signature', 'Signature')}
+                  </h3>
+                  {signatureApplied && hasSignature && (
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      {t('Appliquée', 'Applied')}
+                    </Badge>
+                  )}
+                </div>
+
+                {!showSignaturePad && hasSignature && userSignature ? (
+                  <Card className="border-muted">
+                    <CardContent className="p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          {userSignature.signature_type === 'typed' ? (
+                            <p className="text-lg italic font-serif text-foreground">{userSignature.signature_value}</p>
+                          ) : (
+                            <img src={userSignature.signature_value} alt="Signature" className="max-h-12 object-contain" />
+                          )}
+                          {(userSignature.signer_name || userSignature.signer_title) && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {userSignature.signer_name && <p>{userSignature.signer_name}</p>}
+                              {userSignature.signer_title && <p>{userSignature.signer_title}</p>}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={signatureApplied ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSignatureApplied(!signatureApplied)}
+                          >
+                            {signatureApplied
+                              ? t('Retirer', 'Remove')
+                              : t('Appliquer', 'Apply')}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setShowSignaturePad(true)}>
+                            {t('Modifier', 'Edit')}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : !showSignaturePad ? (
+                  <Button variant="outline" size="sm" onClick={() => setShowSignaturePad(true)}>
+                    <PenLine className="h-4 w-4 mr-2" />
+                    {t('Créer une signature', 'Create a signature')}
+                  </Button>
+                ) : null}
+
+                {showSignaturePad && (
+                  <div className="space-y-2">
+                    <SignaturePad
+                      onSignatureReady={(val) => {
+                        if (val) {
+                          setSignatureApplied(true);
+                          setShowSignaturePad(false);
+                        }
+                      }}
+                    />
+                    <Button variant="ghost" size="sm" onClick={() => setShowSignaturePad(false)}>
+                      {t('Fermer', 'Close')}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               {/* Action buttons */}
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button variant="outline" onClick={() => handleSave('draft')} disabled={isSaving}>
@@ -1005,6 +1108,12 @@ Sincerely,
                 <Button variant="outline" onClick={handleDownloadPdf}>
                   <Download className="h-4 w-4 mr-2" /> PDF
                 </Button>
+                {hasSignature && signatureApplied && (
+                  <Button variant="outline" onClick={handleDownloadSignedPdf}>
+                    <PenLine className="h-4 w-4 mr-2" />
+                    {t('Télécharger la mise en demeure signée', 'Download signed notice')}
+                  </Button>
+                )}
                 <Button onClick={handleSendEmail} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                   <Mail className="h-4 w-4 mr-2" />
                   {t('Envoyer par email', 'Send by email')}

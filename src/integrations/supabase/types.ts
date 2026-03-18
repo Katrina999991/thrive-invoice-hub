@@ -1806,6 +1806,39 @@ export type Database = {
           },
         ]
       }
+      user_signatures: {
+        Row: {
+          created_at: string
+          id: string
+          signature_type: string
+          signature_value: string
+          signer_name: string | null
+          signer_title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          signature_type: string
+          signature_value: string
+          signer_name?: string | null
+          signer_title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          signature_type?: string
+          signature_value?: string
+          signer_name?: string | null
+          signer_title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"] | null

@@ -1,5 +1,16 @@
 import jsPDF from 'jspdf';
 
+export interface SignatureData {
+  type: 'typed' | 'drawn' | 'uploaded';
+  value: string;
+  signerName?: string;
+  signerTitle?: string;
+  companyName?: string;
+  signedDate?: string;
+  signedDateLabel?: string;
+  legalNote?: string;
+}
+
 export interface FormalNoticePdfData {
   title: string;
   date: string;
@@ -10,6 +21,7 @@ export interface FormalNoticePdfData {
   subject: string;
   body: string;
   dueDate: string;
+  signature?: SignatureData | null;
 }
 
 export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'download' | 'print' | 'blob' = 'download'): Blob | void => {
@@ -79,7 +91,6 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   const pageHeight = doc.internal.pageSize.getHeight();
 
   // --- SIGNATURE BLOCK DETECTION ---
-  // Signature block = closing formula + (empty lines) + company name (last non-empty paragraph)
   const getSignatureBlockIndices = (): { closingIndex: number; companyIndex: number } | null => {
     let companyIndex = paragraphs.length - 1;
     while (companyIndex >= 0 && paragraphs[companyIndex].trim() === '') companyIndex--;
@@ -89,7 +100,6 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     while (closingIndex >= 0 && paragraphs[closingIndex].trim() === '') closingIndex--;
     if (closingIndex < 0) return null;
 
-    // Ensure only empty lines between closing formula and company name
     for (let i = closingIndex + 1; i < companyIndex; i++) {
       if (paragraphs[i].trim() !== '') return null;
     }
@@ -105,20 +115,43 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     return { lines, height };
   };
 
+  // Calculate signature image/text block height
+  const getSignatureExtraHeight = (): number => {
+    if (!data.signature) return 0;
+    let h = 0;
+    // Signature image or typed text
+    if (data.signature.type === 'typed') {
+      h += 12; // typed signature text height
+    } else {
+      h += 18; // image height
+    }
+    // Signer name
+    if (data.signature.signerName) h += 5;
+    // Signer title
+    if (data.signature.signerTitle) h += 5;
+    // Company name
+    if (data.signature.companyName) h += 5;
+    // Signed date
+    if (data.signature.signedDate) h += 5;
+    // Legal note
+    if (data.signature.legalNote) h += 5;
+    return h;
+  };
+
   for (let pi = 0; pi < paragraphs.length; pi++) {
     const paragraph = paragraphs[pi];
 
-    // Render signature block as one indivisible unit with adaptive signature spacing (3 -> 2 -> 1 lines)
+    // Render signature block as one indivisible unit
     if (signatureBlock && pi === signatureBlock.closingIndex) {
       const closing = getParagraphMetrics(paragraphs[signatureBlock.closingIndex]);
       const company = getParagraphMetrics(paragraphs[signatureBlock.companyIndex]);
+      const sigExtraHeight = getSignatureExtraHeight();
 
-      const getBlockHeight = (signatureLines: number) => closing.height + signatureLines * 5 + company.height;
+      const getBlockHeight = (signatureLines: number) => closing.height + signatureLines * 5 + (data.signature ? sigExtraHeight : company.height);
       const remainingSpace = pageHeight - margin - y;
 
       let signatureLines = [3, 2, 1].find((lines) => getBlockHeight(lines) <= remainingSpace);
 
-      // Move to next page only if even 1 signature line cannot fit
       if (!signatureLines) {
         doc.addPage();
         y = margin;
@@ -126,15 +159,23 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
         signatureLines = [3, 2, 1].find((lines) => getBlockHeight(lines) <= remainingAfterPageBreak) ?? 1;
       }
 
+      // Closing text
       doc.text(closing.lines, margin, y);
       y += closing.height;
 
+      // Spacing for signature area
       y += signatureLines * 5;
 
-      doc.text(company.lines, margin, y);
-      y += company.height;
+      if (data.signature) {
+        // Render actual signature
+        renderSignatureBlock(doc, data.signature, margin, y, contentWidth);
+        y += sigExtraHeight;
+      } else {
+        // Company name only (original behavior)
+        doc.text(company.lines, margin, y);
+        y += company.height;
+      }
 
-      // Signature block is at the end of the letter content
       break;
     }
 
@@ -163,11 +204,79 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     y += height;
   }
 
-  // No extra signature block — company name is already in the body template via {{company_name}}
-
   if (action === 'blob') {
     return doc.output('blob');
   } else {
     doc.save(`mise-en-demeure-${data.date}.pdf`);
   }
 };
+
+function renderSignatureBlock(doc: jsPDF, sig: SignatureData, x: number, y: number, _contentWidth: number) {
+  let currentY = y;
+
+  // Render signature (typed text or image)
+  if (sig.type === 'typed') {
+    doc.setFontSize(16);
+    doc.setFont('times', 'italic');
+    doc.setTextColor(30, 30, 30);
+    doc.text(sig.value, x, currentY);
+    currentY += 10;
+  } else {
+    // Drawn or uploaded: render as image
+    try {
+      const imgFormat = sig.value.includes('png') ? 'PNG' : 'JPEG';
+      doc.addImage(sig.value, imgFormat, x, currentY - 8, 50, 15);
+      currentY += 10;
+    } catch (e) {
+      console.warn('Could not render signature image in PDF:', e);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'italic');
+      doc.text('[Signature]', x, currentY);
+      currentY += 6;
+    }
+  }
+
+  // Signer name
+  if (sig.signerName) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(sig.signerName, x, currentY);
+    currentY += 5;
+  }
+
+  // Signer title
+  if (sig.signerTitle) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(sig.signerTitle, x, currentY);
+    currentY += 5;
+  }
+
+  // Company name
+  if (sig.companyName) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(sig.companyName, x, currentY);
+    currentY += 5;
+  }
+
+  // Signed date
+  if (sig.signedDate && sig.signedDateLabel) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${sig.signedDateLabel} ${sig.signedDate}`, x, currentY);
+    currentY += 5;
+  }
+
+  // Legal note
+  if (sig.legalNote) {
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(140, 140, 140);
+    doc.text(sig.legalNote, x, currentY);
+  }
+}
