@@ -37,7 +37,6 @@ import {
   X,
   Globe,
   FileX
-  Globe
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
