@@ -126,23 +126,26 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [trackingNotes, setTrackingNotes] = useState("");
 
   // Derived status & risk
+  const effectiveProofSending = proofSending || noticeAttachments.hasProofFiles;
+  const effectiveProofReceipt = proofReceipt || noticeAttachments.hasReceiptFiles;
+
   const deliveryStatus: DeliveryStatus = useMemo(() => deriveDeliveryStatus({
-    proofOfReceipt: proofReceipt,
+    proofOfReceipt: effectiveProofReceipt,
     deliveredDate,
-    proofOfSending: proofSending || noticeAttachments.hasProofFiles,
+    proofOfSending: effectiveProofSending,
     trackingNumber,
     sentAt: editingNotice?.sent_at || null,
     sentDate,
-  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate, noticeAttachments.hasProofFiles]);
+  }), [effectiveProofReceipt, deliveredDate, effectiveProofSending, trackingNumber, editingNotice?.sent_at, sentDate]);
 
   const docRisk: DocumentationRisk = useMemo(
     () => calculateDocumentationRisk(
       sendingMethod,
-      proofSending || noticeAttachments.hasProofFiles,
-      proofReceipt,
+      effectiveProofSending,
+      effectiveProofReceipt,
       trackingNumber,
     ),
-    [sendingMethod, proofSending, proofReceipt, trackingNumber, noticeAttachments.hasProofFiles],
+    [sendingMethod, effectiveProofSending, effectiveProofReceipt, trackingNumber],
   );
 
   // ─── Smart Field Interactions ────────────────────────────────────────
