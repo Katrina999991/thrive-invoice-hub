@@ -845,7 +845,8 @@ Sincerely,
                     <span>✓ {nt('Montant clairement indiqué', 'Amount clearly stated')}</span>
                     <span>✓ {nt('Date limite incluse', 'Deadline included')}</span>
                     <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
-                    <span>{proofSending ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
+                    <span>{(proofSending || noticeAttachments.hasProofFiles) ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
+                    <span>{noticeAttachments.hasProofFiles ? '✓' : '—'} {nt("Fichiers de preuve joints", 'Proof files attached')}</span>
                     <span>{proofReceipt ? '✓' : '—'} {nt('Preuve de réception', 'Proof of receipt')}</span>
                   </div>
                 </div>
