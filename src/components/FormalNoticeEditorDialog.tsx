@@ -304,7 +304,7 @@ Despite our previous reminders, the balance of invoice {{invoice_number}}, regar
 
 This invoice was due on {{invoice_due_date}}.
 
-We hereby formally demand that you proceed with the full payment of the amount owed no later than {{formal_notice_due_date}}.
+We hereby formally demand that you proceed with the full payment of the amount owed within ${delayDays} days of receipt of this notice.
 
 If payment is not received within this timeframe, we will be required to take the necessary steps to recover the amount due, without further notice, including any appropriate actions before the competent authorities, at your expense, including applicable interest and fees.${invoice.payment_link ? `
 
