@@ -395,6 +395,7 @@ const Pricing = () => {
       case 'History': return <History className={iconClass} />;
       case 'UsersRound': return <UsersRound className={iconClass} />;
       case 'FileCheck': return <FileCheck className={iconClass} />;
+      case 'FileX': return <FileX className={iconClass} />;
       default: return <Check className={iconClass} />;
     }
   };
