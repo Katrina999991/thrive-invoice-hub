@@ -760,49 +760,73 @@ export type Database = {
       invoice_formal_notices: {
         Row: {
           body: string | null
+          client_language: string | null
+          country: string | null
           created_at: string
+          delivered_date: string | null
           due_at: string | null
           id: string
           invoice_id: string
           pdf_url: string | null
+          proof_status: string | null
           recipient: string | null
           recipient_address: string | null
+          region: string | null
+          risk_level: string | null
+          sending_method: string | null
           sent_at: string | null
           sent_to: string | null
           status: string
           subject: string | null
+          tracking_number: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           body?: string | null
+          client_language?: string | null
+          country?: string | null
           created_at?: string
+          delivered_date?: string | null
           due_at?: string | null
           id?: string
           invoice_id: string
           pdf_url?: string | null
+          proof_status?: string | null
           recipient?: string | null
           recipient_address?: string | null
+          region?: string | null
+          risk_level?: string | null
+          sending_method?: string | null
           sent_at?: string | null
           sent_to?: string | null
           status?: string
           subject?: string | null
+          tracking_number?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           body?: string | null
+          client_language?: string | null
+          country?: string | null
           created_at?: string
+          delivered_date?: string | null
           due_at?: string | null
           id?: string
           invoice_id?: string
           pdf_url?: string | null
+          proof_status?: string | null
           recipient?: string | null
           recipient_address?: string | null
+          region?: string | null
+          risk_level?: string | null
+          sending_method?: string | null
           sent_at?: string | null
           sent_to?: string | null
           status?: string
           subject?: string | null
+          tracking_number?: string | null
           updated_at?: string
           user_id?: string
         }
