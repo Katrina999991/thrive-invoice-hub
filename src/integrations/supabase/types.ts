@@ -764,10 +764,13 @@ export type Database = {
           country: string | null
           created_at: string
           delivered_date: string | null
+          delivery_status: string
           due_at: string | null
           id: string
           invoice_id: string
           pdf_url: string | null
+          proof_of_receipt: boolean
+          proof_of_sending: boolean
           proof_status: string | null
           recipient: string | null
           recipient_address: string | null
@@ -778,6 +781,7 @@ export type Database = {
           sent_to: string | null
           status: string
           subject: string | null
+          tracking_notes: string | null
           tracking_number: string | null
           updated_at: string
           user_id: string
@@ -788,10 +792,13 @@ export type Database = {
           country?: string | null
           created_at?: string
           delivered_date?: string | null
+          delivery_status?: string
           due_at?: string | null
           id?: string
           invoice_id: string
           pdf_url?: string | null
+          proof_of_receipt?: boolean
+          proof_of_sending?: boolean
           proof_status?: string | null
           recipient?: string | null
           recipient_address?: string | null
@@ -802,6 +809,7 @@ export type Database = {
           sent_to?: string | null
           status?: string
           subject?: string | null
+          tracking_notes?: string | null
           tracking_number?: string | null
           updated_at?: string
           user_id: string
@@ -812,10 +820,13 @@ export type Database = {
           country?: string | null
           created_at?: string
           delivered_date?: string | null
+          delivery_status?: string
           due_at?: string | null
           id?: string
           invoice_id?: string
           pdf_url?: string | null
+          proof_of_receipt?: boolean
+          proof_of_sending?: boolean
           proof_status?: string | null
           recipient?: string | null
           recipient_address?: string | null
@@ -826,6 +837,7 @@ export type Database = {
           sent_to?: string | null
           status?: string
           subject?: string | null
+          tracking_notes?: string | null
           tracking_number?: string | null
           updated_at?: string
           user_id?: string

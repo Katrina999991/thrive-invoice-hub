@@ -25,6 +25,11 @@ export interface FormalNotice {
   country: string | null;
   region: string | null;
   risk_level: string | null;
+  // New delivery tracking fields
+  delivery_status: string;
+  proof_of_sending: boolean;
+  proof_of_receipt: boolean;
+  tracking_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +51,11 @@ export interface FormalNoticeInput {
   country?: string;
   region?: string;
   risk_level?: string;
+  // New fields
+  delivery_status?: string;
+  proof_of_sending?: boolean;
+  proof_of_receipt?: boolean;
+  tracking_notes?: string;
 }
 
 export const useFormalNotices = (invoiceId?: string) => {
