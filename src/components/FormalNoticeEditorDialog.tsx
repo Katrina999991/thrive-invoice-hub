@@ -414,7 +414,13 @@ Sincerely,
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, dueAt, date]);
 
-  const getDownloadDateIso = () => new Date().toISOString().split('T')[0];
+  const getDownloadDateIso = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const buildSignatureData = (downloadDateIso: string): SignatureData | null => {
     if (!signatureApplied || !hasSignature || !userSignature) return null;
