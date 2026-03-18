@@ -347,7 +347,24 @@ Sincerely,
         setRecipientAddr(latestNotice.recipient_address || clientAddress);
         setSubject(latestNotice.subject || subject);
         setBody(latestNotice.body || defaultBody);
-        setDueAt(latestNotice.due_at || defaultDueDate.toISOString().split('T')[0]);
+        const savedDueAt = latestNotice.due_at || defaultDueDate.toISOString().split('T')[0];
+        setDueAt(savedDueAt);
+
+        // Derive delayDays from saved due_at relative to created_at
+        if (latestNotice.due_at && latestNotice.created_at) {
+          const created = new Date(latestNotice.created_at.split('T')[0]);
+          const due = new Date(latestNotice.due_at);
+          const diffDays = Math.round((due.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+          if ([5, 10, 15].includes(diffDays)) {
+            setDelayDays(diffDays);
+          } else {
+            // Find closest option
+            const closest = [5, 10, 15].reduce((prev, curr) =>
+              Math.abs(curr - diffDays) < Math.abs(prev - diffDays) ? curr : prev
+            );
+            setDelayDays(closest);
+          }
+        }
       }
       // Always load tracking fields (even for sent notices)
       if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
