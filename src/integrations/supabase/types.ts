@@ -757,6 +757,53 @@ export type Database = {
           },
         ]
       }
+      formal_notice_attachments: {
+        Row: {
+          category: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          formal_notice_id: string
+          id: string
+          mime_type: string | null
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          formal_notice_id: string
+          id?: string
+          mime_type?: string | null
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          formal_notice_id?: string
+          id?: string
+          mime_type?: string | null
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formal_notice_attachments_formal_notice_id_fkey"
+            columns: ["formal_notice_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_formal_notices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_formal_notices: {
         Row: {
           body: string | null
