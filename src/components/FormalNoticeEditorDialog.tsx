@@ -388,7 +388,7 @@ Sincerely,
       signerName: userSignature.signer_name || undefined,
       signerTitle: userSignature.signer_title || undefined,
       companyName: company?.name || undefined,
-      signedDate: formatDate(new Date().toISOString().split('T')[0]),
+      signedDate: formatDate(date),
       signedDateLabel: noticeLang === 'fr' ? 'Signé le' : 'Signed on',
       legalNote: noticeLang === 'fr'
         ? 'Cette signature est fournie à titre de représentation numérique.'
