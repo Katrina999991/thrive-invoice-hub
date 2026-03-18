@@ -1095,7 +1095,11 @@ Sincerely,
                               ? t('Retirer', 'Remove')
                               : t('Appliquer', 'Apply')}
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setShowSignaturePad(true)}>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => {
+                            console.log('[FormalNotice] Modifier signature clicked');
+                            setShowSignaturePad(true);
+                            setTimeout(() => signaturePadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                          }}>
                             {t('Modifier', 'Edit')}
                           </Button>
                         </div>
