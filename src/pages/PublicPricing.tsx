@@ -147,7 +147,7 @@ const PublicPricing = () => {
             { text: "Entreprises illimitées", icon: "Building2" },
             { text: "Tous les designs de factures et devis", icon: "Palette" },
             { text: "Personnalisation avancée des documents", icon: "FileText" },
-            { text: "Rapports d'inventaire avancés (valeur stock, ventes par produit)", icon: "Package" },
+            { text: "Accès complet à tous les rapports", icon: "BarChart3" },
             { text: "Audit logs (historique illimité)", icon: "History" },
             { text: "Dernier rappel de paiement", icon: "Mail" },
             { text: "Mise en demeure", icon: "FileX" },
