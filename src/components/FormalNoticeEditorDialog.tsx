@@ -42,25 +42,6 @@ import {
   type NoticeLang,
   parseAddressForJurisdiction,
 } from "@/lib/formalNoticeConfig";
-import {
-  detectNoticeLanguage,
-  normalizeCountry,
-  normalizeRegion,
-  getJurisdictionRules,
-  getDefaultDeliveryMethod,
-  deriveDeliveryStatus,
-  calculateDocumentationRisk,
-  deliveryMethods,
-  legalDisclaimer,
-  documentationRiskLabels,
-  deliveryStatusLabels,
-  deliveryStatusColors,
-  type DeliveryMethod,
-  type DeliveryStatus,
-  type DocumentationRisk,
-  type NoticeLang,
-  parseAddressForJurisdiction,
-} from "@/lib/formalNoticeConfig";
 
 interface FormalNoticeEditorDialogProps {
   open: boolean;
