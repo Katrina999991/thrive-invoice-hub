@@ -326,6 +326,7 @@ const Pricing = () => {
             { text: "Rapports de dépenses", icon: "Receipt" },
             { text: "Export CSV (rapports dépenses et revenus)", icon: "FileSpreadsheet" },
             { text: "Suivi des heures", icon: "Clock" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
