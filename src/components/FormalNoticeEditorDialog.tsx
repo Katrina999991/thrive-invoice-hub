@@ -116,6 +116,27 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const rKey = normalizeRegion(clientRegion);
   const rules = useMemo(() => getJurisdictionRules(clientCountry, clientRegion), [clientCountry, clientRegion]);
 
+  // ─── Payment Deadline Delay ──────────────────────────────────────────
+  const [delayDays, setDelayDays] = useState<number>(10);
+
+  const delayOptions = [
+    { value: 5, labelFr: '5 jours (Urgent)', labelEn: '5 days (Urgent)' },
+    { value: 10, labelFr: '10 jours (Standard)', labelEn: '10 days (Standard)' },
+    { value: 15, labelFr: '15 jours (Souple)', labelEn: '15 days (Flexible)' },
+  ];
+
+  // Smart suggestion based on overdue status
+  const overdueSuggestion = useMemo(() => {
+    if (!invoice.due_date) return null;
+    const dueDate = new Date(invoice.due_date);
+    const today = new Date();
+    const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysOverdue > 60) return { days: 5, reason: language === 'fr' ? 'Facture très en retard — délai urgent suggéré.' : 'Invoice very overdue — urgent deadline suggested.' };
+    if (daysOverdue > 30) return { days: 10, reason: language === 'fr' ? 'Délai standard recommandé.' : 'Standard timeframe recommended.' };
+    if (daysOverdue <= 30 && daysOverdue > 0) return { days: 15, reason: language === 'fr' ? 'Retard modéré — délai souple suggéré.' : 'Moderate delay — flexible timeframe suggested.' };
+    return null;
+  }, [invoice.due_date, language]);
+
   // ─── Delivery & Proof State ──────────────────────────────────────────
   const [sendingMethod, setSendingMethod] = useState<DeliveryMethod>(() => getDefaultDeliveryMethod(clientCountry, clientRegion));
   const [proofSending, setProofSending] = useState(false);
@@ -255,7 +276,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
     new Date(dateStr).toLocaleDateString(noticeLang === 'fr' ? 'fr-CA' : 'en-CA');
 
   const defaultDueDate = new Date();
-  defaultDueDate.setDate(defaultDueDate.getDate() + 10);
+  defaultDueDate.setDate(defaultDueDate.getDate() + delayDays);
 
   const defaultBody = noticeLang === 'fr'
     ? `{{client_salutation}},
@@ -264,7 +285,7 @@ Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}},
 
 Cette facture était exigible depuis le {{invoice_due_date}}.
 
-Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme au plus tard le {{formal_notice_due_date}}.
+Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme dans un délai de ${delayDays} jours suivant la réception de la présente.
 
 À défaut de recevoir votre paiement dans ce délai, nous nous verrons dans l'obligation d'entreprendre les recours nécessaires afin de recouvrer la somme due, sans autre avis, incluant notamment toute démarche appropriée auprès des instances compétentes, le tout à vos frais, incluant les intérêts et frais applicables.${invoice.payment_link ? `
 
@@ -283,7 +304,7 @@ Despite our previous reminders, the balance of invoice {{invoice_number}}, regar
 
 This invoice was due on {{invoice_due_date}}.
 
-We hereby formally demand that you proceed with the full payment of the amount owed no later than {{formal_notice_due_date}}.
+We hereby formally demand that you proceed with the full payment of the amount owed within ${delayDays} days of receipt of this notice.
 
 If payment is not received within this timeframe, we will be required to take the necessary steps to recover the amount due, without further notice, including any appropriate actions before the competent authorities, at your expense, including applicable interest and fees.${invoice.payment_link ? `
 
@@ -696,10 +717,65 @@ Sincerely,
                 </p>
               </div>
 
-              {/* Deadline */}
-              <div className="space-y-2">
-                <Label>{t('Date limite de paiement / réponse', 'Payment / response deadline')}</Label>
-                <Input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+              {/* Payment Deadline Selector */}
+              <div className="space-y-3">
+                <Label>{t('Délai de paiement', 'Payment deadline')}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {delayOptions.map((opt) => (
+                    <Button
+                      key={opt.value}
+                      type="button"
+                      variant={delayDays === opt.value ? 'default' : 'outline'}
+                      size="sm"
+                      className={delayDays === opt.value ? '' : ''}
+                      onClick={() => {
+                        setDelayDays(opt.value);
+                        const newDate = new Date();
+                        newDate.setDate(newDate.getDate() + opt.value);
+                        setDueAt(newDate.toISOString().split('T')[0]);
+                      }}
+                    >
+                      {language === 'fr' ? opt.labelFr : opt.labelEn}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {delayDays === 10
+                    ? t('10 jours est le délai standard recommandé.', '10 days is the recommended standard timeframe.')
+                    : delayDays === 5
+                    ? t('Délai court pour situations urgentes.', 'Short deadline for urgent situations.')
+                    : t('Délai étendu pour plus de flexibilité.', 'Extended deadline for more flexibility.')}
+                </p>
+
+                {/* Smart suggestion */}
+                {overdueSuggestion && overdueSuggestion.days !== delayDays && (
+                  <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-2.5">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-blue-700 dark:text-blue-300">
+                      <p>{overdueSuggestion.reason}</p>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400"
+                        onClick={() => {
+                          setDelayDays(overdueSuggestion.days);
+                          const newDate = new Date();
+                          newDate.setDate(newDate.getDate() + overdueSuggestion.days);
+                          setDueAt(newDate.toISOString().split('T')[0]);
+                        }}
+                      >
+                        {t(`Utiliser ${overdueSuggestion.days} jours`, `Use ${overdueSuggestion.days} days`)}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Computed deadline date */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{t('Date limite calculée', 'Computed deadline date')}</Label>
+                  <Input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+                </div>
               </div>
 
               <Separator />
