@@ -363,6 +363,13 @@ Sincerely,
     }
   }, [open, latestNotice]);
 
+  const signerDisplayName = useMemo(() => {
+    if (userSignature?.signer_name?.trim()) return userSignature.signer_name.trim();
+    if (username?.trim()) return username.trim();
+    if (user?.email) return user.email.split('@')[0];
+    return company?.name || '';
+  }, [company?.name, user?.email, userSignature?.signer_name, username]);
+
   // ─── Variable Replacement ────────────────────────────────────────────
   const replaceVariables = (text: string): string =>
     text
@@ -375,7 +382,7 @@ Sincerely,
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
       .replace(/\{\{today_date\}\}/g, formatDate(date))
-      .replace(/\{\{company_name\}\}/g, company?.name || '')
+      .replace(/\{\{company_name\}\}/g, signerDisplayName)
       .replace(/\{\{company_address\}\}/g, companyAddress)
       .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
 
