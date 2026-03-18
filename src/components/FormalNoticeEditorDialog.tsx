@@ -129,11 +129,11 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const deliveryStatus: DeliveryStatus = useMemo(() => deriveDeliveryStatus({
     proofOfReceipt: proofReceipt,
     deliveredDate,
-    proofOfSending: proofSending,
+    proofOfSending: proofSending || noticeAttachments.hasProofFiles,
     trackingNumber,
     sentAt: editingNotice?.sent_at || null,
     sentDate,
-  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate]);
+  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate, noticeAttachments.hasProofFiles]);
 
   const docRisk: DocumentationRisk = useMemo(
     () => calculateDocumentationRisk(
