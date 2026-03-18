@@ -820,6 +820,50 @@ Sincerely,
                   />
                 )}
 
+                {/* Proof of receipt files */}
+                {editingNotice && (
+                  <ProofFileSection
+                    attachments={noticeAttachments.proofOfReceiptFiles}
+                    uploading={noticeAttachments.uploading}
+                    hasProofFiles={noticeAttachments.hasReceiptFiles}
+                    maxFiles={noticeAttachments.MAX_FILES}
+                    sectionTitle={t('Fichiers de preuve de réception', 'Proof of receipt files')}
+                    uploadLabel={t('Ajouter une preuve de réception', 'Upload receipt proof')}
+                    helperText={t(
+                      "Ajoutez un accusé de réception, une confirmation de livraison signée, un rapport d'huissier ou tout autre document confirmant la réception par le destinataire.",
+                      'Upload a delivery confirmation, signed receipt, bailiff report, or any document confirming the recipient received the formal notice.',
+                    )}
+                    onUpload={async (file) => {
+                      const result = await noticeAttachments.uploadFile(file, 'proof_of_receipt', language);
+                      if (result && !proofReceipt) {
+                        setProofReceipt(true);
+                        if (!deliveredDate) {
+                          setDeliveredDate(new Date().toISOString().split('T')[0]);
+                          addAutoMessage(
+                            language === 'fr'
+                              ? 'Date de réception remplie automatiquement.'
+                              : 'Delivery date filled automatically.',
+                          );
+                        }
+                        if (!proofSending) {
+                          setProofSending(true);
+                          if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                        }
+                        addAutoMessage(
+                          language === 'fr'
+                            ? 'Fichier de réception détecté. La preuve de réception a été cochée automatiquement.'
+                            : 'Receipt proof detected. Proof of receipt was marked automatically.',
+                        );
+                      }
+                      return result;
+                    }}
+                    onDelete={async (att) => noticeAttachments.deleteAttachment(att, language)}
+                    onDownload={(att) => noticeAttachments.downloadFile(att)}
+                    onGetSignedUrl={(path) => noticeAttachments.getSignedUrl(path)}
+                    lang={language === 'fr' ? 'fr' : 'en'}
+                  />
+                )}
+
                 {autoMessages.length > 0 && (
                   <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
                     <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
