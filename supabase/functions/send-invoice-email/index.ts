@@ -110,6 +110,8 @@ const SendInvoiceEmailSchema = z.object({
   isFinalReminder: z.boolean().optional().default(false),
   customRecipient: z.string().email("Invalid recipient email").optional(),
   responseDueDate: z.string().optional(),
+  isFormalNotice: z.boolean().optional().default(false),
+  formalNoticePdfBase64: z.string().optional(),
 });
 
 const handler = async (req: Request): Promise<Response> => {

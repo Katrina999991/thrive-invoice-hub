@@ -589,10 +589,10 @@ Sincerely,
       const { error } = await supabase.functions.invoke('send-invoice-email', {
         body: {
           invoiceId: invoice.id,
-          emailType: 'overdue',
+          emailType: 'new',
           customRecipient: emailRecipient,
           customSubject: emailSubject,
-          customBody: emailMessage,
+          customMessage: emailMessage,
           isFormalNotice: true,
           formalNoticePdfBase64: base64Pdf,
         },
