@@ -14,6 +14,8 @@ import {
   Loader2, Save, Download, Send, Eye, FileText, Mail, History,
   AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2,
 } from "lucide-react";
+import { useFormalNoticeAttachments } from "@/hooks/useFormalNoticeAttachments";
+import { ProofFileSection } from "@/components/ProofFileSection";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
 import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
