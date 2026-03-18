@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Loader2, Save, Download, Send, Eye, FileText, Mail, History,
-  AlertTriangle, Shield, ShieldAlert, ShieldCheck, Info,
+  AlertTriangle, Shield, ShieldAlert, ShieldCheck, ShieldPlus, Info, CheckCircle2,
 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
@@ -25,12 +25,16 @@ import {
   normalizeRegion,
   getJurisdictionRules,
   getDefaultDeliveryMethod,
-  calculateRiskLevel,
+  deriveDeliveryStatus,
+  calculateDocumentationRisk,
   deliveryMethods,
   legalDisclaimer,
-  riskLabels,
+  documentationRiskLabels,
+  deliveryStatusLabels,
+  deliveryStatusColors,
   type DeliveryMethod,
-  type ProofStatus,
+  type DeliveryStatus,
+  type DocumentationRisk,
   type NoticeLang,
   parseAddressForJurisdiction,
 } from "@/lib/formalNoticeConfig";
@@ -75,7 +79,18 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [activeTab, setActiveTab] = useState("editor");
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [editingNotice, setEditingNotice] = useState<FormalNotice | null>(null);
+
+  // Auto-fill feedback messages
+  const [autoMessages, setAutoMessages] = useState<string[]>([]);
+  const autoMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const addAutoMessage = (msg: string) => {
+    setAutoMessages(prev => [...prev, msg]);
+    if (autoMessageTimeoutRef.current) clearTimeout(autoMessageTimeoutRef.current);
+    autoMessageTimeoutRef.current = setTimeout(() => setAutoMessages([]), 6000);
+  };
 
   // Email sub-dialog
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -105,9 +120,95 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [proofReceipt, setProofReceipt] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [deliveredDate, setDeliveredDate] = useState("");
+  const [sentDate, setSentDate] = useState("");
+  const [trackingNotes, setTrackingNotes] = useState("");
 
-  const proofStatus: ProofStatus = proofReceipt ? 'received' : proofSending ? 'sent' : 'none';
-  const riskLevel = useMemo(() => calculateRiskLevel(sendingMethod, proofStatus), [sendingMethod, proofStatus]);
+  // Derived status & risk
+  const deliveryStatus: DeliveryStatus = useMemo(() => deriveDeliveryStatus({
+    proofOfReceipt: proofReceipt,
+    deliveredDate,
+    proofOfSending: proofSending,
+    trackingNumber,
+    sentAt: editingNotice?.sent_at || null,
+    sentDate,
+  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate]);
+
+  const docRisk: DocumentationRisk = useMemo(
+    () => calculateDocumentationRisk(sendingMethod, proofSending, proofReceipt, trackingNumber),
+    [sendingMethod, proofSending, proofReceipt, trackingNumber],
+  );
+
+  // ─── Smart Field Interactions ────────────────────────────────────────
+  const prevTrackingRef = useRef(trackingNumber);
+
+  // Auto-check proof of sending when tracking number is entered
+  useEffect(() => {
+    const wasEmpty = !prevTrackingRef.current;
+    const isNowFilled = !!trackingNumber.trim();
+    prevTrackingRef.current = trackingNumber;
+
+    if (wasEmpty && isNowFilled && !proofSending) {
+      setProofSending(true);
+      addAutoMessage(
+        language === 'fr'
+          ? 'Numéro de suivi détecté. La preuve d\'envoi a été cochée automatiquement.'
+          : 'Tracking number detected. Proof of sending was marked automatically.',
+      );
+    }
+  }, [trackingNumber]);
+
+  // Auto-fill sent date when proof of sending is checked
+  const handleProofSendingChange = (checked: boolean) => {
+    setProofSending(checked);
+    if (checked && !sentDate) {
+      const today = new Date().toISOString().split('T')[0];
+      setSentDate(today);
+      addAutoMessage(
+        language === 'fr'
+          ? "Date d'envoi remplie automatiquement."
+          : 'Sending date filled automatically.',
+      );
+    }
+  };
+
+  // Auto-fill delivered date + suggest proof of sending when proof of receipt is checked
+  const handleProofReceiptChange = (checked: boolean) => {
+    setProofReceipt(checked);
+    if (checked) {
+      if (!deliveredDate) {
+        const today = new Date().toISOString().split('T')[0];
+        setDeliveredDate(today);
+        addAutoMessage(
+          language === 'fr'
+            ? 'Date de livraison remplie automatiquement.'
+            : 'Delivery date filled automatically.',
+        );
+      }
+      if (!proofSending) {
+        setProofSending(true);
+        if (!sentDate) {
+          setSentDate(new Date().toISOString().split('T')[0]);
+        }
+        addAutoMessage(
+          language === 'fr'
+            ? "Preuve d'envoi cochée automatiquement."
+            : 'Proof of sending was checked automatically.',
+        );
+      }
+    }
+  };
+
+  // Auto-suggest proof of receipt when delivered date is entered
+  const handleDeliveredDateChange = (val: string) => {
+    setDeliveredDate(val);
+    if (val && !proofReceipt) {
+      addAutoMessage(
+        language === 'fr'
+          ? 'Date de livraison saisie. Pensez à cocher la preuve de réception si vous en disposez.'
+          : 'Delivery date entered. Consider checking proof of receipt if you have one.',
+      );
+    }
+  };
 
   // ─── Company / Client ────────────────────────────────────────────────
   const companyAddress = [
@@ -199,8 +300,6 @@ Sincerely,
   const [body, setBody] = useState(defaultBody);
   const [dueAt, setDueAt] = useState(defaultDueDate.toISOString().split('T')[0]);
 
-  const [isSavingTracking, setIsSavingTracking] = useState(false);
-
   // ─── Load Existing Notice ────────────────────────────────────────────
   useEffect(() => {
     if (open && latestNotice) {
@@ -214,10 +313,13 @@ Sincerely,
       }
       // Always load tracking fields (even for sent notices)
       if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
-      setProofSending(latestNotice.proof_status === 'sent' || latestNotice.proof_status === 'received');
-      setProofReceipt(latestNotice.proof_status === 'received');
+      setProofSending(latestNotice.proof_of_sending ?? (latestNotice.proof_status === 'sent' || latestNotice.proof_status === 'received'));
+      setProofReceipt(latestNotice.proof_of_receipt ?? latestNotice.proof_status === 'received');
       setTrackingNumber(latestNotice.tracking_number || '');
+      prevTrackingRef.current = latestNotice.tracking_number || '';
       setDeliveredDate(latestNotice.delivered_date || '');
+      setSentDate(latestNotice.sent_at ? latestNotice.sent_at.split('T')[0] : '');
+      setTrackingNotes(latestNotice.tracking_notes || '');
     } else if (open) {
       setEditingNotice(null);
     }
@@ -254,7 +356,9 @@ Sincerely,
     dueDate: formatDate(dueAt),
   });
 
-  // ─── Actions ─────────────────────────────────────────────────────────
+  // ─── Build save data ────────────────────────────────────────────────
+  const proofStatus = proofReceipt ? 'received' : proofSending ? 'sent' : 'none';
+
   const buildSaveData = (status: string): FormalNoticeInput => ({
     recipient,
     recipient_address: recipientAddr,
@@ -269,9 +373,26 @@ Sincerely,
     client_language: noticeLang,
     country: jKey,
     region: rKey !== 'default' ? rKey : undefined,
-    risk_level: riskLevel,
+    risk_level: docRisk,
+    delivery_status: deliveryStatus,
+    proof_of_sending: proofSending,
+    proof_of_receipt: proofReceipt,
+    tracking_notes: trackingNotes || undefined,
   });
 
+  const buildTrackingData = (): FormalNoticeInput => ({
+    sending_method: sendingMethod,
+    proof_status: proofStatus,
+    tracking_number: trackingNumber || undefined,
+    delivered_date: deliveredDate || null,
+    risk_level: docRisk,
+    delivery_status: deliveryStatus,
+    proof_of_sending: proofSending,
+    proof_of_receipt: proofReceipt,
+    tracking_notes: trackingNotes || undefined,
+  });
+
+  // ─── Actions ─────────────────────────────────────────────────────────
   const handleSave = async (status: string = 'draft') => {
     setIsSaving(true);
     try {
@@ -297,14 +418,7 @@ Sincerely,
     if (!editingNotice) return;
     setIsSavingTracking(true);
     try {
-      const trackingData: FormalNoticeInput = {
-        sending_method: sendingMethod,
-        proof_status: proofStatus,
-        tracking_number: trackingNumber || undefined,
-        delivered_date: deliveredDate || null,
-        risk_level: riskLevel,
-      };
-      await updateNotice(editingNotice.id, trackingData, invoice.invoice_number);
+      await updateNotice(editingNotice.id, buildTrackingData(), invoice.invoice_number);
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr'
@@ -325,7 +439,6 @@ Sincerely,
   };
 
   const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
-
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
@@ -387,6 +500,12 @@ Sincerely,
   const t = (fr: string, en: string) => (language === 'fr' ? fr : en);
   const nt = (fr: string, en: string) => (noticeLang === 'fr' ? fr : en);
 
+  const DeliveryStatusBadge = ({ status }: { status: DeliveryStatus }) => {
+    const label = deliveryStatusLabels[status]?.[language === 'fr' ? 'fr' : 'en'] || status;
+    const color = deliveryStatusColors[status] || 'bg-muted text-muted-foreground';
+    return <Badge className={color}>{label}</Badge>;
+  };
+
   const statusBadge = (status: string) => {
     const colors: Record<string, string> = {
       draft: 'bg-muted text-muted-foreground',
@@ -402,13 +521,80 @@ Sincerely,
   };
 
   const RiskBadge = () => {
-    const icon = riskLevel === 'low' ? <ShieldCheck className="h-4 w-4" /> : riskLevel === 'medium' ? <Shield className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />;
-    const color = riskLevel === 'low' ? 'text-green-600 dark:text-green-400' : riskLevel === 'medium' ? 'text-yellow-600 dark:text-yellow-400' : 'text-destructive';
+    const icons: Record<DocumentationRisk, React.ReactNode> = {
+      very_low: <ShieldPlus className="h-4 w-4" />,
+      low: <ShieldCheck className="h-4 w-4" />,
+      medium: <Shield className="h-4 w-4" />,
+      high: <ShieldAlert className="h-4 w-4" />,
+    };
+    const colors: Record<DocumentationRisk, string> = {
+      very_low: 'text-green-700 dark:text-green-300',
+      low: 'text-green-600 dark:text-green-400',
+      medium: 'text-yellow-600 dark:text-yellow-400',
+      high: 'text-destructive',
+    };
     return (
-      <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${color}`}>
-        {icon} {riskLabels[riskLevel][noticeLang]}
+      <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${colors[docRisk]}`}>
+        {icons[docRisk]} {documentationRiskLabels[docRisk][language === 'fr' ? 'fr' : 'en']}
       </span>
     );
+  };
+
+  // ─── Soft Warnings ──────────────────────────────────────────────────
+  const warnings = useMemo(() => {
+    const w: string[] = [];
+    if (proofSending && !sentDate && !editingNotice?.sent_at) {
+      w.push(t(
+        "Preuve d'envoi cochée mais aucune date d'envoi saisie.",
+        'Proof of sending checked but no sending date entered.',
+      ));
+    }
+    if (proofReceipt && !deliveredDate) {
+      w.push(t(
+        'Preuve de réception cochée mais aucune date de livraison saisie.',
+        'Proof of receipt checked but no delivery date entered.',
+      ));
+    }
+    if (proofReceipt && !proofSending) {
+      w.push(t(
+        "Preuve de réception sans preuve d'envoi. Envisagez de cocher aussi la preuve d'envoi.",
+        'Proof of receipt without proof of sending. Consider checking proof of sending too.',
+      ));
+    }
+    if (sendingMethod === 'standard_mail' && proofSending && !trackingNumber) {
+      w.push(t(
+        "Courrier standard avec preuve d'envoi mais sans numéro de suivi ou référence.",
+        'Standard mail with proof of sending but no tracking number or reference.',
+      ));
+    }
+    if (deliveredDate && sentDate && deliveredDate < sentDate) {
+      w.push(t(
+        "La date de livraison est antérieure à la date d'envoi.",
+        'Delivery date is earlier than sending date.',
+      ));
+    }
+    return w;
+  }, [proofSending, proofReceipt, sentDate, deliveredDate, trackingNumber, sendingMethod, editingNotice?.sent_at, language]);
+
+  // ─── Load history notice into editor ────────────────────────────────
+  const loadNoticeIntoEditor = (notice: FormalNotice, contentToo: boolean) => {
+    setEditingNotice(notice);
+    if (contentToo) {
+      setRecipient(notice.recipient || clientName);
+      setRecipientAddr(notice.recipient_address || clientAddress);
+      setSubject(notice.subject || '');
+      setBody(notice.body || '');
+      setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
+    }
+    if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
+    setTrackingNumber(notice.tracking_number || '');
+    prevTrackingRef.current = notice.tracking_number || '';
+    setProofSending(notice.proof_of_sending ?? (notice.proof_status === 'sent' || notice.proof_status === 'received'));
+    setProofReceipt(notice.proof_of_receipt ?? notice.proof_status === 'received');
+    setDeliveredDate(notice.delivered_date || '');
+    setSentDate(notice.sent_at ? notice.sent_at.split('T')[0] : '');
+    setTrackingNotes(notice.tracking_notes || '');
+    setActiveTab('editor');
   };
 
   return (
@@ -416,10 +602,15 @@ Sincerely,
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
               <FileText className="h-5 w-5 text-destructive" />
               {t('Mise en demeure', 'Formal Notice')} — {invoice.invoice_number}
-              {editingNotice && <span className="ml-2">{statusBadge(editingNotice.status)}</span>}
+              {editingNotice && (
+                <>
+                  <span className="ml-2">{statusBadge(editingNotice.status)}</span>
+                  <DeliveryStatusBadge status={deliveryStatus} />
+                </>
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -505,7 +696,10 @@ Sincerely,
 
               {/* ── Delivery Method & Proof Tracking ── */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold">{t('Mode d\'envoi et preuve', 'Delivery Method & Proof')}</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">{t('Mode d\'envoi et preuve', 'Delivery Method & Proof')}</h3>
+                  <DeliveryStatusBadge status={deliveryStatus} />
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -525,6 +719,18 @@ Sincerely,
                   </div>
                 </div>
 
+                {/* Dates row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t("Date d'envoi", 'Sending date')}</Label>
+                    <Input type="date" value={sentDate} onChange={(e) => setSentDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('Date de livraison', 'Delivery date')}</Label>
+                    <Input type="date" value={deliveredDate} onChange={(e) => handleDeliveredDateChange(e.target.value)} />
+                  </div>
+                </div>
+
                 {/* Email warning */}
                 {sendingMethod === 'email' && (
                   <div className="flex items-start gap-2 rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-3">
@@ -533,26 +739,68 @@ Sincerely,
                   </div>
                 )}
 
-                {/* Proof checkboxes */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="proof-sending" checked={proofSending} onCheckedChange={(v) => setProofSending(!!v)} />
-                    <Label htmlFor="proof-sending" className="cursor-pointer">
-                      {nt('Preuve d\'envoi', 'Proof of sending')}
-                    </Label>
+                {/* Proof checkboxes with helper text */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id="proof-sending" checked={proofSending} onCheckedChange={(v) => handleProofSendingChange(!!v)} />
+                      <Label htmlFor="proof-sending" className="cursor-pointer">
+                        {nt('Preuve d\'envoi', 'Proof of sending')}
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6">
+                      {t(
+                        "Confirme que vous avez une preuve que la mise en demeure a été envoyée (ex. reçu postal, suivi, preuve de messagerie).",
+                        "Confirms that you have evidence the formal notice was sent (e.g. postal receipt, tracking, courier proof).",
+                      )}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="proof-receipt" checked={proofReceipt} onCheckedChange={(v) => setProofReceipt(!!v)} />
-                    <Label htmlFor="proof-receipt" className="cursor-pointer">
-                      {nt('Preuve de réception', 'Proof of receipt')}
-                    </Label>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id="proof-receipt" checked={proofReceipt} onCheckedChange={(v) => handleProofReceiptChange(!!v)} />
+                      <Label htmlFor="proof-receipt" className="cursor-pointer">
+                        {nt('Preuve de réception', 'Proof of receipt')}
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6">
+                      {t(
+                        "Confirme que vous avez une preuve que le destinataire a reçu la mise en demeure.",
+                        "Confirms that you have evidence the recipient received the formal notice.",
+                      )}
+                    </p>
                   </div>
                 </div>
 
-                {proofReceipt && (
-                  <div className="space-y-2">
-                    <Label>{t('Date de livraison', 'Delivery date')}</Label>
-                    <Input type="date" value={deliveredDate} onChange={(e) => setDeliveredDate(e.target.value)} />
+                {/* Tracking notes */}
+                <div className="space-y-2">
+                  <Label>{t('Notes de suivi', 'Tracking notes')}</Label>
+                  <Textarea
+                    value={trackingNotes}
+                    onChange={(e) => setTrackingNotes(e.target.value)}
+                    rows={2}
+                    placeholder={t('Notes optionnelles sur la livraison...', 'Optional delivery notes...')}
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Auto-fill messages */}
+                {autoMessages.length > 0 && (
+                  <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
+                    <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-700 dark:text-blue-300 space-y-0.5">
+                      {autoMessages.map((msg, i) => <p key={i}>{msg}</p>)}
+                    </div>
+                  </div>
+                )}
+
+                {/* Soft warnings */}
+                {warnings.length > 0 && (
+                  <div className="space-y-1">
+                    {warnings.map((w, i) => (
+                      <p key={i} className="text-xs text-yellow-600 dark:text-yellow-400 flex items-start gap-1">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" /> {w}
+                      </p>
+                    ))}
                   </div>
                 )}
 
@@ -564,20 +812,10 @@ Sincerely,
                     <span>✓ {nt('Montant clairement indiqué', 'Amount clearly stated')}</span>
                     <span>✓ {nt('Date limite incluse', 'Deadline included')}</span>
                     <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
+                    <span>{proofSending ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
+                    <span>{proofReceipt ? '✓' : '—'} {nt('Preuve de réception', 'Proof of receipt')}</span>
                   </div>
                 </div>
-
-                {/* Soft warnings */}
-                {proofReceipt && !deliveredDate && (
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    ⚠ {t('Preuve de réception cochée mais aucune date de livraison saisie.', 'Proof of receipt checked but no delivery date entered.')}
-                  </p>
-                )}
-                {proofSending && !editingNotice?.sent_at && (
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    ⚠ {t("Preuve d'envoi cochée mais la mise en demeure n'a pas encore été envoyée.", 'Proof of sending checked but the notice has not been sent yet.')}
-                  </p>
-                )}
 
                 {/* Save tracking button */}
                 {editingNotice && (
@@ -644,17 +882,27 @@ Sincerely,
 
               {/* Delivery info summary */}
               <Card className="mt-3 border-muted">
-                <CardContent className="p-4 flex flex-wrap items-center gap-4 text-sm">
-                  <span className="text-muted-foreground">{t('Mode d\'envoi', 'Delivery')}:</span>
-                  <strong>{deliveryMethods.find(m => m.value === sendingMethod)?.label[noticeLang]}</strong>
-                  <span className="text-muted-foreground">·</span>
-                  <RiskBadge />
-                  {trackingNumber && (
-                    <>
-                      <span className="text-muted-foreground">·</span>
-                      <span>{t('Suivi', 'Tracking')}: {trackingNumber}</span>
-                    </>
-                  )}
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <DeliveryStatusBadge status={deliveryStatus} />
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">{t('Mode d\'envoi', 'Delivery')}:</span>
+                    <strong>{deliveryMethods.find(m => m.value === sendingMethod)?.label[noticeLang]}</strong>
+                    <span className="text-muted-foreground">·</span>
+                    <RiskBadge />
+                    {trackingNumber && (
+                      <>
+                        <span className="text-muted-foreground">·</span>
+                        <span>{t('Suivi', 'Tracking')}: {trackingNumber}</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                    {proofSending && <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> {t("Preuve d'envoi", 'Proof of sending')}</span>}
+                    {proofReceipt && <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> {t('Preuve de réception', 'Proof of receipt')}</span>}
+                    {sentDate && <span>{t("Envoyé le", 'Sent on')}: {sentDate}</span>}
+                    {deliveredDate && <span>{t('Livré le', 'Delivered on')}: {deliveredDate}</span>}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -673,68 +921,59 @@ Sincerely,
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {notices.map((notice) => (
-                    <Card key={notice.id} className="border">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          {statusBadge(notice.status)}
-                          <span className="text-xs text-muted-foreground">{formatDate(notice.created_at)}</span>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <p><span className="text-muted-foreground">{t('Destinataire', 'Recipient')}:</span> {notice.recipient}</p>
-                          <p><span className="text-muted-foreground">{t('Objet', 'Subject')}:</span> {notice.subject}</p>
-                          {notice.due_at && <p><span className="text-muted-foreground">{t('Date limite', 'Deadline')}:</span> {formatDate(notice.due_at)}</p>}
-                          {notice.sending_method && (
-                            <p><span className="text-muted-foreground">{t('Mode d\'envoi', 'Delivery')}:</span> {deliveryMethods.find(m => m.value === notice.sending_method)?.label[language === 'fr' ? 'fr' : 'en'] || notice.sending_method}</p>
-                          )}
-                          {notice.tracking_number && <p><span className="text-muted-foreground">{t('Suivi', 'Tracking')}:</span> {notice.tracking_number}</p>}
-                          {notice.sent_at && <p><span className="text-muted-foreground">{t('Envoyée le', 'Sent on')}:</span> {formatDate(notice.sent_at)}</p>}
-                          {notice.sent_to && <p><span className="text-muted-foreground">{t('Envoyée à', 'Sent to')}:</span> {notice.sent_to}</p>}
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                          {notice.status !== 'sent' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setEditingNotice(notice);
-                                setRecipient(notice.recipient || clientName);
-                                setRecipientAddr(notice.recipient_address || clientAddress);
-                                setSubject(notice.subject || '');
-                                setBody(notice.body || '');
-                                setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
-                                if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
-                                setTrackingNumber(notice.tracking_number || '');
-                                setProofSending(notice.proof_status === 'sent' || notice.proof_status === 'received');
-                                setProofReceipt(notice.proof_status === 'received');
-                                setDeliveredDate(notice.delivered_date || '');
-                                setActiveTab('editor');
-                              }}
-                            >
-                              {t('Modifier', 'Edit')}
-                            </Button>
-                          )}
-                          {notice.status === 'sent' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setEditingNotice(notice);
-                                if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
-                                setTrackingNumber(notice.tracking_number || '');
-                                setProofSending(notice.proof_status === 'sent' || notice.proof_status === 'received');
-                                setProofReceipt(notice.proof_status === 'received');
-                                setDeliveredDate(notice.delivered_date || '');
-                                setActiveTab('editor');
-                              }}
-                            >
-                              {t('Modifier le suivi', 'Edit tracking')}
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {notices.map((notice) => {
+                    const nDeliveryStatus = deriveDeliveryStatus({
+                      proofOfReceipt: notice.proof_of_receipt,
+                      deliveredDate: notice.delivered_date || '',
+                      proofOfSending: notice.proof_of_sending,
+                      trackingNumber: notice.tracking_number || '',
+                      sentAt: notice.sent_at,
+                    });
+                    return (
+                      <Card key={notice.id} className="border">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                              {statusBadge(notice.status)}
+                              <DeliveryStatusBadge status={nDeliveryStatus} />
+                            </div>
+                            <span className="text-xs text-muted-foreground">{formatDate(notice.created_at)}</span>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <p><span className="text-muted-foreground">{t('Destinataire', 'Recipient')}:</span> {notice.recipient}</p>
+                            <p><span className="text-muted-foreground">{t('Objet', 'Subject')}:</span> {notice.subject}</p>
+                            {notice.due_at && <p><span className="text-muted-foreground">{t('Date limite', 'Deadline')}:</span> {formatDate(notice.due_at)}</p>}
+                            {notice.sending_method && (
+                              <p><span className="text-muted-foreground">{t('Mode d\'envoi', 'Delivery')}:</span> {deliveryMethods.find(m => m.value === notice.sending_method)?.label[language === 'fr' ? 'fr' : 'en'] || notice.sending_method}</p>
+                            )}
+                            {notice.tracking_number && <p><span className="text-muted-foreground">{t('Suivi', 'Tracking')}:</span> {notice.tracking_number}</p>}
+                            {notice.sent_at && <p><span className="text-muted-foreground">{t('Envoyée le', 'Sent on')}:</span> {formatDate(notice.sent_at)}</p>}
+                            {notice.sent_to && <p><span className="text-muted-foreground">{t('Envoyée à', 'Sent to')}:</span> {notice.sent_to}</p>}
+                            {notice.delivered_date && <p><span className="text-muted-foreground">{t('Livrée le', 'Delivered on')}:</span> {formatDate(notice.delivered_date)}</p>}
+                            <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                              {notice.proof_of_sending && <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> {t("Preuve d'envoi", 'Proof of sending')}</span>}
+                              {notice.proof_of_receipt && <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> {t('Preuve de réception', 'Proof of receipt')}</span>}
+                            </div>
+                            {notice.tracking_notes && (
+                              <p className="text-xs text-muted-foreground italic mt-1">{notice.tracking_notes}</p>
+                            )}
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            {notice.status !== 'sent' && (
+                              <Button variant="outline" size="sm" onClick={() => loadNoticeIntoEditor(notice, true)}>
+                                {t('Modifier', 'Edit')}
+                              </Button>
+                            )}
+                            {notice.status === 'sent' && (
+                              <Button variant="outline" size="sm" onClick={() => loadNoticeIntoEditor(notice, false)}>
+                                {t('Modifier le suivi', 'Edit tracking')}
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>
@@ -752,7 +991,6 @@ Sincerely,
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Email warning reminder */}
             {sendingMethod === 'email' && (
               <div className="flex items-start gap-2 rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-3">
                 <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
