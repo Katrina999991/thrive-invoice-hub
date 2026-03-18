@@ -258,7 +258,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   defaultDueDate.setDate(defaultDueDate.getDate() + 10);
 
   const defaultBody = noticeLang === 'fr'
-    ? `{{client_salutation}}
+    ? `Bonjour {{client_salutation}},
 
 Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}}, concernant {{invoice_description}}, d'un montant de {{amount_due}}, demeure impayé à ce jour.
 
@@ -277,7 +277,7 @@ Veuillez agréer, Madame, Monsieur, nos salutations distinguées.
 
 
 {{company_name}}`
-    : `{{client_salutation}}
+    : `Dear {{client_salutation}},
 
 Despite our previous reminders, the balance of invoice {{invoice_number}}, regarding {{invoice_description}}, in the amount of {{amount_due}}, remains unpaid.
 
