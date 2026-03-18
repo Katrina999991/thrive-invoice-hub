@@ -1154,8 +1154,8 @@ Sincerely,
                         }
                       }}
                     />
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowSignaturePad(false)}>
-                      {t('Fermer', 'Close')}
+                    <Button type="button" variant="outline" size="sm" onClick={() => setShowSignaturePad(false)}>
+                      {t('Annuler', 'Cancel')}
                     </Button>
                   </div>
                 )}
