@@ -114,6 +114,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [emailRecipient, setEmailRecipient] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
+  const [emailTone, setEmailTone] = useState<'standard' | 'firm' | 'soft'>('standard');
 
   // ─── Jurisdiction & Language Detection ───────────────────────────────
   const clientAddress = invoice.clients?.address || '';
