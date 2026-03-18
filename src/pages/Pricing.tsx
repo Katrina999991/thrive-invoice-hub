@@ -234,7 +234,7 @@ const Pricing = () => {
             { text: "Unlimited clients, invoices & quotes", icon: "Users" },
             { text: "All invoice & quote designs", icon: "Palette" },
             { text: "Advanced document customization", icon: "FileText" },
-            { text: "Advanced inventory reports", icon: "Package" },
+            { text: "Full access to all reports", icon: "BarChart3" },
             { text: "Audit logs (unlimited history)", icon: "History" },
             { text: "Final payment reminder", icon: "Mail" },
             { text: "Formal notice", icon: "FileX" },
