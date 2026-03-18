@@ -207,7 +207,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const handleProofSendingChange = (checked: boolean) => {
     setProofSending(checked);
     if (checked && !sentDate) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateIso();
       setSentDate(today);
       addAutoMessage(
         language === 'fr'
@@ -222,7 +222,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
     setProofReceipt(checked);
     if (checked) {
       if (!deliveredDate) {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateIso();
         setDeliveredDate(today);
         addAutoMessage(
           language === 'fr'
@@ -233,7 +233,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
       if (!proofSending) {
         setProofSending(true);
         if (!sentDate) {
-          setSentDate(new Date().toISOString().split('T')[0]);
+          setSentDate(getLocalDateIso());
         }
         addAutoMessage(
           language === 'fr'
@@ -287,8 +287,36 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
     return base + suffix;
   }, [invoice.invoice_items, noticeLang]);
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString(noticeLang === 'fr' ? 'fr-CA' : 'en-CA');
+  const parseLocalDateString = (value: string): Date => {
+    const isoDateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (isoDateOnlyPattern.test(value)) {
+      const [year, month, day] = value.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    return new Date(value);
+  };
+
+  const getLocalDateIso = (sourceDate = new Date()) => {
+    const year = sourceDate.getFullYear();
+    const month = String(sourceDate.getMonth() + 1).padStart(2, '0');
+    const day = String(sourceDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDate = (dateValue: string | Date) => {
+    const formatter = new Intl.DateTimeFormat(noticeLang === 'fr' ? 'fr-CA' : 'en-CA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    return formatter.format(typeof dateValue === 'string' ? parseLocalDateString(dateValue) : dateValue);
+  };
+
+  const getDocumentDateIso = () => getLocalDateIso();
+  const getDocumentDateDisplay = () => formatDate(getDocumentDateIso());
 
   const defaultDueDate = new Date();
   defaultDueDate.setDate(defaultDueDate.getDate() + delayDays);
@@ -335,7 +363,6 @@ Sincerely,
 
   // ─── Form State ──────────────────────────────────────────────────────
   const [title, setTitle] = useState(noticeLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [recipient, setRecipient] = useState(clientName);
   const [recipientAddr, setRecipientAddr] = useState(clientAddress);
   const [subject, setSubject] = useState(
@@ -344,7 +371,7 @@ Sincerely,
       : `Formal notice regarding invoice ${invoice.invoice_number}`,
   );
   const [body, setBody] = useState(defaultBody);
-  const [dueAt, setDueAt] = useState(defaultDueDate.toISOString().split('T')[0]);
+  const [dueAt, setDueAt] = useState(getLocalDateIso(defaultDueDate));
 
   // ─── Load Existing Notice ────────────────────────────────────────────
   useEffect(() => {
@@ -355,18 +382,16 @@ Sincerely,
         setRecipientAddr(latestNotice.recipient_address || clientAddress);
         setSubject(latestNotice.subject || subject);
         setBody(latestNotice.body || defaultBody);
-        const savedDueAt = latestNotice.due_at || defaultDueDate.toISOString().split('T')[0];
+        const savedDueAt = latestNotice.due_at || getLocalDateIso(defaultDueDate);
         setDueAt(savedDueAt);
 
-        // Derive delayDays from saved due_at relative to created_at
         if (latestNotice.due_at && latestNotice.created_at) {
-          const created = new Date(latestNotice.created_at.split('T')[0]);
-          const due = new Date(latestNotice.due_at);
+          const created = parseLocalDateString(latestNotice.created_at.split('T')[0]);
+          const due = parseLocalDateString(latestNotice.due_at);
           const diffDays = Math.round((due.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
           if ([5, 10, 15].includes(diffDays)) {
             setDelayDays(diffDays);
           } else {
-            // Find closest option
             const closest = [5, 10, 15].reduce((prev, curr) =>
               Math.abs(curr - diffDays) < Math.abs(prev - diffDays) ? curr : prev
             );
@@ -374,7 +399,6 @@ Sincerely,
           }
         }
       }
-      // Always load tracking fields (even for sent notices)
       if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
       setProofSending(latestNotice.proof_of_sending ?? (latestNotice.proof_status === 'sent' || latestNotice.proof_status === 'received'));
       setProofReceipt(latestNotice.proof_of_receipt ?? latestNotice.proof_status === 'received');
@@ -395,8 +419,7 @@ Sincerely,
     return company?.name || '';
   }, [company?.name, user?.email, userSignature?.signer_name, username]);
 
-  // ─── Variable Replacement ────────────────────────────────────────────
-  const replaceVariables = (text: string, currentDate = date): string =>
+  const replaceVariables = (text: string, currentDate = getDocumentDateIso()): string =>
     text
       .replace(/\{\{client_salutation\}\}/g, clientSalutation)
       .replace(/\{\{client_name\}\}/g, clientName)
@@ -411,18 +434,12 @@ Sincerely,
       .replace(/\{\{company_address\}\}/g, companyAddress)
       .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
 
-  const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
-  const previewSubject = useMemo(() => replaceVariables(subject), [subject, dueAt, date]);
+  const previewDocumentDateIso = getDocumentDateIso();
+  const previewDocumentDateDisplay = formatDate(previewDocumentDateIso);
+  const previewBody = replaceVariables(body, previewDocumentDateIso);
+  const previewSubject = replaceVariables(subject, previewDocumentDateIso);
 
-  const getDownloadDateIso = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const buildSignatureData = (downloadDateIso: string): SignatureData | null => {
+  const buildSignatureData = (documentDateIso: string): SignatureData | null => {
     if (!signatureApplied || !hasSignature || !userSignature) return null;
     return {
       type: userSignature.signature_type,
@@ -430,7 +447,7 @@ Sincerely,
       signerName: userSignature.signer_name || undefined,
       signerTitle: userSignature.signer_title || undefined,
       companyName: company?.name || undefined,
-      signedDate: formatDate(downloadDateIso),
+      signedDate: formatDate(documentDateIso),
       signedDateLabel: noticeLang === 'fr' ? 'Signé le' : 'Signed on',
       legalNote: noticeLang === 'fr'
         ? 'Cette signature est fournie à titre de représentation numérique.'
@@ -439,19 +456,19 @@ Sincerely,
   };
 
   const getPdfData = (withSignature = false): FormalNoticePdfData => {
-    const downloadDateIso = getDownloadDateIso();
+    const documentDateIso = getDocumentDateIso();
 
     return {
       title,
-      date: formatDate(downloadDateIso),
+      date: formatDate(documentDateIso),
       recipientName: recipient,
       recipientAddress: recipientAddr,
       senderName: signerDisplayName,
       senderAddress: companyAddress,
-      subject: replaceVariables(subject, downloadDateIso),
-      body: replaceVariables(body, downloadDateIso),
+      subject: replaceVariables(subject, documentDateIso),
+      body: replaceVariables(body, documentDateIso),
       dueDate: formatDate(dueAt),
-      signature: withSignature ? buildSignatureData(downloadDateIso) : undefined,
+      signature: withSignature ? buildSignatureData(documentDateIso) : undefined,
     };
   };
 
@@ -690,7 +707,7 @@ Sincerely,
       setRecipientAddr(notice.recipient_address || clientAddress);
       setSubject(notice.subject || '');
       setBody(notice.body || '');
-      setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      setDueAt(notice.due_at || getLocalDateIso(defaultDueDate));
     }
     if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
     setTrackingNumber(notice.tracking_number || '');
@@ -756,7 +773,7 @@ Sincerely,
                 </div>
                 <div className="space-y-2">
                   <Label>Date</Label>
-                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                  <Input type="text" value={getDocumentDateDisplay()} readOnly />
                 </div>
               </div>
 
@@ -807,7 +824,7 @@ Sincerely,
                         setDelayDays(opt.value);
                         const newDate = new Date();
                         newDate.setDate(newDate.getDate() + opt.value);
-                        setDueAt(newDate.toISOString().split('T')[0]);
+                        setDueAt(getLocalDateIso(newDate));
                       }}
                     >
                       {language === 'fr' ? opt.labelFr : opt.labelEn}
@@ -837,7 +854,7 @@ Sincerely,
                           setDelayDays(overdueSuggestion.days);
                           const newDate = new Date();
                           newDate.setDate(newDate.getDate() + overdueSuggestion.days);
-                          setDueAt(newDate.toISOString().split('T')[0]);
+                          setDueAt(getLocalDateIso(newDate));
                         }}
                       >
                         {t(`Utiliser ${overdueSuggestion.days} jours`, `Use ${overdueSuggestion.days} days`)}
@@ -955,7 +972,7 @@ Sincerely,
                       const result = await noticeAttachments.uploadFile(file, 'proof_of_sending', language);
                       if (result && !proofSending) {
                         setProofSending(true);
-                        if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                        if (!sentDate) setSentDate(getLocalDateIso());
                         addAutoMessage(
                           language === 'fr'
                             ? "Fichier de preuve détecté. La preuve d'envoi a été cochée automatiquement."
@@ -989,7 +1006,7 @@ Sincerely,
                       if (result && !proofReceipt) {
                         setProofReceipt(true);
                         if (!deliveredDate) {
-                          setDeliveredDate(new Date().toISOString().split('T')[0]);
+                          setDeliveredDate(getLocalDateIso());
                           addAutoMessage(
                             language === 'fr'
                               ? 'Date de réception remplie automatiquement.'
@@ -998,7 +1015,7 @@ Sincerely,
                         }
                         if (!proofSending) {
                           setProofSending(true);
-                          if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                          if (!sentDate) setSentDate(getLocalDateIso());
                         }
                         addAutoMessage(
                           language === 'fr'
@@ -1180,7 +1197,7 @@ Sincerely,
                       <p className="font-medium text-foreground">{company?.name}</p>
                       <p className="whitespace-pre-line">{companyAddress}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{formatDate(date)}</p>
+                    <p className="text-sm text-muted-foreground">{getDocumentDateDisplay()}</p>
                   </div>
                   <div className="text-sm">
                     <p className="font-medium">{recipient}</p>
@@ -1214,7 +1231,7 @@ Sincerely,
                       {userSignature.signer_title && <p className="text-xs text-muted-foreground">{userSignature.signer_title}</p>}
                       {company?.name && <p className="text-sm">{company.name}</p>}
                       <p className="text-xs text-muted-foreground italic">
-                        {noticeLang === 'fr' ? `Signé le ${formatDate(date)}` : `Signed on ${formatDate(date)}`}
+                        {noticeLang === 'fr' ? `Signé le ${getDocumentDateDisplay()}` : `Signed on ${getDocumentDateDisplay()}`}
                       </p>
                       <p className="text-[10px] text-muted-foreground/70 italic">
                         {noticeLang === 'fr'
