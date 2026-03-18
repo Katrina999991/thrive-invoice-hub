@@ -492,6 +492,13 @@ Sincerely,
   };
 
   const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
+  const handleDownloadSignedPdf = () => {
+    if (!hasSignature || !signatureApplied) {
+      setShowSignaturePad(true);
+      return;
+    }
+    generateFormalNoticePdf(getPdfData(true), 'download');
+  };
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
