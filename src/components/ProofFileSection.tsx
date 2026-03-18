@@ -12,6 +12,9 @@ interface ProofFileSectionProps {
   uploading: boolean;
   hasProofFiles: boolean;
   maxFiles: number;
+  sectionTitle?: string;
+  uploadLabel?: string;
+  helperText?: string;
   onUpload: (file: File) => Promise<FormalNoticeAttachment | null>;
   onDelete: (attachment: FormalNoticeAttachment) => Promise<boolean>;
   onDownload: (attachment: FormalNoticeAttachment) => void;
@@ -35,6 +38,9 @@ export const ProofFileSection = ({
   uploading,
   hasProofFiles,
   maxFiles,
+  sectionTitle,
+  uploadLabel,
+  helperText,
   onUpload,
   onDelete,
   onDownload,
@@ -86,7 +92,7 @@ export const ProofFileSection = ({
     <>
       <div className="space-y-3">
         <h4 className="text-sm font-semibold">
-          {t('Fichiers de preuve d\'envoi', 'Proof of sending files')}
+          {sectionTitle || t('Fichiers de preuve d\'envoi', 'Proof of sending files')}
         </h4>
 
         {/* Upload area */}
@@ -119,10 +125,10 @@ export const ProofFileSection = ({
                 ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 : <Upload className="h-4 w-4 mr-2" />
               }
-              {t('Ajouter une preuve', 'Upload proof')}
+              {uploadLabel || t('Ajouter une preuve', 'Upload proof')}
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              {t(
+              {helperText || t(
                 "Ajoutez un reçu postal, une capture d'écran de suivi, une preuve de messagerie ou tout autre document démontrant que la mise en demeure a été envoyée.",
                 "Upload a postal receipt, tracking screenshot, courier proof, or any document showing that the formal notice was sent.",
               )}

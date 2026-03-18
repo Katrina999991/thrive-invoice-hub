@@ -126,23 +126,26 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [trackingNotes, setTrackingNotes] = useState("");
 
   // Derived status & risk
+  const effectiveProofSending = proofSending || noticeAttachments.hasProofFiles;
+  const effectiveProofReceipt = proofReceipt || noticeAttachments.hasReceiptFiles;
+
   const deliveryStatus: DeliveryStatus = useMemo(() => deriveDeliveryStatus({
-    proofOfReceipt: proofReceipt,
+    proofOfReceipt: effectiveProofReceipt,
     deliveredDate,
-    proofOfSending: proofSending || noticeAttachments.hasProofFiles,
+    proofOfSending: effectiveProofSending,
     trackingNumber,
     sentAt: editingNotice?.sent_at || null,
     sentDate,
-  }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate, noticeAttachments.hasProofFiles]);
+  }), [effectiveProofReceipt, deliveredDate, effectiveProofSending, trackingNumber, editingNotice?.sent_at, sentDate]);
 
   const docRisk: DocumentationRisk = useMemo(
     () => calculateDocumentationRisk(
       sendingMethod,
-      proofSending || noticeAttachments.hasProofFiles,
-      proofReceipt,
+      effectiveProofSending,
+      effectiveProofReceipt,
       trackingNumber,
     ),
-    [sendingMethod, proofSending, proofReceipt, trackingNumber, noticeAttachments.hasProofFiles],
+    [sendingMethod, effectiveProofSending, effectiveProofReceipt, trackingNumber],
   );
 
   // ─── Smart Field Interactions ────────────────────────────────────────
@@ -364,7 +367,7 @@ Sincerely,
   });
 
   // ─── Build save data ────────────────────────────────────────────────
-  const proofStatus = proofReceipt ? 'received' : proofSending ? 'sent' : 'none';
+  const proofStatus = effectiveProofReceipt ? 'received' : effectiveProofSending ? 'sent' : 'none';
 
   const buildSaveData = (status: string): FormalNoticeInput => ({
     recipient,
@@ -817,6 +820,50 @@ Sincerely,
                   />
                 )}
 
+                {/* Proof of receipt files */}
+                {editingNotice && (
+                  <ProofFileSection
+                    attachments={noticeAttachments.proofOfReceiptFiles}
+                    uploading={noticeAttachments.uploading}
+                    hasProofFiles={noticeAttachments.hasReceiptFiles}
+                    maxFiles={noticeAttachments.MAX_FILES}
+                    sectionTitle={t('Fichiers de preuve de réception', 'Proof of receipt files')}
+                    uploadLabel={t('Ajouter une preuve de réception', 'Upload receipt proof')}
+                    helperText={t(
+                      "Ajoutez un accusé de réception, une confirmation de livraison signée, un rapport d'huissier ou tout autre document confirmant la réception par le destinataire.",
+                      'Upload a delivery confirmation, signed receipt, bailiff report, or any document confirming the recipient received the formal notice.',
+                    )}
+                    onUpload={async (file) => {
+                      const result = await noticeAttachments.uploadFile(file, 'proof_of_receipt', language);
+                      if (result && !proofReceipt) {
+                        setProofReceipt(true);
+                        if (!deliveredDate) {
+                          setDeliveredDate(new Date().toISOString().split('T')[0]);
+                          addAutoMessage(
+                            language === 'fr'
+                              ? 'Date de réception remplie automatiquement.'
+                              : 'Delivery date filled automatically.',
+                          );
+                        }
+                        if (!proofSending) {
+                          setProofSending(true);
+                          if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                        }
+                        addAutoMessage(
+                          language === 'fr'
+                            ? 'Fichier de réception détecté. La preuve de réception a été cochée automatiquement.'
+                            : 'Receipt proof detected. Proof of receipt was marked automatically.',
+                        );
+                      }
+                      return result;
+                    }}
+                    onDelete={async (att) => noticeAttachments.deleteAttachment(att, language)}
+                    onDownload={(att) => noticeAttachments.downloadFile(att)}
+                    onGetSignedUrl={(path) => noticeAttachments.getSignedUrl(path)}
+                    lang={language === 'fr' ? 'fr' : 'en'}
+                  />
+                )}
+
                 {autoMessages.length > 0 && (
                   <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
                     <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
@@ -845,9 +892,10 @@ Sincerely,
                     <span>✓ {nt('Montant clairement indiqué', 'Amount clearly stated')}</span>
                     <span>✓ {nt('Date limite incluse', 'Deadline included')}</span>
                     <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
-                    <span>{(proofSending || noticeAttachments.hasProofFiles) ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
-                    <span>{noticeAttachments.hasProofFiles ? '✓' : '—'} {nt("Fichiers de preuve joints", 'Proof files attached')}</span>
-                    <span>{proofReceipt ? '✓' : '—'} {nt('Preuve de réception', 'Proof of receipt')}</span>
+                    <span>{effectiveProofSending ? '✓' : '—'} {nt("Preuve d'envoi", 'Proof of sending')}</span>
+                    <span>{noticeAttachments.hasProofFiles ? '✓' : '—'} {nt("Fichiers preuve d'envoi", 'Sending proof files')}</span>
+                    <span>{effectiveProofReceipt ? '✓' : '—'} {nt('Preuve de réception', 'Proof of receipt')}</span>
+                    <span>{noticeAttachments.hasReceiptFiles ? '✓' : '—'} {nt('Fichiers preuve de réception', 'Receipt proof files')}</span>
                   </div>
                 </div>
 
