@@ -1114,16 +1114,17 @@ Sincerely,
                 ) : null}
 
                 {showSignaturePad && (
-                  <div className="space-y-2">
+                  <div className="space-y-2" ref={signaturePadRef}>
                     <SignaturePad
                       onSignatureReady={(val) => {
+                        console.log('[FormalNotice] Signature ready:', !!val);
                         if (val) {
                           setSignatureApplied(true);
                           setShowSignaturePad(false);
                         }
                       }}
                     />
-                    <Button variant="ghost" size="sm" onClick={() => setShowSignaturePad(false)}>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowSignaturePad(false)}>
                       {t('Fermer', 'Close')}
                     </Button>
                   </div>
