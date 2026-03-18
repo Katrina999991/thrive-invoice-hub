@@ -785,7 +785,33 @@ Sincerely,
                   />
                 </div>
 
-                {/* Auto-fill messages */}
+                {/* Proof of sending files */}
+                {editingNotice && (
+                  <ProofFileSection
+                    attachments={noticeAttachments.proofOfSendingFiles}
+                    uploading={noticeAttachments.uploading}
+                    hasProofFiles={noticeAttachments.hasProofFiles}
+                    maxFiles={noticeAttachments.MAX_FILES}
+                    onUpload={async (file) => {
+                      const result = await noticeAttachments.uploadFile(file, 'proof_of_sending', language);
+                      if (result && !proofSending) {
+                        setProofSending(true);
+                        if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                        addAutoMessage(
+                          language === 'fr'
+                            ? "Fichier de preuve détecté. La preuve d'envoi a été cochée automatiquement."
+                            : 'Proof file detected. Proof of sending was marked automatically.',
+                        );
+                      }
+                      return result;
+                    }}
+                    onDelete={async (att) => noticeAttachments.deleteAttachment(att, language)}
+                    onDownload={(att) => noticeAttachments.downloadFile(att)}
+                    onGetSignedUrl={(path) => noticeAttachments.getSignedUrl(path)}
+                    lang={language === 'fr' ? 'fr' : 'en'}
+                  />
+                )}
+
                 {autoMessages.length > 0 && (
                   <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
                     <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
