@@ -432,7 +432,7 @@ Sincerely,
 
   const getPdfData = (withSignature = false): FormalNoticePdfData => ({
     title,
-    date: formatDate(date),
+    date: formatDate(new Date().toISOString().split('T')[0]),
     recipientName: recipient,
     recipientAddress: recipientAddr,
     senderName: signerDisplayName,
