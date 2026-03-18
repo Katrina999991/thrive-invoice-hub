@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignaturePad } from "@/components/SignaturePad";
 import { useUserSignature } from "@/hooks/useUserSignature";
+import { useAuth } from "@/hooks/useAuth";
 import {
   detectNoticeLanguage,
   normalizeCountry,
