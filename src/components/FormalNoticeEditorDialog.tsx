@@ -199,20 +199,25 @@ Sincerely,
   const [body, setBody] = useState(defaultBody);
   const [dueAt, setDueAt] = useState(defaultDueDate.toISOString().split('T')[0]);
 
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
+
   // ─── Load Existing Notice ────────────────────────────────────────────
   useEffect(() => {
-    if (open && latestNotice && latestNotice.status !== 'sent') {
+    if (open && latestNotice) {
       setEditingNotice(latestNotice);
-      setRecipient(latestNotice.recipient || clientName);
-      setRecipientAddr(latestNotice.recipient_address || clientAddress);
-      setSubject(latestNotice.subject || subject);
-      setBody(latestNotice.body || defaultBody);
-      setDueAt(latestNotice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      if (latestNotice.status !== 'sent') {
+        setRecipient(latestNotice.recipient || clientName);
+        setRecipientAddr(latestNotice.recipient_address || clientAddress);
+        setSubject(latestNotice.subject || subject);
+        setBody(latestNotice.body || defaultBody);
+        setDueAt(latestNotice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      }
+      // Always load tracking fields (even for sent notices)
       if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
-      if (latestNotice.proof_status === 'sent') setProofSending(true);
-      if (latestNotice.proof_status === 'received') { setProofSending(true); setProofReceipt(true); }
-      if (latestNotice.tracking_number) setTrackingNumber(latestNotice.tracking_number);
-      if (latestNotice.delivered_date) setDeliveredDate(latestNotice.delivered_date);
+      setProofSending(latestNotice.proof_status === 'sent' || latestNotice.proof_status === 'received');
+      setProofReceipt(latestNotice.proof_status === 'received');
+      setTrackingNumber(latestNotice.tracking_number || '');
+      setDeliveredDate(latestNotice.delivered_date || '');
     } else if (open) {
       setEditingNotice(null);
     }
