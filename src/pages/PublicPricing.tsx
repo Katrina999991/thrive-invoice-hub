@@ -296,6 +296,7 @@ const PublicPricing = () => {
             { text: "CSV export (expense & revenue reports)", icon: "FileSpreadsheet" },
             { text: "Stripe payments", icon: "CreditCard" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Final payment reminder", icon: "Mail" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
