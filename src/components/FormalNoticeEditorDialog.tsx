@@ -1143,7 +1143,39 @@ Sincerely,
                   <p className="font-semibold text-sm">
                     {noticeLang === 'fr' ? 'Objet' : 'Subject'} : {previewSubject}
                   </p>
-                  <div className="whitespace-pre-line text-sm leading-relaxed">{previewBody}</div>
+                  <div className="whitespace-pre-line text-sm leading-relaxed">
+                    {signatureApplied && hasSignature && userSignature
+                      ? (() => {
+                          // Strip the last non-empty line (company/signer name) to avoid duplication
+                          const lines = previewBody.split('\n');
+                          let lastNonEmpty = lines.length - 1;
+                          while (lastNonEmpty >= 0 && lines[lastNonEmpty].trim() === '') lastNonEmpty--;
+                          const stripped = lines.slice(0, lastNonEmpty).join('\n');
+                          return stripped;
+                        })()
+                      : previewBody
+                    }
+                  </div>
+                  {signatureApplied && hasSignature && userSignature && (
+                    <div className="mt-4 space-y-1 border-t pt-4">
+                      {userSignature.signature_type === 'typed' ? (
+                        <p className="text-lg italic font-serif">{userSignature.signature_value}</p>
+                      ) : (
+                        <img src={userSignature.signature_value} alt="Signature" className="max-h-16 object-contain" />
+                      )}
+                      {userSignature.signer_name && <p className="text-sm font-semibold">{userSignature.signer_name}</p>}
+                      {userSignature.signer_title && <p className="text-xs text-muted-foreground">{userSignature.signer_title}</p>}
+                      {company?.name && <p className="text-sm">{company.name}</p>}
+                      <p className="text-xs text-muted-foreground italic">
+                        {noticeLang === 'fr' ? `Signé le ${formatDate(new Date().toISOString().split('T')[0])}` : `Signed on ${formatDate(new Date().toISOString().split('T')[0])}`}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/70 italic">
+                        {noticeLang === 'fr'
+                          ? 'Cette signature est fournie à titre de représentation numérique.'
+                          : 'This signature is a digital representation.'}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
