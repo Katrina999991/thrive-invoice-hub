@@ -1180,7 +1180,7 @@ Sincerely,
                       <p className="font-medium text-foreground">{company?.name}</p>
                       <p className="whitespace-pre-line">{companyAddress}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{formatDate(date)}</p>
+                    <p className="text-sm text-muted-foreground">{getDocumentDateDisplay()}</p>
                   </div>
                   <div className="text-sm">
                     <p className="font-medium">{recipient}</p>
@@ -1214,7 +1214,7 @@ Sincerely,
                       {userSignature.signer_title && <p className="text-xs text-muted-foreground">{userSignature.signer_title}</p>}
                       {company?.name && <p className="text-sm">{company.name}</p>}
                       <p className="text-xs text-muted-foreground italic">
-                        {noticeLang === 'fr' ? `Signé le ${formatDate(date)}` : `Signed on ${formatDate(date)}`}
+                        {noticeLang === 'fr' ? `Signé le ${getDocumentDateDisplay()}` : `Signed on ${getDocumentDateDisplay()}`}
                       </p>
                       <p className="text-[10px] text-muted-foreground/70 italic">
                         {noticeLang === 'fr'
