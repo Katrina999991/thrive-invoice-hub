@@ -388,7 +388,7 @@ Sincerely,
       signerName: userSignature.signer_name || undefined,
       signerTitle: userSignature.signer_title || undefined,
       companyName: company?.name || undefined,
-      signedDate: formatDate(new Date().toISOString().split('T')[0]),
+      signedDate: formatDate(date),
       signedDateLabel: noticeLang === 'fr' ? 'Signé le' : 'Signed on',
       legalNote: noticeLang === 'fr'
         ? 'Cette signature est fournie à titre de représentation numérique.'
@@ -1163,11 +1163,10 @@ Sincerely,
                       ) : (
                         <img src={userSignature.signature_value} alt="Signature" className="max-h-16 object-contain" />
                       )}
-                      {userSignature.signer_name && <p className="text-sm font-semibold">{userSignature.signer_name}</p>}
                       {userSignature.signer_title && <p className="text-xs text-muted-foreground">{userSignature.signer_title}</p>}
                       {company?.name && <p className="text-sm">{company.name}</p>}
                       <p className="text-xs text-muted-foreground italic">
-                        {noticeLang === 'fr' ? `Signé le ${formatDate(new Date().toISOString().split('T')[0])}` : `Signed on ${formatDate(new Date().toISOString().split('T')[0])}`}
+                        {noticeLang === 'fr' ? `Signé le ${formatDate(date)}` : `Signed on ${formatDate(date)}`}
                       </p>
                       <p className="text-[10px] text-muted-foreground/70 italic">
                         {noticeLang === 'fr'
