@@ -35,7 +35,8 @@ import {
   UsersRound,
   FileCheck,
   X,
-  Globe
+  Globe,
+  FileX
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
@@ -218,6 +219,7 @@ const Pricing = () => {
             { text: "Expense reports", icon: "Receipt" },
             { text: "CSV export (expense & revenue reports)", icon: "FileSpreadsheet" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Final payment reminder", icon: "Mail" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
@@ -234,6 +236,8 @@ const Pricing = () => {
             { text: "Advanced document customization", icon: "FileText" },
             { text: "Advanced inventory reports", icon: "Package" },
             { text: "Audit logs (unlimited history)", icon: "History" },
+            { text: "Final payment reminder", icon: "Mail" },
+            { text: "Formal notice (Mise en demeure)", icon: "FileX" },
             { text: "Priority support", icon: "UsersRound" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
@@ -323,6 +327,7 @@ const Pricing = () => {
             { text: "Rapports de dépenses", icon: "Receipt" },
             { text: "Export CSV (rapports dépenses et revenus)", icon: "FileSpreadsheet" },
             { text: "Suivi des heures", icon: "Clock" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
@@ -339,6 +344,8 @@ const Pricing = () => {
             { text: "Personnalisation avancée des documents", icon: "FileText" },
             { text: "Rapports d'inventaire avancés", icon: "Package" },
             { text: "Audit logs (historique illimité)", icon: "History" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
+            { text: "Mise en demeure", icon: "FileX" },
             { text: "Support prioritaire", icon: "UsersRound" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
@@ -387,6 +394,7 @@ const Pricing = () => {
       case 'History': return <History className={iconClass} />;
       case 'UsersRound': return <UsersRound className={iconClass} />;
       case 'FileCheck': return <FileCheck className={iconClass} />;
+      case 'FileX': return <FileX className={iconClass} />;
       default: return <Check className={iconClass} />;
     }
   };

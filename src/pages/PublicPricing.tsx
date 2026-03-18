@@ -128,6 +128,7 @@ const PublicPricing = () => {
             { text: "Export CSV (rapports dépenses et revenus)", icon: "FileSpreadsheet" },
             { text: "Paiements Stripe", icon: "CreditCard" },
             { text: "Suivi des heures", icon: "Clock" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
@@ -148,6 +149,8 @@ const PublicPricing = () => {
             { text: "Personnalisation avancée des documents", icon: "FileText" },
             { text: "Rapports d'inventaire avancés (valeur stock, ventes par produit)", icon: "Package" },
             { text: "Audit logs (historique illimité)", icon: "History" },
+            { text: "Dernier rappel de paiement", icon: "Mail" },
+            { text: "Mise en demeure", icon: "FileX" },
             { text: "Support prioritaire", icon: "UsersRound" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
@@ -293,6 +296,7 @@ const PublicPricing = () => {
             { text: "CSV export (expense & revenue reports)", icon: "FileSpreadsheet" },
             { text: "Stripe payments", icon: "CreditCard" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Final payment reminder", icon: "Mail" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
@@ -313,6 +317,8 @@ const PublicPricing = () => {
             { text: "Advanced document customization", icon: "FileText" },
             { text: "Advanced inventory reports (stock value, sales by product)", icon: "Package" },
             { text: "Audit logs (unlimited history)", icon: "History" },
+            { text: "Final payment reminder", icon: "Mail" },
+            { text: "Formal notice (Mise en demeure)", icon: "FileX" },
             { text: "Priority support", icon: "UsersRound" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
