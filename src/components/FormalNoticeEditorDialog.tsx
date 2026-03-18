@@ -756,7 +756,7 @@ Sincerely,
                 </div>
                 <div className="space-y-2">
                   <Label>Date</Label>
-                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                  <Input type="text" value={getDocumentDateDisplay()} readOnly />
                 </div>
               </div>
 
@@ -807,7 +807,7 @@ Sincerely,
                         setDelayDays(opt.value);
                         const newDate = new Date();
                         newDate.setDate(newDate.getDate() + opt.value);
-                        setDueAt(newDate.toISOString().split('T')[0]);
+                        setDueAt(getLocalDateIso(newDate));
                       }}
                     >
                       {language === 'fr' ? opt.labelFr : opt.labelEn}
@@ -837,7 +837,7 @@ Sincerely,
                           setDelayDays(overdueSuggestion.days);
                           const newDate = new Date();
                           newDate.setDate(newDate.getDate() + overdueSuggestion.days);
-                          setDueAt(newDate.toISOString().split('T')[0]);
+                          setDueAt(getLocalDateIso(newDate));
                         }}
                       >
                         {t(`Utiliser ${overdueSuggestion.days} jours`, `Use ${overdueSuggestion.days} days`)}
