@@ -199,20 +199,25 @@ Sincerely,
   const [body, setBody] = useState(defaultBody);
   const [dueAt, setDueAt] = useState(defaultDueDate.toISOString().split('T')[0]);
 
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
+
   // ─── Load Existing Notice ────────────────────────────────────────────
   useEffect(() => {
-    if (open && latestNotice && latestNotice.status !== 'sent') {
+    if (open && latestNotice) {
       setEditingNotice(latestNotice);
-      setRecipient(latestNotice.recipient || clientName);
-      setRecipientAddr(latestNotice.recipient_address || clientAddress);
-      setSubject(latestNotice.subject || subject);
-      setBody(latestNotice.body || defaultBody);
-      setDueAt(latestNotice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      if (latestNotice.status !== 'sent') {
+        setRecipient(latestNotice.recipient || clientName);
+        setRecipientAddr(latestNotice.recipient_address || clientAddress);
+        setSubject(latestNotice.subject || subject);
+        setBody(latestNotice.body || defaultBody);
+        setDueAt(latestNotice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      }
+      // Always load tracking fields (even for sent notices)
       if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
-      if (latestNotice.proof_status === 'sent') setProofSending(true);
-      if (latestNotice.proof_status === 'received') { setProofSending(true); setProofReceipt(true); }
-      if (latestNotice.tracking_number) setTrackingNumber(latestNotice.tracking_number);
-      if (latestNotice.delivered_date) setDeliveredDate(latestNotice.delivered_date);
+      setProofSending(latestNotice.proof_status === 'sent' || latestNotice.proof_status === 'received');
+      setProofReceipt(latestNotice.proof_status === 'received');
+      setTrackingNumber(latestNotice.tracking_number || '');
+      setDeliveredDate(latestNotice.delivered_date || '');
     } else if (open) {
       setEditingNotice(null);
     }
@@ -288,7 +293,39 @@ Sincerely,
     }
   };
 
+  const handleSaveTracking = async () => {
+    if (!editingNotice) return;
+    setIsSavingTracking(true);
+    try {
+      const trackingData: FormalNoticeInput = {
+        sending_method: sendingMethod,
+        proof_status: proofStatus,
+        tracking_number: trackingNumber || undefined,
+        delivered_date: deliveredDate || null,
+        risk_level: riskLevel,
+      };
+      await updateNotice(editingNotice.id, trackingData, invoice.invoice_number);
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr'
+          ? 'Informations de suivi enregistrées'
+          : 'Tracking information saved',
+      });
+    } catch {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr'
+          ? "Impossible d'enregistrer les informations de suivi"
+          : 'Unable to save tracking information',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingTracking(false);
+    }
+  };
+
   const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
+
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
@@ -529,6 +566,32 @@ Sincerely,
                     <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
                   </div>
                 </div>
+
+                {/* Soft warnings */}
+                {proofReceipt && !deliveredDate && (
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                    ⚠ {t('Preuve de réception cochée mais aucune date de livraison saisie.', 'Proof of receipt checked but no delivery date entered.')}
+                  </p>
+                )}
+                {proofSending && !editingNotice?.sent_at && (
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                    ⚠ {t("Preuve d'envoi cochée mais la mise en demeure n'a pas encore été envoyée.", 'Proof of sending checked but the notice has not been sent yet.')}
+                  </p>
+                )}
+
+                {/* Save tracking button */}
+                {editingNotice && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveTracking}
+                    disabled={isSavingTracking}
+                  >
+                    {isSavingTracking && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    <Save className="h-4 w-4 mr-2" />
+                    {t('Enregistrer le suivi', 'Save tracking')}
+                  </Button>
+                )}
               </div>
 
               {/* Action buttons */}
@@ -628,26 +691,47 @@ Sincerely,
                           {notice.sent_at && <p><span className="text-muted-foreground">{t('Envoyée le', 'Sent on')}:</span> {formatDate(notice.sent_at)}</p>}
                           {notice.sent_to && <p><span className="text-muted-foreground">{t('Envoyée à', 'Sent to')}:</span> {notice.sent_to}</p>}
                         </div>
-                        {notice.status !== 'sent' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => {
-                              setEditingNotice(notice);
-                              setRecipient(notice.recipient || clientName);
-                              setRecipientAddr(notice.recipient_address || clientAddress);
-                              setSubject(notice.subject || '');
-                              setBody(notice.body || '');
-                              setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
-                              if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
-                              if (notice.tracking_number) setTrackingNumber(notice.tracking_number);
-                              setActiveTab('editor');
-                            }}
-                          >
-                            {t('Modifier', 'Edit')}
-                          </Button>
-                        )}
+                        <div className="flex gap-2 mt-2">
+                          {notice.status !== 'sent' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingNotice(notice);
+                                setRecipient(notice.recipient || clientName);
+                                setRecipientAddr(notice.recipient_address || clientAddress);
+                                setSubject(notice.subject || '');
+                                setBody(notice.body || '');
+                                setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
+                                if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
+                                setTrackingNumber(notice.tracking_number || '');
+                                setProofSending(notice.proof_status === 'sent' || notice.proof_status === 'received');
+                                setProofReceipt(notice.proof_status === 'received');
+                                setDeliveredDate(notice.delivered_date || '');
+                                setActiveTab('editor');
+                              }}
+                            >
+                              {t('Modifier', 'Edit')}
+                            </Button>
+                          )}
+                          {notice.status === 'sent' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingNotice(notice);
+                                if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
+                                setTrackingNumber(notice.tracking_number || '');
+                                setProofSending(notice.proof_status === 'sent' || notice.proof_status === 'received');
+                                setProofReceipt(notice.proof_status === 'received');
+                                setDeliveredDate(notice.delivered_date || '');
+                                setActiveTab('editor');
+                              }}
+                            >
+                              {t('Modifier le suivi', 'Edit tracking')}
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
