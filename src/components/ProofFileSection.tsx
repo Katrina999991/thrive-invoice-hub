@@ -92,7 +92,7 @@ export const ProofFileSection = ({
     <>
       <div className="space-y-3">
         <h4 className="text-sm font-semibold">
-          {t('Fichiers de preuve d\'envoi', 'Proof of sending files')}
+          {sectionTitle || t('Fichiers de preuve d\'envoi', 'Proof of sending files')}
         </h4>
 
         {/* Upload area */}
