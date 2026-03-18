@@ -218,6 +218,7 @@ const Pricing = () => {
             { text: "Expense reports", icon: "Receipt" },
             { text: "CSV export (expense & revenue reports)", icon: "FileSpreadsheet" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Final payment reminder", icon: "Mail" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
