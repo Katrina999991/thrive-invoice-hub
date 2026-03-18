@@ -8,12 +8,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, Download, Send, Eye, FileText, Mail, History } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Loader2, Save, Download, Send, Eye, FileText, Mail, History,
+  AlertTriangle, Shield, ShieldAlert, ShieldCheck, Info,
+} from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFormalNotices, type FormalNotice, type FormalNoticeInput } from "@/hooks/useFormalNotices";
 import { generateFormalNoticePdf, type FormalNoticePdfData } from "@/lib/formalNoticePdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  detectNoticeLanguage,
+  normalizeCountry,
+  normalizeRegion,
+  getJurisdictionRules,
+  getDefaultDeliveryMethod,
+  calculateRiskLevel,
+  deliveryMethods,
+  legalDisclaimer,
+  riskLabels,
+  type DeliveryMethod,
+  type ProofStatus,
+  type NoticeLang,
+  parseAddressForJurisdiction,
+} from "@/lib/formalNoticeConfig";
 
 interface FormalNoticeEditorDialogProps {
   open: boolean;
@@ -25,9 +45,7 @@ interface FormalNoticeEditorDialogProps {
     due_date: string | null;
     payment_link: string | null;
     status: string;
-    invoice_items?: Array<{
-      description: string;
-    }>;
+    invoice_items?: Array<{ description: string }>;
     clients?: {
       name: string;
       email: string | null;
@@ -50,7 +68,7 @@ interface FormalNoticeEditorDialogProps {
 }
 
 export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company }: FormalNoticeEditorDialogProps) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const { notices, latestNotice, createNotice, updateNotice, markAsSent, refetch } = useFormalNotices(invoice.id);
 
@@ -65,50 +83,70 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
 
+  // ─── Jurisdiction & Language Detection ───────────────────────────────
+  const clientAddress = invoice.clients?.address || '';
+  const parsedAddr = useMemo(() => parseAddressForJurisdiction(clientAddress), [clientAddress]);
+
+  const clientCountry = parsedAddr.country || company?.country || null;
+  const clientRegion = parsedAddr.region || company?.province_state || null;
+
+  const noticeLang: NoticeLang = useMemo(
+    () => detectNoticeLanguage(invoice.clients?.language, clientCountry, clientRegion),
+    [invoice.clients?.language, clientCountry, clientRegion],
+  );
+
+  const jKey = normalizeCountry(clientCountry);
+  const rKey = normalizeRegion(clientRegion);
+  const rules = useMemo(() => getJurisdictionRules(clientCountry, clientRegion), [clientCountry, clientRegion]);
+
+  // ─── Delivery & Proof State ──────────────────────────────────────────
+  const [sendingMethod, setSendingMethod] = useState<DeliveryMethod>(() => getDefaultDeliveryMethod(clientCountry, clientRegion));
+  const [proofSending, setProofSending] = useState(false);
+  const [proofReceipt, setProofReceipt] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [deliveredDate, setDeliveredDate] = useState("");
+
+  const proofStatus: ProofStatus = proofReceipt ? 'received' : proofSending ? 'sent' : 'none';
+  const riskLevel = useMemo(() => calculateRiskLevel(sendingMethod, proofStatus), [sendingMethod, proofStatus]);
+
+  // ─── Company / Client ────────────────────────────────────────────────
   const companyAddress = [
     company?.street_address,
     [company?.city, company?.province_state, company?.postal_code].filter(Boolean).join(", "),
-    company?.country
+    company?.country,
   ].filter(Boolean).join("\n");
 
   const contactPerson = invoice.clients?.contact_person;
   const contactTitle = invoice.clients?.contact_title;
   const clientName = contactTitle && contactPerson ? `${contactTitle} ${contactPerson}` : (contactPerson || invoice.clients?.name || '');
-  const clientAddress = invoice.clients?.address || '';
 
-  // Use CLIENT language for document content, UI language for interface labels
-  const clientLang = invoice.clients?.language === 'french' || invoice.clients?.language === 'fr' ? 'fr' : 'en';
-
-  // Generate client salutation based on contact person availability
   const clientSalutation = useMemo(() => {
     if (contactPerson && contactPerson.trim()) {
-      const formattedName = contactTitle ? `${contactTitle} ${contactPerson.trim()}` : contactPerson.trim();
-      return formattedName + ',';
+      const formatted = contactTitle ? `${contactTitle} ${contactPerson.trim()}` : contactPerson.trim();
+      return formatted + ',';
     }
-    return clientLang === 'fr' ? 'Madame, Monsieur,' : 'Dear Sir/Madam,';
-  }, [contactPerson, contactTitle, clientLang]);
+    return noticeLang === 'fr' ? 'Madame, Monsieur,' : 'Dear Sir/Madam,';
+  }, [contactPerson, contactTitle, noticeLang]);
 
-  // Generate short invoice description from items
   const invoiceDescription = useMemo(() => {
     const items = invoice.invoice_items || [];
     if (items.length === 0) return '';
     const firstDesc = items[0].description || '';
     const truncated = firstDesc.length > 80 ? firstDesc.slice(0, 77) + '...' : firstDesc;
     if (items.length === 1) return truncated;
-    const suffix = clientLang === 'fr' ? ' et autres articles' : ' and other items';
+    const suffix = noticeLang === 'fr' ? ' et autres articles' : ' and other items';
     const maxLen = 80 - suffix.length;
     const base = firstDesc.length > maxLen ? firstDesc.slice(0, maxLen - 3) + '...' : firstDesc;
     return base + suffix;
-  }, [invoice.invoice_items, clientLang]);
+  }, [invoice.invoice_items, noticeLang]);
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString(clientLang === 'fr' ? 'fr-CA' : 'en-CA');
-  };
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(noticeLang === 'fr' ? 'fr-CA' : 'en-CA');
 
   const defaultDueDate = new Date();
   defaultDueDate.setDate(defaultDueDate.getDate() + 10);
 
-  const defaultBody = clientLang === 'fr'
+  const defaultBody = noticeLang === 'fr'
     ? `{{client_salutation}}
 
 Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}}, concernant {{invoice_description}}, d'un montant de {{amount_due}}, demeure impayé à ce jour.
@@ -148,20 +186,20 @@ Sincerely,
 
 {{company_name}}`;
 
-  // Form state
-  const [title, setTitle] = useState(clientLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
+  // ─── Form State ──────────────────────────────────────────────────────
+  const [title, setTitle] = useState(noticeLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [recipient, setRecipient] = useState(clientName);
   const [recipientAddr, setRecipientAddr] = useState(clientAddress);
   const [subject, setSubject] = useState(
-    clientLang === 'fr'
+    noticeLang === 'fr'
       ? `Mise en demeure concernant la facture ${invoice.invoice_number}`
-      : `Formal notice regarding invoice ${invoice.invoice_number}`
+      : `Formal notice regarding invoice ${invoice.invoice_number}`,
   );
   const [body, setBody] = useState(defaultBody);
   const [dueAt, setDueAt] = useState(defaultDueDate.toISOString().split('T')[0]);
 
-  // Load existing notice data if editing
+  // ─── Load Existing Notice ────────────────────────────────────────────
   useEffect(() => {
     if (open && latestNotice && latestNotice.status !== 'sent') {
       setEditingNotice(latestNotice);
@@ -170,13 +208,19 @@ Sincerely,
       setSubject(latestNotice.subject || subject);
       setBody(latestNotice.body || defaultBody);
       setDueAt(latestNotice.due_at || defaultDueDate.toISOString().split('T')[0]);
+      if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
+      if (latestNotice.proof_status === 'sent') setProofSending(true);
+      if (latestNotice.proof_status === 'received') { setProofSending(true); setProofReceipt(true); }
+      if (latestNotice.tracking_number) setTrackingNumber(latestNotice.tracking_number);
+      if (latestNotice.delivered_date) setDeliveredDate(latestNotice.delivered_date);
     } else if (open) {
       setEditingNotice(null);
     }
   }, [open, latestNotice]);
 
-  const replaceVariables = (text: string): string => {
-    return text
+  // ─── Variable Replacement ────────────────────────────────────────────
+  const replaceVariables = (text: string): string =>
+    text
       .replace(/\{\{client_salutation\}\}/g, clientSalutation)
       .replace(/\{\{client_name\}\}/g, clientName)
       .replace(/\{\{client_address\}\}/g, clientAddress)
@@ -189,7 +233,6 @@ Sincerely,
       .replace(/\{\{company_name\}\}/g, company?.name || '')
       .replace(/\{\{company_address\}\}/g, companyAddress)
       .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
-  };
 
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, dueAt, date]);
@@ -206,50 +249,54 @@ Sincerely,
     dueDate: formatDate(dueAt),
   });
 
+  // ─── Actions ─────────────────────────────────────────────────────────
+  const buildSaveData = (status: string): FormalNoticeInput => ({
+    recipient,
+    recipient_address: recipientAddr,
+    subject,
+    body,
+    due_at: dueAt,
+    status,
+    sending_method: sendingMethod,
+    proof_status: proofStatus,
+    tracking_number: trackingNumber || undefined,
+    delivered_date: deliveredDate || null,
+    client_language: noticeLang,
+    country: jKey,
+    region: rKey !== 'default' ? rKey : undefined,
+    risk_level: riskLevel,
+  });
+
   const handleSave = async (status: string = 'draft') => {
     setIsSaving(true);
     try {
-      const data: FormalNoticeInput = {
-        recipient,
-        recipient_address: recipientAddr,
-        subject: body, // store raw template
-        body,
-        due_at: dueAt,
-        status,
-      };
-
-      // Actually store the subject field properly
-      data.subject = subject;
-
+      const data = buildSaveData(status);
       if (editingNotice) {
         await updateNotice(editingNotice.id, data, invoice.invoice_number);
       } else {
         const notice = await createNotice(invoice.id, data, invoice.invoice_number);
         if (notice) setEditingNotice(notice);
       }
-
       toast({
-        title: language === 'fr' ? "Succès" : "Success",
+        title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr'
-          ? (status === 'draft' ? "Brouillon enregistré" : "Mise en demeure enregistrée")
-          : (status === 'draft' ? "Draft saved" : "Formal notice saved"),
+          ? (status === 'draft' ? 'Brouillon enregistré' : 'Mise en demeure enregistrée')
+          : (status === 'draft' ? 'Draft saved' : 'Formal notice saved'),
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDownloadPdf = () => {
-    generateFormalNoticePdf(getPdfData(), 'download');
-  };
-
+  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
 
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
     setEmailSubject(previewSubject);
-    setEmailMessage(language === 'fr'
-      ? `Veuillez trouver ci-joint la mise en demeure concernant la facture ${invoice.invoice_number}.`
-      : `Please find attached the formal notice regarding invoice ${invoice.invoice_number}.`
+    setEmailMessage(
+      noticeLang === 'fr'
+        ? `Veuillez trouver ci-joint la mise en demeure concernant la facture ${invoice.invoice_number}.`
+        : `Please find attached the formal notice regarding invoice ${invoice.invoice_number}.`,
     );
     setShowEmailDialog(true);
   };
@@ -258,26 +305,14 @@ Sincerely,
     if (!emailRecipient) return;
     setIsSending(true);
     try {
-      // First save the notice if not saved yet
-      if (!editingNotice) {
-        await handleSave('generated');
-      }
-
-      // Generate PDF blob
+      if (!editingNotice) await handleSave('generated');
       const pdfBlob = generateFormalNoticePdf(getPdfData(), 'blob') as Blob;
-      
-      // Convert blob to base64
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
-        reader.onload = () => {
-          const base64 = (reader.result as string).split(',')[1];
-          resolve(base64);
-        };
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
         reader.readAsDataURL(pdfBlob);
       });
       const base64Pdf = await base64Promise;
-
-      // Send via edge function
       const { error } = await supabase.functions.invoke('send-invoice-email', {
         body: {
           invoiceId: invoice.id,
@@ -287,49 +322,56 @@ Sincerely,
           customBody: emailMessage,
           isFormalNotice: true,
           formalNoticePdfBase64: base64Pdf,
-        }
+        },
       });
-
       if (error) throw error;
-
-      // Mark as sent
-      if (editingNotice) {
-        await markAsSent(editingNotice.id, emailRecipient, invoice.invoice_number);
-      }
-
+      if (editingNotice) await markAsSent(editingNotice.id, emailRecipient, invoice.invoice_number);
       toast({
-        title: language === 'fr' ? "Succès" : "Success",
+        title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr'
           ? `Mise en demeure envoyée à ${emailRecipient}`
           : `Formal notice sent to ${emailRecipient}`,
       });
-
       setShowEmailDialog(false);
       await refetch();
     } catch (error) {
-      console.error("Error sending formal notice email:", error);
+      console.error('Error sending formal notice email:', error);
       toast({
-        title: language === 'fr' ? "Erreur" : "Error",
-        description: language === 'fr' ? "Impossible d'envoyer l'email" : "Failed to send email",
-        variant: "destructive",
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? "Impossible d'envoyer l'email" : 'Failed to send email',
+        variant: 'destructive',
       });
     } finally {
       setIsSending(false);
     }
   };
 
+  // ─── UI Helpers ──────────────────────────────────────────────────────
+  const t = (fr: string, en: string) => (language === 'fr' ? fr : en);
+  const nt = (fr: string, en: string) => (noticeLang === 'fr' ? fr : en);
+
   const statusBadge = (status: string) => {
     const colors: Record<string, string> = {
-      draft: "bg-muted text-muted-foreground",
-      generated: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-      sent: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      draft: 'bg-muted text-muted-foreground',
+      generated: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      sent: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
     };
     const labels: Record<string, string> = {
-      draft: language === 'fr' ? 'Brouillon' : 'Draft',
-      generated: language === 'fr' ? 'Générée' : 'Generated',
-      sent: language === 'fr' ? 'Envoyée' : 'Sent',
+      draft: t('Brouillon', 'Draft'),
+      generated: t('Générée', 'Generated'),
+      sent: t('Envoyée', 'Sent'),
     };
-    return <Badge className={colors[status] || ""}>{labels[status] || status}</Badge>;
+    return <Badge className={colors[status] || ''}>{labels[status] || status}</Badge>;
+  };
+
+  const RiskBadge = () => {
+    const icon = riskLevel === 'low' ? <ShieldCheck className="h-4 w-4" /> : riskLevel === 'medium' ? <Shield className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />;
+    const color = riskLevel === 'low' ? 'text-green-600 dark:text-green-400' : riskLevel === 'medium' ? 'text-yellow-600 dark:text-yellow-400' : 'text-destructive';
+    return (
+      <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${color}`}>
+        {icon} {riskLabels[riskLevel][noticeLang]}
+      </span>
+    );
   };
 
   return (
@@ -339,84 +381,154 @@ Sincerely,
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-destructive" />
-              {language === 'fr' ? 'Mise en demeure' : 'Formal Notice'} — {invoice.invoice_number}
+              {t('Mise en demeure', 'Formal Notice')} — {invoice.invoice_number}
               {editingNotice && <span className="ml-2">{statusBadge(editingNotice.status)}</span>}
             </DialogTitle>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="editor">
-                <FileText className="h-4 w-4 mr-1" />
-                {language === 'fr' ? 'Éditeur' : 'Editor'}
-              </TabsTrigger>
-              <TabsTrigger value="preview">
-                <Eye className="h-4 w-4 mr-1" />
-                {language === 'fr' ? 'Aperçu' : 'Preview'}
-              </TabsTrigger>
-              <TabsTrigger value="history">
-                <History className="h-4 w-4 mr-1" />
-                {language === 'fr' ? 'Historique' : 'History'}
-              </TabsTrigger>
+              <TabsTrigger value="editor"><FileText className="h-4 w-4 mr-1" />{t('Éditeur', 'Editor')}</TabsTrigger>
+              <TabsTrigger value="preview"><Eye className="h-4 w-4 mr-1" />{t('Aperçu', 'Preview')}</TabsTrigger>
+              <TabsTrigger value="history"><History className="h-4 w-4 mr-1" />{t('Historique', 'History')}</TabsTrigger>
             </TabsList>
 
-            {/* Editor Tab */}
+            {/* ══════════ Editor Tab ══════════ */}
             <TabsContent value="editor" className="space-y-4 mt-4">
+              {/* Jurisdiction & Risk Banner */}
+              <Card className="border-muted">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        {t('Juridiction', 'Jurisdiction')}: <strong>{jKey}{rKey !== 'default' ? ` / ${rKey}` : ''}</strong>
+                        {' · '}
+                        {t('Langue du document', 'Document language')}: <strong>{noticeLang === 'fr' ? t('Français', 'French') : t('Anglais', 'English')}</strong>
+                      </span>
+                    </div>
+                    <RiskBadge />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{rules.recommendation[noticeLang]}</p>
+                  <p className="text-xs text-muted-foreground italic">{legalDisclaimer[noticeLang]}</p>
+                </CardContent>
+              </Card>
+
+              {/* Document Title & Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{language === 'fr' ? 'Titre du document' : 'Document title'}</Label>
+                  <Label>{t('Titre du document', 'Document title')}</Label>
                   <Input value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label>{language === 'fr' ? 'Date' : 'Date'}</Label>
+                  <Label>Date</Label>
                   <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                 </div>
               </div>
 
               <Separator />
 
+              {/* Recipient */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{language === 'fr' ? 'Destinataire' : 'Recipient'}</Label>
+                  <Label>{t('Destinataire', 'Recipient')}</Label>
                   <Input value={recipient} onChange={(e) => setRecipient(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label>{language === 'fr' ? 'Adresse du destinataire' : 'Recipient address'}</Label>
+                  <Label>{t('Adresse du destinataire', 'Recipient address')}</Label>
                   <Textarea value={recipientAddr} onChange={(e) => setRecipientAddr(e.target.value)} rows={2} />
                 </div>
               </div>
 
+              {/* Subject */}
               <div className="space-y-2">
-                <Label>{language === 'fr' ? 'Objet' : 'Subject'}</Label>
+                <Label>{t('Objet', 'Subject')}</Label>
                 <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
               </div>
 
+              {/* Body */}
               <div className="space-y-2">
-                <Label>{language === 'fr' ? 'Corps du texte' : 'Body text'}</Label>
-                <Textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  rows={12}
-                  className="font-mono text-sm"
-                />
+                <Label>{t('Corps du texte', 'Body text')}</Label>
+                <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={12} className="font-mono text-sm" />
                 <p className="text-xs text-muted-foreground">
-                  {language === 'fr' ? 'Variables disponibles' : 'Available variables'}:{' '}
-                  <code className="text-xs">{'{{client_salutation}}'}</code>,{' '}
-                  <code className="text-xs">{'{{client_name}}'}</code>,{' '}
-                  <code className="text-xs">{'{{invoice_number}}'}</code>,{' '}
-                  <code className="text-xs">{'{{invoice_description}}'}</code>,{' '}
-                  <code className="text-xs">{'{{amount_due}}'}</code>,{' '}
-                  <code className="text-xs">{'{{invoice_due_date}}'}</code>,{' '}
-                  <code className="text-xs">{'{{formal_notice_due_date}}'}</code>,{' '}
-                  <code className="text-xs">{'{{company_name}}'}</code>,{' '}
-                  <code className="text-xs">{'{{company_address}}'}</code>,{' '}
-                  <code className="text-xs">{'{{invoice_payment_link}}'}</code>
+                  {t('Variables disponibles', 'Available variables')}:{' '}
+                  {['client_salutation', 'client_name', 'invoice_number', 'invoice_description', 'amount_due', 'invoice_due_date', 'formal_notice_due_date', 'company_name', 'company_address', 'invoice_payment_link'].map((v) => (
+                    <span key={v}><code className="text-xs">{`{{${v}}}`}</code>{' '}</span>
+                  ))}
                 </p>
               </div>
 
+              {/* Deadline */}
               <div className="space-y-2">
-                <Label>{language === 'fr' ? 'Date limite de paiement / réponse' : 'Payment / response deadline'}</Label>
+                <Label>{t('Date limite de paiement / réponse', 'Payment / response deadline')}</Label>
                 <Input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+              </div>
+
+              <Separator />
+
+              {/* ── Delivery Method & Proof Tracking ── */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">{t('Mode d\'envoi et preuve', 'Delivery Method & Proof')}</h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t('Mode d\'envoi', 'Delivery method')}</Label>
+                    <Select value={sendingMethod} onValueChange={(v) => setSendingMethod(v as DeliveryMethod)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {deliveryMethods.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>{m.label[noticeLang]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('Numéro de suivi', 'Tracking number')}</Label>
+                    <Input value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder={t('Optionnel', 'Optional')} />
+                  </div>
+                </div>
+
+                {/* Email warning */}
+                {sendingMethod === 'email' && (
+                  <div className="flex items-start gap-2 rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-3">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                    <p className="text-sm text-yellow-800 dark:text-yellow-300">{rules.emailWarning[noticeLang]}</p>
+                  </div>
+                )}
+
+                {/* Proof checkboxes */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="proof-sending" checked={proofSending} onCheckedChange={(v) => setProofSending(!!v)} />
+                    <Label htmlFor="proof-sending" className="cursor-pointer">
+                      {nt('Preuve d\'envoi', 'Proof of sending')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="proof-receipt" checked={proofReceipt} onCheckedChange={(v) => setProofReceipt(!!v)} />
+                    <Label htmlFor="proof-receipt" className="cursor-pointer">
+                      {nt('Preuve de réception', 'Proof of receipt')}
+                    </Label>
+                  </div>
+                </div>
+
+                {proofReceipt && (
+                  <div className="space-y-2">
+                    <Label>{t('Date de livraison', 'Delivery date')}</Label>
+                    <Input type="date" value={deliveredDate} onChange={(e) => setDeliveredDate(e.target.value)} />
+                  </div>
+                )}
+
+                {/* Supporting documents checklist */}
+                <div className="rounded-md border p-3 space-y-2">
+                  <p className="text-sm font-medium">{nt('Documents et informations vérifiés', 'Supporting documents checklist')}</p>
+                  <div className="grid grid-cols-2 gap-y-1.5 text-sm text-muted-foreground">
+                    <span>✓ {nt('Facture jointe / référencée', 'Invoice attached / referenced')}</span>
+                    <span>✓ {nt('Montant clairement indiqué', 'Amount clearly stated')}</span>
+                    <span>✓ {nt('Date limite incluse', 'Deadline included')}</span>
+                    <span>{invoice.payment_link ? '✓' : '—'} {nt('Mode de paiement inclus', 'Payment method included')}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Action buttons */}
@@ -424,25 +536,24 @@ Sincerely,
                 <Button variant="outline" onClick={() => handleSave('draft')} disabled={isSaving}>
                   {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   <Save className="h-4 w-4 mr-2" />
-                  {language === 'fr' ? 'Enregistrer brouillon' : 'Save draft'}
+                  {t('Enregistrer brouillon', 'Save draft')}
                 </Button>
                 <Button variant="outline" onClick={() => handleSave('generated')} disabled={isSaving}>
                   {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   <Save className="h-4 w-4 mr-2" />
-                  {language === 'fr' ? 'Sauvegarder version finale' : 'Save final version'}
+                  {t('Sauvegarder version finale', 'Save final version')}
                 </Button>
                 <Button variant="outline" onClick={handleDownloadPdf}>
-                  <Download className="h-4 w-4 mr-2" />
-                  PDF
+                  <Download className="h-4 w-4 mr-2" /> PDF
                 </Button>
                 <Button onClick={handleSendEmail} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                   <Mail className="h-4 w-4 mr-2" />
-                  {language === 'fr' ? 'Envoyer par email' : 'Send by email'}
+                  {t('Envoyer par email', 'Send by email')}
                 </Button>
               </div>
             </TabsContent>
 
-            {/* Preview Tab */}
+            {/* ══════════ Preview Tab ══════════ */}
             <TabsContent value="preview" className="mt-4">
               <Card className="border-destructive/20">
                 <CardContent className="p-6 space-y-4">
@@ -453,38 +564,49 @@ Sincerely,
                     </div>
                     <p className="text-sm text-muted-foreground">{formatDate(date)}</p>
                   </div>
-
                   <div className="text-sm">
                     <p className="font-medium">{recipient}</p>
                     <p className="whitespace-pre-line text-muted-foreground">{recipientAddr}</p>
                   </div>
-
                   <div className="text-center">
                     <h2 className="text-xl font-bold text-destructive">{title}</h2>
                     <Separator className="mt-2 bg-destructive/30" />
                   </div>
+                  <p className="font-semibold text-sm">
+                    {noticeLang === 'fr' ? 'Objet' : 'Subject'} : {previewSubject}
+                  </p>
+                  <div className="whitespace-pre-line text-sm leading-relaxed">{previewBody}</div>
+                </CardContent>
+              </Card>
 
-                  <p className="font-semibold text-sm">Objet : {previewSubject}</p>
-
-                  <div className="whitespace-pre-line text-sm leading-relaxed">
-                    {previewBody}
-                  </div>
+              {/* Delivery info summary */}
+              <Card className="mt-3 border-muted">
+                <CardContent className="p-4 flex flex-wrap items-center gap-4 text-sm">
+                  <span className="text-muted-foreground">{t('Mode d\'envoi', 'Delivery')}:</span>
+                  <strong>{deliveryMethods.find(m => m.value === sendingMethod)?.label[noticeLang]}</strong>
+                  <span className="text-muted-foreground">·</span>
+                  <RiskBadge />
+                  {trackingNumber && (
+                    <>
+                      <span className="text-muted-foreground">·</span>
+                      <span>{t('Suivi', 'Tracking')}: {trackingNumber}</span>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
               <div className="flex gap-2 mt-4">
                 <Button variant="outline" onClick={handleDownloadPdf}>
-                  <Download className="h-4 w-4 mr-2" />
-                  PDF
+                  <Download className="h-4 w-4 mr-2" /> PDF
                 </Button>
               </div>
             </TabsContent>
 
-            {/* History Tab */}
+            {/* ══════════ History Tab ══════════ */}
             <TabsContent value="history" className="mt-4">
               {notices.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  {language === 'fr' ? 'Aucune mise en demeure pour cette facture.' : 'No formal notices for this invoice.'}
+                  {t('Aucune mise en demeure pour cette facture.', 'No formal notices for this invoice.')}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -493,22 +615,18 @@ Sincerely,
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-2">
                           {statusBadge(notice.status)}
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(notice.created_at)}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{formatDate(notice.created_at)}</span>
                         </div>
                         <div className="text-sm space-y-1">
-                          <p><span className="text-muted-foreground">{language === 'fr' ? 'Destinataire' : 'Recipient'}:</span> {notice.recipient}</p>
-                          <p><span className="text-muted-foreground">{language === 'fr' ? 'Objet' : 'Subject'}:</span> {notice.subject}</p>
-                          {notice.due_at && (
-                            <p><span className="text-muted-foreground">{language === 'fr' ? 'Date limite' : 'Deadline'}:</span> {formatDate(notice.due_at)}</p>
+                          <p><span className="text-muted-foreground">{t('Destinataire', 'Recipient')}:</span> {notice.recipient}</p>
+                          <p><span className="text-muted-foreground">{t('Objet', 'Subject')}:</span> {notice.subject}</p>
+                          {notice.due_at && <p><span className="text-muted-foreground">{t('Date limite', 'Deadline')}:</span> {formatDate(notice.due_at)}</p>}
+                          {notice.sending_method && (
+                            <p><span className="text-muted-foreground">{t('Mode d\'envoi', 'Delivery')}:</span> {deliveryMethods.find(m => m.value === notice.sending_method)?.label[language === 'fr' ? 'fr' : 'en'] || notice.sending_method}</p>
                           )}
-                          {notice.sent_at && (
-                            <p><span className="text-muted-foreground">{language === 'fr' ? 'Envoyée le' : 'Sent on'}:</span> {formatDate(notice.sent_at)}</p>
-                          )}
-                          {notice.sent_to && (
-                            <p><span className="text-muted-foreground">{language === 'fr' ? 'Envoyée à' : 'Sent to'}:</span> {notice.sent_to}</p>
-                          )}
+                          {notice.tracking_number && <p><span className="text-muted-foreground">{t('Suivi', 'Tracking')}:</span> {notice.tracking_number}</p>}
+                          {notice.sent_at && <p><span className="text-muted-foreground">{t('Envoyée le', 'Sent on')}:</span> {formatDate(notice.sent_at)}</p>}
+                          {notice.sent_to && <p><span className="text-muted-foreground">{t('Envoyée à', 'Sent to')}:</span> {notice.sent_to}</p>}
                         </div>
                         {notice.status !== 'sent' && (
                           <Button
@@ -522,10 +640,12 @@ Sincerely,
                               setSubject(notice.subject || '');
                               setBody(notice.body || '');
                               setDueAt(notice.due_at || defaultDueDate.toISOString().split('T')[0]);
-                              setActiveTab("editor");
+                              if (notice.sending_method) setSendingMethod(notice.sending_method as DeliveryMethod);
+                              if (notice.tracking_number) setTrackingNumber(notice.tracking_number);
+                              setActiveTab('editor');
                             }}
                           >
-                            {language === 'fr' ? 'Modifier' : 'Edit'}
+                            {t('Modifier', 'Edit')}
                           </Button>
                         )}
                       </CardContent>
@@ -538,47 +658,41 @@ Sincerely,
         </DialogContent>
       </Dialog>
 
-      {/* Email Sub-Dialog */}
+      {/* ══════════ Email Sub-Dialog ══════════ */}
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              {language === 'fr' ? 'Envoyer la mise en demeure' : 'Send formal notice'}
+              {t('Envoyer la mise en demeure', 'Send formal notice')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Email warning reminder */}
+            {sendingMethod === 'email' && (
+              <div className="flex items-start gap-2 rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-3">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">{rules.emailWarning[noticeLang]}</p>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label>{language === 'fr' ? 'Destinataire' : 'Recipient'}</Label>
-              <Input
-                type="email"
-                value={emailRecipient}
-                onChange={(e) => setEmailRecipient(e.target.value)}
-              />
+              <Label>{t('Destinataire', 'Recipient')}</Label>
+              <Input type="email" value={emailRecipient} onChange={(e) => setEmailRecipient(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>{language === 'fr' ? 'Objet' : 'Subject'}</Label>
-              <Input
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-              />
+              <Label>{t('Objet', 'Subject')}</Label>
+              <Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>{language === 'fr' ? "Message d'accompagnement" : 'Accompanying message'}</Label>
-              <Textarea
-                value={emailMessage}
-                onChange={(e) => setEmailMessage(e.target.value)}
-                rows={4}
-              />
+              <Label>{t("Message d'accompagnement", 'Accompanying message')}</Label>
+              <Textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} rows={4} />
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
-                {language === 'fr' ? 'Annuler' : 'Cancel'}
-              </Button>
+              <Button variant="outline" onClick={() => setShowEmailDialog(false)}>{t('Annuler', 'Cancel')}</Button>
               <Button onClick={sendEmail} disabled={isSending || !emailRecipient}>
                 {isSending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <Send className="h-4 w-4 mr-2" />
-                {language === 'fr' ? 'Envoyer' : 'Send'}
+                {t('Envoyer', 'Send')}
               </Button>
             </div>
           </div>
