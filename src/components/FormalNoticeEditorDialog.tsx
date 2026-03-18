@@ -955,7 +955,7 @@ Sincerely,
                       const result = await noticeAttachments.uploadFile(file, 'proof_of_sending', language);
                       if (result && !proofSending) {
                         setProofSending(true);
-                        if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                        if (!sentDate) setSentDate(getLocalDateIso());
                         addAutoMessage(
                           language === 'fr'
                             ? "Fichier de preuve détecté. La preuve d'envoi a été cochée automatiquement."
@@ -989,7 +989,7 @@ Sincerely,
                       if (result && !proofReceipt) {
                         setProofReceipt(true);
                         if (!deliveredDate) {
-                          setDeliveredDate(new Date().toISOString().split('T')[0]);
+                          setDeliveredDate(getLocalDateIso());
                           addAutoMessage(
                             language === 'fr'
                               ? 'Date de réception remplie automatiquement.'
@@ -998,7 +998,7 @@ Sincerely,
                         }
                         if (!proofSending) {
                           setProofSending(true);
-                          if (!sentDate) setSentDate(new Date().toISOString().split('T')[0]);
+                          if (!sentDate) setSentDate(getLocalDateIso());
                         }
                         addAutoMessage(
                           language === 'fr'
