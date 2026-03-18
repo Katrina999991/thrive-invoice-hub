@@ -1155,12 +1155,10 @@ Sincerely,
                   <div className="whitespace-pre-line text-sm leading-relaxed">
                     {signatureApplied && hasSignature && userSignature
                       ? (() => {
-                          // Strip the last non-empty line (company/signer name) to avoid duplication
                           const lines = previewBody.split('\n');
                           let lastNonEmpty = lines.length - 1;
                           while (lastNonEmpty >= 0 && lines[lastNonEmpty].trim() === '') lastNonEmpty--;
-                          const stripped = lines.slice(0, lastNonEmpty).join('\n');
-                          return stripped;
+                          return lines.slice(0, lastNonEmpty).join('\n');
                         })()
                       : previewBody
                     }
