@@ -1054,10 +1054,9 @@ Sincerely,
                           ) : (
                             <img src={userSignature.signature_value} alt="Signature" className="max-h-12 object-contain" />
                           )}
-                          {(userSignature.signer_name || userSignature.signer_title) && (
+                          {userSignature.signer_title && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              {userSignature.signer_name && <p>{userSignature.signer_name}</p>}
-                              {userSignature.signer_title && <p>{userSignature.signer_title}</p>}
+                              <p>{userSignature.signer_title}</p>
                             </div>
                           )}
                         </div>
