@@ -77,7 +77,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const { language } = useLanguage();
   const { toast } = useToast();
   const { notices, latestNotice, createNotice, updateNotice, markAsSent, refetch } = useFormalNotices(invoice.id);
-
+  const noticeAttachments = useFormalNoticeAttachments(editingNotice?.id);
   const [activeTab, setActiveTab] = useState("editor");
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
