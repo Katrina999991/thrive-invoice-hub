@@ -324,6 +324,7 @@ Sincerely,
     }
   };
 
+  const handleDownloadPdf = () => generateFormalNoticePdf(getPdfData(), 'download');
 
 
   const handleSendEmail = () => {
