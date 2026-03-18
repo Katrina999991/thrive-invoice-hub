@@ -114,6 +114,7 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const [emailRecipient, setEmailRecipient] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
+  const [emailTone, setEmailTone] = useState<'standard' | 'firm' | 'soft'>('standard');
 
   // ─── Jurisdiction & Language Detection ───────────────────────────────
   const clientAddress = invoice.clients?.address || '';
@@ -563,15 +564,98 @@ Sincerely,
     generateFormalNoticePdf(getPdfData(true), 'download');
   };
 
+  const getEmailTemplate = (tone: 'standard' | 'firm' | 'soft') => {
+    const deadlineDate = formatDate(dueAt);
+    const senderName = signerDisplayName || company?.name || '';
+
+    if (noticeLang === 'fr') {
+      const templates = {
+        standard: `Madame, Monsieur,
+
+Veuillez trouver ci-joint une mise en demeure concernant la facture no ${invoice.invoice_number}, demeurée impayée à ce jour.
+
+Nous vous demandons de procéder au paiement complet au plus tard le ${deadlineDate}.
+
+À défaut de paiement dans ce délai, nous nous réservons le droit d'entreprendre les recours nécessaires.
+
+Nous vous remercions de votre attention.
+
+Cordialement,${senderName ? `\n${senderName}` : ''}`,
+
+        firm: `Madame, Monsieur,
+
+Veuillez trouver ci-joint une mise en demeure relativement à la facture no ${invoice.invoice_number}, toujours impayée à ce jour.
+
+Nous vous mettons en demeure de procéder au paiement complet au plus tard le ${deadlineDate}.
+
+À défaut de paiement dans ce délai, nous nous réservons le droit d'exercer les recours appropriés, sans autre avis.
+
+Cordialement,${senderName ? `\n${senderName}` : ''}`,
+
+        soft: `Bonjour,
+
+Veuillez trouver ci-joint la mise en demeure relative à la facture no ${invoice.invoice_number}, qui demeure impayée.
+
+Nous vous invitons à procéder au paiement au plus tard le ${deadlineDate}.
+
+N'hésitez pas à nous contacter si vous souhaitez discuter de la situation.
+
+Cordialement,${senderName ? `\n${senderName}` : ''}`,
+      };
+      return templates[tone];
+    }
+
+    const templates = {
+      standard: `Dear Sir/Madam,
+
+Please find attached a formal notice regarding invoice no. ${invoice.invoice_number}, which remains unpaid.
+
+We kindly request that you proceed with full payment no later than ${deadlineDate}.
+
+Should payment not be received within this timeframe, we reserve the right to take the necessary steps to recover the amount due.
+
+Thank you for your attention.
+
+Sincerely,${senderName ? `\n${senderName}` : ''}`,
+
+      firm: `Dear Sir/Madam,
+
+Please find attached a formal notice regarding invoice no. ${invoice.invoice_number}, which remains unpaid as of today.
+
+We hereby demand full payment no later than ${deadlineDate}.
+
+Failure to comply within this timeframe will result in further action without additional notice.
+
+Sincerely,${senderName ? `\n${senderName}` : ''}`,
+
+      soft: `Hello,
+
+Please find attached a formal notice regarding invoice no. ${invoice.invoice_number}, which remains outstanding.
+
+We kindly invite you to arrange payment by ${deadlineDate}.
+
+Please feel free to contact us if you wish to discuss the matter.
+
+Best regards,${senderName ? `\n${senderName}` : ''}`,
+    };
+    return templates[tone];
+  };
+
   const handleSendEmail = () => {
     setEmailRecipient(invoice.clients?.email || '');
-    setEmailSubject(previewSubject);
-    setEmailMessage(
+    setEmailSubject(
       noticeLang === 'fr'
-        ? `Veuillez trouver ci-joint la mise en demeure concernant la facture ${invoice.invoice_number}.`
-        : `Please find attached the formal notice regarding invoice ${invoice.invoice_number}.`,
+        ? `Mise en demeure – Facture no ${invoice.invoice_number}`
+        : `Formal Notice – Invoice no. ${invoice.invoice_number}`,
     );
+    setEmailTone('standard');
+    setEmailMessage(getEmailTemplate('standard'));
     setShowEmailDialog(true);
+  };
+
+  const handleToneChange = (tone: 'standard' | 'firm' | 'soft') => {
+    setEmailTone(tone);
+    setEmailMessage(getEmailTemplate(tone));
   };
 
   const sendEmail = async () => {
@@ -1370,8 +1454,21 @@ Sincerely,
               <Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} />
             </div>
             <div className="space-y-2">
+              <Label>{t('Ton du message', 'Message tone')}</Label>
+              <Select value={emailTone} onValueChange={(v) => handleToneChange(v as 'standard' | 'firm' | 'soft')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">{t('Standard', 'Standard')}</SelectItem>
+                  <SelectItem value="firm">{t('Ferme', 'Firm')}</SelectItem>
+                  <SelectItem value="soft">{t('Souple', 'Soft')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>{t("Message d'accompagnement", 'Accompanying message')}</Label>
-              <Textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} rows={4} />
+              <Textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} rows={10} />
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowEmailDialog(false)}>{t('Annuler', 'Cancel')}</Button>
