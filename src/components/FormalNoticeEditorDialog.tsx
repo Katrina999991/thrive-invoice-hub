@@ -380,7 +380,23 @@ Sincerely,
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, dueAt, date]);
 
-  const getPdfData = (): FormalNoticePdfData => ({
+  const buildSignatureData = (): SignatureData | null => {
+    if (!signatureApplied || !hasSignature || !userSignature) return null;
+    return {
+      type: userSignature.signature_type,
+      value: userSignature.signature_value,
+      signerName: userSignature.signer_name || undefined,
+      signerTitle: userSignature.signer_title || undefined,
+      companyName: company?.name || undefined,
+      signedDate: formatDate(new Date().toISOString().split('T')[0]),
+      signedDateLabel: noticeLang === 'fr' ? 'Signé le' : 'Signed on',
+      legalNote: noticeLang === 'fr'
+        ? 'Cette signature est fournie à titre de représentation numérique.'
+        : 'This signature is a digital representation.',
+    };
+  };
+
+  const getPdfData = (withSignature = false): FormalNoticePdfData => ({
     title,
     date: formatDate(date),
     recipientName: recipient,
@@ -390,6 +406,7 @@ Sincerely,
     subject: previewSubject,
     body: previewBody,
     dueDate: formatDate(dueAt),
+    signature: withSignature ? buildSignatureData() : undefined,
   });
 
   // ─── Build save data ────────────────────────────────────────────────
