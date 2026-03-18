@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignaturePad } from "@/components/SignaturePad";
 import { useUserSignature } from "@/hooks/useUserSignature";
+import { useAuth } from "@/hooks/useAuth";
 import {
   detectNoticeLanguage,
   normalizeCountry,
@@ -77,6 +78,7 @@ interface FormalNoticeEditorDialogProps {
 
 export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company }: FormalNoticeEditorDialogProps) => {
   const { language } = useLanguage();
+  const { user, username } = useAuth();
   const { toast } = useToast();
   const { notices, latestNotice, createNotice, updateNotice, markAsSent, refetch } = useFormalNotices(invoice.id);
   const { signature: userSignature, hasSignature } = useUserSignature();
@@ -361,6 +363,13 @@ Sincerely,
     }
   }, [open, latestNotice]);
 
+  const signerDisplayName = useMemo(() => {
+    if (userSignature?.signer_name?.trim()) return userSignature.signer_name.trim();
+    if (username?.trim()) return username.trim();
+    if (user?.email) return user.email.split('@')[0];
+    return company?.name || '';
+  }, [company?.name, user?.email, userSignature?.signer_name, username]);
+
   // ─── Variable Replacement ────────────────────────────────────────────
   const replaceVariables = (text: string): string =>
     text
@@ -373,7 +382,7 @@ Sincerely,
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
       .replace(/\{\{today_date\}\}/g, formatDate(date))
-      .replace(/\{\{company_name\}\}/g, company?.name || '')
+      .replace(/\{\{company_name\}\}/g, signerDisplayName)
       .replace(/\{\{company_address\}\}/g, companyAddress)
       .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
 
@@ -401,7 +410,7 @@ Sincerely,
     date: formatDate(date),
     recipientName: recipient,
     recipientAddress: recipientAddr,
-    senderName: company?.name || '',
+    senderName: signerDisplayName,
     senderAddress: companyAddress,
     subject: previewSubject,
     body: previewBody,
@@ -1045,10 +1054,9 @@ Sincerely,
                           ) : (
                             <img src={userSignature.signature_value} alt="Signature" className="max-h-12 object-contain" />
                           )}
-                          {(userSignature.signer_name || userSignature.signer_title) && (
+                          {userSignature.signer_title && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              {userSignature.signer_name && <p>{userSignature.signer_name}</p>}
-                              {userSignature.signer_title && <p>{userSignature.signer_title}</p>}
+                              <p>{userSignature.signer_title}</p>
                             </div>
                           )}
                         </div>
@@ -1146,12 +1154,10 @@ Sincerely,
                   <div className="whitespace-pre-line text-sm leading-relaxed">
                     {signatureApplied && hasSignature && userSignature
                       ? (() => {
-                          // Strip the last non-empty line (company/signer name) to avoid duplication
                           const lines = previewBody.split('\n');
                           let lastNonEmpty = lines.length - 1;
                           while (lastNonEmpty >= 0 && lines[lastNonEmpty].trim() === '') lastNonEmpty--;
-                          const stripped = lines.slice(0, lastNonEmpty).join('\n');
-                          return stripped;
+                          return lines.slice(0, lastNonEmpty).join('\n');
                         })()
                       : previewBody
                     }
