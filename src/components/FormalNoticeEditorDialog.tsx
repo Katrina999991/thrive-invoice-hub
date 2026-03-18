@@ -396,7 +396,7 @@ Sincerely,
   }, [company?.name, user?.email, userSignature?.signer_name, username]);
 
   // ─── Variable Replacement ────────────────────────────────────────────
-  const replaceVariables = (text: string): string =>
+  const replaceVariables = (text: string, currentDate = date): string =>
     text
       .replace(/\{\{client_salutation\}\}/g, clientSalutation)
       .replace(/\{\{client_name\}\}/g, clientName)
@@ -406,7 +406,7 @@ Sincerely,
       .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
-      .replace(/\{\{today_date\}\}/g, formatDate(date))
+      .replace(/\{\{today_date\}\}/g, formatDate(currentDate))
       .replace(/\{\{company_name\}\}/g, signerDisplayName)
       .replace(/\{\{company_address\}\}/g, companyAddress)
       .replace(/\{\{invoice_payment_link\}\}/g, invoice.payment_link || '');
@@ -414,7 +414,9 @@ Sincerely,
   const previewBody = useMemo(() => replaceVariables(body), [body, dueAt, date]);
   const previewSubject = useMemo(() => replaceVariables(subject), [subject, dueAt, date]);
 
-  const buildSignatureData = (): SignatureData | null => {
+  const getDownloadDateIso = () => new Date().toISOString().split('T')[0];
+
+  const buildSignatureData = (downloadDateIso: string): SignatureData | null => {
     if (!signatureApplied || !hasSignature || !userSignature) return null;
     return {
       type: userSignature.signature_type,
@@ -422,7 +424,7 @@ Sincerely,
       signerName: userSignature.signer_name || undefined,
       signerTitle: userSignature.signer_title || undefined,
       companyName: company?.name || undefined,
-      signedDate: formatDate(new Date().toISOString().split('T')[0]),
+      signedDate: formatDate(downloadDateIso),
       signedDateLabel: noticeLang === 'fr' ? 'Signé le' : 'Signed on',
       legalNote: noticeLang === 'fr'
         ? 'Cette signature est fournie à titre de représentation numérique.'
@@ -430,18 +432,22 @@ Sincerely,
     };
   };
 
-  const getPdfData = (withSignature = false): FormalNoticePdfData => ({
-    title,
-    date: formatDate(new Date().toISOString().split('T')[0]),
-    recipientName: recipient,
-    recipientAddress: recipientAddr,
-    senderName: signerDisplayName,
-    senderAddress: companyAddress,
-    subject: previewSubject,
-    body: previewBody,
-    dueDate: formatDate(dueAt),
-    signature: withSignature ? buildSignatureData() : undefined,
-  });
+  const getPdfData = (withSignature = false): FormalNoticePdfData => {
+    const downloadDateIso = getDownloadDateIso();
+
+    return {
+      title,
+      date: formatDate(downloadDateIso),
+      recipientName: recipient,
+      recipientAddress: recipientAddr,
+      senderName: signerDisplayName,
+      senderAddress: companyAddress,
+      subject: replaceVariables(subject, downloadDateIso),
+      body: replaceVariables(body, downloadDateIso),
+      dueDate: formatDate(dueAt),
+      signature: withSignature ? buildSignatureData(downloadDateIso) : undefined,
+    };
+  };
 
   // ─── Build save data ────────────────────────────────────────────────
   const proofStatus = effectiveProofReceipt ? 'received' : effectiveProofSending ? 'sent' : 'none';
