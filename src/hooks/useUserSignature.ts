@@ -27,6 +27,8 @@ export function useUserSignature() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
+      return data as unknown as UserSignature | null;
+      if (error) throw error;
       return data as UserSignature | null;
     },
     enabled: !!user?.id,
