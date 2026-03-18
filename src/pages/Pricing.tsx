@@ -35,6 +35,8 @@ import {
   UsersRound,
   FileCheck,
   X,
+  Globe,
+  FileX
   Globe
 } from "lucide-react";
 import { useState, useEffect } from "react";
