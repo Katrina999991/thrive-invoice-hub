@@ -110,6 +110,8 @@ const SendInvoiceEmailSchema = z.object({
   isFinalReminder: z.boolean().optional().default(false),
   customRecipient: z.string().email("Invalid recipient email").optional(),
   responseDueDate: z.string().optional(),
+  isFormalNotice: z.boolean().optional().default(false),
+  formalNoticePdfBase64: z.string().optional(),
 });
 
 const handler = async (req: Request): Promise<Response> => {
@@ -148,7 +150,9 @@ const handler = async (req: Request): Promise<Response> => {
       hidePdfBranding,
       isFinalReminder,
       customRecipient,
-      responseDueDate
+      responseDueDate,
+      isFormalNotice,
+      formalNoticePdfBase64
     } = validationResult.data;
 
     // Get authorization header to identify the user
@@ -402,52 +406,64 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Payment link not added - include_payment_link:', client?.include_payment_link, 'status:', invoice.status);
     }
 
-    // Generate PDF using the shared invoice PDF generator
-    // This ensures IDENTICAL output to the downloadable PDF from the Invoices tab
-    console.log('Generating PDF with template:', invoiceTemplate, 'color:', invoiceColor, 'hideBranding:', hidePdfBranding);
-    
-    const pdfBase64 = await generateInvoicePdfForEmail({
-      invoice: {
-        invoice_number: invoice.invoice_number,
-        issue_date: invoice.issue_date,
-        due_date: invoice.due_date,
-        subtotal: invoice.subtotal,
-        tax_amount: invoice.tax_amount,
-        total: invoice.total,
-        terms: invoice.terms,
-        notes: invoice.notes,
-        items: invoice.invoice_items || []
-      },
-      client: client ? {
-        name: client.name,
-        email: client.email,
-        address: client.address,
-        phone: client.phone,
-        contact_person: client.contact_person,
-        contact_title: client.contact_title,
-        notes: client.notes,
-        language: client.language
-      } : null,
-      company: company ? {
-        name: company.name,
-        logo_url: company.logo_url,
-        street_address: company.street_address,
-        city: company.city,
-        province_state: company.province_state,
-        postal_code: company.postal_code,
-        tax_id: company.tax_id,
-        taxes: company.taxes as any,
-        invoice_body_message_en: company.invoice_body_message_en,
-        invoice_body_message_fr: company.invoice_body_message_fr,
-        invoice_footer_message: company.invoice_footer_message,
-        invoice_footer_message_en: company.invoice_footer_message_en,
-        invoice_footer_message_fr: company.invoice_footer_message_fr
-      } : null,
-      language: isFrench ? 'fr' : 'en',
-      template: invoiceTemplate as any,
-      colorPreset: invoiceColor,
-      hideBranding: hidePdfBranding
-    });
+    // Determine PDF attachment
+    let pdfBase64: string;
+    let attachmentFilename: string;
+
+    if (isFormalNotice && formalNoticePdfBase64) {
+      // Use the formal notice PDF provided by the client
+      console.log('Using formal notice PDF attachment');
+      pdfBase64 = formalNoticePdfBase64;
+      const sanitizedName = (client?.name || 'document').replace(/[^a-zA-Z0-9_\- àâäéèêëïîôùûüçÀÂÄÉÈÊËÏÎÔÙÛÜÇ]/g, '').replace(/\s+/g, '_');
+      attachmentFilename = `mise_en_demeure_${sanitizedName}.pdf`;
+    } else {
+      // Generate PDF using the shared invoice PDF generator
+      console.log('Generating PDF with template:', invoiceTemplate, 'color:', invoiceColor, 'hideBranding:', hidePdfBranding);
+      
+      pdfBase64 = await generateInvoicePdfForEmail({
+        invoice: {
+          invoice_number: invoice.invoice_number,
+          issue_date: invoice.issue_date,
+          due_date: invoice.due_date,
+          subtotal: invoice.subtotal,
+          tax_amount: invoice.tax_amount,
+          total: invoice.total,
+          terms: invoice.terms,
+          notes: invoice.notes,
+          items: invoice.invoice_items || []
+        },
+        client: client ? {
+          name: client.name,
+          email: client.email,
+          address: client.address,
+          phone: client.phone,
+          contact_person: client.contact_person,
+          contact_title: client.contact_title,
+          notes: client.notes,
+          language: client.language
+        } : null,
+        company: company ? {
+          name: company.name,
+          logo_url: company.logo_url,
+          street_address: company.street_address,
+          city: company.city,
+          province_state: company.province_state,
+          postal_code: company.postal_code,
+          tax_id: company.tax_id,
+          taxes: company.taxes as any,
+          invoice_body_message_en: company.invoice_body_message_en,
+          invoice_body_message_fr: company.invoice_body_message_fr,
+          invoice_footer_message: company.invoice_footer_message,
+          invoice_footer_message_en: company.invoice_footer_message_en,
+          invoice_footer_message_fr: company.invoice_footer_message_fr
+        } : null,
+        language: isFrench ? 'fr' : 'en',
+        template: invoiceTemplate as any,
+        colorPreset: invoiceColor,
+        hideBranding: hidePdfBranding
+      });
+      attachmentFilename = `invoice-${invoice.invoice_number}.pdf`;
+    }
 
     // Get company email for Reply-To and potential sending
     const companyEmail = company.email;
@@ -523,7 +539,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailMessage,
       attachments: [
         {
-          filename: `invoice-${invoice.invoice_number}.pdf`,
+          filename: attachmentFilename,
           content: pdfBase64,
         },
       ],
