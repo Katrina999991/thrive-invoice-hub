@@ -209,7 +209,21 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
     const now = new Date();
     const downloadDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    doc.save(`mise-en-demeure-${downloadDate}.pdf`);
+    // Build filename with sanitized client name
+    const sanitizeName = (name: string): string => {
+      return name
+        .replace(/[\/\\:*?"<>|]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '')
+        .substring(0, 80);
+    };
+
+    const clientPart = data.recipientName?.trim()
+      ? `_${sanitizeName(data.recipientName.trim())}`
+      : '';
+
+    doc.save(`mise_en_demeure${clientPart}_${downloadDate}.pdf`);
   }
 };
 
