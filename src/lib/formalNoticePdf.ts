@@ -236,14 +236,8 @@ function renderSignatureBlock(doc: jsPDF, sig: SignatureData, x: number, y: numb
     }
   }
 
-  // Signer name
-  if (sig.signerName) {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(sig.signerName, x, currentY);
-    currentY += 5;
-  }
+  // Signer name is NOT rendered here because the signature itself
+  // (typed text, drawn image, or uploaded image) already represents the signer.
 
   // Signer title
   if (sig.signerTitle) {

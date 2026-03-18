@@ -1163,7 +1163,6 @@ Sincerely,
                       ) : (
                         <img src={userSignature.signature_value} alt="Signature" className="max-h-16 object-contain" />
                       )}
-                      {userSignature.signer_name && <p className="text-sm font-semibold">{userSignature.signer_name}</p>}
                       {userSignature.signer_title && <p className="text-xs text-muted-foreground">{userSignature.signer_title}</p>}
                       {company?.name && <p className="text-sm">{company.name}</p>}
                       <p className="text-xs text-muted-foreground italic">
