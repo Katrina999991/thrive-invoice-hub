@@ -1454,8 +1454,21 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
               <Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} />
             </div>
             <div className="space-y-2">
+              <Label>{t('Ton du message', 'Message tone')}</Label>
+              <Select value={emailTone} onValueChange={(v) => handleToneChange(v as 'standard' | 'firm' | 'soft')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">{t('Standard', 'Standard')}</SelectItem>
+                  <SelectItem value="firm">{t('Ferme', 'Firm')}</SelectItem>
+                  <SelectItem value="soft">{t('Souple', 'Soft')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>{t("Message d'accompagnement", 'Accompanying message')}</Label>
-              <Textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} rows={4} />
+              <Textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} rows={10} />
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowEmailDialog(false)}>{t('Annuler', 'Cancel')}</Button>
