@@ -277,7 +277,7 @@ Veuillez agréer, Madame, Monsieur, nos salutations distinguées.
 
 
 {{company_name}}`
-    : `{{client_salutation}}
+    : `Dear {{client_salutation}},
 
 Despite our previous reminders, the balance of invoice {{invoice_number}}, regarding {{invoice_description}}, in the amount of {{amount_due}}, remains unpaid.
 
