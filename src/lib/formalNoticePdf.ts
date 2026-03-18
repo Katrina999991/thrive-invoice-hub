@@ -206,7 +206,8 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   if (action === 'blob') {
     return doc.output('blob');
   } else {
-    doc.save(`mise-en-demeure-${data.date}.pdf`);
+    const downloadDate = new Date().toISOString().split('T')[0];
+    doc.save(`mise-en-demeure-${downloadDate}.pdf`);
   }
 };
 
