@@ -136,8 +136,13 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   }), [proofReceipt, deliveredDate, proofSending, trackingNumber, editingNotice?.sent_at, sentDate]);
 
   const docRisk: DocumentationRisk = useMemo(
-    () => calculateDocumentationRisk(sendingMethod, proofSending, proofReceipt, trackingNumber),
-    [sendingMethod, proofSending, proofReceipt, trackingNumber],
+    () => calculateDocumentationRisk(
+      sendingMethod,
+      proofSending || noticeAttachments.hasProofFiles,
+      proofReceipt,
+      trackingNumber,
+    ),
+    [sendingMethod, proofSending, proofReceipt, trackingNumber, noticeAttachments.hasProofFiles],
   );
 
   // ─── Smart Field Interactions ────────────────────────────────────────
