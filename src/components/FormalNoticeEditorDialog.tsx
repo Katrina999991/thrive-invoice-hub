@@ -717,10 +717,65 @@ Sincerely,
                 </p>
               </div>
 
-              {/* Deadline */}
-              <div className="space-y-2">
-                <Label>{t('Date limite de paiement / réponse', 'Payment / response deadline')}</Label>
-                <Input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+              {/* Payment Deadline Selector */}
+              <div className="space-y-3">
+                <Label>{t('Délai de paiement', 'Payment deadline')}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {delayOptions.map((opt) => (
+                    <Button
+                      key={opt.value}
+                      type="button"
+                      variant={delayDays === opt.value ? 'default' : 'outline'}
+                      size="sm"
+                      className={delayDays === opt.value ? '' : ''}
+                      onClick={() => {
+                        setDelayDays(opt.value);
+                        const newDate = new Date();
+                        newDate.setDate(newDate.getDate() + opt.value);
+                        setDueAt(newDate.toISOString().split('T')[0]);
+                      }}
+                    >
+                      {language === 'fr' ? opt.labelFr : opt.labelEn}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {delayDays === 10
+                    ? t('10 jours est le délai standard recommandé.', '10 days is the recommended standard timeframe.')
+                    : delayDays === 5
+                    ? t('Délai court pour situations urgentes.', 'Short deadline for urgent situations.')
+                    : t('Délai étendu pour plus de flexibilité.', 'Extended deadline for more flexibility.')}
+                </p>
+
+                {/* Smart suggestion */}
+                {overdueSuggestion && overdueSuggestion.days !== delayDays && (
+                  <div className="flex items-start gap-2 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-2.5">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-blue-700 dark:text-blue-300">
+                      <p>{overdueSuggestion.reason}</p>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400"
+                        onClick={() => {
+                          setDelayDays(overdueSuggestion.days);
+                          const newDate = new Date();
+                          newDate.setDate(newDate.getDate() + overdueSuggestion.days);
+                          setDueAt(newDate.toISOString().split('T')[0]);
+                        }}
+                      >
+                        {t(`Utiliser ${overdueSuggestion.days} jours`, `Use ${overdueSuggestion.days} days`)}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Computed deadline date */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{t('Date limite calculée', 'Computed deadline date')}</Label>
+                  <Input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+                </div>
               </div>
 
               <Separator />
