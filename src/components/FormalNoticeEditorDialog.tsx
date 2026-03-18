@@ -116,6 +116,27 @@ export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company 
   const rKey = normalizeRegion(clientRegion);
   const rules = useMemo(() => getJurisdictionRules(clientCountry, clientRegion), [clientCountry, clientRegion]);
 
+  // ─── Payment Deadline Delay ──────────────────────────────────────────
+  const [delayDays, setDelayDays] = useState<number>(10);
+
+  const delayOptions = [
+    { value: 5, labelFr: '5 jours (Urgent)', labelEn: '5 days (Urgent)' },
+    { value: 10, labelFr: '10 jours (Standard)', labelEn: '10 days (Standard)' },
+    { value: 15, labelFr: '15 jours (Souple)', labelEn: '15 days (Flexible)' },
+  ];
+
+  // Smart suggestion based on overdue status
+  const overdueSuggestion = useMemo(() => {
+    if (!invoice.due_date) return null;
+    const dueDate = new Date(invoice.due_date);
+    const today = new Date();
+    const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysOverdue > 60) return { days: 5, reason: language === 'fr' ? 'Facture très en retard — délai urgent suggéré.' : 'Invoice very overdue — urgent deadline suggested.' };
+    if (daysOverdue > 30) return { days: 10, reason: language === 'fr' ? 'Délai standard recommandé.' : 'Standard timeframe recommended.' };
+    if (daysOverdue <= 30 && daysOverdue > 0) return { days: 15, reason: language === 'fr' ? 'Retard modéré — délai souple suggéré.' : 'Moderate delay — flexible timeframe suggested.' };
+    return null;
+  }, [invoice.due_date, language]);
+
   // ─── Delivery & Proof State ──────────────────────────────────────────
   const [sendingMethod, setSendingMethod] = useState<DeliveryMethod>(() => getDefaultDeliveryMethod(clientCountry, clientRegion));
   const [proofSending, setProofSending] = useState(false);
