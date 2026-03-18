@@ -662,7 +662,16 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
     if (!emailRecipient) return;
     setIsSending(true);
     try {
-      if (!editingNotice) await handleSave('generated');
+      // Ensure notice is saved first; capture the notice id
+      let noticeId = editingNotice?.id;
+      if (!noticeId) {
+        const notice = await createNotice(invoice.id, buildSaveData('generated'), invoice.invoice_number);
+        if (notice) {
+          setEditingNotice(notice);
+          noticeId = notice.id;
+        }
+      }
+
       const pdfBlob = generateFormalNoticePdf(getPdfData(signatureApplied && hasSignature), 'blob') as Blob;
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
@@ -682,7 +691,12 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
         },
       });
       if (error) throw error;
-      if (editingNotice) await markAsSent(editingNotice.id, emailRecipient, invoice.invoice_number);
+
+      // Mark as sent only after successful email delivery
+      if (noticeId) {
+        await markAsSent(noticeId, emailRecipient, invoice.invoice_number);
+      }
+
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr'
