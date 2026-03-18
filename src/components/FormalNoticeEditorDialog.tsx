@@ -78,6 +78,7 @@ interface FormalNoticeEditorDialogProps {
 
 export const FormalNoticeEditorDialog = ({ open, onOpenChange, invoice, company }: FormalNoticeEditorDialogProps) => {
   const { language } = useLanguage();
+  const { user, username } = useAuth();
   const { toast } = useToast();
   const { notices, latestNotice, createNotice, updateNotice, markAsSent, refetch } = useFormalNotices(invoice.id);
   const { signature: userSignature, hasSignature } = useUserSignature();
