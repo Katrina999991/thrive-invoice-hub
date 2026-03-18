@@ -16,7 +16,8 @@ export type DeliveryMethod =
   | 'bailiff'
   | 'lrar';
 export type ProofStatus = 'none' | 'sent' | 'received';
-export type RiskLevel = 'low' | 'medium' | 'high';
+export type DeliveryStatus = 'draft' | 'sent' | 'sent_with_proof' | 'delivered';
+export type DocumentationRisk = 'high' | 'medium' | 'low' | 'very_low';
 export type NoticeLang = 'fr' | 'en';
 
 interface BilingualText {
@@ -122,13 +123,33 @@ export const legalDisclaimer: BilingualText = {
   fr: "Cette information est fournie à titre informatif seulement et ne constitue pas un avis juridique.",
 };
 
-// ─── Risk Labels ─────────────────────────────────────────────────────────────
+// ─── Delivery Status Labels ─────────────────────────────────────────────────
 
-export const riskLabels: Record<RiskLevel, BilingualText> = {
-  low: { en: 'Low documentation risk', fr: 'Risque faible' },
-  medium: { en: 'Medium documentation risk', fr: 'Risque moyen' },
-  high: { en: 'High documentation risk', fr: 'Risque élevé' },
+export const deliveryStatusLabels: Record<DeliveryStatus, BilingualText> = {
+  draft: { en: 'Draft', fr: 'Brouillon' },
+  sent: { en: 'Sent', fr: 'Envoyée' },
+  sent_with_proof: { en: 'Sent with proof', fr: 'Envoyée avec preuve' },
+  delivered: { en: 'Delivered', fr: 'Livrée' },
 };
+
+export const deliveryStatusColors: Record<DeliveryStatus, string> = {
+  draft: 'bg-muted text-muted-foreground',
+  sent: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  sent_with_proof: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+};
+
+// ─── Documentation Risk ─────────────────────────────────────────────────────
+
+export const documentationRiskLabels: Record<DocumentationRisk, BilingualText> = {
+  high: { en: 'High documentation risk', fr: 'Risque documentaire élevé' },
+  medium: { en: 'Medium documentation risk', fr: 'Risque documentaire moyen' },
+  low: { en: 'Low documentation risk', fr: 'Risque documentaire faible' },
+  very_low: { en: 'Very low documentation risk', fr: 'Risque documentaire très faible' },
+};
+
+// Keep old riskLabels for backward compat
+export const riskLabels = documentationRiskLabels;
 
 // ─── Helper Functions ────────────────────────────────────────────────────────
 
@@ -157,20 +178,17 @@ export function detectNoticeLanguage(
   clientRegion?: string | null,
   companyLanguage?: string | null,
 ): NoticeLang {
-  // 1. Client preferred language
   if (clientLanguage) {
     const cl = clientLanguage.trim().toLowerCase();
     if (['fr', 'french', 'français'].includes(cl)) return 'fr';
     if (['en', 'english'].includes(cl)) return 'en';
   }
-  // 2. Client country default
   const country = normalizeCountry(clientCountry);
   const region = normalizeRegion(clientRegion);
   if (country === 'FR') return 'fr';
   if (country === 'CA' && region === 'QC') return 'fr';
   if (country === 'CA') return 'en';
   if (country === 'US') return 'en';
-  // 3. Company language fallback
   if (companyLanguage) {
     const compLang = companyLanguage.trim().toLowerCase();
     if (['fr', 'french', 'français'].includes(compLang)) return 'fr';
@@ -192,15 +210,44 @@ export function getDefaultDeliveryMethod(country?: string | null, region?: strin
   return rules.preferredMethods[0] || 'registered_mail';
 }
 
-/** Calculate documentation risk based on delivery method and proof status */
-export function calculateRiskLevel(method: DeliveryMethod, proofStatus: ProofStatus): RiskLevel {
-  if (method === 'email' && proofStatus === 'none') return 'high';
-  if (method === 'email') return 'medium';
-  if (['standard_mail'].includes(method) && proofStatus === 'none') return 'medium';
-  if (proofStatus === 'received') return 'low';
-  if (['registered_mail', 'certified_mail', 'bailiff', 'lrar'].includes(method)) return 'low';
-  if (proofStatus === 'sent') return 'low';
+/** Derive the delivery status from proof and tracking data */
+export function deriveDeliveryStatus(opts: {
+  proofOfReceipt: boolean;
+  deliveredDate: string;
+  proofOfSending: boolean;
+  trackingNumber: string;
+  sentAt: string | null;
+  sentDate?: string;
+}): DeliveryStatus {
+  if (opts.proofOfReceipt || opts.deliveredDate) return 'delivered';
+  if (opts.proofOfSending || opts.trackingNumber) return 'sent_with_proof';
+  if (opts.sentAt || opts.sentDate) return 'sent';
+  return 'draft';
+}
+
+/** Calculate 4-level documentation risk */
+export function calculateDocumentationRisk(
+  method: DeliveryMethod,
+  proofOfSending: boolean,
+  proofOfReceipt: boolean,
+  trackingNumber: string,
+): DocumentationRisk {
+  if (proofOfReceipt) return 'very_low';
+  if (proofOfSending) return 'low';
+  if (trackingNumber) return 'low';
+  if (['registered_mail', 'certified_mail', 'bailiff', 'lrar'].includes(method)) return 'medium';
+  if (method === 'email' || method === 'standard_mail') return 'high';
   return 'medium';
+}
+
+/** Old compat function — maps to new 4-level system but returns old type */
+export function calculateRiskLevel(method: DeliveryMethod, proofStatus: ProofStatus): DocumentationRisk {
+  return calculateDocumentationRisk(
+    method,
+    proofStatus === 'sent' || proofStatus === 'received',
+    proofStatus === 'received',
+    '',
+  );
 }
 
 /** Extract country & region from a client address string (best-effort parsing) */
@@ -208,9 +255,7 @@ export function parseAddressForJurisdiction(address?: string | null): { country:
   if (!address) return { country: null, region: null };
   const lines = address.split('\n').map(l => l.trim()).filter(Boolean);
   const lastLine = lines[lines.length - 1]?.toUpperCase() || '';
-  // Simple heuristics
   if (['CANADA', 'CA'].some(k => lastLine.includes(k))) {
-    // Look for Quebec indicators
     const fullText = address.toUpperCase();
     if (['QC', 'QUEBEC', 'QUÉBEC'].some(k => fullText.includes(k))) {
       return { country: 'CA', region: 'QC' };
