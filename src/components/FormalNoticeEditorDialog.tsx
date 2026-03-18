@@ -285,7 +285,7 @@ This invoice was due on {{invoice_due_date}}.
 
 We hereby formally demand that you proceed with the full payment of the amount owed no later than {{formal_notice_due_date}}.
 
-If we do not receive payment or a response from you within this period, we reserve the right to take appropriate action.${invoice.payment_link ? `
+If payment is not received within this timeframe, we will be required to take the necessary steps to recover the amount due, without further notice, including any appropriate actions before the competent authorities, at your expense, including applicable interest and fees.${invoice.payment_link ? `
 
 You can make your payment online at the following address:
 {{invoice_payment_link}}` : ''}
