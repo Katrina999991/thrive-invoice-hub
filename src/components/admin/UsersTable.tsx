@@ -7,10 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound } from "lucide-react";
+import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2 } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -52,6 +54,7 @@ export function UsersTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
 
   const locale = language === "fr" ? fr : enUS;
 
@@ -157,6 +160,31 @@ export function UsersTable() {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePlanChange = async (userId: string, newPlan: string) => {
+    setUpdatingPlan(userId);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("No session");
+
+      const { data, error: fnError } = await supabase.functions.invoke("update-user-plan", {
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        body: { userId, planType: newPlan },
+      });
+
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, plan_type: newPlan as User["plan_type"] } : u))
+      );
+      toast.success(language === "fr" ? "Plan mis à jour" : "Plan updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setUpdatingPlan(null);
     }
   };
 
@@ -441,7 +469,30 @@ export function UsersTable() {
                                   })
                                 : t.never}
                             </TableCell>
-                            <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={user.plan_type}
+                                onValueChange={(val) => handlePlanChange(user.id, val)}
+                                disabled={updatingPlan === user.id}
+                              >
+                                <SelectTrigger className="w-[130px] h-8">
+                                  {updatingPlan === user.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <SelectValue />
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="free">Free</SelectItem>
+                                  <SelectItem value="premium">
+                                    <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> Premium</span>
+                                  </SelectItem>
+                                  <SelectItem value="pro">
+                                    <span className="flex items-center gap-1"><Crown className="h-3 w-3" /> Pro</span>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
                                 <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
