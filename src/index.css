@@ -193,6 +193,14 @@ body.scanner-active .app-container {
   border-radius: 0.5rem;
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 #html5-qrcode-scanner__scan_region {
   min-height: 300px !important;
 }

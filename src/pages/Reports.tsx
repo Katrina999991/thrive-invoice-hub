@@ -5474,7 +5474,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('reports')}</h1>
         <p className="text-sm md:text-base text-muted-foreground">
