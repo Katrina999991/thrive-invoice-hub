@@ -5477,10 +5477,10 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('reports')}</h1>
-        <p className="text-sm md:text-base text-muted-foreground">
+    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full overflow-x-hidden [overflow-wrap:anywhere]">
+      <div className="max-w-full overflow-x-hidden">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">{t('reports')}</h1>
+        <p className="text-sm md:text-base text-muted-foreground break-words">
           {t('reportsDescription')}
         </p>
         
@@ -5495,9 +5495,9 @@ const Reports = () => {
           
           return hasDateFilters || hasCompanyFilters || hasOtherFilters;
         })() && (
-          <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+          <div className="mt-4 max-w-full overflow-x-hidden p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-w-full">
               {/* Dates - Affichage unifié pour tous les rapports */}
               {(() => {
                 const effectiveStartDate = startDate || customStartDate;
@@ -5505,19 +5505,19 @@ const Reports = () => {
                 
                 if (effectiveStartDate && effectiveEndDate) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       Période: {format(effectiveStartDate, 'dd/MM/yyyy')} - {format(effectiveEndDate, 'dd/MM/yyyy')}
                     </span>
                   );
                 } else if (effectiveStartDate) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       À partir du: {format(effectiveStartDate, 'dd/MM/yyyy')}
                     </span>
                   );
                 } else if (effectiveEndDate) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       Jusqu'au: {format(effectiveEndDate, 'dd/MM/yyyy')}
                     </span>
                   );
@@ -5527,10 +5527,9 @@ const Reports = () => {
               
               {/* Compagnies - Affichage unifié pour tous les rapports */}
               {(() => {
-                // Affichage prioritaire selon la section active
                 if (selectedCompanyId && companies?.find(c => c.id === selectedCompanyId)?.name) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === selectedCompanyId)?.name}
                     </span>
                   );
@@ -5538,7 +5537,7 @@ const Reports = () => {
                 
                 if (productSelectedCompanyId && companies?.find(c => c.id === productSelectedCompanyId)?.name) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === productSelectedCompanyId)?.name}
                     </span>
                   );
@@ -5546,7 +5545,7 @@ const Reports = () => {
                 
                 if (expenseSelectedCompanyId && companies?.find(c => c.id === expenseSelectedCompanyId)?.name) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === expenseSelectedCompanyId)?.name}
                     </span>
                   );
@@ -5555,28 +5554,25 @@ const Reports = () => {
                 return null;
               })()}
               
-              {/* Autres filtres */}
               {filterType === 'client' && selectedClientId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                   Client: {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
                 </span>
               )}
               
-              {/* Filtres produits */}
               {productFilterType === 'company' && productSelectedCompanyId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
                   Compagnie (Produits): {companies?.find(c => c.id === productSelectedCompanyId)?.name || productSelectedCompanyId}
                 </span>
               )}
               
-              {/* Filtres dépenses */}
               {expenseFilterType === 'company' && expenseSelectedCompanyId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
                   Compagnie (Dépenses): {companies?.find(c => c.id === expenseSelectedCompanyId)?.name || expenseSelectedCompanyId}
                 </span>
               )}
               {expenseFilterType === 'category' && expenseSelectedCategory && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
                   Catégorie (Dépenses): {expenseSelectedCategory}
                 </span>
               )}
@@ -5585,10 +5581,10 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4">
+      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
         {isMobile ? (
           <Select value={reportTab} onValueChange={setReportTab}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full max-w-full min-w-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
