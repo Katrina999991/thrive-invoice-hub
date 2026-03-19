@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
@@ -55,6 +55,11 @@ export function UsersTable() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
+  const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [copiedPassword, setCopiedPassword] = useState(false);
 
   const locale = language === "fr" ? fr : enUS;
 
@@ -188,6 +193,38 @@ export function UsersTable() {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (!passwordDialog || !newPassword) return;
+    setSavingPassword(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("No session");
+
+      const { data, error: fnError } = await supabase.functions.invoke("admin-reset-password", {
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        body: { userId: passwordDialog.userId, newPassword },
+      });
+
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(language === "fr" ? "Mot de passe mis à jour" : "Password updated");
+      setPasswordDialog(null);
+      setNewPassword("");
+      setShowPassword(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    navigator.clipboard.writeText(newPassword);
+    setCopiedPassword(true);
+    setTimeout(() => setCopiedPassword(false), 2000);
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -291,7 +328,7 @@ export function UsersTable() {
   }
 
   return (
-    <TooltipProvider>
+    <>
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -447,7 +484,24 @@ export function UsersTable() {
                         </TableRow>
                         {filteredTestUsers.map((user) => (
                           <TableRow key={user.id} className="opacity-60">
-                            <TableCell className="font-medium">{user.email}</TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-1">
+                                {user.email}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => {
+                                    setPasswordDialog({ userId: user.id, email: user.email });
+                                    setNewPassword("");
+                                    setShowPassword(false);
+                                  }}
+                                  title={language === "fr" ? "Changer le mot de passe" : "Change password"}
+                                >
+                                  <KeyRound className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 {user.display_name || "-"}
@@ -532,6 +586,72 @@ export function UsersTable() {
           </div>
         </CardContent>
       </Card>
-    </TooltipProvider>
+
+      {/* Password Change Dialog */}
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => { if (!open) { setPasswordDialog(null); setNewPassword(""); setShowPassword(false); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" />
+              {language === "fr" ? "Changer le mot de passe" : "Change password"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{passwordDialog?.email}</p>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={language === "fr" ? "Nouveau mot de passe" : "New password"}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full w-10"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleCopyPassword}
+                disabled={!newPassword}
+                title={language === "fr" ? "Copier" : "Copy"}
+              >
+                {copiedPassword ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$";
+                const pwd = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+                setNewPassword(pwd);
+                setShowPassword(true);
+              }}
+            >
+              {language === "fr" ? "Générer un mot de passe" : "Generate password"}
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPasswordDialog(null); setNewPassword(""); }}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button onClick={handlePasswordChange} disabled={!newPassword || newPassword.length < 6 || savingPassword}>
+              {savingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {language === "fr" ? "Enregistrer" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
