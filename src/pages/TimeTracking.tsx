@@ -1368,7 +1368,7 @@ export default function TimeTracking() {
             )}
             {/* Billing status filter */}
             <Select value={filterBillingStatus} onValueChange={setFilterBillingStatus}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
