@@ -163,7 +163,31 @@ export function UsersTable() {
     }
   };
 
-  useEffect(() => {
+  const handlePlanChange = async (userId: string, newPlan: string) => {
+    setUpdatingPlan(userId);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("No session");
+
+      const { data, error: fnError } = await supabase.functions.invoke("update-user-plan", {
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        body: { userId, planType: newPlan },
+      });
+
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, plan_type: newPlan as User["plan_type"] } : u))
+      );
+      toast.success(language === "fr" ? "Plan mis à jour" : "Plan updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setUpdatingPlan(null);
+    }
+  };
+
     fetchUsers();
   }, []);
 
