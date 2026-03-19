@@ -32,22 +32,24 @@ export function DateRangePicker({
   const [endDateOpen, setEndDateOpen] = React.useState(false);
 
   return (
-    <div className={cn("flex gap-2", className)}>
+    <div className={cn("flex w-full max-w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap", className)}>
       <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             size="sm"
             className={cn(
-              "justify-start text-left font-normal",
+              "w-full min-w-0 justify-start overflow-hidden text-left font-normal whitespace-nowrap",
               !startDate && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {startDate ? format(startDate, "dd/MM/yyyy") : t("reports.revenue.startDate")}
+            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+            <span className="truncate">
+              {startDate ? format(startDate, "dd/MM/yyyy") : t("reports.revenue.startDate")}
+            </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-[min(calc(100vw-2rem),22rem)] max-w-[calc(100vw-2rem)] p-0" align="start">
           <Calendar
             mode="single"
             selected={startDate}
@@ -56,7 +58,7 @@ export function DateRangePicker({
               setStartDateOpen(false);
             }}
             initialFocus
-            className="p-3 pointer-events-auto"
+            className="w-full p-3 pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
@@ -67,15 +69,17 @@ export function DateRangePicker({
             variant="outline"
             size="sm"
             className={cn(
-              "justify-start text-left font-normal",
+              "w-full min-w-0 justify-start overflow-hidden text-left font-normal whitespace-nowrap",
               !endDate && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {endDate ? format(endDate, "dd/MM/yyyy") : t("reports.revenue.endDate")}
+            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+            <span className="truncate">
+              {endDate ? format(endDate, "dd/MM/yyyy") : t("reports.revenue.endDate")}
+            </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-[min(calc(100vw-2rem),22rem)] max-w-[calc(100vw-2rem)] p-0" align="start">
           <Calendar
             mode="single"
             selected={endDate}
@@ -84,7 +88,7 @@ export function DateRangePicker({
               setEndDateOpen(false);
             }}
             initialFocus
-            className="p-3 pointer-events-auto"
+            className="w-full p-3 pointer-events-auto"
             disabled={(date) => startDate ? date < startDate : false}
           />
         </PopoverContent>
@@ -94,6 +98,7 @@ export function DateRangePicker({
         <Button
           variant="ghost"
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => {
             onStartDateChange(undefined)
             onEndDateChange(undefined)
