@@ -22,6 +22,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
+import { useAuthorization } from "@/hooks/useAuthorization";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
