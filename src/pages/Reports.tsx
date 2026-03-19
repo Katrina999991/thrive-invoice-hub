@@ -5583,16 +5583,16 @@ const Reports = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          <TabsList className="inline-flex w-max md:w-auto">
-            <TabsTrigger value="overview" className="text-xs md:text-sm">{t("reports.tabs.overview")}</TabsTrigger>
-            <TabsTrigger value="revenue" className="text-xs md:text-sm">{t("reports.tabs.revenue")}</TabsTrigger>
-            <TabsTrigger value="products" className="text-xs md:text-sm" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs md:text-sm" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
-            <TabsTrigger value="clients" className="text-xs md:text-sm" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
-            <TabsTrigger value="taxes" className="text-xs md:text-sm" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs md:text-sm" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
-            <TabsTrigger value="reminders" className="text-xs md:text-sm" disabled={!isTabAvailable('reminders')}>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:w-auto snap-x snap-mandatory">
+            <TabsTrigger value="overview" className="text-xs md:text-sm snap-start">{t("reports.tabs.overview")}</TabsTrigger>
+            <TabsTrigger value="revenue" className="text-xs md:text-sm snap-start">{t("reports.tabs.revenue")}</TabsTrigger>
+            <TabsTrigger value="products" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
+            <TabsTrigger value="clients" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
+            <TabsTrigger value="taxes" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
+            <TabsTrigger value="reminders" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('reminders')}>
               {language === "fr" ? "Rappels" : "Reminders"}
             </TabsTrigger>
           </TabsList>
