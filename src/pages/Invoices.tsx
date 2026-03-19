@@ -2867,6 +2867,40 @@ Best regards,
           company={companies.find(c => c.id === clients.find(cl => cl.id === formalNoticeInvoice.client_id)?.company_id) as any}
         />
       )}
+
+      {/* Feature Upsell Dialog */}
+      <AlertDialog open={!!showFeatureUpsell} onOpenChange={(open) => !open && setShowFeatureUpsell(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              {showFeatureUpsell === 'final_reminder'
+                ? (language === 'fr' ? 'Dernier rappel de paiement' : 'Final Payment Reminder')
+                : (language === 'fr' ? 'Mise en demeure' : 'Formal Notice')
+              }
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {showFeatureUpsell === 'final_reminder'
+                ? (language === 'fr' 
+                    ? 'Le dernier rappel de paiement permet d\'envoyer un avis formel avant de prendre des mesures légales. Cette fonctionnalité est disponible avec le plan Premium ou Pro.'
+                    : 'The final payment reminder allows you to send a formal notice before taking legal action. This feature is available with the Premium or Pro plan.')
+                : (language === 'fr'
+                    ? 'La mise en demeure est un document légal formel exigeant le paiement d\'une facture impayée. Cette fonctionnalité est disponible uniquement avec le plan Pro.'
+                    : 'The formal notice is a formal legal document demanding payment for an unpaid invoice. This feature is available only with the Pro plan.')
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'fr' ? 'Fermer' : 'Close'}</AlertDialogCancel>
+            {canManageBilling && (
+              <AlertDialogAction onClick={() => { setShowFeatureUpsell(null); navigate("/dashboard/pricing"); }}>
+                <Crown className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Voir les plans' : 'View plans'}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
