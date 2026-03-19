@@ -1356,7 +1356,7 @@ export default function TimeTracking() {
             {/* Approval filter - only show if user can approve */}
             {permissions.canApprove && (
               <Select value={filterApproval} onValueChange={setFilterApproval}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
