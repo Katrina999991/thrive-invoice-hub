@@ -54,6 +54,7 @@ export function UsersTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
 
   const locale = language === "fr" ? fr : enUS;
 
