@@ -28,7 +28,24 @@ serve(async (req) => {
     if (userError || !userData.user) throw new Error("Authentication failed");
     if (userData.user.id !== ADMIN_USER_ID) throw new Error("Unauthorized: Admin access required");
 
-    const { userId, newPassword } = await req.json();
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action") || "reset";
+
+    if (action === "get-passwords") {
+      // Return all stored test passwords
+      const { data, error } = await supabaseClient
+        .from("test_account_passwords")
+        .select("user_id, email, password_plain, updated_at");
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ passwords: data || [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Default: reset password
+    const { userId, newPassword, email } = await req.json();
     if (!userId || !newPassword) throw new Error("Missing userId or newPassword");
     if (newPassword.length < 6) throw new Error("Password must be at least 6 characters");
 
@@ -39,6 +56,18 @@ serve(async (req) => {
     });
 
     if (updateError) throw updateError;
+
+    // Store password in test_account_passwords table
+    const { error: upsertError } = await supabaseClient
+      .from("test_account_passwords")
+      .upsert(
+        { user_id: userId, email: email || "", password_plain: newPassword, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+
+    if (upsertError) {
+      console.error(`[ADMIN-RESET-PASSWORD] Failed to store password: ${upsertError.message}`);
+    }
 
     console.log(`[ADMIN-RESET-PASSWORD] Success`);
 
