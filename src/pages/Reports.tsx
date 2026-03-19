@@ -6363,7 +6363,7 @@ const Reports = () => {
                       <div className="space-y-2">
                         <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
                         <Select value={clientRevenueCompanyId} onValueChange={setClientRevenueCompanyId}>
-                          <SelectTrigger className="bg-background">
+                          <SelectTrigger className="w-full max-w-full min-w-0 bg-background">
                             <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
                           </SelectTrigger>
                           <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -6380,15 +6380,14 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {/* Export Buttons for Revenue by Client */}
                 {clientRevenueData && clientRevenueData.clientData.length > 0 && (clientRevenueStartDate || clientRevenueEndDate) && (
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByClientToPDF}
                       disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Download className="h-4 w-4" />
                       PDF
@@ -6398,20 +6397,20 @@ const Reports = () => {
                       size="sm"
                       onClick={exportRevenueByClientToExcel}
                       disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span>
+                        <span className="w-full sm:w-auto">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={exportRevenueByClientToCSV}
                             disabled={clientRevenueLoading || planLimits?.plan_type === 'free'}
-                            className="flex items-center gap-2"
+                            className="flex w-full items-center justify-center gap-2 sm:w-auto"
                           >
                             <FileSpreadsheet className="h-4 w-4" />
                             CSV
@@ -6429,7 +6428,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_client')}
                       disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Mail className="h-4 w-4" />
                       {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6437,7 +6436,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div ref={revenueByClientChartRef}>
+                <div ref={revenueByClientChartRef} className="max-w-full overflow-x-hidden">
                   <RevenueByClientReport
                     startDate={clientRevenueStartDate}
                     endDate={clientRevenueEndDate}
@@ -6469,7 +6468,7 @@ const Reports = () => {
                       <div className="space-y-2">
                         <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
                         <Select value={productRevenueCompanyId} onValueChange={setProductRevenueCompanyId}>
-                          <SelectTrigger className="bg-background">
+                          <SelectTrigger className="w-full max-w-full min-w-0 bg-background">
                             <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
                           </SelectTrigger>
                           <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -6486,15 +6485,14 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {/* Export Buttons for Revenue by Product */}
                 {(productRevenueStartDate || productRevenueEndDate) && (
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByProductToPDF}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Download className="h-4 w-4" />
                       PDF
@@ -6504,20 +6502,20 @@ const Reports = () => {
                       size="sm"
                       onClick={exportRevenueByProductToExcel}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span>
+                        <span className="w-full sm:w-auto">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={exportRevenueByProductToCSV}
                             disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0 || planLimits?.plan_type === 'free'}
-                            className="flex items-center gap-2"
+                            className="flex w-full items-center justify-center gap-2 sm:w-auto"
                           >
                             <FileSpreadsheet className="h-4 w-4" />
                             CSV
@@ -6535,7 +6533,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_product')}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Mail className="h-4 w-4" />
                       {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6543,11 +6541,13 @@ const Reports = () => {
                   </div>
                 )}
 
-                <RevenueByProductReport
-                  startDate={productRevenueStartDate}
-                  endDate={productRevenueEndDate}
-                  companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
-                />
+                <div className="max-w-full overflow-x-hidden">
+                  <RevenueByProductReport
+                    startDate={productRevenueStartDate}
+                    endDate={productRevenueEndDate}
+                    companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
           </div>
