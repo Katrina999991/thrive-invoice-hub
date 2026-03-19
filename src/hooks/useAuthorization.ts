@@ -44,7 +44,9 @@ export type FeatureKey =
   | "custom_email_templates" 
   | "all_reports" 
   | "category_management" 
-  | "quotes_enabled";
+  | "quotes_enabled"
+  | "final_reminder_enabled"
+  | "formal_notice_enabled";
 
 export type LimitType = "invoices" | "expenses" | "clients";
 
