@@ -484,7 +484,24 @@ export function UsersTable() {
                         </TableRow>
                         {filteredTestUsers.map((user) => (
                           <TableRow key={user.id} className="opacity-60">
-                            <TableCell className="font-medium">{user.email}</TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-1">
+                                {user.email}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => {
+                                    setPasswordDialog({ userId: user.id, email: user.email });
+                                    setNewPassword("");
+                                    setShowPassword(false);
+                                  }}
+                                  title={language === "fr" ? "Changer le mot de passe" : "Change password"}
+                                >
+                                  <KeyRound className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 {user.display_name || "-"}
