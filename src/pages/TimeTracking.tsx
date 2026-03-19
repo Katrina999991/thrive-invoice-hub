@@ -1787,9 +1787,12 @@ export default function TimeTracking() {
                             <div className="text-sm text-muted-foreground">
                               {entry.clients?.name || "-"}
                             </div>
-                            {permissions.canViewAll && entry.user_id !== user?.id && (
+                            {permissions.canViewAll && (
                               <div className="text-xs text-primary">
                                 {language === "fr" ? "Par" : "By"}: {entry.profiles?.username || entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
+                                {entry.user_id === user?.id && (
+                                  <span className="text-muted-foreground ml-1">({language === "fr" ? "moi" : "me"})</span>
+                                )}
                               </div>
                             )}
                           </div>
