@@ -1689,6 +1689,30 @@ export type Database = {
         }
         Relationships: []
       }
+      test_account_passwords: {
+        Row: {
+          email: string
+          id: string
+          password_plain: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          password_plain: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          password_plain?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       time_entries: {
         Row: {
           approved_at: string | null

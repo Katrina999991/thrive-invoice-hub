@@ -60,6 +60,7 @@ export function UsersTable() {
   const [showPassword, setShowPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
+  const [storedPasswords, setStoredPasswords] = useState<Record<string, { password: string; updatedAt: string }>>({});
 
   const locale = language === "fr" ? fr : enUS;
 
@@ -168,6 +169,24 @@ export function UsersTable() {
     }
   };
 
+  const fetchStoredPasswords = async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+      const { data, error } = await supabase.functions.invoke("admin-reset-password?action=get-passwords", {
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        method: "GET",
+      });
+      if (!error && data?.passwords) {
+        const map: Record<string, { password: string; updatedAt: string }> = {};
+        for (const p of data.passwords) {
+          map[p.user_id] = { password: p.password_plain, updatedAt: p.updated_at };
+        }
+        setStoredPasswords(map);
+      }
+    } catch { /* silently fail */ }
+  };
+
   const handlePlanChange = async (userId: string, newPlan: string) => {
     setUpdatingPlan(userId);
     try {
@@ -202,11 +221,17 @@ export function UsersTable() {
 
       const { data, error: fnError } = await supabase.functions.invoke("admin-reset-password", {
         headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
-        body: { userId: passwordDialog.userId, newPassword },
+        body: { userId: passwordDialog.userId, newPassword, email: passwordDialog.email },
       });
 
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
+
+      // Update local stored passwords cache
+      setStoredPasswords((prev) => ({
+        ...prev,
+        [passwordDialog.userId]: { password: newPassword, updatedAt: new Date().toISOString() },
+      }));
 
       toast.success(language === "fr" ? "Mot de passe mis à jour" : "Password updated");
       setPasswordDialog(null);
@@ -227,6 +252,7 @@ export function UsersTable() {
 
   useEffect(() => {
     fetchUsers();
+    fetchStoredPasswords();
   }, []);
 
   const filteredUsers = users.filter((user) => {
@@ -598,48 +624,85 @@ export function UsersTable() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">{passwordDialog?.email}</p>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={language === "fr" ? "Nouveau mot de passe" : "New password"}
-                  className="pr-10"
-                />
+
+            {/* Show stored password if available */}
+            {passwordDialog && storedPasswords[passwordDialog.userId] && (
+              <div className="rounded-md border bg-muted/50 p-3 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {language === "fr" ? "Mot de passe actuel enregistré :" : "Current stored password:"}
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-sm font-mono bg-background px-2 py-1 rounded">
+                    {storedPasswords[passwordDialog.userId].password}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => {
+                      navigator.clipboard.writeText(storedPasswords[passwordDialog.userId].password);
+                      toast.success(language === "fr" ? "Copié !" : "Copied!");
+                    }}
+                    title={language === "fr" ? "Copier" : "Copy"}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {language === "fr" ? "Modifié" : "Updated"}{" "}
+                  {formatDistanceToNow(new Date(storedPasswords[passwordDialog.userId].updatedAt), { addSuffix: true, locale })}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                {language === "fr" ? "Nouveau mot de passe :" : "New password:"}
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={language === "fr" ? "Nouveau mot de passe" : "New password"}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full w-10"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="icon"
-                  className="absolute right-0 top-0 h-full w-10"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={handleCopyPassword}
+                  disabled={!newPassword}
+                  title={language === "fr" ? "Copier" : "Copy"}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {copiedPassword ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
               <Button
-                type="button"
                 variant="outline"
-                size="icon"
-                onClick={handleCopyPassword}
-                disabled={!newPassword}
-                title={language === "fr" ? "Copier" : "Copy"}
+                size="sm"
+                onClick={() => {
+                  const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$";
+                  const pwd = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+                  setNewPassword(pwd);
+                  setShowPassword(true);
+                }}
               >
-                {copiedPassword ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                {language === "fr" ? "Générer un mot de passe" : "Generate password"}
               </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$";
-                const pwd = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-                setNewPassword(pwd);
-                setShowPassword(true);
-              }}
-            >
-              {language === "fr" ? "Générer un mot de passe" : "Generate password"}
-            </Button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setPasswordDialog(null); setNewPassword(""); }}>
