@@ -2277,15 +2277,16 @@ export default function TimeTracking() {
                 )}
               />
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-4 max-sm:sticky max-sm:bottom-0 max-sm:bg-background max-sm:pb-4 max-sm:border-t max-sm:pt-4 max-sm:-mx-6 max-sm:px-6">
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={handleCloseDialog}
+                  className="max-sm:flex-1"
                 >
                   {language === "fr" ? "Annuler" : "Cancel"}
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="max-sm:flex-1">
                   {language === "fr" ? "Enregistrer" : "Save"}
                 </Button>
               </div>
