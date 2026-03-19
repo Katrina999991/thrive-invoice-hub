@@ -6,12 +6,12 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & { autoWidth?: boolean }
 >(({ className, autoWidth, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  <div className="relative w-full max-w-full overflow-x-auto overflow-y-hidden">
     <table
       ref={ref}
       className={cn(
-        "caption-bottom text-sm",
-        autoWidth ? "w-auto" : "w-full",
+        "caption-bottom table-fixed text-sm md:table-auto [&_td]:break-words [&_td]:whitespace-normal [&_th]:break-words [&_th]:whitespace-normal",
+        autoWidth ? "w-auto min-w-full" : "w-full",
         className
       )}
       {...props}
