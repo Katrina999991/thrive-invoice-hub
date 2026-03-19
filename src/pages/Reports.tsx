@@ -5474,7 +5474,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('reports')}</h1>
         <p className="text-sm md:text-base text-muted-foreground">
@@ -5583,23 +5583,23 @@ const Reports = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          <TabsList className="inline-flex w-max md:w-auto">
-            <TabsTrigger value="overview" className="text-xs md:text-sm">{t("reports.tabs.overview")}</TabsTrigger>
-            <TabsTrigger value="revenue" className="text-xs md:text-sm">{t("reports.tabs.revenue")}</TabsTrigger>
-            <TabsTrigger value="products" className="text-xs md:text-sm" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs md:text-sm" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
-            <TabsTrigger value="clients" className="text-xs md:text-sm" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
-            <TabsTrigger value="taxes" className="text-xs md:text-sm" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs md:text-sm" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
-            <TabsTrigger value="reminders" className="text-xs md:text-sm" disabled={!isTabAvailable('reminders')}>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:w-auto snap-x snap-mandatory">
+            <TabsTrigger value="overview" className="text-xs md:text-sm snap-start">{t("reports.tabs.overview")}</TabsTrigger>
+            <TabsTrigger value="revenue" className="text-xs md:text-sm snap-start">{t("reports.tabs.revenue")}</TabsTrigger>
+            <TabsTrigger value="products" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
+            <TabsTrigger value="clients" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
+            <TabsTrigger value="taxes" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
+            <TabsTrigger value="reminders" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('reminders')}>
               {language === "fr" ? "Rappels" : "Reminders"}
             </TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4 md:gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium">{t("reports.overview.totalRevenue")}</CardTitle>
@@ -5608,8 +5608,8 @@ const Reports = () => {
                 <div className="text-lg md:text-2xl font-bold">
                   {dashboardData ? `$${dashboardData.totalRevenue.toLocaleString('fr-FR')}` : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground hidden md:block">
-                  Revenus des factures payées
+                <p className="text-xs text-muted-foreground">
+                  {language === "fr" ? "Revenus des factures payées" : "Revenue from paid invoices"}
                 </p>
               </CardContent>
             </Card>
@@ -5621,8 +5621,8 @@ const Reports = () => {
                 <div className="text-lg md:text-2xl font-bold">
                   {dashboardData ? dashboardData.openInvoicesCount : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground hidden md:block">
-                  {dashboardData ? `$${dashboardData.openInvoicesTotal.toLocaleString('fr-FR')} en attente` : ''}
+                <p className="text-xs text-muted-foreground">
+                  {dashboardData ? `$${dashboardData.openInvoicesTotal.toLocaleString('fr-FR')} ${language === "fr" ? "en attente" : "pending"}` : ''}
                 </p>
               </CardContent>
             </Card>
@@ -5634,8 +5634,8 @@ const Reports = () => {
                 <div className="text-lg md:text-2xl font-bold">
                   {dashboardData ? dashboardData.activeClients : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground hidden md:block">
-                  {dashboardData ? `${dashboardData.newClientsThisMonth} nouveaux ce mois` : ''}
+                <p className="text-xs text-muted-foreground">
+                  {dashboardData ? `${dashboardData.newClientsThisMonth} ${language === "fr" ? "nouveaux ce mois" : "new this month"}` : ''}
                 </p>
               </CardContent>
             </Card>
@@ -5647,8 +5647,8 @@ const Reports = () => {
                 <div className="text-lg md:text-2xl font-bold">
                   {dashboardData ? dashboardData.activeProducts : '...'}
                 </div>
-                <p className="text-xs text-muted-foreground hidden md:block">
-                  Produits disponibles
+                <p className="text-xs text-muted-foreground">
+                  {language === "fr" ? "Produits disponibles" : "Available products"}
                 </p>
               </CardContent>
             </Card>
