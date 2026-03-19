@@ -1623,6 +1623,8 @@ export type Database = {
           custom_email_templates: boolean
           description_en: string | null
           description_fr: string | null
+          final_reminder_enabled: boolean
+          formal_notice_enabled: boolean
           id: string
           max_clients: number | null
           max_companies: number | null
@@ -1645,6 +1647,8 @@ export type Database = {
           custom_email_templates?: boolean
           description_en?: string | null
           description_fr?: string | null
+          final_reminder_enabled?: boolean
+          formal_notice_enabled?: boolean
           id?: string
           max_clients?: number | null
           max_companies?: number | null
@@ -1667,6 +1671,8 @@ export type Database = {
           custom_email_templates?: boolean
           description_en?: string | null
           description_fr?: string | null
+          final_reminder_enabled?: boolean
+          formal_notice_enabled?: boolean
           id?: string
           max_clients?: number | null
           max_companies?: number | null
