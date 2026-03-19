@@ -70,7 +70,7 @@ const Invoices = () => {
   const { companies } = useCompanies();
   const { products } = useProducts();
   const { isLimitReached, planLimits } = useSubscription();
-  const { canCreate, canEdit, canDelete, hasPermission } = useSelectedCompany();
+  const { canCreate, canEdit, canDelete, hasPermission, selectedCompanyId: permCompanyId } = useSelectedCompany();
   const { 
     isLoading: isStripeLoading,
     stripeAccountId,
