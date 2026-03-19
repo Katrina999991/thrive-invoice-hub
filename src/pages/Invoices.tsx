@@ -2423,14 +2423,19 @@ Best regards,
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
-                                  onClick={() => setFinalReminderInvoice(invoice)}
+                                  className={canUseFinalReminder 
+                                    ? "border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30" 
+                                    : "border-muted text-muted-foreground opacity-60"}
+                                  onClick={() => canUseFinalReminder ? setFinalReminderInvoice(invoice) : setShowFeatureUpsell('final_reminder')}
                                 >
-                                  <AlertTriangle className="h-4 w-4" />
+                                  {canUseFinalReminder ? <AlertTriangle className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{(invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder")}</p>
+                                <p>{canUseFinalReminder 
+                                  ? ((invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder"))
+                                  : (language === 'fr' ? 'Disponible avec le plan Premium ou Pro' : 'Available with Premium or Pro plan')
+                                }</p>
                               </TooltipContent>
                             </Tooltip>
                           )}
@@ -2440,14 +2445,19 @@ Best regards,
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-destructive text-destructive hover:bg-destructive/10"
-                                  onClick={() => setFormalNoticeInvoice(invoice)}
+                                  className={canUseFormalNotice 
+                                    ? "border-destructive text-destructive hover:bg-destructive/10" 
+                                    : "border-muted text-muted-foreground opacity-60"}
+                                  onClick={() => canUseFormalNotice ? setFormalNoticeInvoice(invoice) : setShowFeatureUpsell('formal_notice')}
                                 >
-                                  <FileText className="h-4 w-4" />
+                                  {canUseFormalNotice ? <FileText className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{language === 'fr' ? 'Mise en demeure' : 'Formal notice'}</p>
+                                <p>{canUseFormalNotice 
+                                  ? (language === 'fr' ? 'Mise en demeure' : 'Formal notice')
+                                  : (language === 'fr' ? 'Disponible avec le plan Pro' : 'Available with Pro plan')
+                                }</p>
                               </TooltipContent>
                             </Tooltip>
                           )}
