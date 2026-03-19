@@ -87,6 +87,11 @@ const Invoices = () => {
   const canSendInvoices = hasPermission("invoices:send");
   const canArchiveInvoices = canEdit("invoices"); // Archive requires edit permission
 
+  // Plan feature checks
+  const { hasFeature, canManageBilling, planType } = useAuthorization(permCompanyId || null);
+  const canUseFinalReminder = hasFeature("final_reminder_enabled");
+  const canUseFormalNotice = hasFeature("formal_notice_enabled");
+
   // Load Stripe account info on mount
   useEffect(() => {
     loadStripeAccount();
@@ -98,6 +103,7 @@ const Invoices = () => {
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
   const [finalReminderInvoice, setFinalReminderInvoice] = useState<Invoice | null>(null);
   const [formalNoticeInvoice, setFormalNoticeInvoice] = useState<Invoice | null>(null);
+  const [showFeatureUpsell, setShowFeatureUpsell] = useState<'final_reminder' | 'formal_notice' | null>(null);
 
   // Bulk selection state
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
