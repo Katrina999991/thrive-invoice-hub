@@ -1086,7 +1086,7 @@ export default function TimeTracking() {
   );
 
   return (
-    <div className="container mx-auto py-4 sm:py-8 space-y-6 px-2 sm:px-4">
+    <div className="container mx-auto py-4 sm:py-8 space-y-6 px-2 sm:px-4 max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
@@ -1225,7 +1225,7 @@ export default function TimeTracking() {
             <Clock className="h-5 w-5" />
             {language === "fr" ? "Heures enregistrées" : "Recorded Hours"}
           </CardTitle>
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4 flex-wrap overflow-hidden">
             <div className="flex-1 min-w-[150px]">
               <Select value={filterClient} onValueChange={setFilterClient}>
                 <SelectTrigger>
@@ -1356,7 +1356,7 @@ export default function TimeTracking() {
             {/* Approval filter - only show if user can approve */}
             {permissions.canApprove && (
               <Select value={filterApproval} onValueChange={setFilterApproval}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1368,7 +1368,7 @@ export default function TimeTracking() {
             )}
             {/* Billing status filter */}
             <Select value={filterBillingStatus} onValueChange={setFilterBillingStatus}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1787,9 +1787,12 @@ export default function TimeTracking() {
                             <div className="text-sm text-muted-foreground">
                               {entry.clients?.name || "-"}
                             </div>
-                            {permissions.canViewAll && entry.user_id !== user?.id && (
+                            {permissions.canViewAll && (
                               <div className="text-xs text-primary">
                                 {language === "fr" ? "Par" : "By"}: {entry.profiles?.username || entry.profiles?.display_name || (language === "fr" ? "Inconnu" : "Unknown")}
+                                {entry.user_id === user?.id && (
+                                  <span className="text-muted-foreground ml-1">({language === "fr" ? "moi" : "me"})</span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -1963,7 +1966,7 @@ export default function TimeTracking() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm:max-w-2xl max-sm:fixed max-sm:inset-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:left-0 max-sm:top-0 max-sm:w-full max-sm:h-full max-sm:max-h-full max-sm:rounded-none max-sm:border-0 max-sm:flex max-sm:flex-col">
           <DialogHeader>
             <DialogTitle>
               {editingEntry 
@@ -1974,7 +1977,7 @@ export default function TimeTracking() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="client_id"
@@ -2131,7 +2134,7 @@ export default function TimeTracking() {
               </div>
 
               {!useTimeRange ? (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="hours"
@@ -2274,15 +2277,16 @@ export default function TimeTracking() {
                 )}
               />
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-4 max-sm:sticky max-sm:bottom-0 max-sm:bg-background max-sm:pb-4 max-sm:border-t max-sm:pt-4 max-sm:-mx-6 max-sm:px-6">
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={handleCloseDialog}
+                  className="max-sm:flex-1"
                 >
                   {language === "fr" ? "Annuler" : "Cancel"}
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="max-sm:flex-1">
                   {language === "fr" ? "Enregistrer" : "Save"}
                 </Button>
               </div>
@@ -2320,7 +2324,7 @@ export default function TimeTracking() {
 
       {/* Start Timer Dialog */}
       <Dialog open={isStartTimerDialogOpen} onOpenChange={setIsStartTimerDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-sm:fixed max-sm:inset-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:left-0 max-sm:top-0 max-sm:w-full max-sm:h-full max-sm:max-h-full max-sm:rounded-none max-sm:border-0 max-sm:flex max-sm:flex-col">
           <DialogHeader>
             <DialogTitle>
               {language === "fr" ? "Démarrer la minuterie" : "Start Timer"}
