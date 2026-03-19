@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { RevenueByClientReport } from "@/components/reports/RevenueByClientReport";
 import { RevenueByProductReport } from "@/components/reports/RevenueByProductReport";
 import { useState, useMemo, useRef, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { DateRangePicker } from "@/components/DateRangePicker";
