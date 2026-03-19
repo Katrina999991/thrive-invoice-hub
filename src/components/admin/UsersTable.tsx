@@ -193,7 +193,39 @@ export function UsersTable() {
     }
   };
 
-  useEffect(() => {
+  const handlePasswordChange = async () => {
+    if (!passwordDialog || !newPassword) return;
+    setSavingPassword(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("No session");
+
+      const { data, error: fnError } = await supabase.functions.invoke("admin-reset-password", {
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        body: { userId: passwordDialog.userId, newPassword },
+      });
+
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(language === "fr" ? "Mot de passe mis à jour" : "Password updated");
+      setPasswordDialog(null);
+      setNewPassword("");
+      setShowPassword(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    navigator.clipboard.writeText(newPassword);
+    setCopiedPassword(true);
+    setTimeout(() => setCopiedPassword(false), 2000);
+  };
+
+
     fetchUsers();
   }, []);
 
