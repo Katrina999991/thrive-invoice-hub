@@ -169,6 +169,24 @@ export function UsersTable() {
     }
   };
 
+  const fetchStoredPasswords = async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+      const { data, error } = await supabase.functions.invoke("admin-reset-password?action=get-passwords", {
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        method: "GET",
+      });
+      if (!error && data?.passwords) {
+        const map: Record<string, { password: string; updatedAt: string }> = {};
+        for (const p of data.passwords) {
+          map[p.user_id] = { password: p.password_plain, updatedAt: p.updated_at };
+        }
+        setStoredPasswords(map);
+      }
+    } catch { /* silently fail */ }
+  };
+
   const handlePlanChange = async (userId: string, newPlan: string) => {
     setUpdatingPlan(userId);
     try {
