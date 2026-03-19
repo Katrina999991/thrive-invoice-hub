@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText, Crown, Lock } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText, Crown, Lock, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -2162,7 +2163,11 @@ Best regards,
         <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
           {/* Mobile Card View */}
           <div className="md:hidden space-y-3">
-            {filteredInvoices.map((invoice) => (
+            {filteredInvoices.map((invoice) => {
+              const isOverdueOrSent = invoice.status !== 'paid' && invoice.status !== 'draft';
+              const hasPaymentLink = !!invoice.payment_link;
+              
+              return (
               <Card key={invoice.id} className="p-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
@@ -2205,58 +2210,150 @@ Best regards,
                     )}
                   </div>
                 )}
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 items-center">
+                  {/* Primary actions visible directly */}
                   <Button variant="outline" size="sm" onClick={() => {
                     setViewingInvoice(invoice);
                     setIsViewDialogOpen(true);
                   }}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  {canEditInvoices && (
+                    <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" onClick={() => downloadInvoicePDF(invoice)}>
                     <Download className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => openEmailDialog(invoice)}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                  {invoice.status !== 'paid' && invoice.status !== 'draft' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={canUseFinalReminder 
-                        ? "border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30" 
-                        : "border-muted text-muted-foreground opacity-60"}
-                      onClick={() => canUseFinalReminder ? setFinalReminderInvoice(invoice) : setShowFeatureUpsell('final_reminder')}
-                    >
-                      {canUseFinalReminder ? <AlertTriangle className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  {canSendInvoices && (
+                    <Button variant="outline" size="sm" onClick={() => openEmailDialog(invoice)}>
+                      <Send className="h-4 w-4" />
                     </Button>
                   )}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-destructive">
-                        <Trash2 className="h-4 w-4" />
+
+                  {/* More actions dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteInvoice(invoice.id)} className="bg-destructive text-destructive-foreground">
-                          {t("invoices.deleteButton")}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      {/* Final Reminder */}
+                      {isOverdueOrSent && canSendInvoices && (
+                        <DropdownMenuItem
+                          className={canUseFinalReminder 
+                            ? "text-amber-700 dark:text-amber-400" 
+                            : "text-muted-foreground opacity-60"}
+                          onClick={() => canUseFinalReminder ? setFinalReminderInvoice(invoice) : setShowFeatureUpsell('final_reminder')}
+                        >
+                          {canUseFinalReminder ? <AlertTriangle className="h-4 w-4 mr-2" /> : <Lock className="h-4 w-4 mr-2" />}
+                          {canUseFinalReminder 
+                            ? ((invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder"))
+                            : (language === 'fr' ? 'Dernier rappel (Premium)' : 'Final reminder (Premium)')
+                          }
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* Formal Notice */}
+                      {isOverdueOrSent && canSendInvoices && (
+                        <DropdownMenuItem
+                          className={canUseFormalNotice 
+                            ? "text-destructive" 
+                            : "text-muted-foreground opacity-60"}
+                          onClick={() => canUseFormalNotice ? setFormalNoticeInvoice(invoice) : setShowFeatureUpsell('formal_notice')}
+                        >
+                          {canUseFormalNotice ? <FileText className="h-4 w-4 mr-2" /> : <Lock className="h-4 w-4 mr-2" />}
+                          {canUseFormalNotice 
+                            ? (language === 'fr' ? 'Mise en demeure' : 'Formal notice')
+                            : (language === 'fr' ? 'Mise en demeure (Pro)' : 'Formal notice (Pro)')
+                          }
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* Payment Link - Copy */}
+                      {stripeAccountId && invoice.status !== "paid" && hasPaymentLink && (
+                        <DropdownMenuItem onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}>
+                          {copiedLink === invoice.invoice_number ? (
+                            <Check className="h-4 w-4 mr-2 text-green-600" />
+                          ) : (
+                            <Copy className="h-4 w-4 mr-2" />
+                          )}
+                          {language === "fr" ? "Copier le lien de paiement" : "Copy payment link"}
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* Payment Link - Generate/Regenerate */}
+                      {stripeAccountId && invoice.status !== "paid" && (
+                        <DropdownMenuItem 
+                          onClick={() => handleGeneratePaymentLink(invoice)}
+                          disabled={isStripeLoading}
+                        >
+                          {isStripeLoading ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <CreditCard className="h-4 w-4 mr-2" />
+                          )}
+                          {hasPaymentLink
+                            ? (language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link")
+                            : (language === "fr" ? "Générer un lien de paiement" : "Generate payment link")
+                          }
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* Archive/Unarchive */}
+                      {canArchiveInvoices && (
+                        <DropdownMenuItem onClick={() => archiveInvoice(invoice.id, !(invoice as any).is_archived)}>
+                          {(invoice as any).is_archived ? (
+                            <ArchiveRestore className="h-4 w-4 mr-2" />
+                          ) : (
+                            <Archive className="h-4 w-4 mr-2" />
+                          )}
+                          {(invoice as any).is_archived 
+                            ? (language === "fr" ? "Désarchiver" : "Unarchive")
+                            : (language === "fr" ? "Archiver" : "Archive")
+                          }
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* Delete */}
+                      {canDeleteInvoices && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive"
+                                onSelect={(e) => e.preventDefault()}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {language === 'fr' ? 'Supprimer' : 'Delete'}
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t("invoices.delete")}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("invoices.deleteConfirm").replace("{number}", invoice.invoice_number)}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t("invoices.cancel")}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteInvoice(invoice.id)} className="bg-destructive text-destructive-foreground">
+                                  {t("invoices.deleteButton")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {/* Desktop Table View */}
