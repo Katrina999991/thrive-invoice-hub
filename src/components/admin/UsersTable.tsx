@@ -586,6 +586,72 @@ export function UsersTable() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Password Change Dialog */}
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => { if (!open) { setPasswordDialog(null); setNewPassword(""); setShowPassword(false); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" />
+              {language === "fr" ? "Changer le mot de passe" : "Change password"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{passwordDialog?.email}</p>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={language === "fr" ? "Nouveau mot de passe" : "New password"}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full w-10"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleCopyPassword}
+                disabled={!newPassword}
+                title={language === "fr" ? "Copier" : "Copy"}
+              >
+                {copiedPassword ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$";
+                const pwd = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+                setNewPassword(pwd);
+                setShowPassword(true);
+              }}
+            >
+              {language === "fr" ? "Générer un mot de passe" : "Generate password"}
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPasswordDialog(null); setNewPassword(""); }}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button onClick={handlePasswordChange} disabled={!newPassword || newPassword.length < 6 || savingPassword}>
+              {savingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {language === "fr" ? "Enregistrer" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
