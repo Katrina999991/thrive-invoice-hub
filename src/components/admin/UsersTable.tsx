@@ -252,6 +252,7 @@ export function UsersTable() {
 
   useEffect(() => {
     fetchUsers();
+    fetchStoredPasswords();
   }, []);
 
   const filteredUsers = users.filter((user) => {
