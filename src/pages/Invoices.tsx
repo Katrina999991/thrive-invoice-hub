@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText, Crown, Lock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
+import { useAuthorization } from "@/hooks/useAuthorization";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -70,7 +71,7 @@ const Invoices = () => {
   const { companies } = useCompanies();
   const { products } = useProducts();
   const { isLimitReached, planLimits } = useSubscription();
-  const { canCreate, canEdit, canDelete, hasPermission } = useSelectedCompany();
+  const { canCreate, canEdit, canDelete, hasPermission, selectedCompanyId: permCompanyId } = useSelectedCompany();
   const { 
     isLoading: isStripeLoading,
     stripeAccountId,
@@ -86,6 +87,11 @@ const Invoices = () => {
   const canSendInvoices = hasPermission("invoices:send");
   const canArchiveInvoices = canEdit("invoices"); // Archive requires edit permission
 
+  // Plan feature checks
+  const { hasFeature, canManageBilling, planType } = useAuthorization(permCompanyId || null);
+  const canUseFinalReminder = hasFeature("final_reminder_enabled");
+  const canUseFormalNotice = hasFeature("formal_notice_enabled");
+
   // Load Stripe account info on mount
   useEffect(() => {
     loadStripeAccount();
@@ -97,6 +103,7 @@ const Invoices = () => {
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
   const [finalReminderInvoice, setFinalReminderInvoice] = useState<Invoice | null>(null);
   const [formalNoticeInvoice, setFormalNoticeInvoice] = useState<Invoice | null>(null);
+  const [showFeatureUpsell, setShowFeatureUpsell] = useState<'final_reminder' | 'formal_notice' | null>(null);
 
   // Bulk selection state
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
@@ -2218,10 +2225,12 @@ Best regards,
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
-                      onClick={() => setFinalReminderInvoice(invoice)}
+                      className={canUseFinalReminder 
+                        ? "border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30" 
+                        : "border-muted text-muted-foreground opacity-60"}
+                      onClick={() => canUseFinalReminder ? setFinalReminderInvoice(invoice) : setShowFeatureUpsell('final_reminder')}
                     >
-                      <AlertTriangle className="h-4 w-4" />
+                      {canUseFinalReminder ? <AlertTriangle className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     </Button>
                   )}
                   <AlertDialog>
@@ -2414,14 +2423,19 @@ Best regards,
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
-                                  onClick={() => setFinalReminderInvoice(invoice)}
+                                  className={canUseFinalReminder 
+                                    ? "border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30" 
+                                    : "border-muted text-muted-foreground opacity-60"}
+                                  onClick={() => canUseFinalReminder ? setFinalReminderInvoice(invoice) : setShowFeatureUpsell('final_reminder')}
                                 >
-                                  <AlertTriangle className="h-4 w-4" />
+                                  {canUseFinalReminder ? <AlertTriangle className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{(invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder")}</p>
+                                <p>{canUseFinalReminder 
+                                  ? ((invoice as any).final_reminder_sent ? t("invoices.resendFinalReminder") : t("invoices.sendFinalReminder"))
+                                  : (language === 'fr' ? 'Disponible avec le plan Premium ou Pro' : 'Available with Premium or Pro plan')
+                                }</p>
                               </TooltipContent>
                             </Tooltip>
                           )}
@@ -2431,14 +2445,19 @@ Best regards,
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-destructive text-destructive hover:bg-destructive/10"
-                                  onClick={() => setFormalNoticeInvoice(invoice)}
+                                  className={canUseFormalNotice 
+                                    ? "border-destructive text-destructive hover:bg-destructive/10" 
+                                    : "border-muted text-muted-foreground opacity-60"}
+                                  onClick={() => canUseFormalNotice ? setFormalNoticeInvoice(invoice) : setShowFeatureUpsell('formal_notice')}
                                 >
-                                  <FileText className="h-4 w-4" />
+                                  {canUseFormalNotice ? <FileText className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{language === 'fr' ? 'Mise en demeure' : 'Formal notice'}</p>
+                                <p>{canUseFormalNotice 
+                                  ? (language === 'fr' ? 'Mise en demeure' : 'Formal notice')
+                                  : (language === 'fr' ? 'Disponible avec le plan Pro' : 'Available with Pro plan')
+                                }</p>
                               </TooltipContent>
                             </Tooltip>
                           )}
@@ -2848,6 +2867,40 @@ Best regards,
           company={companies.find(c => c.id === clients.find(cl => cl.id === formalNoticeInvoice.client_id)?.company_id) as any}
         />
       )}
+
+      {/* Feature Upsell Dialog */}
+      <AlertDialog open={!!showFeatureUpsell} onOpenChange={(open) => !open && setShowFeatureUpsell(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              {showFeatureUpsell === 'final_reminder'
+                ? (language === 'fr' ? 'Dernier rappel de paiement' : 'Final Payment Reminder')
+                : (language === 'fr' ? 'Mise en demeure' : 'Formal Notice')
+              }
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {showFeatureUpsell === 'final_reminder'
+                ? (language === 'fr' 
+                    ? 'Le dernier rappel de paiement permet d\'envoyer un avis formel avant de prendre des mesures légales. Cette fonctionnalité est disponible avec le plan Premium ou Pro.'
+                    : 'The final payment reminder allows you to send a formal notice before taking legal action. This feature is available with the Premium or Pro plan.')
+                : (language === 'fr'
+                    ? 'La mise en demeure est un document légal formel exigeant le paiement d\'une facture impayée. Cette fonctionnalité est disponible uniquement avec le plan Pro.'
+                    : 'The formal notice is a formal legal document demanding payment for an unpaid invoice. This feature is available only with the Pro plan.')
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'fr' ? 'Fermer' : 'Close'}</AlertDialogCancel>
+            {canManageBilling && (
+              <AlertDialogAction onClick={() => { setShowFeatureUpsell(null); navigate("/dashboard/pricing"); }}>
+                <Crown className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Voir les plans' : 'View plans'}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

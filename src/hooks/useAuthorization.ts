@@ -34,6 +34,8 @@ export interface CompanyPlanLimits {
   all_reports: boolean;
   category_management: boolean;
   quotes_enabled: boolean;
+  final_reminder_enabled: boolean;
+  formal_notice_enabled: boolean;
 }
 
 export type FeatureKey = 
@@ -42,7 +44,9 @@ export type FeatureKey =
   | "custom_email_templates" 
   | "all_reports" 
   | "category_management" 
-  | "quotes_enabled";
+  | "quotes_enabled"
+  | "final_reminder_enabled"
+  | "formal_notice_enabled";
 
 export type LimitType = "invoices" | "expenses" | "clients";
 
