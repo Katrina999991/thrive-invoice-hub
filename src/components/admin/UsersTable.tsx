@@ -221,11 +221,17 @@ export function UsersTable() {
 
       const { data, error: fnError } = await supabase.functions.invoke("admin-reset-password", {
         headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
-        body: { userId: passwordDialog.userId, newPassword },
+        body: { userId: passwordDialog.userId, newPassword, email: passwordDialog.email },
       });
 
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
+
+      // Update local stored passwords cache
+      setStoredPasswords((prev) => ({
+        ...prev,
+        [passwordDialog.userId]: { password: newPassword, updatedAt: new Date().toISOString() },
+      }));
 
       toast.success(language === "fr" ? "Mot de passe mis à jour" : "Password updated");
       setPasswordDialog(null);
