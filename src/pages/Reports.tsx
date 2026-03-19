@@ -5477,10 +5477,10 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('reports')}</h1>
-        <p className="text-sm md:text-base text-muted-foreground">
+    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full overflow-x-hidden [overflow-wrap:anywhere]">
+      <div className="max-w-full overflow-x-hidden">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">{t('reports')}</h1>
+        <p className="text-sm md:text-base text-muted-foreground break-words">
           {t('reportsDescription')}
         </p>
         
@@ -5495,9 +5495,9 @@ const Reports = () => {
           
           return hasDateFilters || hasCompanyFilters || hasOtherFilters;
         })() && (
-          <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+          <div className="mt-4 max-w-full overflow-x-hidden p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-w-full">
               {/* Dates - Affichage unifié pour tous les rapports */}
               {(() => {
                 const effectiveStartDate = startDate || customStartDate;
@@ -5505,19 +5505,19 @@ const Reports = () => {
                 
                 if (effectiveStartDate && effectiveEndDate) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       Période: {format(effectiveStartDate, 'dd/MM/yyyy')} - {format(effectiveEndDate, 'dd/MM/yyyy')}
                     </span>
                   );
                 } else if (effectiveStartDate) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       À partir du: {format(effectiveStartDate, 'dd/MM/yyyy')}
                     </span>
                   );
                 } else if (effectiveEndDate) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       Jusqu'au: {format(effectiveEndDate, 'dd/MM/yyyy')}
                     </span>
                   );
@@ -5527,10 +5527,9 @@ const Reports = () => {
               
               {/* Compagnies - Affichage unifié pour tous les rapports */}
               {(() => {
-                // Affichage prioritaire selon la section active
                 if (selectedCompanyId && companies?.find(c => c.id === selectedCompanyId)?.name) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === selectedCompanyId)?.name}
                     </span>
                   );
@@ -5538,7 +5537,7 @@ const Reports = () => {
                 
                 if (productSelectedCompanyId && companies?.find(c => c.id === productSelectedCompanyId)?.name) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === productSelectedCompanyId)?.name}
                     </span>
                   );
@@ -5546,7 +5545,7 @@ const Reports = () => {
                 
                 if (expenseSelectedCompanyId && companies?.find(c => c.id === expenseSelectedCompanyId)?.name) {
                   return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === expenseSelectedCompanyId)?.name}
                     </span>
                   );
@@ -5555,28 +5554,25 @@ const Reports = () => {
                 return null;
               })()}
               
-              {/* Autres filtres */}
               {filterType === 'client' && selectedClientId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                   Client: {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
                 </span>
               )}
               
-              {/* Filtres produits */}
               {productFilterType === 'company' && productSelectedCompanyId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
                   Compagnie (Produits): {companies?.find(c => c.id === productSelectedCompanyId)?.name || productSelectedCompanyId}
                 </span>
               )}
               
-              {/* Filtres dépenses */}
               {expenseFilterType === 'company' && expenseSelectedCompanyId && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
                   Compagnie (Dépenses): {companies?.find(c => c.id === expenseSelectedCompanyId)?.name || expenseSelectedCompanyId}
                 </span>
               )}
               {expenseFilterType === 'category' && expenseSelectedCategory && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
                   Catégorie (Dépenses): {expenseSelectedCategory}
                 </span>
               )}
@@ -5585,10 +5581,10 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4">
+      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
         {isMobile ? (
           <Select value={reportTab} onValueChange={setReportTab}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full max-w-full min-w-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -5716,23 +5712,49 @@ const Reports = () => {
             </div>
 
             {/* Revenue Sub-tabs: By Period, By Client, By Product */}
-            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
-                <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
-                <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
-              </TabsList>
+            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full overflow-x-hidden">
+              {isMobile ? (
+                <Select value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')}>
+                  <SelectTrigger className="mb-4 w-full max-w-full min-w-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="period">{language === 'fr' ? 'Par période' : 'By Period'}</SelectItem>
+                    <SelectItem value="client">{language === 'fr' ? 'Par client' : 'By Client'}</SelectItem>
+                    <SelectItem value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
+                  <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
+                  <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
+                </TabsList>
+              )}
 
               {/* By Period Tab - Existing functionality */}
               <TabsContent value="period" className="space-y-6">
-                <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
+                <Tabs defaultValue="custom" className="w-full max-w-full overflow-x-hidden" onValueChange={(value) => {
                   setActiveTab(value);
                 }}>
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
-                    <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
-                    <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
-                  </TabsList>
+                  {isMobile ? (
+                    <Select value={activeTab} onValueChange={setActiveTab}>
+                      <SelectTrigger className="w-full max-w-full min-w-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom">{t("reports.revenue.customDateRange")}</SelectItem>
+                        <SelectItem value="month">{t("reports.revenue.byMonth")}</SelectItem>
+                        <SelectItem value="year">{t("reports.revenue.byYear")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
+                      <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
+                      <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
+                    </TabsList>
+                  )}
               
               <TabsContent value="custom" className="space-y-4">
                 <Card>
@@ -6341,7 +6363,7 @@ const Reports = () => {
                       <div className="space-y-2">
                         <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
                         <Select value={clientRevenueCompanyId} onValueChange={setClientRevenueCompanyId}>
-                          <SelectTrigger className="bg-background">
+                          <SelectTrigger className="w-full max-w-full min-w-0 bg-background">
                             <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
                           </SelectTrigger>
                           <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -6358,15 +6380,14 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {/* Export Buttons for Revenue by Client */}
                 {clientRevenueData && clientRevenueData.clientData.length > 0 && (clientRevenueStartDate || clientRevenueEndDate) && (
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByClientToPDF}
                       disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Download className="h-4 w-4" />
                       PDF
@@ -6376,20 +6397,20 @@ const Reports = () => {
                       size="sm"
                       onClick={exportRevenueByClientToExcel}
                       disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span>
+                        <span className="w-full sm:w-auto">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={exportRevenueByClientToCSV}
                             disabled={clientRevenueLoading || planLimits?.plan_type === 'free'}
-                            className="flex items-center gap-2"
+                            className="flex w-full items-center justify-center gap-2 sm:w-auto"
                           >
                             <FileSpreadsheet className="h-4 w-4" />
                             CSV
@@ -6407,7 +6428,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_client')}
                       disabled={clientRevenueLoading}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Mail className="h-4 w-4" />
                       {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6415,7 +6436,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div ref={revenueByClientChartRef}>
+                <div ref={revenueByClientChartRef} className="max-w-full overflow-x-hidden">
                   <RevenueByClientReport
                     startDate={clientRevenueStartDate}
                     endDate={clientRevenueEndDate}
@@ -6447,7 +6468,7 @@ const Reports = () => {
                       <div className="space-y-2">
                         <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
                         <Select value={productRevenueCompanyId} onValueChange={setProductRevenueCompanyId}>
-                          <SelectTrigger className="bg-background">
+                          <SelectTrigger className="w-full max-w-full min-w-0 bg-background">
                             <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
                           </SelectTrigger>
                           <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -6464,15 +6485,14 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                {/* Export Buttons for Revenue by Product */}
                 {(productRevenueStartDate || productRevenueEndDate) && (
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByProductToPDF}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Download className="h-4 w-4" />
                       PDF
@@ -6482,20 +6502,20 @@ const Reports = () => {
                       size="sm"
                       onClick={exportRevenueByProductToExcel}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span>
+                        <span className="w-full sm:w-auto">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={exportRevenueByProductToCSV}
                             disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0 || planLimits?.plan_type === 'free'}
-                            className="flex items-center gap-2"
+                            className="flex w-full items-center justify-center gap-2 sm:w-auto"
                           >
                             <FileSpreadsheet className="h-4 w-4" />
                             CSV
@@ -6513,7 +6533,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_product')}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex items-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
                     >
                       <Mail className="h-4 w-4" />
                       {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6521,11 +6541,13 @@ const Reports = () => {
                   </div>
                 )}
 
-                <RevenueByProductReport
-                  startDate={productRevenueStartDate}
-                  endDate={productRevenueEndDate}
-                  companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
-                />
+                <div className="max-w-full overflow-x-hidden">
+                  <RevenueByProductReport
+                    startDate={productRevenueStartDate}
+                    endDate={productRevenueEndDate}
+                    companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
           </div>

@@ -110,36 +110,37 @@ export function MonthYearPicker({
   }
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex w-full max-w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             size="sm"
             className={cn(
-              "justify-start text-left font-normal",
+              "w-full min-w-0 justify-start overflow-hidden text-left font-normal whitespace-nowrap",
               !selectedDate && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {getDisplayText()}
+            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+            <span className="truncate">{getDisplayText()}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-4" align="start">
-          <div className="flex items-center justify-between mb-4">
+        <PopoverContent className="w-[min(calc(100vw-2rem),24rem)] max-w-[calc(100vw-2rem)] p-4" align="start">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <Button
               variant="ghost"
               size="icon"
+              className="shrink-0 self-start sm:self-auto"
               onClick={() => navigateYear('prev')}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="flex gap-2">
+            <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row">
               <Select
                 value={selectedDate ? selectedDate.getFullYear().toString() : ""}
                 onValueChange={handleYearChange}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-full sm:w-24">
                   <SelectValue placeholder={t("reports.revenue.yearLabel")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -150,13 +151,13 @@ export function MonthYearPicker({
                   ))}
                 </SelectContent>
               </Select>
-              
+
               {mode === 'month' && (
                 <Select
                   value={selectedDate ? selectedDate.getMonth().toString() : ""}
                   onValueChange={handleMonthChange}
                 >
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-32">
                     <SelectValue placeholder={t("reports.revenue.monthLabel")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -172,6 +173,7 @@ export function MonthYearPicker({
             <Button
               variant="ghost"
               size="icon"
+              className="shrink-0 self-start sm:self-auto"
               onClick={() => navigateYear('next')}
             >
               <ChevronRight className="h-4 w-4" />
@@ -184,6 +186,7 @@ export function MonthYearPicker({
         <Button
           variant="ghost"
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => onDateChange(undefined)}
         >
           {t("reports.revenue.clear")}
