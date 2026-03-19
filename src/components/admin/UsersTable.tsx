@@ -225,7 +225,7 @@ export function UsersTable() {
     setTimeout(() => setCopiedPassword(false), 2000);
   };
 
-
+  useEffect(() => {
     fetchUsers();
   }, []);
 
