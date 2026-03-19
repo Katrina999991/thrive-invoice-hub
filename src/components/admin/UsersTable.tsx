@@ -469,7 +469,30 @@ export function UsersTable() {
                                   })
                                 : t.never}
                             </TableCell>
-                            <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={user.plan_type}
+                                onValueChange={(val) => handlePlanChange(user.id, val)}
+                                disabled={updatingPlan === user.id}
+                              >
+                                <SelectTrigger className="w-[130px] h-8">
+                                  {updatingPlan === user.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <SelectValue />
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="free">Free</SelectItem>
+                                  <SelectItem value="premium">
+                                    <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> Premium</span>
+                                  </SelectItem>
+                                  <SelectItem value="pro">
+                                    <span className="flex items-center gap-1"><Crown className="h-3 w-3" /> Pro</span>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
                                 <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
