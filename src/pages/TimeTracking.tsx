@@ -2324,7 +2324,7 @@ export default function TimeTracking() {
 
       {/* Start Timer Dialog */}
       <Dialog open={isStartTimerDialogOpen} onOpenChange={setIsStartTimerDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-sm:fixed max-sm:inset-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:left-0 max-sm:top-0 max-sm:w-full max-sm:h-full max-sm:max-h-full max-sm:rounded-none max-sm:border-0 max-sm:flex max-sm:flex-col">
           <DialogHeader>
             <DialogTitle>
               {language === "fr" ? "Démarrer la minuterie" : "Start Timer"}
