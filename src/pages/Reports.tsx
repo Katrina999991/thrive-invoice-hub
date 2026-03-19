@@ -5712,12 +5712,25 @@ const Reports = () => {
             </div>
 
             {/* Revenue Sub-tabs: By Period, By Client, By Product */}
-            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
-                <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
-                <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
-              </TabsList>
+            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full overflow-x-hidden">
+              {isMobile ? (
+                <Select value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')}>
+                  <SelectTrigger className="mb-4 w-full max-w-full min-w-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="period">{language === 'fr' ? 'Par période' : 'By Period'}</SelectItem>
+                    <SelectItem value="client">{language === 'fr' ? 'Par client' : 'By Client'}</SelectItem>
+                    <SelectItem value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
+                  <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
+                  <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
+                </TabsList>
+              )}
 
               {/* By Period Tab - Existing functionality */}
               <TabsContent value="period" className="space-y-6">
