@@ -2225,10 +2225,12 @@ Best regards,
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
-                      onClick={() => setFinalReminderInvoice(invoice)}
+                      className={canUseFinalReminder 
+                        ? "border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30" 
+                        : "border-muted text-muted-foreground opacity-60"}
+                      onClick={() => canUseFinalReminder ? setFinalReminderInvoice(invoice) : setShowFeatureUpsell('final_reminder')}
                     >
-                      <AlertTriangle className="h-4 w-4" />
+                      {canUseFinalReminder ? <AlertTriangle className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     </Button>
                   )}
                   <AlertDialog>
