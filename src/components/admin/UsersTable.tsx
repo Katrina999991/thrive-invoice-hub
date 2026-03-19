@@ -60,6 +60,7 @@ export function UsersTable() {
   const [showPassword, setShowPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
+  const [storedPasswords, setStoredPasswords] = useState<Record<string, { password: string; updatedAt: string }>>({});
 
   const locale = language === "fr" ? fr : enUS;
 
