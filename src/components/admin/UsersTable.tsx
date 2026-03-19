@@ -532,6 +532,6 @@ export function UsersTable() {
           </div>
         </CardContent>
       </Card>
-    </TooltipProvider>
+    </>
   );
 }
