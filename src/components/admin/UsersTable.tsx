@@ -188,6 +188,7 @@ export function UsersTable() {
     }
   };
 
+  useEffect(() => {
     fetchUsers();
   }, []);
 
