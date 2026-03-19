@@ -13,8 +13,6 @@ import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, B
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
-import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
-import { fr, enUS } from "date-fns/locale";
 
 interface User {
   id: string;
