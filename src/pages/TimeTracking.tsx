@@ -1225,7 +1225,7 @@ export default function TimeTracking() {
             <Clock className="h-5 w-5" />
             {language === "fr" ? "Heures enregistrées" : "Recorded Hours"}
           </CardTitle>
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4 flex-wrap overflow-hidden">
             <div className="flex-1 min-w-[150px]">
               <Select value={filterClient} onValueChange={setFilterClient}>
                 <SelectTrigger>
