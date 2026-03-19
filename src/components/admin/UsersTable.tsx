@@ -55,6 +55,11 @@ export function UsersTable() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
+  const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [copiedPassword, setCopiedPassword] = useState(false);
 
   const locale = language === "fr" ? fr : enUS;
 
