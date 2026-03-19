@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { RevenueByClientReport } from "@/components/reports/RevenueByClientReport";
 import { RevenueByProductReport } from "@/components/reports/RevenueByProductReport";
 import { useState, useMemo, useRef, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -61,6 +62,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Reports = () => {
   const { t, language } = useLanguage();
+  const isMobile = useIsMobile();
+  const [reportTab, setReportTab] = useState('overview');
   const { planLimits } = useSubscription();
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
@@ -5582,21 +5585,39 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max md:w-auto snap-x snap-mandatory">
-            <TabsTrigger value="overview" className="text-xs md:text-sm snap-start">{t("reports.tabs.overview")}</TabsTrigger>
-            <TabsTrigger value="revenue" className="text-xs md:text-sm snap-start">{t("reports.tabs.revenue")}</TabsTrigger>
-            <TabsTrigger value="products" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
-            <TabsTrigger value="clients" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
-            <TabsTrigger value="taxes" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
-            <TabsTrigger value="reminders" className="text-xs md:text-sm snap-start" disabled={!isTabAvailable('reminders')}>
+      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4">
+        {isMobile ? (
+          <Select value={reportTab} onValueChange={setReportTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="overview">{t("reports.tabs.overview")}</SelectItem>
+              <SelectItem value="revenue">{t("reports.tabs.revenue")}</SelectItem>
+              <SelectItem value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</SelectItem>
+              <SelectItem value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</SelectItem>
+              <SelectItem value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</SelectItem>
+              <SelectItem value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</SelectItem>
+              <SelectItem value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</SelectItem>
+              <SelectItem value="reminders" disabled={!isTabAvailable('reminders')}>
+                {language === "fr" ? "Rappels" : "Reminders"}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <TabsList>
+            <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
+            <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
+            <TabsTrigger value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
+            <TabsTrigger value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
+            <TabsTrigger value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
+            <TabsTrigger value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
+            <TabsTrigger value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
+            <TabsTrigger value="reminders" disabled={!isTabAvailable('reminders')}>
               {language === "fr" ? "Rappels" : "Reminders"}
             </TabsTrigger>
           </TabsList>
-        </div>
+        )}
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4 md:gap-4">
