@@ -21,6 +21,8 @@ export interface PlanLimits {
   all_reports: boolean;
   category_management: boolean;
   quotes_enabled?: boolean;
+  final_reminder_enabled?: boolean;
+  formal_notice_enabled?: boolean;
 }
 
 export interface SubscriptionPlan {
