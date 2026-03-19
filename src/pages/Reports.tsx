@@ -5734,14 +5734,27 @@ const Reports = () => {
 
               {/* By Period Tab - Existing functionality */}
               <TabsContent value="period" className="space-y-6">
-                <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
+                <Tabs defaultValue="custom" className="w-full max-w-full overflow-x-hidden" onValueChange={(value) => {
                   setActiveTab(value);
                 }}>
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
-                    <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
-                    <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
-                  </TabsList>
+                  {isMobile ? (
+                    <Select value={activeTab} onValueChange={setActiveTab}>
+                      <SelectTrigger className="w-full max-w-full min-w-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom">{t("reports.revenue.customDateRange")}</SelectItem>
+                        <SelectItem value="month">{t("reports.revenue.byMonth")}</SelectItem>
+                        <SelectItem value="year">{t("reports.revenue.byYear")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
+                      <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
+                      <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
+                    </TabsList>
+                  )}
               
               <TabsContent value="custom" className="space-y-4">
                 <Card>
