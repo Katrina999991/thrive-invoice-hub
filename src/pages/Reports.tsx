@@ -62,6 +62,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Reports = () => {
   const { t, language } = useLanguage();
+  const isMobile = useIsMobile();
+  const [reportTab, setReportTab] = useState('overview');
   const { planLimits } = useSubscription();
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
