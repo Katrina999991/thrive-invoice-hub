@@ -6094,13 +6094,13 @@ const Reports = () => {
                 {!loading && !error && realRevenueData && (startDate || endDate) && (
                   <>
                     {/* Export buttons */}
-                     <div className="flex flex-wrap justify-end gap-2 mb-4">
+                    <div className="flex justify-end gap-2 mb-4">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={exportToPDF}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
                         PDF
@@ -6110,20 +6110,20 @@ const Reports = () => {
                         size="sm"
                         onClick={exportToExcel}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <FileSpreadsheet className="h-4 w-4" />
                         Excel
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="w-full sm:w-auto">
+                          <span>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={exportRevenueToCSV}
                               disabled={!realRevenueData || !chartData.length || planLimits?.plan_type === 'free'}
-                              className="flex items-center gap-2 w-full sm:w-auto"
+                              className="flex items-center gap-2"
                             >
                               <FileSpreadsheet className="h-4 w-4" />
                               CSV
@@ -6141,7 +6141,7 @@ const Reports = () => {
                         size="sm"
                         onClick={downloadChartsAsPDF}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
                         {language === 'fr' ? 'Graphiques PDF' : 'Charts PDF'}
@@ -6151,7 +6151,7 @@ const Reports = () => {
                         size="sm"
                         onClick={() => setEmailDialogOpen('revenue')}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <Mail className="h-4 w-4" />
                         {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6225,19 +6225,17 @@ const Reports = () => {
                           </CardTitle>
                         </CardHeader>
                         <CardContent ref={barChartRef}>
-                          <div className="w-full">
-                            <ResponsiveContainer width="100%" height={300}>
-                              <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                  labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                                />
-                                <Bar dataKey="revenue" fill="#3b82f6" />
-                              </BarChart>
-                            </ResponsiveContainer>
+                          <div className="w-full overflow-x-auto">
+                            <BarChart width={400} height={300} data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="period" />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                              />
+                              <Bar dataKey="revenue" fill="#3b82f6" />
+                            </BarChart>
                           </div>
                         </CardContent>
                       </Card>
@@ -6247,18 +6245,16 @@ const Reports = () => {
                           <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                         </CardHeader>
                         <CardContent ref={lineChartRef}>
-                          <div className="w-full">
-                            <ResponsiveContainer width="100%" height={300}>
-                              <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                />
-                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                              </LineChart>
-                            </ResponsiveContainer>
+                          <div className="w-full overflow-x-auto">
+                            <LineChart width={400} height={300} data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="period" />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                              />
+                              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                            </LineChart>
                           </div>
                         </CardContent>
                       </Card>
@@ -6626,17 +6622,17 @@ const Reports = () => {
                     : 'Identify your best and worst performing products'}
                 </p>
               </div>
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex space-x-2">
+                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <Download className="w-4 h-4 mr-2" />
                     PDF
                   </Button>
-                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
+                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Excel
                   </Button>
-                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
+                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <Mail className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Courriel' : 'Email'}
                   </Button>
@@ -6745,27 +6741,25 @@ const Reports = () => {
                     <CardTitle>{language === 'fr' ? 'Revenus par produit' : 'Revenue by Product'}</CardTitle>
                   </CardHeader>
                   <CardContent ref={salesProductChartRef}>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart data={salesData.products.slice(0, 10)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="product_name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={100}
-                          interval={0}
-                          fontSize={12}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value: any) => [
-                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                            language === 'fr' ? 'Revenu' : 'Revenue'
-                          ]}
-                        />
-                        <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <BarChart width={700} height={400} data={salesData.products.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="product_name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        fontSize={12}
+                      />
+                      <YAxis />
+                      <RechartsTooltip 
+                        formatter={(value: any) => [
+                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                          language === 'fr' ? 'Revenu' : 'Revenue'
+                        ]}
+                      />
+                      <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
+                    </BarChart>
                   </CardContent>
                 </Card>
 
@@ -6824,16 +6818,16 @@ const Reports = () => {
                     : 'Identify out-of-stock products and avoid shortages'}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
+              <div className="flex space-x-2">
+                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
+                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
                 </Button>
-                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
+                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Mail className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
@@ -6841,7 +6835,7 @@ const Reports = () => {
             </div>
 
             {/* Stock Status Summary Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
+            <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Produits totaux' : 'Total Products'}</CardTitle>
@@ -6889,37 +6883,37 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                    <div className="w-full" ref={stockChartRef}>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart 
-                        data={filteredInventoryProducts.map(p => ({
-                          name: p.name,
-                          quantity: p.quantity || 0,
-                          status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
-                        }))}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={100}
-                          interval={0}
-                          fontSize={12}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
-                          labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
-                        />
-                        <Bar 
-                          dataKey="quantity" 
-                          fill="#22c55e"
-                          name={language === 'fr' ? 'Quantité' : 'Quantity'}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="w-full overflow-x-auto" ref={stockChartRef}>
+                    <BarChart 
+                      width={800} 
+                      height={400}
+                      data={filteredInventoryProducts.map(p => ({
+                        name: p.name,
+                        quantity: p.quantity || 0,
+                        status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
+                      }))}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        fontSize={12}
+                      />
+                      <YAxis />
+                      <RechartsTooltip 
+                        formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
+                        labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
+                      />
+                      <Bar 
+                        dataKey="quantity" 
+                        fill="#22c55e"
+                        name={language === 'fr' ? 'Quantité' : 'Quantity'}
+                      />
+                    </BarChart>
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
@@ -6994,16 +6988,16 @@ const Reports = () => {
               </div>
               
               {/* Export Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={exportStockValueToPDF} variant="outline" size="sm" className="w-full sm:w-auto">
+              <div className="flex space-x-2">
+                <Button onClick={exportStockValueToPDF} variant="outline" size="sm">
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={exportStockValueToExcel} variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button onClick={exportStockValueToExcel} variant="outline" size="sm">
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
                 </Button>
-                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm">
                   <Mail className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
@@ -7111,7 +7105,7 @@ const Reports = () => {
 
         <TabsContent value="expenses" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.expenses.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
@@ -7430,8 +7424,7 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={400}>
-                      <BarChart data={expenseReportData.expensesByCategory}>
+                      <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="category" 
@@ -7451,7 +7444,6 @@ const Reports = () => {
                         <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
                         <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
                       </BarChart>
-                      </ResponsiveContainer>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         {t("reports.expenses.noData")}
@@ -7480,25 +7472,23 @@ const Reports = () => {
                       </div>
                     </CardHeader>
                     <CardContent ref={expenseCompanyChartRef}>
-                      <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={expenseReportData.expensesByCompany}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="company_name" 
-                            angle={-45}
-                            textAnchor="end"
-                            height={80}
-                          />
-                          <YAxis />
-                          <RechartsTooltip 
-                            formatter={(value: number) => [
-                              new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                              'Amount'
-                            ]}
-                          />
-                          <Bar dataKey="total_amount" fill="#3b82f6" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="company_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value: number) => [
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                            'Amount'
+                          ]}
+                        />
+                        <Bar dataKey="total_amount" fill="#3b82f6" />
+                      </BarChart>
                     </CardContent>
                   </Card>
                 )}
@@ -7730,14 +7720,14 @@ const Reports = () => {
 
         <TabsContent value="clients" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.clients.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.clients.description")}</p>
               </div>
               
               <TooltipProvider>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex space-x-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
@@ -7857,13 +7847,13 @@ const Reports = () => {
               {/* Section: Tous les clients */}
               <Card>
                 <CardHeader>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>{t("reports.clients.allClients")}</CardTitle>
                       <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
                     </div>
                     <TooltipProvider>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex space-x-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
@@ -7958,7 +7948,7 @@ const Reports = () => {
                       
                       return (
                         <div key={company.id} className="border rounded-lg p-4">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                          <div className="flex items-center justify-between mb-4">
                             <div>
                               <h3 className="font-semibold text-lg">{company.name}</h3>
                               <span className="text-sm text-muted-foreground">
@@ -7966,7 +7956,7 @@ const Reports = () => {
                               </span>
                             </div>
                             <TooltipProvider>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex space-x-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button onClick={() => exportCompanyClientsToPDF(company)} variant="outline" size="sm">
@@ -8057,7 +8047,7 @@ const Reports = () => {
                       
                       return clientsWithoutCompany.length > 0 && (
                         <div className="border rounded-lg p-4">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                          <div className="flex items-center justify-between mb-4">
                             <div>
                               <h3 className="font-semibold text-lg">{t("reports.clients.clientsWithoutCompany")}</h3>
                               <span className="text-sm text-muted-foreground">
@@ -8065,7 +8055,7 @@ const Reports = () => {
                               </span>
                             </div>
                             <TooltipProvider>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex space-x-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button onClick={exportClientsWithoutCompanyToPDF} variant="outline" size="sm">
@@ -8674,7 +8664,7 @@ const Reports = () => {
               <CardDescription>{t("reports.invoices.exportDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2">
                 <Button onClick={exportInvoicesToPDF} variant="outline" size="sm">
                   <Download className="mr-2 h-4 w-4" />
                   PDF
@@ -8709,7 +8699,7 @@ const Reports = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>{language === "fr" ? "Date de début" : "Start Date"}</Label>
                   <Popover open={reminderStartOpen} onOpenChange={setReminderStartOpen}>
