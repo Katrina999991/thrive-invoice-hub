@@ -1461,7 +1461,7 @@ const translations = {
     "reports.revenue.totalRevenue": "Revenu total",
     "reports.revenue.numberOfInvoices": "Nombre de factures",
     "reports.revenue.averageRevenue": "Revenu moyen",
-    "reports.revenue.revenueEvolution": "Évolution des revenus par",
+    "reports.revenue.revenueEvolution": "Évolution des revenus",
     "reports.revenue.revenueTrend": "Tendance des revenus",
     "reports.revenue.detailsByPeriod": "Détails par période",
     "reports.revenue.detailedDataBy": "Données détaillées par",
