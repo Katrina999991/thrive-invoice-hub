@@ -6225,17 +6225,19 @@ const Reports = () => {
                           </CardTitle>
                         </CardHeader>
                         <CardContent ref={barChartRef}>
-                          <div className="w-full overflow-x-auto">
-                            <BarChart width={400} height={300} data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="period" />
-                              <YAxis />
-                              <RechartsTooltip 
-                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                              />
-                              <Bar dataKey="revenue" fill="#3b82f6" />
-                            </BarChart>
+                          <div className="w-full h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="period" />
+                                <YAxis />
+                                <RechartsTooltip 
+                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                  labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                                />
+                                <Bar dataKey="revenue" fill="#3b82f6" />
+                              </BarChart>
+                            </ResponsiveContainer>
                           </div>
                         </CardContent>
                       </Card>
