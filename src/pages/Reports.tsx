@@ -7111,7 +7111,7 @@ const Reports = () => {
 
         <TabsContent value="expenses" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.expenses.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
