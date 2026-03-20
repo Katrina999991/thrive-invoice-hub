@@ -8509,7 +8509,7 @@ const Reports = () => {
                     </div>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-48">
+                        <Button variant="outline" className="w-full min-w-0 sm:w-48">
                           {t("reports.invoices.filterByStatus", { count: invoiceStatusFilters.includes('all') ? t("reports.invoices.allStatuses") : invoiceStatusFilters.length })}
                         </Button>
                       </PopoverTrigger>
