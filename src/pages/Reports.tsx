@@ -5477,8 +5477,8 @@ const Reports = () => {
   };
 
   return (
-    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full overflow-x-hidden [overflow-wrap:anywhere]">
-      <div className="max-w-full overflow-x-hidden">
+    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full min-w-0 [overflow-wrap:anywhere]">
+      <div className="max-w-full min-w-0">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">{t('reports')}</h1>
         <p className="text-sm md:text-base text-muted-foreground break-words">
           {t('reportsDescription')}
