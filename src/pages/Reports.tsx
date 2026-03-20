@@ -7745,7 +7745,7 @@ const Reports = () => {
               </div>
               
               <TooltipProvider>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
