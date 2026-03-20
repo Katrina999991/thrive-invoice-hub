@@ -172,20 +172,22 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[360px] w-full max-w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 8, top: 16, bottom: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-                  <YAxis type="category" dataKey="name" width={isMobile ? 88 : 150} tick={{ fontSize: isMobile ? 11 : 12 }} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label} />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="w-full overflow-x-auto">
+              <div className="h-[360px] w-full min-w-[640px] md:min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 8, top: 16, bottom: 16 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
+                    <YAxis type="category" dataKey="name" width={isMobile ? 88 : 150} tick={{ fontSize: isMobile ? 11 : 12 }} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </CardContent>
         </Card>

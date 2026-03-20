@@ -5477,8 +5477,8 @@ const Reports = () => {
   };
 
   return (
-    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full overflow-x-hidden [overflow-wrap:anywhere]">
-      <div className="max-w-full overflow-x-hidden">
+    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full min-w-0 [overflow-wrap:anywhere]">
+      <div className="max-w-full min-w-0">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">{t('reports')}</h1>
         <p className="text-sm md:text-base text-muted-foreground break-words">
           {t('reportsDescription')}
@@ -5495,7 +5495,7 @@ const Reports = () => {
           
           return hasDateFilters || hasCompanyFilters || hasOtherFilters;
         })() && (
-          <div className="mt-4 max-w-full overflow-x-hidden p-4 bg-muted/50 rounded-lg border">
+          <div className="mt-4 max-w-full min-w-0 p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
             <div className="flex flex-wrap gap-2 max-w-full">
               {/* Dates - Affichage unifié pour tous les rapports */}
@@ -5581,7 +5581,7 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
+      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full min-w-0">
         {isMobile ? (
           <Select value={reportTab} onValueChange={setReportTab}>
             <SelectTrigger className="w-full max-w-full min-w-0">
@@ -5712,7 +5712,7 @@ const Reports = () => {
             </div>
 
             {/* Revenue Sub-tabs: By Period, By Client, By Product */}
-            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full overflow-x-hidden">
+            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full min-w-0">
               {isMobile ? (
                 <Select value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')}>
                   <SelectTrigger className="mb-4 w-full max-w-full min-w-0">
@@ -5734,7 +5734,7 @@ const Reports = () => {
 
               {/* By Period Tab - Existing functionality */}
               <TabsContent value="period" className="space-y-6">
-                <Tabs defaultValue="custom" className="w-full max-w-full overflow-x-hidden" onValueChange={(value) => {
+                <Tabs defaultValue="custom" className="w-full max-w-full min-w-0" onValueChange={(value) => {
                   setActiveTab(value);
                 }}>
                   {isMobile ? (
@@ -6440,7 +6440,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div ref={revenueByClientChartRef} className="max-w-full overflow-x-hidden">
+                <div ref={revenueByClientChartRef} className="max-w-full min-w-0">
                   <RevenueByClientReport
                     startDate={clientRevenueStartDate}
                     endDate={clientRevenueEndDate}
@@ -6545,7 +6545,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div className="max-w-full overflow-x-hidden">
+                <div className="max-w-full min-w-0">
                   <RevenueByProductReport
                     startDate={productRevenueStartDate}
                     endDate={productRevenueEndDate}
