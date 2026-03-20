@@ -24,7 +24,7 @@ import { useReminderLogs } from "@/hooks/useReminderLogs";
 import { useAuth } from "@/hooks/useAuth";
 import { RevenueByClientReport } from "@/components/reports/RevenueByClientReport";
 import { RevenueByProductReport } from "@/components/reports/RevenueByProductReport";
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
@@ -114,6 +114,41 @@ const Reports = () => {
   const salesProductChartRef = useRef<HTMLDivElement>(null);
   const salesServiceChartRef = useRef<HTMLDivElement>(null);
   const revenueByClientChartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const chartRefs = [
+      ["revenue-bar", barChartRef],
+      ["revenue-line", lineChartRef],
+      ["sales-product", salesProductChartRef],
+      ["stock", stockChartRef],
+      ["expenses-category", expenseCategoryChartRef],
+      ["expenses-company", expenseCompanyChartRef],
+      ["revenue-client", revenueByClientChartRef],
+    ] as const;
+
+    const logWidths = () => {
+      chartRefs.forEach(([name, ref]) => {
+        const node = ref.current;
+        if (!node) return;
+        const parent = node.parentElement;
+        console.info("[Reports chart width]", {
+          name,
+          width: Math.round(node.getBoundingClientRect().width),
+          scrollWidth: node.scrollWidth,
+          parentWidth: parent ? Math.round(parent.getBoundingClientRect().width) : null,
+          parentScrollWidth: parent?.scrollWidth ?? null,
+        });
+      });
+    };
+
+    const frame = window.requestAnimationFrame(logWidths);
+    window.addEventListener("resize", logWidths);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", logWidths);
+    };
+  }, [reportTab, activeTab, isMobile]);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
@@ -6224,20 +6259,22 @@ const Reports = () => {
                             {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent ref={barChartRef}>
-                          <div className="w-full h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                  labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                                />
-                                <Bar dataKey="revenue" fill="#3b82f6" />
-                              </BarChart>
-                            </ResponsiveContainer>
+                        <CardContent className="min-w-0">
+                          <div ref={barChartRef} className="w-full min-w-0 overflow-x-auto">
+                            <div className="h-[300px] min-w-[600px] md:min-w-0">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="period" />
+                                  <YAxis />
+                                  <RechartsTooltip 
+                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                    labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                                  />
+                                  <Bar dataKey="revenue" fill="#3b82f6" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -6246,19 +6283,21 @@ const Reports = () => {
                         <CardHeader>
                           <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                         </CardHeader>
-                        <CardContent ref={lineChartRef}>
-                          <div className="w-full h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                />
-                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                              </LineChart>
-                            </ResponsiveContainer>
+                        <CardContent className="min-w-0">
+                          <div ref={lineChartRef} className="w-full min-w-0 overflow-x-auto">
+                            <div className="h-[300px] min-w-[600px] md:min-w-0">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="period" />
+                                  <YAxis />
+                                  <RechartsTooltip 
+                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                  />
+                                  <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -6891,37 +6930,39 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                  <div className="w-full h-[400px]" ref={stockChartRef}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart 
-                        data={filteredInventoryProducts.map(p => ({
-                          name: p.name,
-                          quantity: p.quantity || 0,
-                          status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
-                        }))}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={100}
-                          interval={0}
-                          fontSize={isMobile ? 10 : 12}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
-                          labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
-                        />
-                        <Bar 
-                          dataKey="quantity" 
-                          fill="#22c55e"
-                          name={language === 'fr' ? 'Quantité' : 'Quantity'}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div ref={stockChartRef} className="w-full min-w-0 overflow-x-auto">
+                    <div className="h-[400px] min-w-[640px] md:min-w-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart 
+                          data={filteredInventoryProducts.map(p => ({
+                            name: p.name,
+                            quantity: p.quantity || 0,
+                            status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
+                          }))}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="name" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={100}
+                            interval={0}
+                            fontSize={isMobile ? 10 : 12}
+                          />
+                          <YAxis />
+                          <RechartsTooltip 
+                            formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
+                            labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
+                          />
+                          <Bar 
+                            dataKey="quantity" 
+                            fill="#22c55e"
+                            name={language === 'fr' ? 'Quantité' : 'Quantity'}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
@@ -7430,32 +7471,34 @@ const Reports = () => {
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent ref={expenseCategoryChartRef}>
+                  <CardContent className="min-w-0">
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <div className="w-full h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={expenseReportData.expensesByCategory}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="category" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              fontSize={isMobile ? 10 : 12}
-                            />
-                            <YAxis />
-                            <RechartsTooltip 
-                              formatter={(value: number, name: string) => [
-                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                                name === 'total_deductible_amount' 
-                                  ? (language === 'fr' ? 'Déductible' : 'Deductible')
-                                  : (language === 'fr' ? 'Total' : 'Total')
-                              ]}
-                            />
-                            <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
-                            <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
-                          </BarChart>
-                        </ResponsiveContainer>
+                      <div ref={expenseCategoryChartRef} className="w-full min-w-0 overflow-x-auto">
+                        <div className="h-[400px] min-w-[640px] md:min-w-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseReportData.expensesByCategory}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="category" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                fontSize={isMobile ? 10 : 12}
+                              />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number, name: string) => [
+                                  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                  name === 'total_deductible_amount' 
+                                    ? (language === 'fr' ? 'Déductible' : 'Deductible')
+                                    : (language === 'fr' ? 'Total' : 'Total')
+                                ]}
+                              />
+                              <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
+                              <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
@@ -7484,28 +7527,30 @@ const Reports = () => {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent ref={expenseCompanyChartRef}>
-                      <div className="w-full h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={expenseReportData.expensesByCompany}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="company_name" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              fontSize={isMobile ? 10 : 12}
-                            />
-                            <YAxis />
-                            <RechartsTooltip 
-                              formatter={(value: number) => [
-                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                                'Amount'
-                              ]}
-                            />
-                            <Bar dataKey="total_amount" fill="#3b82f6" />
-                          </BarChart>
-                        </ResponsiveContainer>
+                    <CardContent className="min-w-0">
+                      <div ref={expenseCompanyChartRef} className="w-full min-w-0 overflow-x-auto">
+                        <div className="h-[400px] min-w-[640px] md:min-w-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseReportData.expensesByCompany}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="company_name" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                fontSize={isMobile ? 10 : 12}
+                              />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number) => [
+                                  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                  'Amount'
+                                ]}
+                              />
+                              <Bar dataKey="total_amount" fill="#3b82f6" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
