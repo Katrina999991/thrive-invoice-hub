@@ -6293,19 +6293,21 @@ const Reports = () => {
                         <CardHeader>
                           <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                         </CardHeader>
-                        <CardContent ref={lineChartRef}>
-                          <div className="w-full h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                />
-                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                              </LineChart>
-                            </ResponsiveContainer>
+                        <CardContent className="min-w-0">
+                          <div ref={lineChartRef} className="w-full min-w-0 overflow-x-auto">
+                            <div className="h-[300px] min-w-[600px] md:min-w-0">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="period" />
+                                  <YAxis />
+                                  <RechartsTooltip 
+                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                  />
+                                  <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
