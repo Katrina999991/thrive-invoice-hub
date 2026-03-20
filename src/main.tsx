@@ -1,9 +1,7 @@
-
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Load saved theme preferences before rendering
 const savedTheme = localStorage.getItem("app-theme") || "default";
 const savedDarkMode = localStorage.getItem("app-dark-mode") || "light";
 
@@ -14,6 +12,4 @@ if (savedDarkMode === "dark") {
   document.documentElement.classList.remove("dark");
 }
 
-const container = document.getElementById("root")!;
-const root = createRoot(container);
-root.render(<App />);
+createRoot(document.getElementById("root")!).render(<App />);
