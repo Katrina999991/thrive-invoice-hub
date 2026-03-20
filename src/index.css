@@ -201,19 +201,14 @@ body.scanner-active .app-container {
   display: none;
 }
 
-.reports-mobile-safe,
-.reports-mobile-safe * {
-  box-sizing: border-box;
-}
-
 .reports-mobile-safe {
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .reports-mobile-safe img,
-.reports-mobile-safe svg,
 .reports-mobile-safe canvas {
   max-width: 100%;
 }
@@ -226,8 +221,6 @@ body.scanner-active .app-container {
 }
 
 @media (max-width: 767px) {
-  .reports-mobile-safe .recharts-wrapper,
-  .reports-mobile-safe .recharts-surface,
   .reports-mobile-safe .recharts-responsive-container {
     max-width: 100% !important;
   }
