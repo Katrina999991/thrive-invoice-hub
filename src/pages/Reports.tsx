@@ -8682,7 +8682,7 @@ const Reports = () => {
               <CardDescription>{t("reports.invoices.exportDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={exportInvoicesToPDF} variant="outline" size="sm">
                   <Download className="mr-2 h-4 w-4" />
                   PDF
