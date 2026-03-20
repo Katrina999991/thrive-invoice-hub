@@ -6745,25 +6745,27 @@ const Reports = () => {
                     <CardTitle>{language === 'fr' ? 'Revenus par produit' : 'Revenue by Product'}</CardTitle>
                   </CardHeader>
                   <CardContent ref={salesProductChartRef}>
-                    <BarChart width={700} height={400} data={salesData.products.slice(0, 10)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="product_name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                        fontSize={12}
-                      />
-                      <YAxis />
-                      <RechartsTooltip 
-                        formatter={(value: any) => [
-                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                          language === 'fr' ? 'Revenu' : 'Revenue'
-                        ]}
-                      />
-                      <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
-                    </BarChart>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={salesData.products.slice(0, 10)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="product_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={100}
+                          interval={0}
+                          fontSize={12}
+                        />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value: any) => [
+                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                            language === 'fr' ? 'Revenu' : 'Revenue'
+                          ]}
+                        />
+                        <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
 
