@@ -8502,7 +8502,7 @@ const Reports = () => {
                       {t("reports.invoices.listDesc", { count: filteredInvoicesByStatus.length })}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground">{t("reports.invoices.grandTotal")}</div>
                       <div className="text-2xl font-bold">${invoiceGrandTotal.toFixed(2)}</div>
