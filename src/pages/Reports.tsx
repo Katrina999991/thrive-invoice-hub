@@ -6217,52 +6217,62 @@ const Reports = () => {
                     </div>
 
                     {/* Charts */}
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>
-                            {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent ref={barChartRef}>
-                          <div className="w-full">
-                            <ResponsiveContainer width="100%" height={300}>
-                              <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                  labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                                />
-                                <Bar dataKey="revenue" fill="#3b82f6" />
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    {chartData.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>
+                              {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth') : t('reports.revenue.perYear')}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent ref={barChartRef}>
+                            <div className="w-full">
+                              <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="period" />
+                                  <YAxis />
+                                  <RechartsTooltip 
+                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                    labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                                  />
+                                  <Bar dataKey="revenue" fill="#3b82f6" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </CardContent>
+                        </Card>
 
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
+                          </CardHeader>
+                          <CardContent ref={lineChartRef}>
+                            <div className="w-full">
+                              <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="period" />
+                                  <YAxis />
+                                  <RechartsTooltip 
+                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                  />
+                                  <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ) : (
                       <Card>
-                        <CardHeader>
-                          <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
-                        </CardHeader>
-                        <CardContent ref={lineChartRef}>
-                          <div className="w-full">
-                            <ResponsiveContainer width="100%" height={300}>
-                              <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                />
-                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </div>
+                        <CardContent className="flex justify-center items-center py-16">
+                          <p className="text-muted-foreground">
+                            {language === 'fr' ? 'Aucune donnée de revenu pour cette période' : 'No revenue data for this period'}
+                          </p>
                         </CardContent>
                       </Card>
-                    </div>
+                    )}
 
                     {/* Invoice List */}
                     <Card>
