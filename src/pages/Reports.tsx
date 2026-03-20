@@ -5734,7 +5734,7 @@ const Reports = () => {
 
               {/* By Period Tab - Existing functionality */}
               <TabsContent value="period" className="space-y-6">
-                <Tabs defaultValue="custom" className="w-full max-w-full overflow-x-hidden" onValueChange={(value) => {
+                <Tabs defaultValue="custom" className="w-full max-w-full min-w-0" onValueChange={(value) => {
                   setActiveTab(value);
                 }}>
                   {isMobile ? (
