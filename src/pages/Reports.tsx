@@ -7857,7 +7857,7 @@ const Reports = () => {
               {/* Section: Tous les clients */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <CardTitle>{t("reports.clients.allClients")}</CardTitle>
                       <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
