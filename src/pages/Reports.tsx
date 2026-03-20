@@ -7432,26 +7432,31 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="category" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value: number, name: string) => [
-                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                            name === 'total_deductible_amount' 
-                              ? (language === 'fr' ? 'Déductible' : 'Deductible')
-                              : (language === 'fr' ? 'Total' : 'Total')
-                          ]}
-                        />
-                        <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
-                        <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
-                      </BarChart>
+                      <div className="w-full h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={expenseReportData.expensesByCategory}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="category" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                              fontSize={isMobile ? 10 : 12}
+                            />
+                            <YAxis />
+                            <RechartsTooltip 
+                              formatter={(value: number, name: string) => [
+                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                name === 'total_deductible_amount' 
+                                  ? (language === 'fr' ? 'Déductible' : 'Deductible')
+                                  : (language === 'fr' ? 'Total' : 'Total')
+                              ]}
+                            />
+                            <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
+                            <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         {t("reports.expenses.noData")}
