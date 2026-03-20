@@ -117,7 +117,7 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
   }));
 
   return (
-    <div className="space-y-6 max-w-full min-w-0">
+    <div className="space-y-6 max-w-full overflow-x-hidden">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -174,29 +174,27 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
           <CardContent>
-            <div className="w-full overflow-x-auto">
-              <div className="h-[320px] w-full min-w-[600px] md:min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy={isMobile ? "40%" : "44%"}
-                      labelLine={false}
-                      outerRadius={isMobile ? 72 : 100}
-                      fill="hsl(var(--primary))"
-                      dataKey="value"
-                      label={isMobile ? ({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%` : ({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 16 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="h-[320px] w-full max-w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy={isMobile ? "40%" : "44%"}
+                    labelLine={false}
+                    outerRadius={isMobile ? 72 : 100}
+                    fill="hsl(var(--primary))"
+                    dataKey="value"
+                    label={isMobile ? ({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%` : ({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 16 }} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
