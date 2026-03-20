@@ -46,7 +46,7 @@ export const useReports = (startDate?: Date, endDate?: Date, filterType?: 'all' 
           issue_date, 
           status,
           client_id,
-          clients!inner (
+          clients (
             company_id
           )
         `)
