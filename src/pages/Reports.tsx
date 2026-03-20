@@ -6440,7 +6440,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div ref={revenueByClientChartRef} className="max-w-full overflow-x-hidden">
+                <div ref={revenueByClientChartRef} className="max-w-full min-w-0">
                   <RevenueByClientReport
                     startDate={clientRevenueStartDate}
                     endDate={clientRevenueEndDate}
