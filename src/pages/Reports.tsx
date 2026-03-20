@@ -6627,7 +6627,7 @@ const Reports = () => {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <Download className="w-4 h-4 mr-2" />
                     PDF
