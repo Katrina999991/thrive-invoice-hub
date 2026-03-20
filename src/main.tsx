@@ -13,4 +13,7 @@ if (savedDarkMode === "dark") {
 }
 
 const container = document.getElementById("root")!;
-createRoot(container).render(<App />);
+const root = createRoot(container);
+const app = <App />;
+
+root.render(app);
