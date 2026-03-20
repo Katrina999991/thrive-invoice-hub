@@ -1,11 +1,10 @@
 import { useLanguage } from '@/hooks/useLanguage';
-import { useRevenueByProduct } from '@/hooks/useRevenueByProduct';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useRevenueByProduct, ProductRevenueData } from '@/hooks/useRevenueByProduct';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, DollarSign, Hash, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 
 interface RevenueByProductReportProps {
   startDate?: Date;
@@ -54,7 +53,6 @@ const translations = {
 
 export const RevenueByProductReport = ({ startDate, endDate, companyId }: RevenueByProductReportProps) => {
   const { language } = useLanguage();
-  const isMobile = useIsMobile();
   const t = translations[language as keyof typeof translations] || translations.en;
   const { productRevenueData, loading, error } = useRevenueByProduct(startDate, endDate, companyId);
 
@@ -116,17 +114,18 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
   }));
 
   return (
-    <div className="space-y-6 max-w-full overflow-x-hidden">
+    <div className="space-y-6">
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-primary/10">
                 <DollarSign className="h-6 w-6 text-primary" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">{t.totalRevenue}</p>
-                <p className="text-2xl font-bold break-words">{formatCurrency(productRevenueData.totalRevenue)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(productRevenueData.totalRevenue)}</p>
                 <p className="text-xs text-muted-foreground mt-1">{t.totalRevenueHelp}</p>
               </div>
             </div>
@@ -135,11 +134,11 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                <Hash className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <Hash className="h-6 w-6 text-green-500" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">{t.totalQuantity}</p>
                 <p className="text-2xl font-bold">{productRevenueData.totalQuantity.toLocaleString()}</p>
               </div>
@@ -149,11 +148,11 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                <Package className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Package className="h-6 w-6 text-blue-500" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">{t.uniqueProducts}</p>
                 <p className="text-2xl font-bold">{productRevenueData.uniqueProducts}</p>
               </div>
@@ -162,6 +161,7 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
         </Card>
       </div>
 
+      {/* Chart - Only show if there's data */}
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
@@ -172,25 +172,34 @@ export const RevenueByProductReport = ({ startDate, endDate, companyId }: Revenu
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[360px] w-full max-w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 8, top: 16, bottom: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-                  <YAxis type="category" dataKey="name" width={isMobile ? 88 : 150} tick={{ fontSize: isMobile ? 11 : 12 }} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label} />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="w-full overflow-x-auto">
+              <BarChart width={700} height={400} data={chartData} layout="vertical" margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  type="number" 
+                  tickFormatter={(value) => formatCurrency(value)}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  width={150}
+                />
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value)}
+                  labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                />
+                <Bar dataKey="value" fill="#22c55e" radius={[0, 4, 4, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
             </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

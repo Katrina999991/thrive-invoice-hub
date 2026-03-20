@@ -201,31 +201,6 @@ body.scanner-active .app-container {
   display: none;
 }
 
-.reports-mobile-safe {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
-
-.reports-mobile-safe img,
-.reports-mobile-safe canvas {
-  max-width: 100%;
-}
-
-.reports-mobile-safe [data-report-chip] {
-  min-width: 0;
-  max-width: 100%;
-  white-space: normal;
-  word-break: break-word;
-}
-
-@media (max-width: 767px) {
-  .reports-mobile-safe .recharts-responsive-container {
-    max-width: 100% !important;
-  }
-}
-
 #html5-qrcode-scanner__scan_region {
   min-height: 300px !important;
 }

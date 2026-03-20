@@ -1,11 +1,10 @@
 import { useLanguage } from '@/hooks/useLanguage';
-import { useRevenueByClient } from '@/hooks/useRevenueByClient';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useRevenueByClient, ClientRevenueData } from '@/hooks/useRevenueByClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, DollarSign, FileText, TrendingUp } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 interface RevenueByClientReportProps {
   startDate?: Date;
@@ -56,7 +55,6 @@ const translations = {
 
 export const RevenueByClientReport = ({ startDate, endDate, companyId }: RevenueByClientReportProps) => {
   const { language } = useLanguage();
-  const isMobile = useIsMobile();
   const t = translations[language as keyof typeof translations] || translations.en;
   const { clientRevenueData, loading, error } = useRevenueByClient(startDate, endDate, companyId);
 
@@ -117,17 +115,18 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
   }));
 
   return (
-    <div className="space-y-6 max-w-full overflow-x-hidden">
+    <div className="space-y-6">
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-primary/10">
                 <DollarSign className="h-6 w-6 text-primary" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">{t.totalRevenue}</p>
-                <p className="text-2xl font-bold break-words">{formatCurrency(clientRevenueData.totalRevenue)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(clientRevenueData.totalRevenue)}</p>
                 <p className="text-xs text-muted-foreground mt-1">{t.totalRevenueHelp}</p>
               </div>
             </div>
@@ -136,13 +135,13 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                <TrendingUp className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <TrendingUp className="h-6 w-6 text-green-500" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">{t.totalPaid}</p>
-                <p className="text-2xl font-bold break-words">{formatCurrency(clientRevenueData.totalPaid)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(clientRevenueData.totalPaid)}</p>
                 <p className="text-xs text-muted-foreground mt-1">{t.totalPaidHelp}</p>
               </div>
             </div>
@@ -151,11 +150,11 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                <FileText className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <FileText className="h-6 w-6 text-blue-500" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">{t.totalInvoices}</p>
                 <p className="text-2xl font-bold">{clientRevenueData.totalInvoices}</p>
               </div>
@@ -164,6 +163,7 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
         </Card>
       </div>
 
+      {/* Chart - Only show if there's data */}
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
@@ -174,32 +174,38 @@ export const RevenueByClientReport = ({ startDate, endDate, companyId }: Revenue
             <p className="text-sm text-muted-foreground">{t.distributionDesc}</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[320px] w-full max-w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy={isMobile ? "40%" : "44%"}
-                    labelLine={false}
-                    outerRadius={isMobile ? 72 : 100}
-                    fill="hsl(var(--primary))"
-                    dataKey="value"
-                    label={isMobile ? ({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%` : ({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 16 }} />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="w-full overflow-x-auto">
+              <PieChart width={600} height={350}>
+                <Pie
+                  data={chartData}
+                  cx={300}
+                  cy={150}
+                  labelLine={false}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value)}
+                  contentStyle={{ 
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Legend />
+              </PieChart>
             </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

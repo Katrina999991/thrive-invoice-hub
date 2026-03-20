@@ -641,7 +641,7 @@ const Reports = () => {
         const barImgData = barCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        const barChartTitle = `${t('reports.revenue.revenueEvolution')} ${viewMode === 'monthly' ? t('reports.revenue.perMonth') : t('reports.revenue.perYear')}`;
+        const barChartTitle = `${t('reports.revenue.revenueEvolution')} ${viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}`;
         doc.text(barChartTitle, 20, yPosition);
         yPosition += 10;
         
@@ -5477,10 +5477,10 @@ const Reports = () => {
   };
 
   return (
-    <div className="reports-mobile-safe space-y-4 md:space-y-6 max-w-full overflow-x-hidden [overflow-wrap:anywhere]">
-      <div className="max-w-full overflow-x-hidden">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">{t('reports')}</h1>
-        <p className="text-sm md:text-base text-muted-foreground break-words">
+    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('reports')}</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           {t('reportsDescription')}
         </p>
         
@@ -5495,9 +5495,9 @@ const Reports = () => {
           
           return hasDateFilters || hasCompanyFilters || hasOtherFilters;
         })() && (
-          <div className="mt-4 max-w-full overflow-x-hidden p-4 bg-muted/50 rounded-lg border">
+          <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
-            <div className="flex flex-wrap gap-2 max-w-full">
+            <div className="flex flex-wrap gap-2">
               {/* Dates - Affichage unifié pour tous les rapports */}
               {(() => {
                 const effectiveStartDate = startDate || customStartDate;
@@ -5505,19 +5505,19 @@ const Reports = () => {
                 
                 if (effectiveStartDate && effectiveEndDate) {
                   return (
-                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       Période: {format(effectiveStartDate, 'dd/MM/yyyy')} - {format(effectiveEndDate, 'dd/MM/yyyy')}
                     </span>
                   );
                 } else if (effectiveStartDate) {
                   return (
-                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       À partir du: {format(effectiveStartDate, 'dd/MM/yyyy')}
                     </span>
                   );
                 } else if (effectiveEndDate) {
                   return (
-                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                       Jusqu'au: {format(effectiveEndDate, 'dd/MM/yyyy')}
                     </span>
                   );
@@ -5527,9 +5527,10 @@ const Reports = () => {
               
               {/* Compagnies - Affichage unifié pour tous les rapports */}
               {(() => {
+                // Affichage prioritaire selon la section active
                 if (selectedCompanyId && companies?.find(c => c.id === selectedCompanyId)?.name) {
                   return (
-                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === selectedCompanyId)?.name}
                     </span>
                   );
@@ -5537,7 +5538,7 @@ const Reports = () => {
                 
                 if (productSelectedCompanyId && companies?.find(c => c.id === productSelectedCompanyId)?.name) {
                   return (
-                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === productSelectedCompanyId)?.name}
                     </span>
                   );
@@ -5545,7 +5546,7 @@ const Reports = () => {
                 
                 if (expenseSelectedCompanyId && companies?.find(c => c.id === expenseSelectedCompanyId)?.name) {
                   return (
-                    <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                       Compagnie: {companies.find(c => c.id === expenseSelectedCompanyId)?.name}
                     </span>
                   );
@@ -5554,25 +5555,28 @@ const Reports = () => {
                 return null;
               })()}
               
+              {/* Autres filtres */}
               {filterType === 'client' && selectedClientId && (
-                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/80 text-secondary-foreground">
                   Client: {clients?.find(c => c.id === selectedClientId)?.name || selectedClientId}
                 </span>
               )}
               
+              {/* Filtres produits */}
               {productFilterType === 'company' && productSelectedCompanyId && (
-                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/80 text-accent-foreground">
                   Compagnie (Produits): {companies?.find(c => c.id === productSelectedCompanyId)?.name || productSelectedCompanyId}
                 </span>
               )}
               
+              {/* Filtres dépenses */}
               {expenseFilterType === 'company' && expenseSelectedCompanyId && (
-                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
                   Compagnie (Dépenses): {companies?.find(c => c.id === expenseSelectedCompanyId)?.name || expenseSelectedCompanyId}
                 </span>
               )}
               {expenseFilterType === 'category' && expenseSelectedCategory && (
-                <span data-report-chip className="inline-flex max-w-full items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/80 text-destructive-foreground">
                   Catégorie (Dépenses): {expenseSelectedCategory}
                 </span>
               )}
@@ -5581,10 +5585,10 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
+      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4">
         {isMobile ? (
           <Select value={reportTab} onValueChange={setReportTab}>
-            <SelectTrigger className="w-full max-w-full min-w-0">
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -5712,49 +5716,23 @@ const Reports = () => {
             </div>
 
             {/* Revenue Sub-tabs: By Period, By Client, By Product */}
-            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full overflow-x-hidden">
-              {isMobile ? (
-                <Select value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')}>
-                  <SelectTrigger className="mb-4 w-full max-w-full min-w-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="period">{language === 'fr' ? 'Par période' : 'By Period'}</SelectItem>
-                    <SelectItem value="client">{language === 'fr' ? 'Par client' : 'By Client'}</SelectItem>
-                    <SelectItem value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <TabsList className="grid w-full grid-cols-3 mb-4">
-                  <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
-                  <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
-                  <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
-                </TabsList>
-              )}
+            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="period">{language === 'fr' ? 'Par période' : 'By Period'}</TabsTrigger>
+                <TabsTrigger value="client">{language === 'fr' ? 'Par client' : 'By Client'}</TabsTrigger>
+                <TabsTrigger value="product">{language === 'fr' ? 'Par produit' : 'By Product'}</TabsTrigger>
+              </TabsList>
 
               {/* By Period Tab - Existing functionality */}
               <TabsContent value="period" className="space-y-6">
-                <Tabs defaultValue="custom" className="w-full max-w-full overflow-x-hidden" onValueChange={(value) => {
+                <Tabs defaultValue="custom" className="w-full" onValueChange={(value) => {
                   setActiveTab(value);
                 }}>
-                  {isMobile ? (
-                    <Select value={activeTab} onValueChange={setActiveTab}>
-                      <SelectTrigger className="w-full max-w-full min-w-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="custom">{t("reports.revenue.customDateRange")}</SelectItem>
-                        <SelectItem value="month">{t("reports.revenue.byMonth")}</SelectItem>
-                        <SelectItem value="year">{t("reports.revenue.byYear")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
-                      <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
-                      <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
-                    </TabsList>
-                  )}
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="custom">{t("reports.revenue.customDateRange")}</TabsTrigger>
+                    <TabsTrigger value="month">{t("reports.revenue.byMonth")}</TabsTrigger>
+                    <TabsTrigger value="year">{t("reports.revenue.byYear")}</TabsTrigger>
+                  </TabsList>
               
               <TabsContent value="custom" className="space-y-4">
                 <Card>
@@ -6094,13 +6072,13 @@ const Reports = () => {
                 {!loading && !error && realRevenueData && (startDate || endDate) && (
                   <>
                     {/* Export buttons */}
-                     <div className="flex flex-wrap justify-end gap-2 mb-4">
+                    <div className="flex justify-end gap-2 mb-4">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={exportToPDF}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
                         PDF
@@ -6110,20 +6088,20 @@ const Reports = () => {
                         size="sm"
                         onClick={exportToExcel}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <FileSpreadsheet className="h-4 w-4" />
                         Excel
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="w-full sm:w-auto">
+                          <span>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={exportRevenueToCSV}
                               disabled={!realRevenueData || !chartData.length || planLimits?.plan_type === 'free'}
-                              className="flex items-center gap-2 w-full sm:w-auto"
+                              className="flex items-center gap-2"
                             >
                               <FileSpreadsheet className="h-4 w-4" />
                               CSV
@@ -6141,7 +6119,7 @@ const Reports = () => {
                         size="sm"
                         onClick={downloadChartsAsPDF}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
                         {language === 'fr' ? 'Graphiques PDF' : 'Charts PDF'}
@@ -6151,7 +6129,7 @@ const Reports = () => {
                         size="sm"
                         onClick={() => setEmailDialogOpen('revenue')}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         <Mail className="h-4 w-4" />
                         {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6217,62 +6195,48 @@ const Reports = () => {
                     </div>
 
                     {/* Charts */}
-                    {chartData.length > 0 ? (
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>
-                              {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth') : t('reports.revenue.perYear')}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent ref={barChartRef}>
-                            <div className="w-full">
-                              <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData}>
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="period" />
-                                  <YAxis />
-                                  <RechartsTooltip 
-                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                    labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                                  />
-                                  <Bar dataKey="revenue" fill="#3b82f6" />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
-                          </CardHeader>
-                          <CardContent ref={lineChartRef}>
-                            <div className="w-full">
-                              <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={chartData}>
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="period" />
-                                  <YAxis />
-                                  <RechartsTooltip 
-                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                  />
-                                  <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    ) : (
+                    <div className="grid gap-4 md:grid-cols-2">
                       <Card>
-                        <CardContent className="flex justify-center items-center py-16">
-                          <p className="text-muted-foreground">
-                            {language === 'fr' ? 'Aucune donnée de revenu pour cette période' : 'No revenue data for this period'}
-                          </p>
+                        <CardHeader>
+                          <CardTitle>
+                            {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent ref={barChartRef}>
+                          <div className="w-full overflow-x-auto">
+                            <BarChart width={400} height={300} data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="period" />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                              />
+                              <Bar dataKey="revenue" fill="#3b82f6" />
+                            </BarChart>
+                          </div>
                         </CardContent>
                       </Card>
-                    )}
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
+                        </CardHeader>
+                        <CardContent ref={lineChartRef}>
+                          <div className="w-full overflow-x-auto">
+                            <LineChart width={400} height={300} data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="period" />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                              />
+                              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                            </LineChart>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
 
                     {/* Invoice List */}
                     <Card>
@@ -6377,7 +6341,7 @@ const Reports = () => {
                       <div className="space-y-2">
                         <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
                         <Select value={clientRevenueCompanyId} onValueChange={setClientRevenueCompanyId}>
-                          <SelectTrigger className="w-full max-w-full min-w-0 bg-background">
+                          <SelectTrigger className="bg-background">
                             <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
                           </SelectTrigger>
                           <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -6394,14 +6358,15 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
+                {/* Export Buttons for Revenue by Client */}
                 {clientRevenueData && clientRevenueData.clientData.length > 0 && (clientRevenueStartDate || clientRevenueEndDate) && (
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByClientToPDF}
                       disabled={clientRevenueLoading}
-                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <Download className="h-4 w-4" />
                       PDF
@@ -6411,20 +6376,20 @@ const Reports = () => {
                       size="sm"
                       onClick={exportRevenueByClientToExcel}
                       disabled={clientRevenueLoading}
-                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="w-full sm:w-auto">
+                        <span>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={exportRevenueByClientToCSV}
                             disabled={clientRevenueLoading || planLimits?.plan_type === 'free'}
-                            className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                            className="flex items-center gap-2"
                           >
                             <FileSpreadsheet className="h-4 w-4" />
                             CSV
@@ -6442,7 +6407,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_client')}
                       disabled={clientRevenueLoading}
-                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <Mail className="h-4 w-4" />
                       {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6450,7 +6415,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div ref={revenueByClientChartRef} className="max-w-full overflow-x-hidden">
+                <div ref={revenueByClientChartRef}>
                   <RevenueByClientReport
                     startDate={clientRevenueStartDate}
                     endDate={clientRevenueEndDate}
@@ -6482,7 +6447,7 @@ const Reports = () => {
                       <div className="space-y-2">
                         <Label>{language === 'fr' ? 'Entreprise' : 'Company'}</Label>
                         <Select value={productRevenueCompanyId} onValueChange={setProductRevenueCompanyId}>
-                          <SelectTrigger className="w-full max-w-full min-w-0 bg-background">
+                          <SelectTrigger className="bg-background">
                             <SelectValue placeholder={language === 'fr' ? 'Toutes les entreprises' : 'All companies'} />
                           </SelectTrigger>
                           <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -6499,14 +6464,15 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
+                {/* Export Buttons for Revenue by Product */}
                 {(productRevenueStartDate || productRevenueEndDate) && (
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={exportRevenueByProductToPDF}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <Download className="h-4 w-4" />
                       PDF
@@ -6516,20 +6482,20 @@ const Reports = () => {
                       size="sm"
                       onClick={exportRevenueByProductToExcel}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       Excel
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="w-full sm:w-auto">
+                        <span>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={exportRevenueByProductToCSV}
                             disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0 || planLimits?.plan_type === 'free'}
-                            className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                            className="flex items-center gap-2"
                           >
                             <FileSpreadsheet className="h-4 w-4" />
                             CSV
@@ -6547,7 +6513,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setEmailDialogOpen('revenue_by_product')}
                       disabled={productRevenueLoading || !productRevenueData || productRevenueData.productData.length === 0}
-                      className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <Mail className="h-4 w-4" />
                       {language === 'fr' ? 'Courriel' : 'Email'}
@@ -6555,13 +6521,11 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div className="max-w-full overflow-x-hidden">
-                  <RevenueByProductReport
-                    startDate={productRevenueStartDate}
-                    endDate={productRevenueEndDate}
-                    companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
-                  />
-                </div>
+                <RevenueByProductReport
+                  startDate={productRevenueStartDate}
+                  endDate={productRevenueEndDate}
+                  companyId={productRevenueCompanyId && productRevenueCompanyId !== 'all' ? productRevenueCompanyId : undefined}
+                />
               </TabsContent>
             </Tabs>
           </div>
@@ -6636,17 +6600,17 @@ const Reports = () => {
                     : 'Identify your best and worst performing products'}
                 </p>
               </div>
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex space-x-2">
+                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <Download className="w-4 h-4 mr-2" />
                     PDF
                   </Button>
-                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
+                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Excel
                   </Button>
-                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
+                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <Mail className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Courriel' : 'Email'}
                   </Button>
@@ -6755,27 +6719,25 @@ const Reports = () => {
                     <CardTitle>{language === 'fr' ? 'Revenus par produit' : 'Revenue by Product'}</CardTitle>
                   </CardHeader>
                   <CardContent ref={salesProductChartRef}>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart data={salesData.products.slice(0, 10)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="product_name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={100}
-                          interval={0}
-                          fontSize={12}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value: any) => [
-                            new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                            language === 'fr' ? 'Revenu' : 'Revenue'
-                          ]}
-                        />
-                        <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <BarChart width={700} height={400} data={salesData.products.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="product_name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        fontSize={12}
+                      />
+                      <YAxis />
+                      <RechartsTooltip 
+                        formatter={(value: any) => [
+                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                          language === 'fr' ? 'Revenu' : 'Revenue'
+                        ]}
+                      />
+                      <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
+                    </BarChart>
                   </CardContent>
                 </Card>
 
@@ -6834,16 +6796,16 @@ const Reports = () => {
                     : 'Identify out-of-stock products and avoid shortages'}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
+              <div className="flex space-x-2">
+                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
+                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
                 </Button>
-                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
+                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Mail className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
@@ -6851,7 +6813,7 @@ const Reports = () => {
             </div>
 
             {/* Stock Status Summary Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
+            <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{language === 'fr' ? 'Produits totaux' : 'Total Products'}</CardTitle>
@@ -6899,37 +6861,37 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                    <div className="w-full" ref={stockChartRef}>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart 
-                        data={filteredInventoryProducts.map(p => ({
-                          name: p.name,
-                          quantity: p.quantity || 0,
-                          status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
-                        }))}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={100}
-                          interval={0}
-                          fontSize={12}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
-                          labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
-                        />
-                        <Bar 
-                          dataKey="quantity" 
-                          fill="#22c55e"
-                          name={language === 'fr' ? 'Quantité' : 'Quantity'}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="w-full overflow-x-auto" ref={stockChartRef}>
+                    <BarChart 
+                      width={800} 
+                      height={400}
+                      data={filteredInventoryProducts.map(p => ({
+                        name: p.name,
+                        quantity: p.quantity || 0,
+                        status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
+                      }))}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        fontSize={12}
+                      />
+                      <YAxis />
+                      <RechartsTooltip 
+                        formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
+                        labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
+                      />
+                      <Bar 
+                        dataKey="quantity" 
+                        fill="#22c55e"
+                        name={language === 'fr' ? 'Quantité' : 'Quantity'}
+                      />
+                    </BarChart>
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
@@ -7004,16 +6966,16 @@ const Reports = () => {
               </div>
               
               {/* Export Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={exportStockValueToPDF} variant="outline" size="sm" className="w-full sm:w-auto">
+              <div className="flex space-x-2">
+                <Button onClick={exportStockValueToPDF} variant="outline" size="sm">
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={exportStockValueToExcel} variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button onClick={exportStockValueToExcel} variant="outline" size="sm">
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
                 </Button>
-                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm">
                   <Mail className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
@@ -7121,7 +7083,7 @@ const Reports = () => {
 
         <TabsContent value="expenses" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.expenses.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
@@ -7440,8 +7402,7 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={400}>
-                      <BarChart data={expenseReportData.expensesByCategory}>
+                      <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="category" 
@@ -7461,7 +7422,6 @@ const Reports = () => {
                         <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
                         <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
                       </BarChart>
-                      </ResponsiveContainer>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         {t("reports.expenses.noData")}
@@ -7490,25 +7450,23 @@ const Reports = () => {
                       </div>
                     </CardHeader>
                     <CardContent ref={expenseCompanyChartRef}>
-                      <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={expenseReportData.expensesByCompany}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="company_name" 
-                            angle={-45}
-                            textAnchor="end"
-                            height={80}
-                          />
-                          <YAxis />
-                          <RechartsTooltip 
-                            formatter={(value: number) => [
-                              new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                              'Amount'
-                            ]}
-                          />
-                          <Bar dataKey="total_amount" fill="#3b82f6" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="company_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value: number) => [
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                            'Amount'
+                          ]}
+                        />
+                        <Bar dataKey="total_amount" fill="#3b82f6" />
+                      </BarChart>
                     </CardContent>
                   </Card>
                 )}
@@ -7740,14 +7698,14 @@ const Reports = () => {
 
         <TabsContent value="clients" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.clients.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.clients.description")}</p>
               </div>
               
               <TooltipProvider>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex space-x-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
@@ -7867,13 +7825,13 @@ const Reports = () => {
               {/* Section: Tous les clients */}
               <Card>
                 <CardHeader>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>{t("reports.clients.allClients")}</CardTitle>
                       <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
                     </div>
                     <TooltipProvider>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex space-x-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
@@ -7968,7 +7926,7 @@ const Reports = () => {
                       
                       return (
                         <div key={company.id} className="border rounded-lg p-4">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                          <div className="flex items-center justify-between mb-4">
                             <div>
                               <h3 className="font-semibold text-lg">{company.name}</h3>
                               <span className="text-sm text-muted-foreground">
@@ -7976,7 +7934,7 @@ const Reports = () => {
                               </span>
                             </div>
                             <TooltipProvider>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex space-x-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button onClick={() => exportCompanyClientsToPDF(company)} variant="outline" size="sm">
@@ -8067,7 +8025,7 @@ const Reports = () => {
                       
                       return clientsWithoutCompany.length > 0 && (
                         <div className="border rounded-lg p-4">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                          <div className="flex items-center justify-between mb-4">
                             <div>
                               <h3 className="font-semibold text-lg">{t("reports.clients.clientsWithoutCompany")}</h3>
                               <span className="text-sm text-muted-foreground">
@@ -8075,7 +8033,7 @@ const Reports = () => {
                               </span>
                             </div>
                             <TooltipProvider>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex space-x-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button onClick={exportClientsWithoutCompanyToPDF} variant="outline" size="sm">
@@ -8684,7 +8642,7 @@ const Reports = () => {
               <CardDescription>{t("reports.invoices.exportDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2">
                 <Button onClick={exportInvoicesToPDF} variant="outline" size="sm">
                   <Download className="mr-2 h-4 w-4" />
                   PDF
@@ -8719,7 +8677,7 @@ const Reports = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>{language === "fr" ? "Date de début" : "Start Date"}</Label>
                   <Popover open={reminderStartOpen} onOpenChange={setReminderStartOpen}>

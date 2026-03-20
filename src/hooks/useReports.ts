@@ -23,6 +23,17 @@ export const useReports = (startDate?: Date, endDate?: Date, filterType?: 'all' 
   const fetchRevenueData = async () => {
     if (!user) return;
 
+    // Si aucune date n'est spécifiée, ne pas afficher de données
+    if (!startDate && !endDate) {
+      setRevenueData({
+        totalRevenue: 0,
+        monthlyData: [],
+        yearlyData: []
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -35,7 +46,7 @@ export const useReports = (startDate?: Date, endDate?: Date, filterType?: 'all' 
           issue_date, 
           status,
           client_id,
-          clients (
+          clients!inner (
             company_id
           )
         `)
@@ -52,7 +63,7 @@ export const useReports = (startDate?: Date, endDate?: Date, filterType?: 'all' 
       
       // Ajouter filtres additionnels
       if (filterType === 'company' && filterId) {
-        query = query.not('client_id', 'is', null).eq('clients.company_id', filterId);
+        query = query.eq('clients.company_id', filterId);
       }
       if (filterType === 'client' && filterId) {
         query = query.eq('client_id', filterId);
