@@ -5495,7 +5495,7 @@ const Reports = () => {
           
           return hasDateFilters || hasCompanyFilters || hasOtherFilters;
         })() && (
-          <div className="mt-4 max-w-full overflow-x-hidden p-4 bg-muted/50 rounded-lg border">
+          <div className="mt-4 max-w-full min-w-0 p-4 bg-muted/50 rounded-lg border">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtres appliqués :</h3>
             <div className="flex flex-wrap gap-2 max-w-full">
               {/* Dates - Affichage unifié pour tous les rapports */}
