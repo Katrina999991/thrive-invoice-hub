@@ -6094,7 +6094,7 @@ const Reports = () => {
                 {!loading && !error && realRevenueData && (startDate || endDate) && (
                   <>
                     {/* Export buttons */}
-                    <div className="flex justify-end gap-2 mb-4">
+                    <div className="flex flex-wrap justify-end gap-2 mb-4">
                       <Button
                         variant="outline"
                         size="sm"
@@ -6225,17 +6225,19 @@ const Reports = () => {
                           </CardTitle>
                         </CardHeader>
                         <CardContent ref={barChartRef}>
-                          <div className="w-full overflow-x-auto">
-                            <BarChart width={400} height={300} data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="period" />
-                              <YAxis />
-                              <RechartsTooltip 
-                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                              />
-                              <Bar dataKey="revenue" fill="#3b82f6" />
-                            </BarChart>
+                          <div className="w-full h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="period" />
+                                <YAxis />
+                                <RechartsTooltip 
+                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                  labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                                />
+                                <Bar dataKey="revenue" fill="#3b82f6" />
+                              </BarChart>
+                            </ResponsiveContainer>
                           </div>
                         </CardContent>
                       </Card>
@@ -6245,16 +6247,18 @@ const Reports = () => {
                           <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                         </CardHeader>
                         <CardContent ref={lineChartRef}>
-                          <div className="w-full overflow-x-auto">
-                            <LineChart width={400} height={300} data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="period" />
-                              <YAxis />
-                              <RechartsTooltip 
-                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                              />
-                              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                            </LineChart>
+                          <div className="w-full h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="period" />
+                                <YAxis />
+                                <RechartsTooltip 
+                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                />
+                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                              </LineChart>
+                            </ResponsiveContainer>
                           </div>
                         </CardContent>
                       </Card>
@@ -6623,7 +6627,7 @@ const Reports = () => {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
                     <Download className="w-4 h-4 mr-2" />
                     PDF
@@ -6741,25 +6745,29 @@ const Reports = () => {
                     <CardTitle>{language === 'fr' ? 'Revenus par produit' : 'Revenue by Product'}</CardTitle>
                   </CardHeader>
                   <CardContent ref={salesProductChartRef}>
-                    <BarChart width={700} height={400} data={salesData.products.slice(0, 10)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="product_name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                        fontSize={12}
-                      />
-                      <YAxis />
-                      <RechartsTooltip 
-                        formatter={(value: any) => [
-                          new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
-                          language === 'fr' ? 'Revenu' : 'Revenue'
-                        ]}
-                      />
-                      <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
-                    </BarChart>
+                    <div className="w-full h-[400px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={salesData.products.slice(0, 10)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="product_name" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={100}
+                            interval={0}
+                            fontSize={isMobile ? 10 : 12}
+                          />
+                          <YAxis />
+                          <RechartsTooltip 
+                            formatter={(value: any) => [
+                              new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value),
+                              language === 'fr' ? 'Revenu' : 'Revenue'
+                            ]}
+                          />
+                          <Bar dataKey="total_revenue" fill="#22c55e" name={language === 'fr' ? 'Revenu' : 'Revenue'} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -6818,7 +6826,7 @@ const Reports = () => {
                     : 'Identify out-of-stock products and avoid shortages'}
                 </p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
@@ -6883,37 +6891,37 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                  <div className="w-full overflow-x-auto" ref={stockChartRef}>
-                    <BarChart 
-                      width={800} 
-                      height={400}
-                      data={filteredInventoryProducts.map(p => ({
-                        name: p.name,
-                        quantity: p.quantity || 0,
-                        status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
-                      }))}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                        fontSize={12}
-                      />
-                      <YAxis />
-                      <RechartsTooltip 
-                        formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
-                        labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
-                      />
-                      <Bar 
-                        dataKey="quantity" 
-                        fill="#22c55e"
-                        name={language === 'fr' ? 'Quantité' : 'Quantity'}
-                      />
-                    </BarChart>
+                  <div className="w-full h-[400px]" ref={stockChartRef}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={filteredInventoryProducts.map(p => ({
+                          name: p.name,
+                          quantity: p.quantity || 0,
+                          status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
+                        }))}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={100}
+                          interval={0}
+                          fontSize={isMobile ? 10 : 12}
+                        />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
+                          labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
+                        />
+                        <Bar 
+                          dataKey="quantity" 
+                          fill="#22c55e"
+                          name={language === 'fr' ? 'Quantité' : 'Quantity'}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
@@ -6988,7 +6996,7 @@ const Reports = () => {
               </div>
               
               {/* Export Buttons */}
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={exportStockValueToPDF} variant="outline" size="sm">
                   <Download className="w-4 h-4 mr-2" />
                   PDF
@@ -7105,7 +7113,7 @@ const Reports = () => {
 
         <TabsContent value="expenses" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.expenses.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.expenses.description")}</p>
@@ -7424,26 +7432,31 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="category" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value: number, name: string) => [
-                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                            name === 'total_deductible_amount' 
-                              ? (language === 'fr' ? 'Déductible' : 'Deductible')
-                              : (language === 'fr' ? 'Total' : 'Total')
-                          ]}
-                        />
-                        <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
-                        <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
-                      </BarChart>
+                      <div className="w-full h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={expenseReportData.expensesByCategory}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="category" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                              fontSize={isMobile ? 10 : 12}
+                            />
+                            <YAxis />
+                            <RechartsTooltip 
+                              formatter={(value: number, name: string) => [
+                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                name === 'total_deductible_amount' 
+                                  ? (language === 'fr' ? 'Déductible' : 'Deductible')
+                                  : (language === 'fr' ? 'Total' : 'Total')
+                              ]}
+                            />
+                            <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
+                            <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         {t("reports.expenses.noData")}
@@ -7472,23 +7485,28 @@ const Reports = () => {
                       </div>
                     </CardHeader>
                     <CardContent ref={expenseCompanyChartRef}>
-                      <BarChart width={600} height={400} data={expenseReportData.expensesByCompany}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="company_name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
-                        <YAxis />
-                        <RechartsTooltip 
-                          formatter={(value: number) => [
-                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                            'Amount'
-                          ]}
-                        />
-                        <Bar dataKey="total_amount" fill="#3b82f6" />
-                      </BarChart>
+                      <div className="w-full h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={expenseReportData.expensesByCompany}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="company_name" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                              fontSize={isMobile ? 10 : 12}
+                            />
+                            <YAxis />
+                            <RechartsTooltip 
+                              formatter={(value: number) => [
+                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                'Amount'
+                              ]}
+                            />
+                            <Bar dataKey="total_amount" fill="#3b82f6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -7720,14 +7738,14 @@ const Reports = () => {
 
         <TabsContent value="clients" className="space-y-4">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t("reports.clients.title")}</h2>
                 <p className="text-muted-foreground">{t("reports.clients.description")}</p>
               </div>
               
               <TooltipProvider>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button onClick={exportClientsToPDF} variant="outline" size="sm" disabled={!clients || clients.length === 0}>
@@ -7847,13 +7865,13 @@ const Reports = () => {
               {/* Section: Tous les clients */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                       <CardTitle>{t("reports.clients.allClients")}</CardTitle>
                       <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
                     </div>
                     <TooltipProvider>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
@@ -7948,7 +7966,7 @@ const Reports = () => {
                       
                       return (
                         <div key={company.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
                             <div>
                               <h3 className="font-semibold text-lg">{company.name}</h3>
                               <span className="text-sm text-muted-foreground">
@@ -7956,7 +7974,7 @@ const Reports = () => {
                               </span>
                             </div>
                             <TooltipProvider>
-                              <div className="flex space-x-2">
+                              <div className="flex flex-wrap gap-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button onClick={() => exportCompanyClientsToPDF(company)} variant="outline" size="sm">
@@ -8047,7 +8065,7 @@ const Reports = () => {
                       
                       return clientsWithoutCompany.length > 0 && (
                         <div className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
                             <div>
                               <h3 className="font-semibold text-lg">{t("reports.clients.clientsWithoutCompany")}</h3>
                               <span className="text-sm text-muted-foreground">
@@ -8055,7 +8073,7 @@ const Reports = () => {
                               </span>
                             </div>
                             <TooltipProvider>
-                              <div className="flex space-x-2">
+                              <div className="flex flex-wrap gap-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button onClick={exportClientsWithoutCompanyToPDF} variant="outline" size="sm">
@@ -8477,21 +8495,21 @@ const Reports = () => {
           <Card>
             <CardHeader>
               <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <CardTitle>{t("reports.invoices.listTitle")}</CardTitle>
                     <CardDescription>
                       {t("reports.invoices.listDesc", { count: filteredInvoicesByStatus.length })}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground">{t("reports.invoices.grandTotal")}</div>
                       <div className="text-2xl font-bold">${invoiceGrandTotal.toFixed(2)}</div>
                     </div>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-48">
+                        <Button variant="outline" className="w-full min-w-0 sm:w-48">
                           {t("reports.invoices.filterByStatus", { count: invoiceStatusFilters.includes('all') ? t("reports.invoices.allStatuses") : invoiceStatusFilters.length })}
                         </Button>
                       </PopoverTrigger>
@@ -8664,7 +8682,7 @@ const Reports = () => {
               <CardDescription>{t("reports.invoices.exportDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={exportInvoicesToPDF} variant="outline" size="sm">
                   <Download className="mr-2 h-4 w-4" />
                   PDF
@@ -8699,7 +8717,7 @@ const Reports = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>{language === "fr" ? "Date de début" : "Start Date"}</Label>
                   <Popover open={reminderStartOpen} onOpenChange={setReminderStartOpen}>
