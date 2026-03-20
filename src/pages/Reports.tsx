@@ -6994,16 +6994,16 @@ const Reports = () => {
               </div>
               
               {/* Export Buttons */}
-              <div className="flex space-x-2">
-                <Button onClick={exportStockValueToPDF} variant="outline" size="sm">
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={exportStockValueToPDF} variant="outline" size="sm" className="w-full sm:w-auto">
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={exportStockValueToExcel} variant="outline" size="sm">
+                <Button onClick={exportStockValueToExcel} variant="outline" size="sm" className="w-full sm:w-auto">
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
                 </Button>
-                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm">
+                <Button onClick={() => setEmailDialogOpen('stock_value')} variant="outline" size="sm" className="w-full sm:w-auto">
                   <Mail className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
