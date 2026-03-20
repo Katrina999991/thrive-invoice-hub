@@ -7451,6 +7451,7 @@ const Reports = () => {
                         <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
                         <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
                       </BarChart>
+                      </ResponsiveContainer>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         {t("reports.expenses.noData")}
