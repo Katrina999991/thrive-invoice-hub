@@ -6,12 +6,12 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & { autoWidth?: boolean }
 >(({ className, autoWidth, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  <div className="relative w-full max-w-full overflow-x-auto overflow-y-hidden">
     <table
       ref={ref}
       className={cn(
-        "caption-bottom text-sm",
-        autoWidth ? "w-auto" : "w-full",
+        "caption-bottom table-fixed text-sm md:table-auto [&_td]:break-words [&_td]:whitespace-normal [&_th]:break-words [&_th]:whitespace-normal",
+        autoWidth ? "w-auto min-w-full" : "w-full",
         className
       )}
       {...props}
@@ -77,7 +77,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      "h-12 px-2 py-3 text-left align-top font-medium text-muted-foreground md:px-4 [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}
@@ -91,7 +91,7 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn("px-2 py-3 align-top md:p-4 [&:has([role=checkbox])]:pr-0", className)}
     {...props}
   />
 ))
