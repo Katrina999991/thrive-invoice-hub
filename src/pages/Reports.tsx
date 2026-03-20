@@ -114,6 +114,51 @@ const Reports = () => {
   const salesProductChartRef = useRef<HTMLDivElement>(null);
   const salesServiceChartRef = useRef<HTMLDivElement>(null);
   const revenueByClientChartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const chartRefs = [
+      ["revenue-bar", barChartRef],
+      ["revenue-line", lineChartRef],
+      ["sales-product", salesProductChartRef],
+      ["stock", stockChartRef],
+      ["expenses-category", expenseCategoryChartRef],
+      ["expenses-company", expenseCompanyChartRef],
+      ["revenue-client", revenueByClientChartRef],
+    ] as const;
+
+    const logWidths = () => {
+      chartRefs.forEach(([name, ref]) => {
+        const node = ref.current;
+        if (!node) return;
+        const parent = node.parentElement;
+        console.info("[Reports chart width]", {
+          name,
+          width: Math.round(node.getBoundingClientRect().width),
+          scrollWidth: node.scrollWidth,
+          parentWidth: parent ? Math.round(parent.getBoundingClientRect().width) : null,
+          parentScrollWidth: parent?.scrollWidth ?? null,
+        });
+      });
+    };
+
+    const frame = window.requestAnimationFrame(logWidths);
+    window.addEventListener("resize", logWidths);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", logWidths);
+    };
+  }, [
+    reportTab,
+    revenueSubTab,
+    activeTab,
+    isMobile,
+    realRevenueData?.length,
+    salesData?.products.length,
+    filteredInventoryProducts?.length,
+    expenseReportData?.expensesByCategory.length,
+    expenseReportData?.expensesByCompany.length,
+  ]);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
