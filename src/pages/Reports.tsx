@@ -148,17 +148,7 @@ const Reports = () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", logWidths);
     };
-  }, [
-    reportTab,
-    revenueSubTab,
-    activeTab,
-    isMobile,
-    realRevenueData?.length,
-    salesData?.products.length,
-    filteredInventoryProducts?.length,
-    expenseReportData?.expensesByCategory.length,
-    expenseReportData?.expensesByCompany.length,
-  ]);
+  }, [reportTab, activeTab, isMobile]);
   
   // États séparés pour chaque onglet
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
