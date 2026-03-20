@@ -598,7 +598,7 @@ const translations = {
     "reports.revenue.totalRevenue": "Total Revenue",
     "reports.revenue.numberOfInvoices": "Number of Invoices",
     "reports.revenue.averageRevenue": "Average Revenue",
-    "reports.revenue.revenueEvolution": "Revenue Evolution by",
+    "reports.revenue.revenueEvolution": "Revenue Evolution",
     "reports.revenue.revenueTrend": "Revenue Trend",
     "reports.revenue.detailsByPeriod": "Details by Period",
     "reports.revenue.detailedDataBy": "Detailed data by",
