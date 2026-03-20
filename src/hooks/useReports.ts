@@ -90,9 +90,10 @@ export const useReports = (startDate?: Date, endDate?: Date, filterType?: 'all' 
       const yearlyMap = new Map<string, { revenue: number; count: number }>();
 
       invoices.forEach(invoice => {
-        const date = new Date(invoice.issue_date);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const yearKey = String(date.getFullYear());
+        // Parse date string directly to avoid UTC timezone shift
+        const [year, month] = invoice.issue_date.split('-');
+        const monthKey = `${year}-${month}`;
+        const yearKey = year;
         const revenue = Number(invoice.total);
 
         // Données mensuelles
