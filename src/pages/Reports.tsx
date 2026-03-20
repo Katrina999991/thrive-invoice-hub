@@ -6996,7 +6996,7 @@ const Reports = () => {
               </div>
               
               {/* Export Buttons */}
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={exportStockValueToPDF} variant="outline" size="sm">
                   <Download className="w-4 h-4 mr-2" />
                   PDF
