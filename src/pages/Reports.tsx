@@ -8495,7 +8495,7 @@ const Reports = () => {
           <Card>
             <CardHeader>
               <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <CardTitle>{t("reports.invoices.listTitle")}</CardTitle>
                     <CardDescription>
