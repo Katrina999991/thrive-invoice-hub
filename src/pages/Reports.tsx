@@ -6891,37 +6891,37 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 {filteredInventoryProducts && filteredInventoryProducts.length > 0 ? (
-                  <div className="w-full overflow-x-auto" ref={stockChartRef}>
-                    <BarChart 
-                      width={800} 
-                      height={400}
-                      data={filteredInventoryProducts.map(p => ({
-                        name: p.name,
-                        quantity: p.quantity || 0,
-                        status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
-                      }))}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                        fontSize={12}
-                      />
-                      <YAxis />
-                      <RechartsTooltip 
-                        formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
-                        labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
-                      />
-                      <Bar 
-                        dataKey="quantity" 
-                        fill="#22c55e"
-                        name={language === 'fr' ? 'Quantité' : 'Quantity'}
-                      />
-                    </BarChart>
+                  <div className="w-full h-[400px]" ref={stockChartRef}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={filteredInventoryProducts.map(p => ({
+                          name: p.name,
+                          quantity: p.quantity || 0,
+                          status: (p.quantity || 0) === 0 ? 'outOfStock' : (p.quantity || 0) <= 5 ? 'lowStock' : 'inStock'
+                        }))}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={100}
+                          interval={0}
+                          fontSize={isMobile ? 10 : 12}
+                        />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value) => [`${value}`, language === 'fr' ? 'Quantité' : 'Quantity']}
+                          labelFormatter={(label) => `${language === 'fr' ? 'Produit' : 'Product'}: ${label}`}
+                        />
+                        <Bar 
+                          dataKey="quantity" 
+                          fill="#22c55e"
+                          name={language === 'fr' ? 'Quantité' : 'Quantity'}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
