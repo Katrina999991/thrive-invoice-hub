@@ -5712,7 +5712,7 @@ const Reports = () => {
             </div>
 
             {/* Revenue Sub-tabs: By Period, By Client, By Product */}
-            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full overflow-x-hidden">
+            <Tabs value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')} className="w-full max-w-full min-w-0">
               {isMobile ? (
                 <Select value={revenueSubTab} onValueChange={(value) => setRevenueSubTab(value as 'period' | 'client' | 'product')}>
                   <SelectTrigger className="mb-4 w-full max-w-full min-w-0">
