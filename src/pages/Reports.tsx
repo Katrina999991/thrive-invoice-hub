@@ -6824,16 +6824,16 @@ const Reports = () => {
                     : 'Identify out-of-stock products and avoid shortages'}
                 </p>
               </div>
-              <div className="flex space-x-2">
-                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
                   <Download className="w-4 h-4 mr-2" />
                   PDF
                 </Button>
-                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
+                <Button onClick={() => exportProductsToExcel()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
                   Excel
                 </Button>
-                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
+                <Button onClick={() => setEmailDialogOpen('stock')} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0} className="w-full sm:w-auto">
                   <Mail className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Courriel' : 'Email'}
                 </Button>
