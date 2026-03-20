@@ -7871,7 +7871,7 @@ const Reports = () => {
                       <CardDescription>{t("reports.clients.allClientsDescription")}</CardDescription>
                     </div>
                     <TooltipProvider>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button onClick={exportAllClientsToPDF} variant="outline" size="sm">
