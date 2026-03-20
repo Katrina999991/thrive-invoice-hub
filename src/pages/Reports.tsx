@@ -6269,20 +6269,22 @@ const Reports = () => {
                             {t('reports.revenue.revenueEvolution')} {viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent ref={barChartRef}>
-                          <div className="w-full h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                                  labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
-                                />
-                                <Bar dataKey="revenue" fill="#3b82f6" />
-                              </BarChart>
-                            </ResponsiveContainer>
+                        <CardContent className="min-w-0">
+                          <div ref={barChartRef} className="w-full min-w-0 overflow-x-auto">
+                            <div className="h-[300px] min-w-[600px] md:min-w-0">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="period" />
+                                  <YAxis />
+                                  <RechartsTooltip 
+                                    formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                    labelFormatter={(label) => `${getReportTranslation('period', language)}: ${label}`}
+                                  />
+                                  <Bar dataKey="revenue" fill="#3b82f6" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
