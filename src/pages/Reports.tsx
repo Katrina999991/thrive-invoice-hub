@@ -6247,16 +6247,18 @@ const Reports = () => {
                           <CardTitle>{t('reports.revenue.revenueTrend')}</CardTitle>
                         </CardHeader>
                         <CardContent ref={lineChartRef}>
-                          <div className="w-full overflow-x-auto">
-                            <LineChart width={400} height={300} data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="period" />
-                              <YAxis />
-                              <RechartsTooltip 
-                                formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
-                              />
-                              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
-                            </LineChart>
+                          <div className="w-full h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="period" />
+                                <YAxis />
+                                <RechartsTooltip 
+                                  formatter={(value: number) => new Intl.NumberFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' }).format(value)}
+                                />
+                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                              </LineChart>
+                            </ResponsiveContainer>
                           </div>
                         </CardContent>
                       </Card>
