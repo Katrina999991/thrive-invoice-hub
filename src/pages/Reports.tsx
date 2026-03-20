@@ -7471,32 +7471,34 @@ const Reports = () => {
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent ref={expenseCategoryChartRef}>
+                  <CardContent className="min-w-0">
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <div className="w-full h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={expenseReportData.expensesByCategory}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="category" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              fontSize={isMobile ? 10 : 12}
-                            />
-                            <YAxis />
-                            <RechartsTooltip 
-                              formatter={(value: number, name: string) => [
-                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                                name === 'total_deductible_amount' 
-                                  ? (language === 'fr' ? 'Déductible' : 'Deductible')
-                                  : (language === 'fr' ? 'Total' : 'Total')
-                              ]}
-                            />
-                            <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
-                            <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
-                          </BarChart>
-                        </ResponsiveContainer>
+                      <div ref={expenseCategoryChartRef} className="w-full min-w-0 overflow-x-auto">
+                        <div className="h-[400px] min-w-[640px] md:min-w-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseReportData.expensesByCategory}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="category" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                fontSize={isMobile ? 10 : 12}
+                              />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number, name: string) => [
+                                  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                  name === 'total_deductible_amount' 
+                                    ? (language === 'fr' ? 'Déductible' : 'Deductible')
+                                    : (language === 'fr' ? 'Total' : 'Total')
+                                ]}
+                              />
+                              <Bar dataKey="total_amount" fill="#ef4444" name={language === 'fr' ? 'Total' : 'Total'} />
+                              <Bar dataKey="total_deductible_amount" fill="hsl(var(--primary))" name={language === 'fr' ? 'Déductible' : 'Deductible'} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
