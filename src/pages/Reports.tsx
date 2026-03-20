@@ -5581,7 +5581,7 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
+      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full min-w-0">
         {isMobile ? (
           <Select value={reportTab} onValueChange={setReportTab}>
             <SelectTrigger className="w-full max-w-full min-w-0">
