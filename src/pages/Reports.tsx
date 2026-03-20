@@ -6094,13 +6094,13 @@ const Reports = () => {
                 {!loading && !error && realRevenueData && (startDate || endDate) && (
                   <>
                     {/* Export buttons */}
-                    <div className="flex justify-end gap-2 mb-4">
+                     <div className="flex flex-wrap justify-end gap-2 mb-4">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={exportToPDF}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto"
                       >
                         <Download className="h-4 w-4" />
                         PDF
@@ -6110,20 +6110,20 @@ const Reports = () => {
                         size="sm"
                         onClick={exportToExcel}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto"
                       >
                         <FileSpreadsheet className="h-4 w-4" />
                         Excel
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span>
+                          <span className="w-full sm:w-auto">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={exportRevenueToCSV}
                               disabled={!realRevenueData || !chartData.length || planLimits?.plan_type === 'free'}
-                              className="flex items-center gap-2"
+                              className="flex items-center gap-2 w-full sm:w-auto"
                             >
                               <FileSpreadsheet className="h-4 w-4" />
                               CSV
@@ -6141,7 +6141,7 @@ const Reports = () => {
                         size="sm"
                         onClick={downloadChartsAsPDF}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto"
                       >
                         <Download className="h-4 w-4" />
                         {language === 'fr' ? 'Graphiques PDF' : 'Charts PDF'}
@@ -6151,7 +6151,7 @@ const Reports = () => {
                         size="sm"
                         onClick={() => setEmailDialogOpen('revenue')}
                         disabled={!realRevenueData || !chartData.length}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto"
                       >
                         <Mail className="h-4 w-4" />
                         {language === 'fr' ? 'Courriel' : 'Email'}
