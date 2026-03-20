@@ -6094,7 +6094,7 @@ const Reports = () => {
                 {!loading && !error && realRevenueData && (startDate || endDate) && (
                   <>
                     {/* Export buttons */}
-                    <div className="flex justify-end gap-2 mb-4">
+                    <div className="flex flex-wrap justify-end gap-2 mb-4">
                       <Button
                         variant="outline"
                         size="sm"
