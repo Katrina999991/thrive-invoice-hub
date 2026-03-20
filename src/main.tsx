@@ -13,6 +13,5 @@ if (savedDarkMode === "dark") {
   document.documentElement.classList.remove("dark");
 }
 
-createRoot(document.getElementById("root")!).render(
-  <App />
-);
+const app = <App />;
+createRoot(document.getElementById("root")!).render(app);
