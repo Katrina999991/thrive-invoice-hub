@@ -641,7 +641,7 @@ const Reports = () => {
         const barImgData = barCanvas.toDataURL('image/png');
         
         doc.setFontSize(14);
-        const barChartTitle = `${t('reports.revenue.revenueEvolution')} ${viewMode === 'monthly' ? t('reports.revenue.perMonth').toLowerCase() : t('reports.revenue.perYear').toLowerCase()}`;
+        const barChartTitle = `${t('reports.revenue.revenueEvolution')} ${viewMode === 'monthly' ? t('reports.revenue.perMonth') : t('reports.revenue.perYear')}`;
         doc.text(barChartTitle, 20, yPosition);
         yPosition += 10;
         
