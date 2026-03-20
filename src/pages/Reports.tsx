@@ -7430,7 +7430,8 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent ref={expenseCategoryChartRef}>
                     {expenseReportData.expensesByCategory.length > 0 ? (
-                      <BarChart width={600} height={400} data={expenseReportData.expensesByCategory}>
+                      <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={expenseReportData.expensesByCategory}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="category" 
