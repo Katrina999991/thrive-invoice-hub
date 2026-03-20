@@ -6826,7 +6826,7 @@ const Reports = () => {
                     : 'Identify out-of-stock products and avoid shortages'}
                 </p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={() => exportProductsToPDF()} variant="outline" size="sm" disabled={!filteredInventoryProducts || filteredInventoryProducts.length === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   PDF
