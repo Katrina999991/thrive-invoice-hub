@@ -6626,17 +6626,17 @@ const Reports = () => {
                     : 'Identify your best and worst performing products'}
                 </p>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex space-x-2">
-                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={exportSalesReportToPDF} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
                     <Download className="w-4 h-4 mr-2" />
                     PDF
                   </Button>
-                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+                  <Button onClick={exportSalesReportToExcel} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Excel
                   </Button>
-                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0}>
+                  <Button onClick={() => setEmailDialogOpen('sales')} variant="outline" size="sm" disabled={!salesData || salesData.products.length === 0} className="w-full sm:w-auto">
                     <Mail className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Courriel' : 'Email'}
                   </Button>
