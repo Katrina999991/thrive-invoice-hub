@@ -175,9 +175,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
 
       // Process invoices
       (invoices || []).forEach(invoice => {
-        const date = new Date(invoice.issue_date);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const yearKey = String(date.getFullYear());
+        const [year, month] = invoice.issue_date.split('-');
+        const monthKey = `${year}-${month}`;
+        const yearKey = year;
         const taxAmount = Number(invoice.tax_amount);
         const taxRate = Number(invoice.tax_rate);
         const invoiceId = invoice.id;
