@@ -7527,28 +7527,30 @@ const Reports = () => {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent ref={expenseCompanyChartRef}>
-                      <div className="w-full h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={expenseReportData.expensesByCompany}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="company_name" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              fontSize={isMobile ? 10 : 12}
-                            />
-                            <YAxis />
-                            <RechartsTooltip 
-                              formatter={(value: number) => [
-                                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
-                                'Amount'
-                              ]}
-                            />
-                            <Bar dataKey="total_amount" fill="#3b82f6" />
-                          </BarChart>
-                        </ResponsiveContainer>
+                    <CardContent className="min-w-0">
+                      <div ref={expenseCompanyChartRef} className="w-full min-w-0 overflow-x-auto">
+                        <div className="h-[400px] min-w-[640px] md:min-w-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseReportData.expensesByCompany}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="company_name" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                fontSize={isMobile ? 10 : 12}
+                              />
+                              <YAxis />
+                              <RechartsTooltip 
+                                formatter={(value: number) => [
+                                  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'CAD' }).format(value),
+                                  'Amount'
+                                ]}
+                              />
+                              <Bar dataKey="total_amount" fill="#3b82f6" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
