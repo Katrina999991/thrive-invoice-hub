@@ -6545,7 +6545,7 @@ const Reports = () => {
                   </div>
                 )}
 
-                <div className="max-w-full overflow-x-hidden">
+                <div className="max-w-full min-w-0">
                   <RevenueByProductReport
                     startDate={productRevenueStartDate}
                     endDate={productRevenueEndDate}
