@@ -205,9 +205,9 @@ export const useTaxReports = (startDate?: Date, endDate?: Date, companyId?: stri
       // Process expenses - applying tax_recoverable_percent
       let totalExpenseTax = 0;
       (expenses || []).forEach(expense => {
-        const date = new Date(expense.expense_date);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const yearKey = String(date.getFullYear());
+        const [year, month] = expense.expense_date.split('-');
+        const monthKey = `${year}-${month}`;
+        const yearKey = year;
         const expenseId = expense.id;
         const expenseTaxes = expense.taxes as any[] || [];
         // Default to 100% if not set (backward compatibility)
