@@ -14,5 +14,5 @@ if (savedDarkMode === "dark") {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <App />
+  <App />,
 );
