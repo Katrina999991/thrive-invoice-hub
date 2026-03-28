@@ -31,6 +31,16 @@ const StockManagement = () => {
   const navigate = useNavigate();
   
   const canAdjustInventory = canEdit("inventory");
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCompany, setFilterCompany] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterStock, setFilterStock] = useState<string>("all");
+  
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [newQuantity, setNewQuantity] = useState<string>("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [shouldCreateExpense, setShouldCreateExpense] = useState(false);
   
   const hasAccess = planLimits?.plan_type === 'premium' || planLimits?.plan_type === 'pro';
   
@@ -61,16 +71,6 @@ const StockManagement = () => {
       </div>
     );
   }
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCompany, setFilterCompany] = useState<string>("all");
-  const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterStock, setFilterStock] = useState<string>("all");
-  
-  const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [newQuantity, setNewQuantity] = useState<string>("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [shouldCreateExpense, setShouldCreateExpense] = useState(false);
 
   // Filter only products (not services) that have quantity tracking
   const productsWithStock = products.filter(p => p.quantity !== null && p.quantity !== undefined);
