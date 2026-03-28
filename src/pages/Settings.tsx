@@ -103,9 +103,9 @@ export default function Settings() {
   
   // Get first company for permissions check
   const firstCompanyId = companies.length > 0 ? companies[0].id : null;
-  const { can, isOwner } = useSelectedCompany(firstCompanyId || undefined);
-  // Team & Access visible for all owners/admins
-  const canViewTeamAccess = isOwner || can("access:view_members");
+  const { can, isOwner, loading: permLoading } = useSelectedCompany(firstCompanyId || undefined);
+  // Team & Access visible for all owners/admins - keep visible during loading to prevent flicker
+  const canViewTeamAccess = permLoading || isOwner || can("access:view_members");
   const [emailTemplates, setEmailTemplates] = useState({
     invoice_email_subject_en: "",
     invoice_email_subject_fr: "",
