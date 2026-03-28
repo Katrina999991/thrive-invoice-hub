@@ -17,7 +17,6 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useCompanyPermissions } from "@/hooks/useCompanyPermissions";
 import { useCompanyMembers, type CompanyRole } from "@/hooks/useCompanyMembers";
 import { useCompanyRoles, ALL_PERMISSIONS, PERMISSION_MODULES } from "@/hooks/useCompanyRoles";
-import { PermissionDebugPanel } from "@/components/PermissionDebugPanel";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 
@@ -41,7 +40,7 @@ export function TeamAccessTab() {
   const [roleToDelete, setRoleToDelete] = useState<CompanyRole | null>(null);
   const [showRemoveMemberDialog, setShowRemoveMemberDialog] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
-  const [debugPanelKey, setDebugPanelKey] = useState(0);
+  
 
   const { hasPermission, loading: permissionsLoading } = useCompanyPermissions(selectedCompanyId);
   const { members, roles, invites, loading: membersLoading, updateMemberRole, removeMember, inviteMember, cancelInvite, refetch } = useCompanyMembers(selectedCompanyId);
@@ -117,11 +116,9 @@ export function TeamAccessTab() {
     }
 
     setShowRoleDialog(false);
-    // Re-fetch permissions for the edited/created role so the permission group display updates
     if (editingRole) {
       fetchRolePermissions(editingRole.id);
     }
-    setDebugPanelKey(prev => prev + 1);
     refetch();
   };
 
@@ -239,8 +236,35 @@ export function TeamAccessTab() {
     );
   }
 
+  // Check if user is solo (only member)
+  const isSolo = members.length <= 1 && invites.length === 0;
+
   return (
     <div className="space-y-6">
+      {/* Beta Banner */}
+      <div className="rounded-lg border border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-700 p-4">
+        <div className="flex items-start gap-3">
+          <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-amber-800 dark:text-amber-300">
+              {language === "fr" ? "Équipe & Accès est en version bêta" : "Team & Access is currently in beta"}
+            </h3>
+            <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+              {language === "fr" 
+                ? "Certaines fonctionnalités peuvent ne pas fonctionner parfaitement. Si vous rencontrez des problèmes, veuillez nous en informer."
+                : "Some features may not work perfectly. If you encounter any issues, please let us know."}
+            </p>
+            <a
+              href="mailto:info@gestionflow.net?subject=Team%20%26%20Access%20Beta%20Feedback"
+              className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-amber-800 dark:text-amber-300 hover:underline"
+            >
+              <Mail className="h-4 w-4" />
+              {language === "fr" ? "Signaler un problème" : "Report an issue"}
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Company Selector */}
       <Card>
         <CardHeader>
@@ -289,10 +313,34 @@ export function TeamAccessTab() {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
-              ) : members.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  {language === "fr" ? "Aucun membre" : "No members"}
-                </p>
+              ) : isSolo ? (
+                <div className="text-center py-10 space-y-3">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <h3 className="font-semibold text-lg">
+                    {language === "fr" ? "Vous travaillez en solo" : "You're working solo"}
+                  </h3>
+                  <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                    {language === "fr" 
+                      ? "Invitez des membres pour collaborer avec vous."
+                      : "Invite team members to collaborate with you."}
+                  </p>
+                  {canInvite ? (
+                    <Button 
+                      className="mt-2"
+                      onClick={() => {
+                        const inviteSection = document.getElementById("invite-section");
+                        inviteSection?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      {language === "fr" ? "Inviter un membre" : "Invite team member"}
+                    </Button>
+                  ) : (
+                    <Button disabled className="mt-2">
+                      {language === "fr" ? "Bientôt disponible" : "Coming soon"}
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -379,7 +427,7 @@ export function TeamAccessTab() {
 
           {/* Invite Members */}
           {canInvite && (
-            <Card>
+            <Card id="invite-section">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
@@ -736,14 +784,6 @@ export function TeamAccessTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Permission Debug Panel - For Owners/Admins */}
-      {(isOwner || canManageRoles) && companies.length > 0 && (
-        <PermissionDebugPanel 
-          companies={companies.map(c => ({ id: c.id, name: c.name }))}
-          initialCompanyId={selectedCompanyId}
-          refreshTrigger={debugPanelKey}
-        />
-      )}
     </div>
   );
 }
