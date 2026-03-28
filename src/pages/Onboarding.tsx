@@ -43,9 +43,27 @@ const Onboarding = () => {
 
   const totalSteps = 4;
 
-  const handleSkip = () => {
-    localStorage.setItem("onboarding_completed", "true");
-    navigate("/dashboard");
+  const handleSkip = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // Always create a minimal company so the user gets permissions
+      const { data: company, error } = await supabase
+        .from("companies")
+        .insert({ name: "My Company", email: user.email || "", user_id: user.id })
+        .select().single();
+      if (error) throw error;
+      localStorage.setItem("selectedCompanyId", company.id);
+      localStorage.setItem("onboarding_completed", "true");
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Skip setup error:", error);
+      // If company creation fails (e.g. already exists), just proceed
+      localStorage.setItem("onboarding_completed", "true");
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDemoSetup = async () => {

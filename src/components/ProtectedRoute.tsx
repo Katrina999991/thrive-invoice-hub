@@ -21,8 +21,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         return;
       }
 
-      // Quick check: localStorage flag
-      if (localStorage.getItem("onboarding_completed") === "true") {
+      // Quick check: localStorage flag — but only trust it if we also have a selected company
+      if (localStorage.getItem("onboarding_completed") === "true" && localStorage.getItem("selectedCompanyId")) {
         setCheckingOnboarding(false);
         return;
       }
