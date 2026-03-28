@@ -104,9 +104,8 @@ export default function Settings() {
   // Get first company for permissions check
   const firstCompanyId = companies.length > 0 ? companies[0].id : null;
   const { can, isOwner } = useSelectedCompany(firstCompanyId || undefined);
-  // Temporarily restrict Team & Access tab to admin account only until fully tested
-  const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
-  const canViewTeamAccess = user?.id === ADMIN_USER_ID && can("access:view_members");
+  // Team & Access visible for all owners/admins
+  const canViewTeamAccess = isOwner || can("access:view_members");
   const [emailTemplates, setEmailTemplates] = useState({
     invoice_email_subject_en: "",
     invoice_email_subject_fr: "",
