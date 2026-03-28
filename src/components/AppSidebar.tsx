@@ -18,8 +18,8 @@ import {
   Shield
 } from "lucide-react";
 
-// Admin user ID - only this user can see admin features
-const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
+// Admin access by email
+const ADMIN_EMAIL = "martine@3d-art.ca";
 
 import {
   Sidebar,
