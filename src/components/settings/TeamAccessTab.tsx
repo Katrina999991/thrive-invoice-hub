@@ -427,7 +427,7 @@ export function TeamAccessTab() {
 
           {/* Invite Members */}
           {canInvite && (
-            <Card>
+            <Card id="invite-section">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
