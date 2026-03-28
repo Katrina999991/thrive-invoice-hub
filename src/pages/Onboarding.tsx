@@ -101,6 +101,25 @@ const Onboarding = () => {
     }
   };
 
+  const ensureCompanyRoles = async (companyId: string, userId: string) => {
+    // Explicitly create default roles in case the DB trigger is missing
+    try {
+      const { count } = await supabase
+        .from("company_members")
+        .select("*", { count: "exact", head: true })
+        .eq("company_id", companyId)
+        .eq("user_id", userId);
+      if (count === 0 || count === null) {
+        await supabase.rpc("create_default_roles_for_company", {
+          _company_id: companyId,
+          _owner_user_id: userId,
+        });
+      }
+    } catch (e) {
+      console.error("Role creation fallback error:", e);
+    }
+  };
+
   const handleStep1 = async () => {
     if (!user) return;
     setLoading(true);
@@ -116,6 +135,7 @@ const Onboarding = () => {
         })
         .select().single();
       if (error) throw error;
+      await ensureCompanyRoles(data.id, user.id);
       setCreatedCompany(data);
       localStorage.setItem("selectedCompanyId", data.id);
       setStep(2);
