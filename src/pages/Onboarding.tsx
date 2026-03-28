@@ -53,6 +53,7 @@ const Onboarding = () => {
         .insert({ name: "My Company", email: user.email || "", user_id: user.id })
         .select().single();
       if (error) throw error;
+      await ensureCompanyRoles(company.id, user.id);
       localStorage.setItem("selectedCompanyId", company.id);
       localStorage.setItem("onboarding_completed", "true");
       navigate("/dashboard");
