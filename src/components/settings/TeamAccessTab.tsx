@@ -236,8 +236,35 @@ export function TeamAccessTab() {
     );
   }
 
+  // Check if user is solo (only member)
+  const isSolo = members.length <= 1 && invites.length === 0;
+
   return (
     <div className="space-y-6">
+      {/* Beta Banner */}
+      <div className="rounded-lg border border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-700 p-4">
+        <div className="flex items-start gap-3">
+          <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-amber-800 dark:text-amber-300">
+              {language === "fr" ? "Équipe & Accès est en version bêta" : "Team & Access is currently in beta"}
+            </h3>
+            <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+              {language === "fr" 
+                ? "Certaines fonctionnalités peuvent ne pas fonctionner parfaitement. Si vous rencontrez des problèmes, veuillez nous en informer."
+                : "Some features may not work perfectly. If you encounter any issues, please let us know."}
+            </p>
+            <a
+              href="mailto:info@gestionflow.net?subject=Team%20%26%20Access%20Beta%20Feedback"
+              className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-amber-800 dark:text-amber-300 hover:underline"
+            >
+              <Mail className="h-4 w-4" />
+              {language === "fr" ? "Signaler un problème" : "Report an issue"}
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Company Selector */}
       <Card>
         <CardHeader>
