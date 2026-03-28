@@ -116,7 +116,7 @@ export function AppSidebar() {
 
   // Filter items based on admin status and permissions
   const visibleSettingsItems = settingsItems.filter(item => {
-    if (item.adminOnly && user?.id !== ADMIN_USER_ID) return false;
+    if (item.adminOnly && user?.email !== ADMIN_EMAIL) return false;
     if (item.requiredPermission && !hasPermission(item.requiredPermission)) return false;
     return true;
   });
