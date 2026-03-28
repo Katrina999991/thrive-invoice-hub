@@ -61,23 +61,48 @@ const Onboarding = () => {
     }
   };
 
+  const getOrCreateCompany = async (name: string, email: string): Promise<string> => {
+    if (!user) throw new Error("No user");
+    // Try to find existing company first
+    const { data: existing } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      await ensureCompanyRoles(existing.id, user.id);
+      return existing.id;
+    }
+    // Also check memberships
+    const { data: membership } = await supabase
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+    if (membership) return membership.company_id;
+    // Create new
+    const { data: company, error } = await supabase
+      .from("companies")
+      .insert({ name, email, user_id: user.id })
+      .select().single();
+    if (error) throw error;
+    await ensureCompanyRoles(company.id, user.id);
+    return company.id;
+  };
+
   const handleSkip = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Always create a minimal company so the user gets permissions
-      const { data: company, error } = await supabase
-        .from("companies")
-        .insert({ name: "My Company", email: user.email || "", user_id: user.id })
-        .select().single();
-      if (error) throw error;
-      await ensureCompanyRoles(company.id, user.id);
-      localStorage.setItem("selectedCompanyId", company.id);
+      const companyId = await getOrCreateCompany("My Company", user.email || "");
+      localStorage.setItem("selectedCompanyId", companyId);
       localStorage.setItem("onboarding_completed", "true");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Skip setup error:", error);
-      // If company creation fails (e.g. already exists), just proceed
       localStorage.setItem("onboarding_completed", "true");
       navigate("/dashboard");
     } finally {
