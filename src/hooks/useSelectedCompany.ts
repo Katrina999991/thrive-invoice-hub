@@ -1,6 +1,8 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useUserCompanies } from "./useUserCompanies";
 import { usePermissions } from "./usePermissions";
+
+const STORAGE_KEY = "selectedCompanyId";
 
 /**
  * Hook to manage selected company context and permissions
@@ -8,14 +10,33 @@ import { usePermissions } from "./usePermissions";
  */
 export function useSelectedCompany(initialCompanyId?: string) {
   const { memberships, companyIds, loading: companiesLoading } = useUserCompanies();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(initialCompanyId || "");
+  const [selectedCompanyId, setSelectedCompanyIdState] = useState<string>(
+    initialCompanyId || localStorage.getItem(STORAGE_KEY) || ""
+  );
+
+  // Persist to localStorage on change
+  const setSelectedCompanyId = useCallback((id: string) => {
+    setSelectedCompanyIdState(id);
+    if (id) {
+      localStorage.setItem(STORAGE_KEY, id);
+    }
+  }, []);
   
-  // Auto-select first company if none selected
+  // Auto-select first company if current selection is invalid
   const effectiveCompanyId = useMemo(() => {
-    if (selectedCompanyId) return selectedCompanyId;
+    // If selected company is in the user's list, use it
+    if (selectedCompanyId && companyIds.includes(selectedCompanyId)) return selectedCompanyId;
+    // Otherwise fall back to first available
     if (companyIds.length > 0) return companyIds[0];
     return "";
   }, [selectedCompanyId, companyIds]);
+
+  // Sync effective ID back to state and localStorage
+  useEffect(() => {
+    if (effectiveCompanyId && effectiveCompanyId !== selectedCompanyId) {
+      setSelectedCompanyId(effectiveCompanyId);
+    }
+  }, [effectiveCompanyId, selectedCompanyId, setSelectedCompanyId]);
 
   // Get permissions for the selected company using centralized hook
   const { 

@@ -162,6 +162,25 @@ export const useCompanies = () => {
 
       if (error) throw error;
 
+      // Ensure roles/membership exist (fallback if DB trigger is missing)
+      if (data?.id) {
+        try {
+          const { count } = await supabase
+            .from("company_members")
+            .select("*", { count: "exact", head: true })
+            .eq("company_id", data.id)
+            .eq("user_id", user.id);
+          if (count === 0 || count === null) {
+            await supabase.rpc("create_default_roles_for_company", {
+              _company_id: data.id,
+              _owner_user_id: user.id,
+            });
+          }
+        } catch (e) {
+          console.error("Role creation fallback error:", e);
+        }
+      }
+
       await fetchCompanies();
       
       // Invalidate dashboard and plan limits cache
