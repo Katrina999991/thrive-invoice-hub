@@ -40,7 +40,7 @@ export function TeamAccessTab() {
   const [roleToDelete, setRoleToDelete] = useState<CompanyRole | null>(null);
   const [showRemoveMemberDialog, setShowRemoveMemberDialog] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
-  const [debugPanelKey, setDebugPanelKey] = useState(0);
+  
 
   const { hasPermission, loading: permissionsLoading } = useCompanyPermissions(selectedCompanyId);
   const { members, roles, invites, loading: membersLoading, updateMemberRole, removeMember, inviteMember, cancelInvite, refetch } = useCompanyMembers(selectedCompanyId);
