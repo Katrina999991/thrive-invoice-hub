@@ -76,6 +76,7 @@ const Onboarding = () => {
         .insert({ name: "Demo Corp", email: user.email, user_id: user.id })
         .select().single();
       if (compErr) throw compErr;
+      await ensureCompanyRoles(company.id, user.id);
 
       // Create demo clients
       const demoClients = [
