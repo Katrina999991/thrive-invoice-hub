@@ -17,7 +17,6 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useCompanyPermissions } from "@/hooks/useCompanyPermissions";
 import { useCompanyMembers, type CompanyRole } from "@/hooks/useCompanyMembers";
 import { useCompanyRoles, ALL_PERMISSIONS, PERMISSION_MODULES } from "@/hooks/useCompanyRoles";
-import { PermissionDebugPanel } from "@/components/PermissionDebugPanel";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 
