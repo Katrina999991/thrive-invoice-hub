@@ -116,11 +116,9 @@ export function TeamAccessTab() {
     }
 
     setShowRoleDialog(false);
-    // Re-fetch permissions for the edited/created role so the permission group display updates
     if (editingRole) {
       fetchRolePermissions(editingRole.id);
     }
-    setDebugPanelKey(prev => prev + 1);
     refetch();
   };
 
