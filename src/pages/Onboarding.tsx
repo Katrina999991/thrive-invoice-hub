@@ -61,23 +61,48 @@ const Onboarding = () => {
     }
   };
 
+  const getOrCreateCompany = async (name: string, email: string): Promise<string> => {
+    if (!user) throw new Error("No user");
+    // Try to find existing company first
+    const { data: existing } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      await ensureCompanyRoles(existing.id, user.id);
+      return existing.id;
+    }
+    // Also check memberships
+    const { data: membership } = await supabase
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+    if (membership) return membership.company_id;
+    // Create new
+    const { data: company, error } = await supabase
+      .from("companies")
+      .insert({ name, email, user_id: user.id })
+      .select().single();
+    if (error) throw error;
+    await ensureCompanyRoles(company.id, user.id);
+    return company.id;
+  };
+
   const handleSkip = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Always create a minimal company so the user gets permissions
-      const { data: company, error } = await supabase
-        .from("companies")
-        .insert({ name: "My Company", email: user.email || "", user_id: user.id })
-        .select().single();
-      if (error) throw error;
-      await ensureCompanyRoles(company.id, user.id);
-      localStorage.setItem("selectedCompanyId", company.id);
+      const companyId = await getOrCreateCompany("My Company", user.email || "");
+      localStorage.setItem("selectedCompanyId", companyId);
       localStorage.setItem("onboarding_completed", "true");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Skip setup error:", error);
-      // If company creation fails (e.g. already exists), just proceed
       localStorage.setItem("onboarding_completed", "true");
       navigate("/dashboard");
     } finally {
@@ -89,28 +114,22 @@ const Onboarding = () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Create demo company
-      const { data: company, error: compErr } = await supabase
-        .from("companies")
-        .insert({ name: "Demo Corp", email: user.email, user_id: user.id })
-        .select().single();
-      if (compErr) throw compErr;
-      await ensureCompanyRoles(company.id, user.id);
+      const companyId = await getOrCreateCompany("Demo Corp", user.email || "");
 
-      // Create demo clients
+      // Create demo clients (ignore errors if they already exist)
       const demoClients = [
-        { name: "Alice Martin", email: "alice@example.com", company_id: company.id, user_id: user.id },
-        { name: "Bob Wilson", email: "bob@example.com", company_id: company.id, user_id: user.id },
+        { name: "Alice Martin", email: "alice@example.com", company_id: companyId, user_id: user.id },
+        { name: "Bob Wilson", email: "bob@example.com", company_id: companyId, user_id: user.id },
       ];
       await supabase.from("clients").insert(demoClients);
 
       // Create demo product
       await supabase.from("products").insert({
-        name: "Consulting Service", price: 150, user_id: user.id, company_id: company.id
+        name: "Consulting Service", price: 150, user_id: user.id, company_id: companyId
       });
 
       localStorage.setItem("onboarding_completed", "true");
-      localStorage.setItem("selectedCompanyId", company.id);
+      localStorage.setItem("selectedCompanyId", companyId);
       toast({ title: "Demo ready!", description: "Demo data has been loaded." });
       navigate("/dashboard");
     } catch (error) {
@@ -267,7 +286,9 @@ const Onboarding = () => {
               variant="ghost"
               className="w-full text-muted-foreground"
               onClick={handleSkip}
+              disabled={loading}
             >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Skip
             </Button>
             <Button
