@@ -313,10 +313,34 @@ export function TeamAccessTab() {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
-              ) : members.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  {language === "fr" ? "Aucun membre" : "No members"}
-                </p>
+              ) : isSolo ? (
+                <div className="text-center py-10 space-y-3">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <h3 className="font-semibold text-lg">
+                    {language === "fr" ? "Vous travaillez en solo" : "You're working solo"}
+                  </h3>
+                  <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                    {language === "fr" 
+                      ? "Invitez des membres pour collaborer avec vous."
+                      : "Invite team members to collaborate with you."}
+                  </p>
+                  {canInvite ? (
+                    <Button 
+                      className="mt-2"
+                      onClick={() => {
+                        const inviteSection = document.getElementById("invite-section");
+                        inviteSection?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      {language === "fr" ? "Inviter un membre" : "Invite team member"}
+                    </Button>
+                  ) : (
+                    <Button disabled className="mt-2">
+                      {language === "fr" ? "Bientôt disponible" : "Coming soon"}
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
