@@ -114,28 +114,22 @@ const Onboarding = () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Create demo company
-      const { data: company, error: compErr } = await supabase
-        .from("companies")
-        .insert({ name: "Demo Corp", email: user.email, user_id: user.id })
-        .select().single();
-      if (compErr) throw compErr;
-      await ensureCompanyRoles(company.id, user.id);
+      const companyId = await getOrCreateCompany("Demo Corp", user.email || "");
 
-      // Create demo clients
+      // Create demo clients (ignore errors if they already exist)
       const demoClients = [
-        { name: "Alice Martin", email: "alice@example.com", company_id: company.id, user_id: user.id },
-        { name: "Bob Wilson", email: "bob@example.com", company_id: company.id, user_id: user.id },
+        { name: "Alice Martin", email: "alice@example.com", company_id: companyId, user_id: user.id },
+        { name: "Bob Wilson", email: "bob@example.com", company_id: companyId, user_id: user.id },
       ];
       await supabase.from("clients").insert(demoClients);
 
       // Create demo product
       await supabase.from("products").insert({
-        name: "Consulting Service", price: 150, user_id: user.id, company_id: company.id
+        name: "Consulting Service", price: 150, user_id: user.id, company_id: companyId
       });
 
       localStorage.setItem("onboarding_completed", "true");
-      localStorage.setItem("selectedCompanyId", company.id);
+      localStorage.setItem("selectedCompanyId", companyId);
       toast({ title: "Demo ready!", description: "Demo data has been loaded." });
       navigate("/dashboard");
     } catch (error) {
