@@ -1029,11 +1029,21 @@ Best regards,
     if (editingCompany) {
       await updateCompany(editingCompany.id, companyData);
     } else {
-      await createCompany(companyData);
+      try {
+        await createCompany(companyData);
+      } catch (error: any) {
+        if (error?.code === 'LIMIT_REACHED') {
+          setShowLimitDialog(true);
+          setUploadingLogo(false);
+          setIsSubmitting(false);
+          return;
+        }
+      }
     }
 
     resetForm();
     setUploadingLogo(false);
+    setIsSubmitting(false);
   };
 
   const resetForm = () => {
