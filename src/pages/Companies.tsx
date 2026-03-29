@@ -1228,7 +1228,7 @@ Best regards,
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           {canCreateCompany && (
-            <Button onClick={handleAddCompanyClick}>
+            <Button onClick={handleAddCompanyClick} disabled={isSubmitting}>
               <Plus className="h-4 w-4 mr-2" />
               {t("companies.addButton")}
             </Button>
