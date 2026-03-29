@@ -785,10 +785,11 @@ const Companies = () => {
   const { can, isOwner } = useSelectedCompany();
   const navigate = useNavigate();
 
-  // Permission checks - use centralized permission system
-  const canCreateCompany = can("companies:create");
-  const canEditCompany = can("companies:edit");
-  const canDeleteCompany = can("companies:delete") || isOwner;
+   // Permission checks - use centralized permission system
+   const canCreateCompany = can("companies:create");
+   const canEditCompany = can("companies:edit");
+   const canDeleteCompany = can("companies:delete") || isOwner;
+   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Helper function to format complete address
   const formatAddress = (company: Company) => {

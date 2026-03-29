@@ -160,7 +160,15 @@ export const useCompanies = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Check if this is a company limit error from the DB trigger
+        if (error.message?.includes('COMPANY_LIMIT_REACHED')) {
+          const limitError: any = new Error('Company limit reached');
+          limitError.code = 'LIMIT_REACHED';
+          throw limitError;
+        }
+        throw error;
+      }
 
       // Ensure roles/membership exist (fallback if DB trigger is missing)
       if (data?.id) {
