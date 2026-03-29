@@ -954,6 +954,7 @@ Best regards,
       return;
     }
 
+    setIsSubmitting(true);
     setUploadingLogo(true);
 
     // Validate invoice numbering configuration
