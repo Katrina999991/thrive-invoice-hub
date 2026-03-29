@@ -160,7 +160,15 @@ export const useCompanies = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Check if this is a company limit error from the DB trigger
+        if (error.message?.includes('COMPANY_LIMIT_REACHED')) {
+          const limitError: any = new Error('Company limit reached');
+          limitError.code = 'LIMIT_REACHED';
+          throw limitError;
+        }
+        throw error;
+      }
 
       // Ensure roles/membership exist (fallback if DB trigger is missing)
       if (data?.id) {
@@ -193,8 +201,16 @@ export const useCompanies = () => {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating company:", error);
+      if (error?.code === 'LIMIT_REACHED') {
+        toast({
+          title: "Limit reached",
+          description: "Free plan includes 1 company maximum. Upgrade your plan to create more.",
+          variant: "destructive"
+        });
+        throw error; // Re-throw so the caller can handle it
+      }
       toast({
         title: "Error",
         description: "Failed to create company",

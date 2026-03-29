@@ -785,10 +785,11 @@ const Companies = () => {
   const { can, isOwner } = useSelectedCompany();
   const navigate = useNavigate();
 
-  // Permission checks - use centralized permission system
-  const canCreateCompany = can("companies:create");
-  const canEditCompany = can("companies:edit");
-  const canDeleteCompany = can("companies:delete") || isOwner;
+   // Permission checks - use centralized permission system
+   const canCreateCompany = can("companies:create");
+   const canEditCompany = can("companies:edit");
+   const canDeleteCompany = can("companies:delete") || isOwner;
+   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Helper function to format complete address
   const formatAddress = (company: Company) => {
@@ -944,6 +945,7 @@ Best regards,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     // Validate tax names - all taxes must have a name
     const taxesWithEmptyNames = taxes.filter(tax => !tax.name || tax.name.trim() === '');
@@ -952,6 +954,7 @@ Best regards,
       return;
     }
 
+    setIsSubmitting(true);
     setUploadingLogo(true);
 
     // Validate invoice numbering configuration
@@ -1026,11 +1029,21 @@ Best regards,
     if (editingCompany) {
       await updateCompany(editingCompany.id, companyData);
     } else {
-      await createCompany(companyData);
+      try {
+        await createCompany(companyData);
+      } catch (error: any) {
+        if (error?.code === 'LIMIT_REACHED') {
+          setShowLimitDialog(true);
+          setUploadingLogo(false);
+          setIsSubmitting(false);
+          return;
+        }
+      }
     }
 
     resetForm();
     setUploadingLogo(false);
+    setIsSubmitting(false);
   };
 
   const resetForm = () => {
@@ -1215,7 +1228,7 @@ Best regards,
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           {canCreateCompany && (
-            <Button onClick={handleAddCompanyClick}>
+            <Button onClick={handleAddCompanyClick} disabled={isSubmitting}>
               <Plus className="h-4 w-4 mr-2" />
               {t("companies.addButton")}
             </Button>
@@ -1566,8 +1579,8 @@ Best regards,
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("companies.cancel")}
                 </Button>
-                <Button type="submit" className="flex-1" disabled={uploadingLogo || !!logoError}>
-                  {uploadingLogo ? t("companies.uploadingLogo") : editingCompany ? t("companies.updateButton") : t("companies.addCompany")}
+                <Button type="submit" className="flex-1" disabled={uploadingLogo || !!logoError || isSubmitting}>
+                  {(uploadingLogo || isSubmitting) ? t("companies.uploadingLogo") : editingCompany ? t("companies.updateButton") : t("companies.addCompany")}
                 </Button>
               </div>
             </form>
