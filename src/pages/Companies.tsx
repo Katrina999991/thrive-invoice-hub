@@ -945,6 +945,7 @@ Best regards,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     // Validate tax names - all taxes must have a name
     const taxesWithEmptyNames = taxes.filter(tax => !tax.name || tax.name.trim() === '');
