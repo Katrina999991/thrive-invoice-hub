@@ -1579,8 +1579,8 @@ Best regards,
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("companies.cancel")}
                 </Button>
-                <Button type="submit" className="flex-1" disabled={uploadingLogo || !!logoError}>
-                  {uploadingLogo ? t("companies.uploadingLogo") : editingCompany ? t("companies.updateButton") : t("companies.addCompany")}
+                <Button type="submit" className="flex-1" disabled={uploadingLogo || !!logoError || isSubmitting}>
+                  {(uploadingLogo || isSubmitting) ? t("companies.uploadingLogo") : editingCompany ? t("companies.updateButton") : t("companies.addCompany")}
                 </Button>
               </div>
             </form>
