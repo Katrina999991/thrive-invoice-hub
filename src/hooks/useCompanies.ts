@@ -201,8 +201,18 @@ export const useCompanies = () => {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating company:", error);
+      if (error?.code === 'LIMIT_REACHED') {
+        toast({
+          title: language === "fr" ? "Limite atteinte" : "Limit reached",
+          description: language === "fr" 
+            ? "Le plan gratuit inclut 1 entreprise maximum. Passez à un plan supérieur pour en créer davantage."
+            : "Free plan includes 1 company maximum. Upgrade your plan to create more.",
+          variant: "destructive"
+        });
+        throw error; // Re-throw so the caller can handle it
+      }
       toast({
         title: "Error",
         description: "Failed to create company",
