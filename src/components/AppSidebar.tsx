@@ -55,7 +55,7 @@ export function AppSidebar() {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
   const { planLimits } = useSubscription();
-  const { hasPermission, loading: permissionsLoading } = useSelectedCompany();
+  const { hasPermission, loading: permissionsLoading, permissions } = useSelectedCompany();
   const { state, setOpenMobile, isMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();

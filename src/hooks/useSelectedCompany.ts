@@ -105,7 +105,8 @@ export function useSelectedCompany(initialCompanyId?: string) {
     refetchPermissions,
     invalidatePermissions,
     
-    // Loading state
-    loading: companiesLoading || permissionsLoading,
+    // Loading state - true when any part of the chain is not ready
+    // This prevents a gap where companies loaded but permissions queries aren't enabled yet
+    loading: companiesLoading || permissionsLoading || (!effectiveCompanyId && companyIds.length === 0 && companiesLoading),
   };
 }
