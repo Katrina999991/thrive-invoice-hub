@@ -55,26 +55,35 @@ export function useSelectedCompany(initialCompanyId?: string) {
     return memberships.find(m => m.company_id === effectiveCompanyId);
   }, [memberships, effectiveCompanyId]);
 
+  // If user has no companies yet, they should have full permissions
+  // (they're setting up their account for the first time)
+  const hasNoCompany = !companiesLoading && companyIds.length === 0;
+
   // Common permission checks using centralized can()
   const hasPermission = useCallback((permission: string) => {
+    if (hasNoCompany) return true;
     return can(permission);
-  }, [can]);
+  }, [can, hasNoCompany]);
 
   const canCreate = useCallback((module: string) => {
+    if (hasNoCompany) return true;
     return can(`${module}:create`);
-  }, [can]);
+  }, [can, hasNoCompany]);
 
   const canEdit = useCallback((module: string) => {
+    if (hasNoCompany) return true;
     return can(`${module}:edit`);
-  }, [can]);
+  }, [can, hasNoCompany]);
 
   const canDelete = useCallback((module: string) => {
+    if (hasNoCompany) return true;
     return can(`${module}:delete`);
-  }, [can]);
+  }, [can, hasNoCompany]);
 
   const canView = useCallback((module: string) => {
+    if (hasNoCompany) return true;
     return can(`${module}:view`);
-  }, [can]);
+  }, [can, hasNoCompany]);
 
   return {
     // Company selection
