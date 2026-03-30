@@ -210,9 +210,12 @@ export const SubscriptionLimitsCard = () => {
           </div>
         </div>
 
-        {planLimits.plan_type !== 'pro' && (
+        {planLimits.plan_type === 'pro' ? (
+          <p className="text-center text-sm text-muted-foreground font-medium">{t.bestPlan}</p>
+        ) : (
           <Button className="w-full" variant="default" onClick={() => navigate('/dashboard/pricing')}>
-            {t.upgrade}
+            <Crown className="h-4 w-4 mr-2" />
+            {planLimits.plan_type === 'free' ? t.upgradeToPremium : t.upgradeToPro}
           </Button>
         )}
       </CardContent>
