@@ -6611,6 +6611,9 @@ const Reports = () => {
 
 
         <TabsContent value="products" className="space-y-6">
+          {getTabRequiredPlan('products') ? (
+            <LockedReportTab planName={getTabRequiredPlan('products')!} language={language} onUpgrade={() => navigate('/dashboard/pricing')} />
+          ) : (<>
           {/* Date & Company Filters */}
           <Card>
             <CardHeader>
