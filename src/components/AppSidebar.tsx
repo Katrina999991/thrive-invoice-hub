@@ -55,7 +55,7 @@ export function AppSidebar() {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
   const { planLimits } = useSubscription();
-  const { hasPermission, loading: permissionsLoading } = useSelectedCompany();
+  const { hasPermission, loading: permissionsLoading, permissions } = useSelectedCompany();
   const { state, setOpenMobile, isMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
@@ -103,10 +103,12 @@ export function AppSidebar() {
   ];
 
   // Filter menu items based on permissions
-  // IMPORTANT: While permissions are loading, show ALL tabs to prevent flickering
+  // CRITICAL: Show ALL tabs while permissions are loading OR when no permissions data exists yet
+  // This prevents the "flash then disappear" bug where tabs show briefly then vanish
+  const permissionsReady = !permissionsLoading && permissions.length > 0;
   const visibleMainItems = mainItems.filter(item => {
     if (!item.requiredPermission) return true;
-    if (permissionsLoading) return true; // Show all tabs while loading
+    if (!permissionsReady) return true; // Show all tabs until permissions are fully loaded
     return hasPermission(item.requiredPermission);
   });
 
@@ -117,11 +119,11 @@ export function AppSidebar() {
   ];
 
   // Filter items based on admin status and permissions
-  // IMPORTANT: While permissions are loading, show settings tabs to prevent flickering
+  // CRITICAL: Show settings tabs until permissions are fully loaded
   const visibleSettingsItems = settingsItems.filter(item => {
     if (item.adminOnly && user?.email !== ADMIN_EMAIL) return false;
     if (item.requiredPermission) {
-      if (permissionsLoading) return true; // Show while loading
+      if (!permissionsReady) return true; // Show while loading
       return hasPermission(item.requiredPermission);
     }
     return true;

@@ -196,8 +196,10 @@ export function usePermissions(companyId: string | null) {
     isMember: abilities.isMember,
     roleName: abilities.roleName,
     
-    // Loading state
-    loading: membershipLoading || permissionsLoading,
+    // Loading state - also true when queries are disabled but we expect data
+    // In TanStack Query v5, isLoading is false when enabled is false,
+    // so we must also check if we're waiting for companyId/userId
+    loading: membershipLoading || permissionsLoading || (!companyId && !!user?.id) || !user?.id,
     
     // Cache management
     invalidatePermissions,
