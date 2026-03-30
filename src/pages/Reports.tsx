@@ -5603,7 +5603,7 @@ const Reports = () => {
         }
       }} className="space-y-4 max-w-full overflow-x-hidden">
         {isMobile ? (
-          <Select value={lockedTabSelected || reportTab} onValueChange={(val) => {
+          <Select value={reportTab} onValueChange={(val) => {
             const locked = getTabRequiredPlan(val);
             if (locked) {
               setLockedTabSelected(val);
