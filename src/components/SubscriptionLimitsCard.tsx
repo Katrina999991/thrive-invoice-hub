@@ -123,7 +123,9 @@ export const SubscriptionLimitsCard = () => {
       invoices: "Factures ce mois-ci",
       expenses: "Dépenses ce mois-ci",
       unlimited: "Illimité",
-      upgrade: "Améliorer le plan",
+      upgradeToPremium: "Passer à Premium",
+      upgradeToPro: "Passer à Pro",
+      bestPlan: "Vous êtes sur le meilleur plan 🎉",
       features: "Fonctionnalités",
       limited: "Limité",
     }
