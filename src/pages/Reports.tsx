@@ -9005,6 +9005,8 @@ const Reports = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        </>
+        )}
       </Tabs>
       
       {/* Dialog pour aucun produit à exporter */}
