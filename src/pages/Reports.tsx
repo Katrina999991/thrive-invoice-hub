@@ -5601,29 +5601,74 @@ const Reports = () => {
             <SelectContent>
               <SelectItem value="overview">{t("reports.tabs.overview")}</SelectItem>
               <SelectItem value="revenue">{t("reports.tabs.revenue")}</SelectItem>
-              <SelectItem value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</SelectItem>
-              <SelectItem value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</SelectItem>
-              <SelectItem value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</SelectItem>
-              <SelectItem value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</SelectItem>
-              <SelectItem value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</SelectItem>
-              <SelectItem value="reminders" disabled={!isTabAvailable('reminders')}>
+              <SelectItem value="products">
+                {t("reports.tabs.products")}
+                {getTabRequiredPlan('products') && ` (${getTabRequiredPlan('products')})`}
+              </SelectItem>
+              <SelectItem value="expenses">
+                {t("reports.tabs.expenses")}
+                {getTabRequiredPlan('expenses') && ` (${getTabRequiredPlan('expenses')})`}
+              </SelectItem>
+              <SelectItem value="clients">
+                {t("reports.tabs.clients")}
+                {getTabRequiredPlan('clients') && ` (${getTabRequiredPlan('clients')})`}
+              </SelectItem>
+              <SelectItem value="taxes">
+                {t("reports.tabs.taxes")}
+                {getTabRequiredPlan('taxes') && ` (${getTabRequiredPlan('taxes')})`}
+              </SelectItem>
+              <SelectItem value="invoices">
+                {t("reports.tabs.invoices")}
+                {getTabRequiredPlan('invoices') && ` (${getTabRequiredPlan('invoices')})`}
+              </SelectItem>
+              <SelectItem value="reminders">
                 {language === "fr" ? "Rappels" : "Reminders"}
               </SelectItem>
             </SelectContent>
           </Select>
         ) : (
-          <TabsList>
-            <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
-            <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
-            <TabsTrigger value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
-            <TabsTrigger value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
-            <TabsTrigger value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
-            <TabsTrigger value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
-            <TabsTrigger value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
-            <TabsTrigger value="reminders" disabled={!isTabAvailable('reminders')}>
-              {language === "fr" ? "Rappels" : "Reminders"}
-            </TabsTrigger>
-          </TabsList>
+          <TooltipProvider delayDuration={200}>
+            <TabsList>
+              <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
+              <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
+              {(['products', 'expenses', 'clients', 'taxes', 'invoices'] as const).map((tab) => {
+                const requiredPlan = getTabRequiredPlan(tab);
+                const tabLabel = tab === 'clients' ? t("reports.tabs.clients")
+                  : tab === 'invoices' ? t("reports.tabs.invoices")
+                  : t(`reports.tabs.${tab}`);
+                
+                if (requiredPlan) {
+                  return (
+                    <Tooltip key={tab}>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <TabsTrigger value={tab} className="opacity-60 gap-1.5">
+                            {tabLabel}
+                            <Lock className="h-3 w-3" />
+                          </TabsTrigger>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="flex items-center gap-1.5">
+                        <Crown className="h-3.5 w-3.5 text-amber-500" />
+                        <span>
+                          {language === 'fr'
+                            ? `Disponible avec le plan ${requiredPlan}`
+                            : `Available in ${requiredPlan} plan`}
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+                
+                return (
+                  <TabsTrigger key={tab} value={tab}>{tabLabel}</TabsTrigger>
+                );
+              })}
+              <TabsTrigger value="reminders">
+                {language === "fr" ? "Rappels" : "Reminders"}
+              </TabsTrigger>
+            </TabsList>
+          </TooltipProvider>
         )}
 
         <TabsContent value="overview" className="space-y-4">
