@@ -1232,7 +1232,6 @@ Best regards,
             <Plus className="h-4 w-4 mr-2" />
             {t("companies.addButton")}
             </Button>
-          )}
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCompany ? t("companies.dialog.edit") : t("companies.dialog.add")}</DialogTitle>
