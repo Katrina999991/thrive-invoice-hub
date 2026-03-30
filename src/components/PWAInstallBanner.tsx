@@ -188,8 +188,12 @@ export function PWAInstallBanner() {
     setShowBanner(false);
     // Store timestamp for 7-day delay
     localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
-    // Remove permanent dismiss flag if it was set
-    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const handleDontShowAgain = () => {
+    setShowBanner(false);
+    localStorage.setItem(STORAGE_KEY, "permanently_dismissed");
+    localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
   };
 
   if (!showBanner) return null;
