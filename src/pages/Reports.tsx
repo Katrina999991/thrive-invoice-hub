@@ -5593,7 +5593,7 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={lockedTabSelected || reportTab} onValueChange={(val) => {
+      <Tabs value={reportTab} onValueChange={(val) => {
         const locked = getTabRequiredPlan(val);
         if (locked) {
           setLockedTabSelected(val);
