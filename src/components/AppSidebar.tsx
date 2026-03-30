@@ -288,14 +288,14 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink 
                         to={item.url} 
-                        className={`${getNavCls(item.url, false)} grid w-full h-9 items-center`}
-                        style={{ gridTemplateColumns: isCollapsed ? '20px' : '20px 1fr 16px' }}
+                        className={`${getNavCls(item.url, false)} !grid !gap-0 w-full h-9 items-center [&>svg]:size-[18px] [&>svg]:m-auto`}
+                        style={{ gridTemplateColumns: isCollapsed ? '24px' : '24px 1fr 20px' }}
                         onClick={handleSettingsNavClick}
                       >
-                        <item.icon className="h-4 w-4 place-self-center" />
+                        <item.icon />
                         {!isCollapsed && (
                           <>
-                            <span className="truncate pl-2">{t(item.titleKey)}</span>
+                            <span className="truncate pl-2 text-sm">{t(item.titleKey)}</span>
                             <span />
                           </>
                         )}
