@@ -65,6 +65,7 @@ const Reports = () => {
   const { t, language } = useLanguage();
   const isMobile = useIsMobile();
   const [reportTab, setReportTab] = useState('overview');
+  const [lockedTabSelected, setLockedTabSelected] = useState<string | null>(null);
   const { planLimits } = useSubscription();
   const { user } = useAuth();
   const navigate = useNavigate();
