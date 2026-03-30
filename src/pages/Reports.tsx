@@ -67,6 +67,7 @@ const Reports = () => {
   const [reportTab, setReportTab] = useState('overview');
   const { planLimits } = useSubscription();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   const [showNoProductsDialog, setShowNoProductsDialog] = useState(false);
