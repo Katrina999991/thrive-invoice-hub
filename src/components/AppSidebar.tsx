@@ -1,4 +1,3 @@
-
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,8 +14,15 @@ import {
   Settings,
   ChevronDown,
   Crown,
-  Shield
+  Shield,
+  Lock
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Admin access by email
 const ADMIN_EMAIL = "martine@3d-art.ca";
@@ -45,11 +51,37 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, type PlanLimits } from "@/hooks/useSubscription";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import gestionflowLogo from "@/assets/gestionflow-logo.png";
 import gestionflowLogoDark from "@/assets/gestionflow-logo-dark.png";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
+type FeatureKey = "category_management" | "quotes_enabled" | "pdf_export" | "all_reports" | "custom_email_templates" | "final_reminder_enabled" | "formal_notice_enabled";
+
+interface MenuItem {
+  titleKey: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  requiresFeature: FeatureKey | null;
+  requiredPermission: string | null;
+  /** Minimum plan required to unlock (used for lock tooltip) */
+  minPlan?: "premium" | "pro";
+}
+
+/**
+ * Checks if a menu item is locked based on the current plan limits.
+ * Returns the minimum plan name needed to unlock, or null if accessible.
+ */
+function getLockedPlan(item: MenuItem, planLimits: PlanLimits | null | undefined): string | null {
+  if (!planLimits) return null; // Don't lock while loading
+  if (!item.requiresFeature) return null;
+  
+  const featureAvailable = planLimits[item.requiresFeature];
+  if (featureAvailable) return null;
+  
+  return item.minPlan || "premium";
+}
 
 export function AppSidebar() {
   const { t, language } = useLanguage();
@@ -62,7 +94,9 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
   
-  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [lockedFeatureName, setLockedFeatureName] = useState("");
+  const [requiredPlanName, setRequiredPlanName] = useState("");
   
   const [darkMode, setDarkMode] = useState<string>(
     localStorage.getItem("app-dark-mode") || "light"
@@ -85,30 +119,28 @@ export function AppSidebar() {
   
   const logo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
 
-  // Define main menu items with their required permissions
-  // Dashboard is accessible to all authenticated members (null permission = always visible)
-  // Other items require specific view permissions
-  const mainItems = [
+  // Define main menu items with their required permissions and plan features
+  const mainItems: MenuItem[] = useMemo(() => [
     { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, requiresFeature: null, requiredPermission: null },
     { titleKey: "nav.companies", url: "/dashboard/companies", icon: Building2, requiresFeature: null, requiredPermission: null },
     { titleKey: "nav.clients", url: "/dashboard/clients", icon: Users, requiresFeature: null, requiredPermission: "clients:view" },
-    { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag, requiresFeature: "category_management" as const, requiredPermission: "settings:view" },
+    { titleKey: "nav.categories", url: "/dashboard/categories", icon: Tag, requiresFeature: "category_management", requiredPermission: "settings:view", minPlan: "premium" },
     { titleKey: "nav.products", url: "/dashboard/products", icon: Package, requiresFeature: null, requiredPermission: "products:view" },
-    { titleKey: "nav.stockManagement", url: "/dashboard/stock", icon: Warehouse, requiresFeature: null, requiredPermission: "inventory:view" },
-    { titleKey: "nav.quotes", url: "/dashboard/quotes", icon: FileCheck, requiresFeature: null, requiredPermission: "quotes:view" },
+    { titleKey: "nav.stockManagement", url: "/dashboard/stock", icon: Warehouse, requiresFeature: "pdf_export", requiredPermission: "inventory:view", minPlan: "premium" },
+    { titleKey: "nav.quotes", url: "/dashboard/quotes", icon: FileCheck, requiresFeature: "quotes_enabled", requiredPermission: "quotes:view", minPlan: "premium" },
     { titleKey: "nav.invoices", url: "/dashboard/invoices", icon: FileText, requiresFeature: null, requiredPermission: "invoices:view" },
     { titleKey: "nav.timeTracking", url: "/dashboard/time-tracking", icon: Clock, requiresFeature: null, requiredPermission: "time_tracking:view_own" },
     { titleKey: "nav.expenses", url: "/dashboard/expenses", icon: Receipt, requiresFeature: null, requiredPermission: "expenses:view" },
     { titleKey: "nav.reports", url: "/dashboard/reports", icon: BarChart3, requiresFeature: null, requiredPermission: "reports:view" },
-  ];
+  ], []);
 
-  // Filter menu items based on permissions
-  // CRITICAL: Show ALL tabs while permissions are loading OR when no permissions data exists yet
-  // This prevents the "flash then disappear" bug where tabs show briefly then vanish
+  // Filter menu items based on permissions (but keep plan-locked items visible)
   const permissionsReady = !permissionsLoading && permissions.length > 0;
   const visibleMainItems = mainItems.filter(item => {
     if (!item.requiredPermission) return true;
-    if (!permissionsReady) return true; // Show all tabs until permissions are fully loaded
+    if (!permissionsReady) return true;
+    // Always show plan-gated items (even if permission missing, they'll show as locked)
+    if (item.requiresFeature && getLockedPlan(item, planLimits)) return true;
     return hasPermission(item.requiredPermission);
   });
 
@@ -118,12 +150,10 @@ export function AppSidebar() {
     { titleKey: "nav.admin", url: "/dashboard/admin", icon: Shield, requiresFeature: null, adminOnly: true, requiredPermission: null },
   ];
 
-  // Filter items based on admin status and permissions
-  // CRITICAL: Show settings tabs until permissions are fully loaded
   const visibleSettingsItems = settingsItems.filter(item => {
     if (item.adminOnly && user?.email !== ADMIN_EMAIL) return false;
     if (item.requiredPermission) {
-      if (!permissionsReady) return true; // Show while loading
+      if (!permissionsReady) return true;
       return hasPermission(item.requiredPermission);
     }
     return true;
@@ -134,16 +164,22 @@ export function AppSidebar() {
     return currentPath.startsWith(path);
   };
 
-  const getNavCls = (path: string) =>
-    isActive(path) ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
+  const getNavCls = (path: string, isLocked: boolean) => {
+    const base = isActive(path) ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
+    return isLocked ? `${base} opacity-60` : base;
+  };
 
-  const handleNavClick = (item: typeof mainItems[0], e: React.MouseEvent) => {
-    if (item.requiresFeature && planLimits && !planLimits[item.requiresFeature]) {
+  const handleNavClick = (item: MenuItem, e: React.MouseEvent) => {
+    const lockedPlan = getLockedPlan(item, planLimits);
+    
+    if (lockedPlan) {
       e.preventDefault();
-      setShowCategoryDialog(true);
+      setLockedFeatureName(t(item.titleKey));
+      setRequiredPlanName(lockedPlan === "pro" ? "Pro" : "Premium");
+      setShowUpgradeDialog(true);
       return;
     }
-    // Close sidebar on mobile after navigation
+    
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -154,6 +190,20 @@ export function AppSidebar() {
       setOpenMobile(false);
     }
   };
+
+  const upgradeDialogText = useMemo(() => ({
+    title: language === 'fr' ? 'Fonctionnalité verrouillée' : 'Locked Feature',
+    description: language === 'fr'
+      ? `"${lockedFeatureName}" est disponible avec le plan ${requiredPlanName} ou supérieur. Passez à un plan supérieur pour débloquer cette fonctionnalité.`
+      : `"${lockedFeatureName}" is available with the ${requiredPlanName} plan or higher. Upgrade your plan to unlock this feature.`,
+    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
+    upgrade: language === 'fr' ? 'Voir les plans' : 'View Plans',
+  }), [language, lockedFeatureName, requiredPlanName]);
+
+  const lockTooltipText = (planName: string) => 
+    language === 'fr' 
+      ? `Disponible avec le plan ${planName}` 
+      : `Available in ${planName} plan`;
 
   return (
     <>
@@ -177,20 +227,49 @@ export function AppSidebar() {
             <SidebarGroupLabel>{t("nav.main")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {visibleMainItems.map((item) => (
-                  <SidebarMenuItem key={item.titleKey}>
-                    <SidebarMenuButton asChild>
+                <TooltipProvider delayDuration={300}>
+                  {visibleMainItems.map((item) => {
+                    const lockedPlan = getLockedPlan(item, planLimits);
+                    const isLocked = !!lockedPlan;
+                    const planLabel = lockedPlan === "pro" ? "Pro" : "Premium";
+
+                    const navContent = (
                       <NavLink 
                         to={item.url} 
-                        className={getNavCls(item.url)}
+                        className={getNavCls(item.url, isLocked)}
                         onClick={(e) => handleNavClick(item, e)}
                       >
                         <item.icon className="h-4 w-4" />
-                        {!isCollapsed && <span>{t(item.titleKey)}</span>}
+                        {!isCollapsed && (
+                          <span className="flex-1">{t(item.titleKey)}</span>
+                        )}
+                        {!isCollapsed && isLocked && (
+                          <Lock className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        )}
                       </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                    );
+
+                    return (
+                      <SidebarMenuItem key={item.titleKey}>
+                        <SidebarMenuButton asChild>
+                          {isLocked ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {navContent}
+                              </TooltipTrigger>
+                              <TooltipContent side="right" className="flex items-center gap-1.5">
+                                <Crown className="h-3.5 w-3.5 text-amber-500" />
+                                <span>{lockTooltipText(planLabel)}</span>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            navContent
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </TooltipProvider>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -204,7 +283,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink 
                         to={item.url} 
-                        className={getNavCls(item.url)}
+                        className={getNavCls(item.url, false)}
                         onClick={handleSettingsNavClick}
                       >
                         <item.icon className="h-4 w-4" />
@@ -219,24 +298,25 @@ export function AppSidebar() {
         </SidebarContent>
       </Sidebar>
 
-      <AlertDialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {language === 'fr' ? 'Fonctionnalité Premium' : 'Premium Feature'}
-            </AlertDialogTitle>
+            <div className="flex items-center gap-2 mb-1">
+              <Crown className="h-5 w-5 text-amber-500" />
+              <AlertDialogTitle>
+                {upgradeDialogText.title}
+              </AlertDialogTitle>
+            </div>
             <AlertDialogDescription>
-              {language === 'fr' 
-                ? 'La gestion des catégories est disponible avec les plans Premium et Pro. Passez à un plan supérieur pour accéder à cette fonctionnalité.' 
-                : 'Category management is available with Premium and Pro plans. Upgrade to access this feature.'}
+              {upgradeDialogText.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {language === 'fr' ? 'Annuler' : 'Cancel'}
+              {upgradeDialogText.cancel}
             </AlertDialogCancel>
             <AlertDialogAction onClick={() => navigate('/dashboard/pricing')}>
-              {language === 'fr' ? 'Voir les plans' : 'View Plans'}
+              {upgradeDialogText.upgrade}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
