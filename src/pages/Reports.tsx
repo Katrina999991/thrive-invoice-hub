@@ -7223,6 +7223,7 @@ const Reports = () => {
               </CardContent>
             </Card>
           </div>
+          </>
           )}
         </TabsContent>
 
