@@ -72,24 +72,25 @@ export const useSubscription = (companyId?: string | null) => {
   const { data: planLimits, isLoading: isLoadingLimits } = useQuery({
     queryKey: ["companyPlanLimits", effectiveCompanyId],
     queryFn: async () => {
-      if (!effectiveCompanyId) return null;
-      
-      const { data, error } = await supabase
-        .rpc('get_company_plan_limits', { _company_id: effectiveCompanyId })
-        .single();
-      
-      if (error) {
+      // Try company plan limits first
+      if (effectiveCompanyId) {
+        const { data, error } = await supabase
+          .rpc('get_company_plan_limits', { _company_id: effectiveCompanyId })
+          .single();
+        
+        if (!error && data) return data as PlanLimits;
         console.error("Error fetching company plan limits:", error);
-        // Fallback to user plan limits if company plan doesn't exist
-        if (user?.id) {
-          const { data: userData, error: userError } = await supabase
-            .rpc('get_user_plan_limits', { user_uuid: user.id })
-            .single();
-          if (!userError) return userData as PlanLimits;
-        }
-        return null;
       }
-      return data as PlanLimits;
+      
+      // Fallback to user plan limits (for users without a company or when company plan fails)
+      if (user?.id) {
+        const { data: userData, error: userError } = await supabase
+          .rpc('get_user_plan_limits', { user_uuid: user.id })
+          .single();
+        if (!userError && userData) return userData as PlanLimits;
+      }
+      
+      return null;
     },
     enabled: !!effectiveCompanyId || !!user?.id,
     staleTime: 30000, // 30 seconds cache
