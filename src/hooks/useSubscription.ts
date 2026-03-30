@@ -70,7 +70,7 @@ export const useSubscription = (companyId?: string | null) => {
 
   // Fetch company plan limits (not user plan limits)
   const { data: planLimits, isLoading: isLoadingLimits } = useQuery({
-    queryKey: ["companyPlanLimits", effectiveCompanyId],
+    queryKey: ["companyPlanLimits", effectiveCompanyId, user?.id],
     queryFn: async () => {
       // Try company plan limits first
       if (effectiveCompanyId) {
