@@ -64,8 +64,9 @@ export function PWAInstallBanner() {
       return;
     }
 
-    // Check if permanently installed
-    if (localStorage.getItem(STORAGE_KEY) === "installed") {
+    // Check if permanently dismissed or installed
+    const dismissState = localStorage.getItem(STORAGE_KEY);
+    if (dismissState === "installed" || dismissState === "permanently_dismissed") {
       return;
     }
 
