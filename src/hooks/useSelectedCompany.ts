@@ -93,11 +93,11 @@ export function useSelectedCompany(initialCompanyId?: string) {
     companyIds,
     currentMembership,
     
-    // Role info (from centralized abilities)
-    isOwner: abilities.isOwner,
-    isAdmin: abilities.isAdmin,
+    // Role info (from centralized abilities, or owner-like when no company)
+    isOwner: hasNoCompany || abilities.isOwner,
+    isAdmin: hasNoCompany || abilities.isAdmin,
     isViewer: abilities.isViewer,
-    roleName: abilities.roleName,
+    roleName: hasNoCompany ? 'owner' : abilities.roleName,
     
     // Permissions - centralized
     permissions,
