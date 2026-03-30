@@ -111,7 +111,9 @@ export const SubscriptionLimitsCard = () => {
       invoices: "Invoices this month",
       expenses: "Expenses this month",
       unlimited: "Unlimited",
-      upgrade: "Upgrade Plan",
+      upgradeToPremium: "Upgrade to Premium",
+      upgradeToPro: "Upgrade to Pro",
+      bestPlan: "You're on the best plan 🎉",
       features: "Features",
       limited: "Limited",
     },
@@ -121,7 +123,9 @@ export const SubscriptionLimitsCard = () => {
       invoices: "Factures ce mois-ci",
       expenses: "Dépenses ce mois-ci",
       unlimited: "Illimité",
-      upgrade: "Améliorer le plan",
+      upgradeToPremium: "Passer à Premium",
+      upgradeToPro: "Passer à Pro",
+      bestPlan: "Vous êtes sur le meilleur plan 🎉",
       features: "Fonctionnalités",
       limited: "Limité",
     }
@@ -206,9 +210,12 @@ export const SubscriptionLimitsCard = () => {
           </div>
         </div>
 
-        {planLimits.plan_type !== 'pro' && (
+        {planLimits.plan_type === 'pro' ? (
+          <p className="text-center text-sm text-muted-foreground font-medium">{t.bestPlan}</p>
+        ) : (
           <Button className="w-full" variant="default" onClick={() => navigate('/dashboard/pricing')}>
-            {t.upgrade}
+            <Crown className="h-4 w-4 mr-2" />
+            {planLimits.plan_type === 'free' ? t.upgradeToPremium : t.upgradeToPro}
           </Button>
         )}
       </CardContent>
