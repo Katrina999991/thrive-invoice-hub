@@ -289,11 +289,18 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink 
                         to={item.url} 
-                        className={getNavCls(item.url, false)}
+                        className={`${getNavCls(item.url, false)} flex items-center w-full h-9`}
                         onClick={handleSettingsNavClick}
                       >
-                        <item.icon className="h-4 w-4" />
-                        {!isCollapsed && <span>{t(item.titleKey)}</span>}
+                        <span className="w-5 flex items-center justify-center flex-shrink-0">
+                          <item.icon className="h-4 w-4" />
+                        </span>
+                        {!isCollapsed && (
+                          <>
+                            <span className="flex-1 truncate ml-2">{t(item.titleKey)}</span>
+                            <span className="w-4 flex-shrink-0" />
+                          </>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
