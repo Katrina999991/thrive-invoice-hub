@@ -55,7 +55,7 @@ export function AppSidebar() {
   const { t, language } = useLanguage();
   const { user, username } = useAuth();
   const { planLimits } = useSubscription();
-  const { hasPermission } = useSelectedCompany();
+  const { hasPermission, loading: permissionsLoading } = useSelectedCompany();
   const { state, setOpenMobile, isMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
@@ -103,8 +103,10 @@ export function AppSidebar() {
   ];
 
   // Filter menu items based on permissions
+  // IMPORTANT: While permissions are loading, show ALL tabs to prevent flickering
   const visibleMainItems = mainItems.filter(item => {
     if (!item.requiredPermission) return true;
+    if (permissionsLoading) return true; // Show all tabs while loading
     return hasPermission(item.requiredPermission);
   });
 
@@ -115,9 +117,13 @@ export function AppSidebar() {
   ];
 
   // Filter items based on admin status and permissions
+  // IMPORTANT: While permissions are loading, show settings tabs to prevent flickering
   const visibleSettingsItems = settingsItems.filter(item => {
     if (item.adminOnly && user?.email !== ADMIN_EMAIL) return false;
-    if (item.requiredPermission && !hasPermission(item.requiredPermission)) return false;
+    if (item.requiredPermission) {
+      if (permissionsLoading) return true; // Show while loading
+      return hasPermission(item.requiredPermission);
+    }
     return true;
   });
 
