@@ -236,18 +236,18 @@ export function AppSidebar() {
                     const navContent = (
                       <NavLink 
                         to={item.url} 
-                        className={`${getNavCls(item.url, isLocked)} !grid !gap-0 w-full h-9 items-center [&>svg]:size-[18px] [&>svg]:m-auto`}
+                        className={`${getNavCls(item.url, isLocked)} !grid !gap-0 w-full h-9 items-center`}
                         style={{ gridTemplateColumns: isCollapsed ? '24px' : '24px 1fr 20px' }}
                         onClick={(e) => handleNavClick(item, e)}
                       >
-                        <item.icon />
+                        <span className="flex items-center justify-center w-[24px] h-[24px]">
+                          <item.icon className="!h-[18px] !w-[18px]" />
+                        </span>
                         {!isCollapsed && (
                           <>
                             <span className="truncate pl-2 text-sm">{t(item.titleKey)}</span>
-                            <span className="flex items-center justify-center">
-                              {isLocked ? (
-                                <Lock className="!size-3 text-muted-foreground/60" />
-                              ) : null}
+                            <span className="flex items-center justify-center w-[20px] h-[20px]">
+                              <Lock className={`!h-3 !w-3 text-muted-foreground/60 ${isLocked ? 'visible' : 'invisible'}`} />
                             </span>
                           </>
                         )}
