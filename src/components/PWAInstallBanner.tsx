@@ -64,8 +64,9 @@ export function PWAInstallBanner() {
       return;
     }
 
-    // Check if permanently installed
-    if (localStorage.getItem(STORAGE_KEY) === "installed") {
+    // Check if permanently dismissed or installed
+    const dismissState = localStorage.getItem(STORAGE_KEY);
+    if (dismissState === "installed" || dismissState === "permanently_dismissed") {
       return;
     }
 
@@ -87,9 +88,10 @@ export function PWAInstallBanner() {
   useEffect(() => {
     console.log("PWA Banner: Component mounted");
     
-    // Check if permanently installed
-    if (localStorage.getItem(STORAGE_KEY) === "installed") {
-      console.log("PWA Banner: Already installed");
+    // Check if permanently dismissed or installed
+    const dismissState = localStorage.getItem(STORAGE_KEY);
+    if (dismissState === "installed" || dismissState === "permanently_dismissed") {
+      console.log("PWA Banner: Permanently dismissed or installed");
       return;
     }
 
@@ -188,8 +190,12 @@ export function PWAInstallBanner() {
     setShowBanner(false);
     // Store timestamp for 7-day delay
     localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
-    // Remove permanent dismiss flag if it was set
-    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const handleDontShowAgain = () => {
+    setShowBanner(false);
+    localStorage.setItem(STORAGE_KEY, "permanently_dismissed");
+    localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
   };
 
   if (!showBanner) return null;
@@ -264,23 +270,31 @@ export function PWAInstallBanner() {
                     {deviceCopy.description}
                   </p>
                   
-                  <div className="flex items-center gap-3 mt-4">
-                    <Button
-                      size="sm"
-                      onClick={handleInstall}
-                      className="h-9 px-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
+                  <div className="flex flex-col gap-2 mt-4">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        size="sm"
+                        onClick={handleInstall}
+                        className="h-9 px-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? "Installer" : "Install"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleDismiss}
+                        className="h-9 px-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                      >
+                        {language === 'fr' ? "Plus tard" : "Later"}
+                      </Button>
+                    </div>
+                    <button
+                      onClick={handleDontShowAgain}
+                      className="text-xs text-primary-foreground/50 hover:text-primary-foreground/70 transition-colors text-left"
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      {language === 'fr' ? "Installer" : "Install"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleDismiss}
-                      className="h-9 px-3 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                    >
-                      {language === 'fr' ? "Plus tard" : "Later"}
-                    </Button>
+                      {language === 'fr' ? "Ne plus afficher" : "Don't show again"}
+                    </button>
                   </div>
                 </>
               ) : (
