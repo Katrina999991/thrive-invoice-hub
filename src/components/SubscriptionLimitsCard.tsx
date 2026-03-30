@@ -22,6 +22,11 @@ interface FeatureDisplay {
 function getFeatureAccessList(planType: string): FeatureDisplay[] {
   return [
     {
+      labelEn: "Time Tracking",
+      labelFr: "Suivi des heures",
+      access: "full", // Included in ALL plans
+    },
+    {
       labelEn: "PDF Export",
       labelFr: "Export PDF",
       access: planType === "free" ? "none" : "full",
@@ -32,24 +37,24 @@ function getFeatureAccessList(planType: string): FeatureDisplay[] {
       access: planType === "free" ? "none" : "full",
     },
     {
-      labelEn: "Reports",
-      labelFr: "Rapports",
-      access: planType === "pro" ? "full" : planType === "premium" ? "partial" : "none",
-    },
-    {
-      labelEn: "Custom Emails",
-      labelFr: "Emails perso",
-      access: planType === "pro" ? "full" : "none",
-    },
-    {
       labelEn: "Quotes",
       labelFr: "Devis",
       access: planType === "free" ? "none" : "full",
     },
     {
+      labelEn: "Reports",
+      labelFr: "Rapports",
+      access: planType === "pro" ? "full" : planType === "premium" ? "partial" : "partial",
+    },
+    {
       labelEn: "Final Reminder",
       labelFr: "Dernier rappel",
       access: planType === "free" ? "none" : "full",
+    },
+    {
+      labelEn: "Custom Emails",
+      labelFr: "Emails perso",
+      access: planType === "pro" ? "full" : "none",
     },
     {
       labelEn: "Formal Notice",
