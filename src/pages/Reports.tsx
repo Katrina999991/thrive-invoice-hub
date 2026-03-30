@@ -37,7 +37,8 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Download, FileSpreadsheet, CalendarIcon, Mail } from "lucide-react";
+import { Download, FileSpreadsheet, CalendarIcon, Mail, Crown, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -64,8 +65,10 @@ const Reports = () => {
   const { t, language } = useLanguage();
   const isMobile = useIsMobile();
   const [reportTab, setReportTab] = useState('overview');
+  const [lockedTabSelected, setLockedTabSelected] = useState<string | null>(null);
   const { planLimits } = useSubscription();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [activeTab, setActiveTab] = useState('custom');
   const [showNoProductsDialog, setShowNoProductsDialog] = useState(false);
@@ -102,6 +105,15 @@ const Reports = () => {
       return tab === 'taxes' || tab === 'products' || tab === 'expenses';
     }
     return false; // Free plan - only overview, revenue and reminders
+  };
+
+  // Returns the minimum plan required for a locked tab, or null if available
+  const getTabRequiredPlan = (tab: string): "Premium" | "Pro" | null => {
+    if (isTabAvailable(tab)) return null;
+    // These tabs unlock at Premium level
+    if (tab === 'taxes' || tab === 'products' || tab === 'expenses') return "Premium";
+    // These tabs unlock at Pro level
+    return "Pro";
   };
   
   // Refs pour capturer les graphiques
@@ -5581,38 +5593,126 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
+      <Tabs value={lockedTabSelected || reportTab} onValueChange={(val) => {
+        const locked = getTabRequiredPlan(val);
+        if (locked) {
+          setLockedTabSelected(val);
+        } else {
+          setLockedTabSelected(null);
+          setReportTab(val);
+        }
+      }} className="space-y-4 max-w-full overflow-x-hidden">
         {isMobile ? (
-          <Select value={reportTab} onValueChange={setReportTab}>
+          <Select value={lockedTabSelected || reportTab} onValueChange={(val) => {
+            const locked = getTabRequiredPlan(val);
+            if (locked) {
+              setLockedTabSelected(val);
+            } else {
+              setLockedTabSelected(null);
+              setReportTab(val);
+            }
+          }}>
             <SelectTrigger className="w-full max-w-full min-w-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="overview">{t("reports.tabs.overview")}</SelectItem>
               <SelectItem value="revenue">{t("reports.tabs.revenue")}</SelectItem>
-              <SelectItem value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</SelectItem>
-              <SelectItem value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</SelectItem>
-              <SelectItem value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</SelectItem>
-              <SelectItem value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</SelectItem>
-              <SelectItem value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</SelectItem>
-              <SelectItem value="reminders" disabled={!isTabAvailable('reminders')}>
+              <SelectItem value="products">
+                {t("reports.tabs.products")}
+                {getTabRequiredPlan('products') && ` (${getTabRequiredPlan('products')})`}
+              </SelectItem>
+              <SelectItem value="expenses">
+                {t("reports.tabs.expenses")}
+                {getTabRequiredPlan('expenses') && ` (${getTabRequiredPlan('expenses')})`}
+              </SelectItem>
+              <SelectItem value="clients">
+                {t("reports.tabs.clients")}
+                {getTabRequiredPlan('clients') && ` (${getTabRequiredPlan('clients')})`}
+              </SelectItem>
+              <SelectItem value="taxes">
+                {t("reports.tabs.taxes")}
+                {getTabRequiredPlan('taxes') && ` (${getTabRequiredPlan('taxes')})`}
+              </SelectItem>
+              <SelectItem value="invoices">
+                {t("reports.tabs.invoices")}
+                {getTabRequiredPlan('invoices') && ` (${getTabRequiredPlan('invoices')})`}
+              </SelectItem>
+              <SelectItem value="reminders">
                 {language === "fr" ? "Rappels" : "Reminders"}
               </SelectItem>
             </SelectContent>
           </Select>
         ) : (
-          <TabsList>
-            <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
-            <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
-            <TabsTrigger value="products" disabled={!isTabAvailable('products')}>{t("reports.tabs.products")}</TabsTrigger>
-            <TabsTrigger value="expenses" disabled={!isTabAvailable('expenses')}>{t("reports.tabs.expenses")}</TabsTrigger>
-            <TabsTrigger value="clients" disabled={!isTabAvailable('clients')}>{t("reports.tabs.clients")}</TabsTrigger>
-            <TabsTrigger value="taxes" disabled={!isTabAvailable('taxes')}>{t("reports.tabs.taxes")}</TabsTrigger>
-            <TabsTrigger value="invoices" disabled={!isTabAvailable('invoices')}>{t("reports.tabs.invoices")}</TabsTrigger>
-            <TabsTrigger value="reminders" disabled={!isTabAvailable('reminders')}>
-              {language === "fr" ? "Rappels" : "Reminders"}
-            </TabsTrigger>
-          </TabsList>
+          <TooltipProvider delayDuration={200}>
+            <TabsList>
+              <TabsTrigger value="overview">{t("reports.tabs.overview")}</TabsTrigger>
+              <TabsTrigger value="revenue">{t("reports.tabs.revenue")}</TabsTrigger>
+              {(['products', 'expenses', 'clients', 'taxes', 'invoices'] as const).map((tab) => {
+                const requiredPlan = getTabRequiredPlan(tab);
+                const tabLabel = tab === 'clients' ? t("reports.tabs.clients")
+                  : tab === 'invoices' ? t("reports.tabs.invoices")
+                  : t(`reports.tabs.${tab}`);
+                
+                if (requiredPlan) {
+                  return (
+                    <Tooltip key={tab}>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <TabsTrigger value={tab} className="opacity-60 gap-1.5">
+                            {tabLabel}
+                            <Lock className="h-3 w-3" />
+                          </TabsTrigger>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="flex items-center gap-1.5">
+                        <Crown className="h-3.5 w-3.5 text-amber-500" />
+                        <span>
+                          {language === 'fr'
+                            ? `Disponible avec le plan ${requiredPlan}`
+                            : `Available in ${requiredPlan} plan`}
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+                
+                return (
+                  <TabsTrigger key={tab} value={tab}>{tabLabel}</TabsTrigger>
+                );
+              })}
+              <TabsTrigger value="reminders">
+                {language === "fr" ? "Rappels" : "Reminders"}
+              </TabsTrigger>
+            </TabsList>
+          </TooltipProvider>
+        )}
+
+        {/* Locked tab upgrade prompt - shown when a plan-gated tab is selected */}
+        {lockedTabSelected && getTabRequiredPlan(lockedTabSelected) && (
+          <Card className="border-dashed border-2 border-muted-foreground/20">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <Crown className="h-7 w-7 text-amber-500" />
+              </div>
+              <div className="space-y-2 max-w-md">
+                <h3 className="text-lg font-semibold">
+                  {language === 'fr'
+                    ? `Rapport disponible avec le plan ${getTabRequiredPlan(lockedTabSelected)}`
+                    : `Report available with the ${getTabRequiredPlan(lockedTabSelected)} plan`}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr'
+                    ? 'Passez à un plan supérieur pour accéder à ce rapport et débloquer des analyses avancées.'
+                    : 'Upgrade your plan to access this report and unlock advanced analytics.'}
+                </p>
+              </div>
+              <Button onClick={() => navigate('/dashboard/pricing')} className="mt-2">
+                <Crown className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Voir les plans' : 'View Plans'}
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         <TabsContent value="overview" className="space-y-4">
