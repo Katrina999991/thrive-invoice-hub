@@ -5593,9 +5593,25 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={reportTab} onValueChange={setReportTab} className="space-y-4 max-w-full overflow-x-hidden">
+      <Tabs value={lockedTabSelected || reportTab} onValueChange={(val) => {
+        const locked = getTabRequiredPlan(val);
+        if (locked) {
+          setLockedTabSelected(val);
+        } else {
+          setLockedTabSelected(null);
+          setReportTab(val);
+        }
+      }} className="space-y-4 max-w-full overflow-x-hidden">
         {isMobile ? (
-          <Select value={reportTab} onValueChange={setReportTab}>
+          <Select value={lockedTabSelected || reportTab} onValueChange={(val) => {
+            const locked = getTabRequiredPlan(val);
+            if (locked) {
+              setLockedTabSelected(val);
+            } else {
+              setLockedTabSelected(null);
+              setReportTab(val);
+            }
+          }}>
             <SelectTrigger className="w-full max-w-full min-w-0">
               <SelectValue />
             </SelectTrigger>
