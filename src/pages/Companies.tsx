@@ -1227,12 +1227,11 @@ Best regards,
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          {canCreateCompany && (
-            <Button onClick={handleAddCompanyClick} disabled={isSubmitting}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("companies.addButton")}
+          {/* Company creation is always allowed - plan limits are checked in handleAddCompanyClick */}
+          <Button onClick={handleAddCompanyClick} disabled={isSubmitting}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("companies.addButton")}
             </Button>
-          )}
           <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCompany ? t("companies.dialog.edit") : t("companies.dialog.add")}</DialogTitle>
