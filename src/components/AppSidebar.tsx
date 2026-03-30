@@ -103,8 +103,10 @@ export function AppSidebar() {
   ];
 
   // Filter menu items based on permissions
+  // IMPORTANT: While permissions are loading, show ALL tabs to prevent flickering
   const visibleMainItems = mainItems.filter(item => {
     if (!item.requiredPermission) return true;
+    if (permissionsLoading) return true; // Show all tabs while loading
     return hasPermission(item.requiredPermission);
   });
 
