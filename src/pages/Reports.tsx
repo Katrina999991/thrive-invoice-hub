@@ -5671,7 +5671,33 @@ const Reports = () => {
           </TooltipProvider>
         )}
 
-        <TabsContent value="overview" className="space-y-4">
+        {/* Locked tab upgrade prompt - shown when a plan-gated tab is selected */}
+        {getTabRequiredPlan(reportTab) && (
+          <Card className="border-dashed border-2 border-muted-foreground/20">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <Crown className="h-7 w-7 text-amber-500" />
+              </div>
+              <div className="space-y-2 max-w-md">
+                <h3 className="text-lg font-semibold">
+                  {language === 'fr'
+                    ? `Rapport disponible avec le plan ${getTabRequiredPlan(reportTab)}`
+                    : `Report available with the ${getTabRequiredPlan(reportTab)} plan`}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr'
+                    ? 'Passez à un plan supérieur pour accéder à ce rapport et débloquer des analyses avancées.'
+                    : 'Upgrade your plan to access this report and unlock advanced analytics.'}
+                </p>
+              </div>
+              <Button onClick={() => navigate('/dashboard/pricing')} className="mt-2">
+                <Crown className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Voir les plans' : 'View Plans'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4 md:gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
