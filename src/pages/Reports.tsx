@@ -5715,6 +5715,8 @@ const Reports = () => {
           </Card>
         )}
 
+        {!lockedTabSelected && (
+        <>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4 md:gap-4">
             <Card>
