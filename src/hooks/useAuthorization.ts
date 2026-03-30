@@ -73,7 +73,7 @@ export function useAuthorization(companyId: string | null) {
 
   // Fetch company plan limits
   const { data: planLimits, isLoading: planLoading } = useQuery({
-    queryKey: ["companyPlanLimits", companyId],
+    queryKey: ["companyPlanLimits", companyId, user?.id],
     queryFn: async () => {
       if (!companyId) return null;
       
