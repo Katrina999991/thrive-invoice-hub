@@ -145,6 +145,8 @@ export function usePermissions(companyId: string | null) {
    * Handles hierarchical permission resolution
    */
   const can = useCallback((permission: PermissionKey | string): boolean => {
+    // Owners have all permissions
+    if (abilities.isOwner) return true;
     if (!abilities.isMember) return false;
     return checkPermission(abilities.permissions, permission);
   }, [abilities]);
