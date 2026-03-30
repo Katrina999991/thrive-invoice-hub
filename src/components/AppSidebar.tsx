@@ -103,10 +103,12 @@ export function AppSidebar() {
   ];
 
   // Filter menu items based on permissions
-  // IMPORTANT: While permissions are loading, show ALL tabs to prevent flickering
+  // CRITICAL: Show ALL tabs while permissions are loading OR when no permissions data exists yet
+  // This prevents the "flash then disappear" bug where tabs show briefly then vanish
+  const permissionsReady = !permissionsLoading && permissions.length > 0;
   const visibleMainItems = mainItems.filter(item => {
     if (!item.requiredPermission) return true;
-    if (permissionsLoading) return true; // Show all tabs while loading
+    if (!permissionsReady) return true; // Show all tabs until permissions are fully loaded
     return hasPermission(item.requiredPermission);
   });
 
