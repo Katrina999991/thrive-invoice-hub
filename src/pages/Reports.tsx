@@ -7222,6 +7222,7 @@ const Reports = () => {
               </CardContent>
             </Card>
           </div>
+          )}
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-4">
