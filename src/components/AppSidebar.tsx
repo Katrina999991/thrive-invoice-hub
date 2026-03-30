@@ -117,9 +117,13 @@ export function AppSidebar() {
   ];
 
   // Filter items based on admin status and permissions
+  // IMPORTANT: While permissions are loading, show settings tabs to prevent flickering
   const visibleSettingsItems = settingsItems.filter(item => {
     if (item.adminOnly && user?.email !== ADMIN_EMAIL) return false;
-    if (item.requiredPermission && !hasPermission(item.requiredPermission)) return false;
+    if (item.requiredPermission) {
+      if (permissionsLoading) return true; // Show while loading
+      return hasPermission(item.requiredPermission);
+    }
     return true;
   });
 
