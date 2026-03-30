@@ -6908,6 +6908,28 @@ const Reports = () => {
           </div>
 
           {/* ===== 2. RAPPORT ÉTAT DES STOCKS ===== */}
+          {!planLimits?.pdf_export ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+                <Lock className="h-10 w-10 text-muted-foreground" />
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-semibold">
+                    {language === 'fr' ? 'État des stocks' : 'Stock Status'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {language === 'fr'
+                      ? 'Passez à Premium pour gérer vos stocks et accéder aux rapports d\'inventaire.'
+                      : 'Upgrade to Premium to manage your stock data and access inventory reports.'}
+                  </p>
+                </div>
+                <Button variant="default" onClick={() => navigate('/dashboard/pricing')}>
+                  <Crown className="h-4 w-4 mr-2" />
+                  {language === 'fr' ? 'Passer à Premium' : 'Upgrade to Premium'}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+          <>
           <div className="space-y-4">
             <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
               <div>
@@ -7201,6 +7223,8 @@ const Reports = () => {
               </CardContent>
             </Card>
           </div>
+          </>
+          )}
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-4">
