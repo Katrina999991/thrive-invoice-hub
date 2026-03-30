@@ -208,7 +208,31 @@ export function TeamAccessTab() {
     return labels[action]?.[language] || action;
   };
 
-  if (permissionsLoading) {
+  // Handle no company case BEFORE permission loading check
+  if (companies.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="text-center text-muted-foreground">
+            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">
+              {language === "fr" ? "Aucune entreprise trouvée" : "No company found"}
+            </p>
+            <p className="text-sm mt-2">
+              {language === "fr" 
+                ? "Vous devez d'abord créer une entreprise pour gérer votre équipe."
+                : "You need to create a company first to manage your team."}
+            </p>
+            <Button className="mt-4" onClick={() => window.location.href = "/dashboard/companies"}>
+              {language === "fr" ? "Créer une entreprise" : "Create a company"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (permissionsLoading && selectedCompanyId) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
