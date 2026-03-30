@@ -5593,7 +5593,7 @@ const Reports = () => {
         )}
       </div>
 
-      <Tabs value={lockedTabSelected || reportTab} onValueChange={(val) => {
+      <Tabs value={reportTab} onValueChange={(val) => {
         const locked = getTabRequiredPlan(val);
         if (locked) {
           setLockedTabSelected(val);
@@ -5603,7 +5603,7 @@ const Reports = () => {
         }
       }} className="space-y-4 max-w-full overflow-x-hidden">
         {isMobile ? (
-          <Select value={lockedTabSelected || reportTab} onValueChange={(val) => {
+          <Select value={reportTab} onValueChange={(val) => {
             const locked = getTabRequiredPlan(val);
             if (locked) {
               setLockedTabSelected(val);
@@ -5715,6 +5715,8 @@ const Reports = () => {
           </Card>
         )}
 
+        {!lockedTabSelected && (
+        <>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4 md:gap-4">
             <Card>
@@ -9003,6 +9005,8 @@ const Reports = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        </>
+        )}
       </Tabs>
       
       {/* Dialog pour aucun produit à exporter */}
