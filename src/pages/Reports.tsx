@@ -103,6 +103,15 @@ const Reports = () => {
     }
     return false; // Free plan - only overview, revenue and reminders
   };
+
+  // Returns the minimum plan required for a locked tab, or null if available
+  const getTabRequiredPlan = (tab: string): "Premium" | "Pro" | null => {
+    if (isTabAvailable(tab)) return null;
+    // These tabs unlock at Premium level
+    if (tab === 'taxes' || tab === 'products' || tab === 'expenses') return "Premium";
+    // These tabs unlock at Pro level
+    return "Pro";
+  };
   
   // Refs pour capturer les graphiques
   const barChartRef = useRef<HTMLDivElement>(null);
