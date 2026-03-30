@@ -5689,7 +5689,7 @@ const Reports = () => {
         )}
 
         {/* Locked tab upgrade prompt - shown when a plan-gated tab is selected */}
-        {getTabRequiredPlan(reportTab) && (
+        {lockedTabSelected && getTabRequiredPlan(lockedTabSelected) && (
           <Card className="border-dashed border-2 border-muted-foreground/20">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
               <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center">
@@ -5698,8 +5698,8 @@ const Reports = () => {
               <div className="space-y-2 max-w-md">
                 <h3 className="text-lg font-semibold">
                   {language === 'fr'
-                    ? `Rapport disponible avec le plan ${getTabRequiredPlan(reportTab)}`
-                    : `Report available with the ${getTabRequiredPlan(reportTab)} plan`}
+                    ? `Rapport disponible avec le plan ${getTabRequiredPlan(lockedTabSelected)}`
+                    : `Report available with the ${getTabRequiredPlan(lockedTabSelected)} plan`}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {language === 'fr'
