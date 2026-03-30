@@ -6929,6 +6929,7 @@ const Reports = () => {
               </CardContent>
             </Card>
           ) : (
+          <>
           <div className="space-y-4">
             <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
               <div>
