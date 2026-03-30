@@ -236,15 +236,21 @@ export function AppSidebar() {
                     const navContent = (
                       <NavLink 
                         to={item.url} 
-                        className={`${getNavCls(item.url, isLocked)} flex items-center w-full`}
+                        className={`${getNavCls(item.url, isLocked)} flex items-center w-full h-9`}
                         onClick={(e) => handleNavClick(item, e)}
                       >
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <span className="w-5 flex items-center justify-center flex-shrink-0">
+                          <item.icon className="h-4 w-4" />
+                        </span>
                         {!isCollapsed && (
-                          <span className="flex-1 truncate">{t(item.titleKey)}</span>
-                        )}
-                        {!isCollapsed && isLocked && (
-                          <Lock className="h-3 w-3 text-muted-foreground/60 flex-shrink-0 ml-auto" />
+                          <>
+                            <span className="flex-1 truncate ml-2">{t(item.titleKey)}</span>
+                            <span className="w-4 flex items-center justify-center flex-shrink-0">
+                              {isLocked && (
+                                <Lock className="h-3 w-3 text-muted-foreground/60" />
+                              )}
+                            </span>
+                          </>
                         )}
                       </NavLink>
                     );
