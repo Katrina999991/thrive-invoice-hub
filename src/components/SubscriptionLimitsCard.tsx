@@ -7,6 +7,58 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Crown, TrendingUp, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+type FeatureAccess = "full" | "partial" | "none";
+
+interface FeatureDisplay {
+  labelEn: string;
+  labelFr: string;
+  access: FeatureAccess;
+}
+
+/**
+ * Determines feature access level based on actual plan capabilities.
+ * This ensures the dashboard never contradicts the real feature availability.
+ */
+function getFeatureAccessList(planType: string): FeatureDisplay[] {
+  return [
+    {
+      labelEn: "PDF Export",
+      labelFr: "Export PDF",
+      access: planType === "free" ? "none" : "full",
+    },
+    {
+      labelEn: "Categories",
+      labelFr: "Catégories",
+      access: planType === "free" ? "none" : "full",
+    },
+    {
+      labelEn: "Reports",
+      labelFr: "Rapports",
+      access: planType === "pro" ? "full" : planType === "premium" ? "partial" : "none",
+    },
+    {
+      labelEn: "Custom Emails",
+      labelFr: "Emails perso",
+      access: planType === "pro" ? "full" : "none",
+    },
+    {
+      labelEn: "Quotes",
+      labelFr: "Devis",
+      access: planType === "free" ? "none" : "full",
+    },
+    {
+      labelEn: "Final Reminder",
+      labelFr: "Dernier rappel",
+      access: planType === "free" ? "none" : "full",
+    },
+    {
+      labelEn: "Formal Notice",
+      labelFr: "Mise en demeure",
+      access: planType === "pro" ? "full" : "none",
+    },
+  ];
+}
+
 export const SubscriptionLimitsCard = () => {
   const { planLimits, currentSubscription, isLoading } = useSubscription();
   const { language } = useLanguage();
@@ -55,6 +107,8 @@ export const SubscriptionLimitsCard = () => {
       expenses: "Expenses this month",
       unlimited: "Unlimited",
       upgrade: "Upgrade Plan",
+      features: "Features",
+      limited: "Limited",
     },
     fr: {
       title: "Abonnement et utilisation",
@@ -63,10 +117,20 @@ export const SubscriptionLimitsCard = () => {
       expenses: "Dépenses ce mois-ci",
       unlimited: "Illimité",
       upgrade: "Améliorer le plan",
+      features: "Fonctionnalités",
+      limited: "Limité",
     }
   };
 
   const t = titles[language];
+
+  const features = getFeatureAccessList(planLimits.plan_type);
+
+  const getDotColor = (access: FeatureAccess) => {
+    if (access === "full") return "bg-green-500";
+    if (access === "partial") return "bg-amber-500";
+    return "bg-muted-foreground/30";
+  };
 
   return (
     <Card>
@@ -118,25 +182,22 @@ export const SubscriptionLimitsCard = () => {
         {/* Features */}
         <div className="pt-4 border-t space-y-2">
           <div className="text-sm font-medium mb-3">
-            {language === 'fr' ? 'Fonctionnalités' : 'Features'}
+            {t.features}
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${planLimits.pdf_export ? 'bg-green-500' : 'bg-gray-300'}`} />
-              <span>PDF Export</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${planLimits.category_management ? 'bg-green-500' : 'bg-gray-300'}`} />
-              <span>{language === 'fr' ? 'Catégories' : 'Categories'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${planLimits.all_reports ? 'bg-green-500' : 'bg-gray-300'}`} />
-              <span>{language === 'fr' ? 'Tous rapports' : 'All Reports'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${planLimits.custom_email_templates ? 'bg-green-500' : 'bg-gray-300'}`} />
-              <span>{language === 'fr' ? 'Emails perso' : 'Custom Emails'}</span>
-            </div>
+            {features.map((feature) => (
+              <div key={feature.labelEn} className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getDotColor(feature.access)}`} />
+                <span className={feature.access === "none" ? "text-muted-foreground" : ""}>
+                  {language === 'fr' ? feature.labelFr : feature.labelEn}
+                </span>
+                {feature.access === "partial" && (
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-amber-400 text-amber-600">
+                    {t.limited}
+                  </Badge>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
