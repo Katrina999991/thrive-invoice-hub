@@ -193,6 +193,7 @@ const Pricing = () => {
             { text: "Classic design", icon: "Palette" },
             { text: "Revenue report", icon: "BarChart3" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Product, service & expense categories", icon: "Tags" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
