@@ -714,15 +714,16 @@ export default function TimeTracking() {
     // Auto-select first filtered service for this client
     const clientServices = services.filter(s => !s.client_id || s.client_id === clientId);
     if (clientServices.length > 0) {
-      form.setValue("service_id", clientServices[0].id);
-      form.setValue("description", clientServices[0].name);
-      if (clientServices[0].price) {
-        form.setValue("hourly_rate", clientServices[0].price.toString());
+      const firstService = clientServices[0];
+      form.setValue("service_id", firstService.id, { shouldDirty: true });
+      form.setValue("description", firstService.name, { shouldDirty: true });
+      if (firstService.price) {
+        form.setValue("hourly_rate", firstService.price.toString(), { shouldDirty: true });
       }
       setUseCustomDescription(false);
     } else {
-      form.setValue("service_id", "custom");
-      form.setValue("description", "");
+      form.setValue("service_id", "custom", { shouldDirty: true });
+      form.setValue("description", "", { shouldDirty: true });
       setUseCustomDescription(true);
     }
   };
@@ -2073,6 +2074,7 @@ export default function TimeTracking() {
                   <FormItem>
                     <FormLabel>{language === "fr" ? "Service ou description" : "Service or description"}</FormLabel>
                     <Select
+                      key={`service-select-${watchedClientId}`}
                       onValueChange={(value) => {
                         field.onChange(value);
                         handleServiceChange(value);
