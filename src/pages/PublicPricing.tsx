@@ -97,6 +97,7 @@ const PublicPricing = () => {
             { text: "Design de facture classique", icon: "FileText" },
             { text: "Rapport de revenus", icon: "BarChart3" },
             { text: "Suivi des heures inclus", icon: "Clock" },
+            { text: "Catégories (produits, services, dépenses)", icon: "Tags" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
