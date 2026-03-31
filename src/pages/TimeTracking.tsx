@@ -537,17 +537,21 @@ export default function TimeTracking() {
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
     setTimeout(() => {
-      // Pré-sélectionner le dernier client utilisé
+      // Pré-sélectionner le dernier client utilisé (handleClientChange will auto-select first service)
       if (lastClientStorageKey) {
         const lastClientId = localStorage.getItem(lastClientStorageKey);
         if (lastClientId && clients.find(c => c.id === lastClientId)) {
           form.setValue("client_id", lastClientId);
           handleClientChange(lastClientId);
+        } else if (services.length > 0) {
+          // No last client, just pre-select first service
+          form.setValue("service_id", services[0].id);
+          form.setValue("description", services[0].name);
+          if (services[0].price) {
+            form.setValue("hourly_rate", services[0].price.toString());
+          }
         }
-      }
-      
-      // Pré-sélectionner le premier service
-      if (services.length > 0) {
+      } else if (services.length > 0) {
         form.setValue("service_id", services[0].id);
         form.setValue("description", services[0].name);
         if (services[0].price) {
@@ -707,10 +711,20 @@ export default function TimeTracking() {
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
     }
-    // Reset service selection when client changes (services are filtered by client)
-    form.setValue("service_id", "");
-    form.setValue("description", "");
-    setUseCustomDescription(false);
+    // Auto-select first filtered service for this client
+    const clientServices = services.filter(s => !s.client_id || s.client_id === clientId);
+    if (clientServices.length > 0) {
+      form.setValue("service_id", clientServices[0].id);
+      form.setValue("description", clientServices[0].name);
+      if (clientServices[0].price) {
+        form.setValue("hourly_rate", clientServices[0].price.toString());
+      }
+      setUseCustomDescription(false);
+    } else {
+      form.setValue("service_id", "custom");
+      form.setValue("description", "");
+      setUseCustomDescription(true);
+    }
   };
 
   const handleServiceChange = (serviceId: string) => {
