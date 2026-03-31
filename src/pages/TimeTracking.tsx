@@ -2372,7 +2372,15 @@ export default function TimeTracking() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{language === "fr" ? "Client" : "Client"}</Label>
-              <Select value={timerClientId} onValueChange={setTimerClientId}>
+              <Select value={timerClientId} onValueChange={(value) => {
+                setTimerClientId(value);
+                const clientServices = services.filter(s => !s.client_id || s.client_id === value);
+                if (clientServices.length > 0) {
+                  setTimerServiceId(clientServices[0].id);
+                } else {
+                  setTimerServiceId("_none");
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder={language === "fr" ? "Sélectionner un client" : "Select client"} />
                 </SelectTrigger>
