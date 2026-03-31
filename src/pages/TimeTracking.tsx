@@ -707,10 +707,20 @@ export default function TimeTracking() {
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
     }
-    // Reset service selection when client changes (services are filtered by client)
-    form.setValue("service_id", "");
-    form.setValue("description", "");
-    setUseCustomDescription(false);
+    // Auto-select first filtered service for this client
+    const clientServices = services.filter(s => !s.client_id || s.client_id === clientId);
+    if (clientServices.length > 0) {
+      form.setValue("service_id", clientServices[0].id);
+      form.setValue("description", clientServices[0].name);
+      if (clientServices[0].price) {
+        form.setValue("hourly_rate", clientServices[0].price.toString());
+      }
+      setUseCustomDescription(false);
+    } else {
+      form.setValue("service_id", "custom");
+      form.setValue("description", "");
+      setUseCustomDescription(true);
+    }
   };
 
   const handleServiceChange = (serviceId: string) => {
