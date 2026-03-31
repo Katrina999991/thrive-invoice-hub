@@ -2074,6 +2074,7 @@ export default function TimeTracking() {
                   <FormItem>
                     <FormLabel>{language === "fr" ? "Service ou description" : "Service or description"}</FormLabel>
                     <Select
+                      key={`service-select-${watchedClientId}`}
                       onValueChange={(value) => {
                         field.onChange(value);
                         handleServiceChange(value);
