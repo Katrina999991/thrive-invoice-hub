@@ -435,6 +435,13 @@ export default function TimeTracking() {
     },
   });
 
+  // Watch client_id to filter services by selected client
+  const watchedClientId = form.watch("client_id");
+  const filteredServices = useMemo(() => {
+    if (!watchedClientId) return services;
+    return services.filter(s => !s.client_id || s.client_id === watchedClientId);
+  }, [services, watchedClientId]);
+
   // Calculer les heures à partir de plusieurs plages horaires
   const calculateTotalHours = () => {
     let totalMinutes = 0;
