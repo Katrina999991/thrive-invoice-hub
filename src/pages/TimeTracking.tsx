@@ -161,6 +161,12 @@ export default function TimeTracking() {
 
   const services = products.filter(p => p.is_active && p.quantity === null);
 
+  // Filter services for timer dialog
+  const timerFilteredServices = useMemo(() => {
+    if (!timerClientId) return services;
+    return services.filter(s => !s.client_id || s.client_id === timerClientId);
+  }, [services, timerClientId]);
+
   // Load active timer from localStorage on mount (user-specific)
   useEffect(() => {
     if (!timerStorageKey) return;
@@ -429,6 +435,13 @@ export default function TimeTracking() {
     },
   });
 
+  // Watch client_id to filter services by selected client
+  const watchedClientId = form.watch("client_id");
+  const filteredServices = useMemo(() => {
+    if (!watchedClientId) return services;
+    return services.filter(s => !s.client_id || s.client_id === watchedClientId);
+  }, [services, watchedClientId]);
+
   // Calculer les heures à partir de plusieurs plages horaires
   const calculateTotalHours = () => {
     let totalMinutes = 0;
@@ -694,6 +707,10 @@ export default function TimeTracking() {
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
     }
+    // Reset service selection when client changes (services are filtered by client)
+    form.setValue("service_id", "");
+    form.setValue("description", "");
+    setUseCustomDescription(false);
   };
 
   const handleServiceChange = (serviceId: string) => {
@@ -2057,12 +2074,12 @@ export default function TimeTracking() {
                         <SelectItem value="custom">
                           {language === "fr" ? "✏️ Description personnalisée" : "✏️ Custom description"}
                         </SelectItem>
-                        {services.length > 0 && (
+                        {filteredServices.length > 0 && (
                           <>
                             <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                               {language === "fr" ? "Services disponibles" : "Available services"}
                             </div>
-                            {services.map((service) => (
+                            {filteredServices.map((service) => (
                               <SelectItem key={service.id} value={service.id}>
                                 {service.name}
                               </SelectItem>
@@ -2357,7 +2374,7 @@ export default function TimeTracking() {
                   <SelectItem value="_none">
                     {language === "fr" ? "Aucun" : "None"}
                   </SelectItem>
-                  {services.map((service) => (
+                  {timerFilteredServices.map((service) => (
                     <SelectItem key={service.id} value={service.id}>
                       {service.name}
                     </SelectItem>
