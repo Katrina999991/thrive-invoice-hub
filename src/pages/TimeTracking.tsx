@@ -2370,7 +2370,7 @@ export default function TimeTracking() {
                   <SelectItem value="_none">
                     {language === "fr" ? "Aucun" : "None"}
                   </SelectItem>
-                  {services.map((service) => (
+                  {timerFilteredServices.map((service) => (
                     <SelectItem key={service.id} value={service.id}>
                       {service.name}
                     </SelectItem>
