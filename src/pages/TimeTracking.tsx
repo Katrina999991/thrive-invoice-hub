@@ -409,14 +409,20 @@ export default function TimeTracking() {
 
   // Open start timer dialog
   const handleOpenStartTimerDialog = () => {
+    let selectedClientId = "";
     if (lastClientStorageKey) {
       const lastClientId = localStorage.getItem(lastClientStorageKey);
       if (lastClientId && clients.find(c => c.id === lastClientId)) {
+        selectedClientId = lastClientId;
         setTimerClientId(lastClientId);
       }
     }
-    if (services.length > 0) {
-      setTimerServiceId(services[0].id);
+    // Auto-select first service filtered by selected client
+    const clientServices = services.filter(s => !s.client_id || s.client_id === selectedClientId);
+    if (clientServices.length > 0) {
+      setTimerServiceId(clientServices[0].id);
+    } else {
+      setTimerServiceId("_none");
     }
     setIsStartTimerDialogOpen(true);
   };
