@@ -1,0 +1,1 @@
+UPDATE subscription_plans SET category_management = true WHERE plan_type = 'free';

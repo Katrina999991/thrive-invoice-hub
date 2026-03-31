@@ -97,6 +97,7 @@ const PublicPricing = () => {
             { text: "Design de facture classique", icon: "FileText" },
             { text: "Rapport de revenus", icon: "BarChart3" },
             { text: "Suivi des heures inclus", icon: "Clock" },
+            { text: "Catégories (produits, services, dépenses)", icon: "Tags" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },
@@ -265,6 +266,7 @@ const PublicPricing = () => {
             { text: "Classic invoice design", icon: "FileText" },
             { text: "Revenue report", icon: "BarChart3" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Product, service & expense categories", icon: "Tags" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
