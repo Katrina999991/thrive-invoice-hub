@@ -537,17 +537,21 @@ export default function TimeTracking() {
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
     setTimeout(() => {
-      // Pré-sélectionner le dernier client utilisé
+      // Pré-sélectionner le dernier client utilisé (handleClientChange will auto-select first service)
       if (lastClientStorageKey) {
         const lastClientId = localStorage.getItem(lastClientStorageKey);
         if (lastClientId && clients.find(c => c.id === lastClientId)) {
           form.setValue("client_id", lastClientId);
           handleClientChange(lastClientId);
+        } else if (services.length > 0) {
+          // No last client, just pre-select first service
+          form.setValue("service_id", services[0].id);
+          form.setValue("description", services[0].name);
+          if (services[0].price) {
+            form.setValue("hourly_rate", services[0].price.toString());
+          }
         }
-      }
-      
-      // Pré-sélectionner le premier service
-      if (services.length > 0) {
+      } else if (services.length > 0) {
         form.setValue("service_id", services[0].id);
         form.setValue("description", services[0].name);
         if (services[0].price) {
