@@ -2070,12 +2070,12 @@ export default function TimeTracking() {
                         <SelectItem value="custom">
                           {language === "fr" ? "✏️ Description personnalisée" : "✏️ Custom description"}
                         </SelectItem>
-                        {services.length > 0 && (
+                        {filteredServices.length > 0 && (
                           <>
                             <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                               {language === "fr" ? "Services disponibles" : "Available services"}
                             </div>
-                            {services.map((service) => (
+                            {filteredServices.map((service) => (
                               <SelectItem key={service.id} value={service.id}>
                                 {service.name}
                               </SelectItem>
