@@ -161,16 +161,6 @@ export default function TimeTracking() {
 
   const services = products.filter(p => p.is_active && p.quantity === null);
 
-  // Watch client_id to filter services by selected client
-  const watchedClientId = form.watch("client_id");
-
-  // Filter services: show only services linked to the selected client OR services with no client
-  const filteredServices = useMemo(() => {
-    const clientId = watchedClientId;
-    if (!clientId) return services;
-    return services.filter(s => !s.client_id || s.client_id === clientId);
-  }, [services, watchedClientId]);
-
   // Filter services for timer dialog
   const timerFilteredServices = useMemo(() => {
     if (!timerClientId) return services;
