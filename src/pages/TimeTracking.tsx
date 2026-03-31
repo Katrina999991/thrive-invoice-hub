@@ -707,6 +707,10 @@ export default function TimeTracking() {
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
     }
+    // Reset service selection when client changes (services are filtered by client)
+    form.setValue("service_id", "");
+    form.setValue("description", "");
+    setUseCustomDescription(false);
   };
 
   const handleServiceChange = (serviceId: string) => {
