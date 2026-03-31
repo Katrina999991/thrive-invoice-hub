@@ -302,6 +302,7 @@ const Pricing = () => {
             { text: "Design classique", icon: "Palette" },
             { text: "Rapport de revenus", icon: "BarChart3" },
             { text: "Suivi des heures", icon: "Clock" },
+            { text: "Catégories (produits, services, dépenses)", icon: "Tags" },
             { text: "Authentification à deux facteurs (MFA) optionnelle", icon: "Shield" }
           ]
         },

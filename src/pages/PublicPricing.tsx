@@ -266,6 +266,7 @@ const PublicPricing = () => {
             { text: "Classic invoice design", icon: "FileText" },
             { text: "Revenue report", icon: "BarChart3" },
             { text: "Time tracking", icon: "Clock" },
+            { text: "Product, service & expense categories", icon: "Tags" },
             { text: "Optional multi-factor authentication (MFA)", icon: "Shield" }
           ]
         },
