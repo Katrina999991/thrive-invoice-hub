@@ -4,7 +4,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Globe } from "lucide-react";
+import { LogOut, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function Layout() {
