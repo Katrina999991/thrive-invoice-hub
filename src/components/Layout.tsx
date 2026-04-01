@@ -46,10 +46,6 @@ export default function Layout() {
                 <Globe className="h-4 w-4" />
                 <span className="font-medium">{language.toUpperCase()}</span>
               </Button>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">{user?.email}</span>
-              </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline ml-1">{language === 'fr' ? 'Déconnexion' : 'Sign out'}</span>
