@@ -2022,6 +2022,8 @@ export type Database = {
           category_management: boolean
           custom_email_templates: boolean
           expenses_used: number
+          final_reminder_enabled: boolean
+          formal_notice_enabled: boolean
           invoices_used: number
           max_clients: number
           max_companies: number
@@ -2029,6 +2031,7 @@ export type Database = {
           max_invoices_per_month: number
           pdf_export: boolean
           plan_type: Database["public"]["Enums"]["subscription_plan"]
+          quotes_enabled: boolean
         }[]
       }
       get_user_role_in_company: {
