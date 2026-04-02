@@ -1350,7 +1350,13 @@ export default function TimeTracking() {
               </Popover>
             )}
             
-            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+            <Popover open={isDatePickerOpen} onOpenChange={(open) => {
+                if (!open && dateRange?.from && !dateRange?.to) {
+                  // Don't close if user has selected start but not end date
+                  return;
+                }
+                setIsDatePickerOpen(open);
+              }}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
