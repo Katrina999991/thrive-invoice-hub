@@ -1008,20 +1008,18 @@ export default function TimeTracking() {
       return false;
     }
     
-    // Filtre par date
+    // Filtre par date (compare as YYYY-MM-DD strings to avoid timezone issues)
     if (dateRange?.from) {
-      const entryDate = new Date(entry.date);
-      const fromDate = new Date(dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
+      const entryDateStr = entry.date; // already "YYYY-MM-DD"
+      const fromStr = format(dateRange.from, "yyyy-MM-dd");
       
-      if (entryDate < fromDate) {
+      if (entryDateStr < fromStr) {
         return false;
       }
       
       if (dateRange.to) {
-        const toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999);
-        if (entryDate > toDate) {
+        const toStr = format(dateRange.to, "yyyy-MM-dd");
+        if (entryDateStr > toStr) {
           return false;
         }
       }
