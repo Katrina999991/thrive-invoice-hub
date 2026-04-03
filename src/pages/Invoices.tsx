@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText, Crown, Lock, MoreHorizontal } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, ExternalLink, Check, Copy, CreditCard, Archive, ArchiveRestore, X, CheckCircle, AlertTriangle, FileText, Crown, Lock, MoreHorizontal, DollarSign } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,6 +30,7 @@ import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
 import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
+import { useLateFees, type LateFeeSettings as LateFeeSettingsType, type LateFeeRecord } from "@/hooks/useLateFees";
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -93,10 +94,79 @@ const Invoices = () => {
   const canUseFinalReminder = hasFeature("final_reminder_enabled");
   const canUseFormalNotice = hasFeature("formal_notice_enabled");
 
+  // Late fees
+  const { checkEligibility, applyLateFee, fetchLateFees, deleteLateFee, getLateFeeTermsText, applying: applyingLateFee } = useLateFees();
+  const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, LateFeeSettingsType>>({});
+  const [lateFeeDialogInvoice, setLateFeeDialogInvoice] = useState<Invoice | null>(null);
+  const [lateFeeRecords, setLateFeeRecords] = useState<LateFeeRecord[]>([]);
+  const [loadingLateFees, setLoadingLateFees] = useState(false);
+
   // Load Stripe account info on mount
   useEffect(() => {
     loadStripeAccount();
   }, [loadStripeAccount]);
+
+  // Load late fee settings from companies
+  useEffect(() => {
+    if (companies.length > 0) {
+      const settingsMap: Record<string, LateFeeSettingsType> = {};
+      companies.forEach((c: any) => {
+        settingsMap[c.id] = {
+          late_fee_enabled: c.late_fee_enabled || false,
+          late_fee_type: c.late_fee_type || 'none',
+          late_fee_rate: c.late_fee_rate ?? null,
+          late_fee_amount: c.late_fee_amount ?? null,
+          late_fee_grace_days: c.late_fee_grace_days ?? 5,
+          late_fee_terms_text: c.late_fee_terms_text ?? null,
+        };
+      });
+      setLateFeeSettings(settingsMap);
+    }
+  }, [companies]);
+
+  const getLateFeeSettingsForInvoice = (invoice: any): LateFeeSettingsType | null => {
+    const client = clients.find(c => c.id === invoice.client_id);
+    if (!client?.company_id) return null;
+    return lateFeeSettings[client.company_id] || null;
+  };
+
+  const getLateFeeEligibility = (invoice: any) => {
+    const settings = getLateFeeSettingsForInvoice(invoice);
+    if (!settings) return { eligible: false };
+    return checkEligibility(invoice, settings);
+  };
+
+  const handleApplyLateFee = async (invoice: Invoice) => {
+    const settings = getLateFeeSettingsForInvoice(invoice);
+    if (!settings) return;
+    const eligibility = checkEligibility(invoice, settings);
+    if (!eligibility.eligible || !eligibility.calculatedAmount) return;
+
+    const description = settings.late_fee_type === 'fixed_once'
+      ? (language === 'fr' ? 'Frais de retard (fixe)' : 'Late fee (fixed)')
+      : (language === 'fr' ? 'Frais de retard (mensuel)' : 'Late fee (monthly)');
+
+    const success = await applyLateFee(invoice.id, eligibility.calculatedAmount, settings.late_fee_type, description);
+    if (success) fetchInvoices();
+  };
+
+  const openLateFeeDetails = async (invoice: Invoice) => {
+    setLateFeeDialogInvoice(invoice);
+    setLoadingLateFees(true);
+    const records = await fetchLateFees(invoice.id);
+    setLateFeeRecords(records);
+    setLoadingLateFees(false);
+  };
+
+  const handleDeleteLateFee = async (record: LateFeeRecord) => {
+    if (!lateFeeDialogInvoice) return;
+    const success = await deleteLateFee(record.id, lateFeeDialogInvoice.id, record.amount);
+    if (success) {
+      const records = await fetchLateFees(lateFeeDialogInvoice.id);
+      setLateFeeRecords(records);
+      fetchInvoices();
+    }
+  };
 
   // Limit dialog state
   const [showLimitDialog, setShowLimitDialog] = useState(false);
@@ -1981,6 +2051,22 @@ Best regards,
                   </div>
                 )}
 
+                {/* Late Fee Info in View Dialog */}
+                {viewingInvoice && (viewingInvoice as any).late_fee_applied_total > 0 && (
+                  <div className="p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium text-amber-800 dark:text-amber-300">
+                        {language === 'fr' ? 'Frais de retard' : 'Late Fees'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+                      <p>{language === 'fr' ? 'Total des frais' : 'Total fees'}: ${((viewingInvoice as any).late_fee_applied_total).toFixed(2)}</p>
+                      <p className="font-semibold">{language === 'fr' ? 'Total avec frais' : 'Total with fees'}: ${(viewingInvoice.total + (viewingInvoice as any).late_fee_applied_total).toFixed(2)}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <Button onClick={() => setIsViewDialogOpen(false)}>
                     Close
@@ -2390,7 +2476,14 @@ Best regards,
                     <TableCell>
                       {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown Client'}
                     </TableCell>
-                    <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">
+                      ${invoice.total.toFixed(2)}
+                      {(invoice as any).late_fee_applied_total > 0 && (
+                        <span className="block text-xs text-amber-600">
+                          +${((invoice as any).late_fee_applied_total).toFixed(2)} {language === 'fr' ? 'frais' : 'fees'}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         {canEditInvoices ? (
@@ -2448,6 +2541,26 @@ Best regards,
                             </Tooltip>
                           </TooltipProvider>
                         )}
+                        {(() => {
+                          const eligibility = getLateFeeEligibility(invoice);
+                          if ((invoice as any).late_fee_status === 'applied') {
+                            return (
+                              <Badge variant="outline" className="border-amber-600 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px]">
+                                <DollarSign className="h-3 w-3 mr-0.5" />
+                                {language === 'fr' ? 'Frais appliqués' : 'Fee applied'}
+                              </Badge>
+                            );
+                          }
+                          if (eligibility.eligible) {
+                            return (
+                              <Badge variant="outline" className="border-orange-400 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 text-[10px]">
+                                <DollarSign className="h-3 w-3 mr-0.5" />
+                                {language === 'fr' ? 'Frais éligible' : 'Fee eligible'}
+                              </Badge>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </TableCell>
                     <TableCell>{invoice.issue_date}</TableCell>
@@ -2558,6 +2671,50 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          {/* Late Fee Button */}
+                          {(() => {
+                            const eligibility = getLateFeeEligibility(invoice);
+                            if (eligibility.eligible) {
+                              return (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                      onClick={() => handleApplyLateFee(invoice)}
+                                      disabled={applyingLateFee}
+                                    >
+                                      {applyingLateFee ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{language === 'fr' ? `Appliquer frais de retard ($${eligibility.calculatedAmount?.toFixed(2)})` : `Apply late fee ($${eligibility.calculatedAmount?.toFixed(2)})`}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            }
+                            if ((invoice as any).late_fee_applied_total > 0) {
+                              return (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-amber-600 text-amber-700 dark:text-amber-400"
+                                      onClick={() => openLateFeeDetails(invoice)}
+                                    >
+                                      <DollarSign className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{language === 'fr' ? 'Voir les frais de retard' : 'View late fees'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            }
+                            return null;
+                          })()}
                           {stripeAccountId && invoice.status !== "paid" && (
                             invoice.payment_link ? (
                               <>
@@ -2998,6 +3155,67 @@ Best regards,
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Late Fee Details Dialog */}
+      <Dialog open={!!lateFeeDialogInvoice} onOpenChange={(open) => !open && setLateFeeDialogInvoice(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              {language === 'fr' ? 'Frais de retard' : 'Late Fees'}
+            </DialogTitle>
+            <DialogDescription>
+              {lateFeeDialogInvoice && `${language === 'fr' ? 'Facture' : 'Invoice'} ${lateFeeDialogInvoice.invoice_number}`}
+            </DialogDescription>
+          </DialogHeader>
+          {loadingLateFees ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <div className="space-y-4">
+              {lateFeeRecords.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {language === 'fr' ? 'Aucun frais de retard' : 'No late fees'}
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{language === 'fr' ? 'Description' : 'Description'}</TableHead>
+                      <TableHead>{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
+                      <TableHead>{language === 'fr' ? 'Date' : 'Date'}</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lateFeeRecords.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell className="text-sm">{record.description}</TableCell>
+                        <TableCell className="font-medium">${record.amount.toFixed(2)}</TableCell>
+                        <TableCell className="text-sm">{new Date(record.applied_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA')}</TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteLateFee(record)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              {lateFeeDialogInvoice && (
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-medium">
+                    {language === 'fr' ? 'Total des frais' : 'Total fees'}: ${((lateFeeDialogInvoice as any).late_fee_applied_total || 0).toFixed(2)}
+                  </p>
+                  <p className="text-sm font-bold">
+                    {language === 'fr' ? 'Total avec frais' : 'Total with fees'}: ${(lateFeeDialogInvoice.total + ((lateFeeDialogInvoice as any).late_fee_applied_total || 0)).toFixed(2)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
