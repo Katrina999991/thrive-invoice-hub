@@ -30,7 +30,8 @@ import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
 import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
-import { useLateFees, type LateFeeSettings as LateFeeSettingsType, type LateFeeRecord } from "@/hooks/useLateFees";
+import { useLateFees, type LateFeeRecord, resolveLateFeeSettings } from "@/hooks/useLateFees";
+import type { CompanyLateFeeSettings, ClientLateFeeOverrides, ResolvedLateFeeSettings } from "@/lib/lateFeeService";
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
@@ -95,8 +96,8 @@ const Invoices = () => {
   const canUseFormalNotice = hasFeature("formal_notice_enabled");
 
   // Late fees
-  const { checkEligibility, applyLateFee, fetchLateFees, deleteLateFee, getLateFeeTermsText, applying: applyingLateFee } = useLateFees();
-  const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, LateFeeSettingsType>>({});
+  const { checkEligibility, applyLateFee, fetchLateFees, removeLateFee, getLateFeeTermsText, evaluateAndAutoApply, getResolvedSettings, fetchActiveLateFeeCount, applying: applyingLateFee } = useLateFees();
+  const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, CompanyLateFeeSettings>>({});
   const [lateFeeDialogInvoice, setLateFeeDialogInvoice] = useState<Invoice | null>(null);
   const [lateFeeRecords, setLateFeeRecords] = useState<LateFeeRecord[]>([]);
   const [loadingLateFees, setLoadingLateFees] = useState(false);
@@ -109,7 +110,7 @@ const Invoices = () => {
   // Load late fee settings from companies
   useEffect(() => {
     if (companies.length > 0) {
-      const settingsMap: Record<string, LateFeeSettingsType> = {};
+      const settingsMap: Record<string, any> = {};
       companies.forEach((c: any) => {
         settingsMap[c.id] = {
           late_fee_enabled: c.late_fee_enabled || false,
@@ -118,16 +119,32 @@ const Invoices = () => {
           late_fee_amount: c.late_fee_amount ?? null,
           late_fee_grace_days: c.late_fee_grace_days ?? 5,
           late_fee_terms_text: c.late_fee_terms_text ?? null,
+          late_fee_auto_apply_enabled: c.late_fee_auto_apply_enabled || false,
+          late_fee_auto_apply_mode: c.late_fee_auto_apply_mode || 'manual_only',
+          late_fee_cap_amount: c.late_fee_cap_amount ?? null,
         };
       });
       setLateFeeSettings(settingsMap);
     }
   }, [companies]);
 
-  const getLateFeeSettingsForInvoice = (invoice: any): LateFeeSettingsType | null => {
-    const client = clients.find(c => c.id === invoice.client_id);
+  const getLateFeeSettingsForInvoice = (invoice: any): ResolvedLateFeeSettings | null => {
+    const client = clients.find(c => c.id === invoice.client_id) as any;
     if (!client?.company_id) return null;
-    return lateFeeSettings[client.company_id] || null;
+    const companySettings = lateFeeSettings[client.company_id];
+    if (!companySettings) return null;
+    // Resolve with per-client overrides
+    const clientOverrides: ClientLateFeeOverrides | null = client.late_fee_override_enabled ? {
+      late_fee_override_enabled: client.late_fee_override_enabled,
+      late_fee_enabled_override: client.late_fee_enabled_override ?? null,
+      late_fee_type_override: client.late_fee_type_override ?? null,
+      late_fee_rate_override: client.late_fee_rate_override ?? null,
+      late_fee_amount_override: client.late_fee_amount_override ?? null,
+      late_fee_grace_days_override: client.late_fee_grace_days_override ?? null,
+      late_fee_auto_apply_mode_override: client.late_fee_auto_apply_mode_override ?? null,
+      late_fee_cap_amount_override: client.late_fee_cap_amount_override ?? null,
+    } : null;
+    return resolveLateFeeSettings(companySettings, clientOverrides);
   };
 
   const getLateFeeEligibility = (invoice: any) => {
@@ -146,7 +163,22 @@ const Invoices = () => {
       ? (language === 'fr' ? 'Frais de retard (fixe)' : 'Late fee (fixed)')
       : (language === 'fr' ? 'Frais de retard (mensuel)' : 'Late fee (monthly)');
 
-    const success = await applyLateFee(invoice.id, eligibility.calculatedAmount, settings.late_fee_type, description);
+    const client = clients.find(c => c.id === invoice.client_id);
+    const success = await applyLateFee(
+      invoice.id,
+      eligibility.calculatedAmount,
+      settings.late_fee_type,
+      description,
+      'manual',
+      {
+        companyId: client?.company_id || undefined,
+        clientId: invoice.client_id || undefined,
+        rateUsed: settings.late_fee_rate ?? undefined,
+        remainingBalance: invoice.total - ((invoice as any).late_fee_applied_total || 0),
+        graceDaysUsed: settings.late_fee_grace_days,
+        capInEffect: settings.late_fee_cap_amount ?? undefined,
+      }
+    );
     if (success) fetchInvoices();
   };
 
@@ -160,7 +192,7 @@ const Invoices = () => {
 
   const handleDeleteLateFee = async (record: LateFeeRecord) => {
     if (!lateFeeDialogInvoice) return;
-    const success = await deleteLateFee(record.id, lateFeeDialogInvoice.id, record.amount);
+    const success = await removeLateFee(record.id, lateFeeDialogInvoice.id);
     if (success) {
       const records = await fetchLateFees(lateFeeDialogInvoice.id);
       setLateFeeRecords(records);
@@ -816,7 +848,8 @@ const Invoices = () => {
       
       // Get late fee terms text if applicable
       const lateFeSettings = company ? lateFeeSettings[company.id] : null;
-      const lateTermsText = lateFeSettings ? getLateFeeTermsText(lateFeSettings, language) : null;
+      const resolvedForPdf = lateFeSettings ? resolveLateFeeSettings(lateFeSettings) : null;
+      const lateTermsText = resolvedForPdf ? getLateFeeTermsText(resolvedForPdf, language) : null;
 
       // Generate PDF using unified system
       await generateDocumentPdf({
@@ -2574,6 +2607,15 @@ Best regards,
                         )}
                         {(() => {
                           const eligibility = getLateFeeEligibility(invoice);
+                          const settings = getLateFeeSettingsForInvoice(invoice);
+                          if (eligibility.capReached) {
+                            return (
+                              <Badge variant="outline" className="border-destructive text-destructive px-1.5 py-0.5 text-[10px]">
+                                <DollarSign className="h-3 w-3 mr-0.5" />
+                                {language === 'fr' ? 'Plafond atteint' : 'Late fee cap reached'}
+                              </Badge>
+                            );
+                          }
                           if ((invoice as any).late_fee_status === 'applied') {
                             return (
                               <Badge variant="outline" className="border-amber-600 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px]">
@@ -2581,6 +2623,16 @@ Best regards,
                                 {language === 'fr' ? 'Frais de retard appliqués' : 'Late fee applied'}
                               </Badge>
                             );
+                          }
+                          if (settings?.late_fee_auto_apply_enabled && settings?.late_fee_auto_apply_mode !== 'manual_only') {
+                            if (eligibility.eligible) {
+                              return (
+                                <Badge variant="outline" className="border-orange-400 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 text-[10px]">
+                                  <DollarSign className="h-3 w-3 mr-0.5" />
+                                  {language === 'fr' ? 'Auto-application activée' : 'Late fee auto-apply enabled'}
+                                </Badge>
+                              );
+                            }
                           }
                           if (eligibility.eligible) {
                             return (
@@ -3189,11 +3241,11 @@ Best regards,
 
       {/* Late Fee Details Dialog */}
       <Dialog open={!!lateFeeDialogInvoice} onOpenChange={(open) => !open && setLateFeeDialogInvoice(null)}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              {language === 'fr' ? 'Frais de retard' : 'Late Fees'}
+              {language === 'fr' ? 'Historique des frais de retard' : 'Late Fee History'}
             </DialogTitle>
             <DialogDescription>
               {lateFeeDialogInvoice && `${language === 'fr' ? 'Facture' : 'Invoice'} ${lateFeeDialogInvoice.invoice_number}`}
@@ -3208,35 +3260,78 @@ Best regards,
                   {language === 'fr' ? 'Aucun frais de retard' : 'No late fees'}
                 </p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{language === 'fr' ? 'Description' : 'Description'}</TableHead>
-                      <TableHead>{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
-                      <TableHead>{language === 'fr' ? 'Date' : 'Date'}</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lateFeeRecords.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell className="text-sm">{record.description}</TableCell>
-                        <TableCell className="font-medium">${record.amount.toFixed(2)}</TableCell>
-                        <TableCell className="text-sm">{new Date(record.applied_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA')}</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteLateFee(record)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <>
+                  {/* Active fees */}
+                  {lateFeeRecords.filter((r: any) => r.status === 'active').length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-foreground">{language === 'fr' ? 'Frais actifs' : 'Active fees'}</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Description' : 'Description'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Source' : 'Source'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Date' : 'Date'}</TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {lateFeeRecords.filter((r: any) => r.status === 'active').map((record: any) => (
+                            <TableRow key={record.id}>
+                              <TableCell className="text-sm">{record.description}</TableCell>
+                              <TableCell className="font-medium">${record.amount.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px] px-1.5">
+                                  {record.source === 'automatic' ? (language === 'fr' ? 'Auto' : 'Auto') : (language === 'fr' ? 'Manuel' : 'Manual')}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{new Date(record.applied_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA')}</TableCell>
+                              <TableCell>
+                                <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteLateFee(record)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+
+                  {/* Removed fees */}
+                  {lateFeeRecords.filter((r: any) => r.status === 'removed').length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">{language === 'fr' ? 'Frais retirés' : 'Removed fees'}</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Description' : 'Description'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Retiré le' : 'Removed'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Raison' : 'Reason'}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {lateFeeRecords.filter((r: any) => r.status === 'removed').map((record: any) => (
+                            <TableRow key={record.id} className="opacity-60">
+                              <TableCell className="text-sm line-through">{record.description}</TableCell>
+                              <TableCell className="font-medium line-through">${record.amount.toFixed(2)}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {record.removed_at ? new Date(record.removed_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA') : '—'}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{record.removal_reason || '—'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </>
               )}
               {lateFeeDialogInvoice && (
-                <div className="pt-2 border-t">
+                <div className="pt-2 border-t space-y-1">
                   <p className="text-sm font-medium">
-                    {language === 'fr' ? 'Total des frais' : 'Total fees'}: ${((lateFeeDialogInvoice as any).late_fee_applied_total || 0).toFixed(2)}
+                    {language === 'fr' ? 'Total des frais actifs' : 'Active fees total'}: ${((lateFeeDialogInvoice as any).late_fee_applied_total || 0).toFixed(2)}
                   </p>
                   <p className="text-sm font-bold">
                     {language === 'fr' ? 'Total avec frais' : 'Total with fees'}: ${(lateFeeDialogInvoice.total + ((lateFeeDialogInvoice as any).late_fee_applied_total || 0)).toFixed(2)}

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X, Bell } from "lucide-react";
+import { ClientLateFeeOverride } from "@/components/ClientLateFeeOverride";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -54,7 +55,16 @@ const Clients = () => {
     simplified_invoice_line: false,
     time_rounding_enabled: false,
     time_rounding_increment_minutes: 15,
-    time_rounding_method: "nearest"
+    time_rounding_method: "nearest",
+    // Late fee overrides
+    late_fee_override_enabled: false,
+    late_fee_enabled_override: null as boolean | null,
+    late_fee_type_override: null as string | null,
+    late_fee_rate_override: "",
+    late_fee_amount_override: "",
+    late_fee_grace_days_override: "",
+    late_fee_auto_apply_mode_override: null as string | null,
+    late_fee_cap_amount_override: "",
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -153,8 +163,16 @@ const Clients = () => {
         simplified_invoice_line: newClient.simplified_invoice_line,
         time_rounding_enabled: newClient.time_rounding_enabled,
         time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
-        time_rounding_method: newClient.time_rounding_method
-      });
+        time_rounding_method: newClient.time_rounding_method,
+        late_fee_override_enabled: newClient.late_fee_override_enabled,
+        late_fee_enabled_override: newClient.late_fee_override_enabled ? newClient.late_fee_enabled_override : null,
+        late_fee_type_override: newClient.late_fee_override_enabled ? newClient.late_fee_type_override : null,
+        late_fee_rate_override: newClient.late_fee_override_enabled && newClient.late_fee_rate_override ? parseFloat(newClient.late_fee_rate_override) : null,
+        late_fee_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_amount_override ? parseFloat(newClient.late_fee_amount_override) : null,
+        late_fee_grace_days_override: newClient.late_fee_override_enabled && newClient.late_fee_grace_days_override ? parseInt(newClient.late_fee_grace_days_override) : null,
+        late_fee_auto_apply_mode_override: newClient.late_fee_override_enabled ? newClient.late_fee_auto_apply_mode_override : null,
+        late_fee_cap_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_cap_amount_override ? parseFloat(newClient.late_fee_cap_amount_override) : null,
+      } as any);
     } else {
       await createClient({
         name: newClient.name,
@@ -173,8 +191,16 @@ const Clients = () => {
         simplified_invoice_line: newClient.simplified_invoice_line,
         time_rounding_enabled: newClient.time_rounding_enabled,
         time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
-        time_rounding_method: newClient.time_rounding_method
-      });
+        time_rounding_method: newClient.time_rounding_method,
+        late_fee_override_enabled: newClient.late_fee_override_enabled,
+        late_fee_enabled_override: newClient.late_fee_override_enabled ? newClient.late_fee_enabled_override : null,
+        late_fee_type_override: newClient.late_fee_override_enabled ? newClient.late_fee_type_override : null,
+        late_fee_rate_override: newClient.late_fee_override_enabled && newClient.late_fee_rate_override ? parseFloat(newClient.late_fee_rate_override) : null,
+        late_fee_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_amount_override ? parseFloat(newClient.late_fee_amount_override) : null,
+        late_fee_grace_days_override: newClient.late_fee_override_enabled && newClient.late_fee_grace_days_override ? parseInt(newClient.late_fee_grace_days_override) : null,
+        late_fee_auto_apply_mode_override: newClient.late_fee_override_enabled ? newClient.late_fee_auto_apply_mode_override : null,
+        late_fee_cap_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_cap_amount_override ? parseFloat(newClient.late_fee_cap_amount_override) : null,
+      } as any);
     }
 
     resetForm();
@@ -198,7 +224,15 @@ const Clients = () => {
       simplified_invoice_line: false,
       time_rounding_enabled: false,
       time_rounding_increment_minutes: 15,
-      time_rounding_method: "nearest"
+      time_rounding_method: "nearest",
+      late_fee_override_enabled: false,
+      late_fee_enabled_override: null,
+      late_fee_type_override: null,
+      late_fee_rate_override: "",
+      late_fee_amount_override: "",
+      late_fee_grace_days_override: "",
+      late_fee_auto_apply_mode_override: null,
+      late_fee_cap_amount_override: "",
     });
     setEmailList([""]);
     setEditingClient(null);
@@ -230,7 +264,15 @@ const Clients = () => {
       simplified_invoice_line: client.simplified_invoice_line || false,
       time_rounding_enabled: client.time_rounding_enabled || false,
       time_rounding_increment_minutes: client.time_rounding_increment_minutes || 15,
-      time_rounding_method: client.time_rounding_method || "nearest"
+      time_rounding_method: client.time_rounding_method || "nearest",
+      late_fee_override_enabled: client.late_fee_override_enabled || false,
+      late_fee_enabled_override: client.late_fee_enabled_override ?? null,
+      late_fee_type_override: client.late_fee_type_override || null,
+      late_fee_rate_override: client.late_fee_rate_override?.toString() || "",
+      late_fee_amount_override: client.late_fee_amount_override?.toString() || "",
+      late_fee_grace_days_override: client.late_fee_grace_days_override?.toString() || "",
+      late_fee_auto_apply_mode_override: client.late_fee_auto_apply_mode_override || null,
+      late_fee_cap_amount_override: client.late_fee_cap_amount_override?.toString() || "",
     });
     setHourlyRateInput(client.hourly_rate ? String(client.hourly_rate) : "");
     setIsDialogOpen(true);
@@ -561,7 +603,22 @@ const Clients = () => {
                 onIncrementChange={(increment) => setNewClient({...newClient, time_rounding_increment_minutes: increment})}
                 onMethodChange={(method) => setNewClient({...newClient, time_rounding_method: method})}
               />
-              
+
+              <ClientLateFeeOverride
+                enabled={newClient.late_fee_override_enabled}
+                onEnabledChange={(enabled) => setNewClient({...newClient, late_fee_override_enabled: enabled})}
+                settings={{
+                  late_fee_enabled_override: newClient.late_fee_enabled_override,
+                  late_fee_type_override: newClient.late_fee_type_override,
+                  late_fee_rate_override: newClient.late_fee_rate_override,
+                  late_fee_amount_override: newClient.late_fee_amount_override,
+                  late_fee_grace_days_override: newClient.late_fee_grace_days_override,
+                  late_fee_auto_apply_mode_override: newClient.late_fee_auto_apply_mode_override,
+                  late_fee_cap_amount_override: newClient.late_fee_cap_amount_override,
+                }}
+                onSettingsChange={(s) => setNewClient({...newClient, ...s})}
+              />
+
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("clients.cancel")}
