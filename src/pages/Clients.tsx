@@ -603,7 +603,22 @@ const Clients = () => {
                 onIncrementChange={(increment) => setNewClient({...newClient, time_rounding_increment_minutes: increment})}
                 onMethodChange={(method) => setNewClient({...newClient, time_rounding_method: method})}
               />
-              
+
+              <ClientLateFeeOverride
+                enabled={newClient.late_fee_override_enabled}
+                onEnabledChange={(enabled) => setNewClient({...newClient, late_fee_override_enabled: enabled})}
+                settings={{
+                  late_fee_enabled_override: newClient.late_fee_enabled_override,
+                  late_fee_type_override: newClient.late_fee_type_override,
+                  late_fee_rate_override: newClient.late_fee_rate_override,
+                  late_fee_amount_override: newClient.late_fee_amount_override,
+                  late_fee_grace_days_override: newClient.late_fee_grace_days_override,
+                  late_fee_auto_apply_mode_override: newClient.late_fee_auto_apply_mode_override,
+                  late_fee_cap_amount_override: newClient.late_fee_cap_amount_override,
+                }}
+                onSettingsChange={(s) => setNewClient({...newClient, ...s})}
+              />
+
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("clients.cancel")}
