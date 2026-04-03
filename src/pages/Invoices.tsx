@@ -97,7 +97,7 @@ const Invoices = () => {
 
   // Late fees
   const { checkEligibility, applyLateFee, fetchLateFees, removeLateFee, getLateFeeTermsText, evaluateAndAutoApply, getResolvedSettings, fetchActiveLateFeeCount, applying: applyingLateFee } = useLateFees();
-  const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, LateFeeSettingsType>>({});
+  const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, CompanyLateFeeSettings>>({});
   const [lateFeeDialogInvoice, setLateFeeDialogInvoice] = useState<Invoice | null>(null);
   const [lateFeeRecords, setLateFeeRecords] = useState<LateFeeRecord[]>([]);
   const [loadingLateFees, setLoadingLateFees] = useState(false);
