@@ -1318,6 +1318,8 @@ Cordialement,
           </CardContent>
         </Card>
 
+        <LateFeeSettings />
+
 
         <Card>
           <CardHeader>
