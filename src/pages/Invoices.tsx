@@ -2305,6 +2305,11 @@ Best regards,
                   <div>
                     <span className="text-muted-foreground">{language === 'fr' ? 'Montant:' : 'Amount:'}</span>
                     <span className="ml-1 font-medium">${invoice.total.toFixed(2)}</span>
+                    {(invoice as any).late_fee_applied_total > 0 && (
+                      <span className="block text-xs text-amber-600">
+                        +${((invoice as any).late_fee_applied_total).toFixed(2)} {language === 'fr' ? 'frais de retard' : 'late fees'}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <span className="text-muted-foreground">{language === 'fr' ? 'Échéance:' : 'Due:'}</span>
