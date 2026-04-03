@@ -165,8 +165,15 @@ Thank you for your attention,
           </DialogTitle>
           <DialogDescription>
             {language === "fr"
-              ? `Facture ${invoice.invoice_number} — $${invoice.total.toFixed(2)}`
-              : `Invoice ${invoice.invoice_number} — $${invoice.total.toFixed(2)}`}
+              ? `Facture ${invoice.invoice_number} — $${balanceDue.toFixed(2)}`
+              : `Invoice ${invoice.invoice_number} — $${balanceDue.toFixed(2)}`}
+            {hasLateFees && (
+              <span className="block text-xs mt-1 text-amber-600">
+                {language === "fr"
+                  ? `Ce solde inclut des frais de retard déjà appliqués.`
+                  : `This balance includes applicable late fees already added to the invoice.`}
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
