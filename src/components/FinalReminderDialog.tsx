@@ -113,11 +113,14 @@ Thank you for your attention,
     return new Date(dateStr).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA");
   };
 
+  const balanceDue = invoice.total + (invoice.late_fee_applied_total || 0);
+  const hasLateFees = (invoice.late_fee_applied_total || 0) > 0;
+
   const replaceVariables = (text: string) => {
     return text
       .replace(/\{\{client_name\}\}/g, clientName || '—')
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
-      .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
+      .replace(/\{\{amount_due\}\}/g, `$${balanceDue.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, formatDate(invoice.due_date))
       .replace(/\{\{final_reminder_due_date\}\}/g, formatDate(responseDueDate))
       .replace(/\{\{company_name\}\}/g, company || '—');
