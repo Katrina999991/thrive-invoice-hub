@@ -256,7 +256,15 @@ const Clients = () => {
       simplified_invoice_line: client.simplified_invoice_line || false,
       time_rounding_enabled: client.time_rounding_enabled || false,
       time_rounding_increment_minutes: client.time_rounding_increment_minutes || 15,
-      time_rounding_method: client.time_rounding_method || "nearest"
+      time_rounding_method: client.time_rounding_method || "nearest",
+      late_fee_override_enabled: client.late_fee_override_enabled || false,
+      late_fee_enabled_override: client.late_fee_enabled_override ?? null,
+      late_fee_type_override: client.late_fee_type_override || null,
+      late_fee_rate_override: client.late_fee_rate_override?.toString() || "",
+      late_fee_amount_override: client.late_fee_amount_override?.toString() || "",
+      late_fee_grace_days_override: client.late_fee_grace_days_override?.toString() || "",
+      late_fee_auto_apply_mode_override: client.late_fee_auto_apply_mode_override || null,
+      late_fee_cap_amount_override: client.late_fee_cap_amount_override?.toString() || "",
     });
     setHourlyRateInput(client.hourly_rate ? String(client.hourly_rate) : "");
     setIsDialogOpen(true);
