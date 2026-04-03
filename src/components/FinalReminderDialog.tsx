@@ -15,6 +15,7 @@ interface FinalReminderDialogProps {
     id: string;
     invoice_number: string;
     total: number;
+    late_fee_applied_total?: number;
     due_date: string | null;
     payment_link: string | null;
     final_reminder_sent?: boolean;
