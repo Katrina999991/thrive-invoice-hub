@@ -2525,6 +2525,26 @@ Best regards,
                             </Tooltip>
                           </TooltipProvider>
                         )}
+                        {(() => {
+                          const eligibility = getLateFeeEligibility(invoice);
+                          if ((invoice as any).late_fee_status === 'applied') {
+                            return (
+                              <Badge variant="outline" className="border-amber-600 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px]">
+                                <DollarSign className="h-3 w-3 mr-0.5" />
+                                {language === 'fr' ? 'Frais appliqués' : 'Fee applied'}
+                              </Badge>
+                            );
+                          }
+                          if (eligibility.eligible) {
+                            return (
+                              <Badge variant="outline" className="border-orange-400 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 text-[10px]">
+                                <DollarSign className="h-3 w-3 mr-0.5" />
+                                {language === 'fr' ? 'Frais éligible' : 'Fee eligible'}
+                              </Badge>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </TableCell>
                     <TableCell>{invoice.issue_date}</TableCell>
