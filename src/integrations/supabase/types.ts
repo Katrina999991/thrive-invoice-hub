@@ -231,6 +231,12 @@ export type Database = {
           invoice_footer_message_fr: string | null
           invoice_prefix: string | null
           invoice_start_number: number | null
+          late_fee_amount: number | null
+          late_fee_enabled: boolean
+          late_fee_grace_days: number
+          late_fee_rate: number | null
+          late_fee_terms_text: string | null
+          late_fee_type: string
           logo_url: string | null
           name: string
           overdue_email_message: string | null
@@ -289,6 +295,12 @@ export type Database = {
           invoice_footer_message_fr?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
+          late_fee_amount?: number | null
+          late_fee_enabled?: boolean
+          late_fee_grace_days?: number
+          late_fee_rate?: number | null
+          late_fee_terms_text?: string | null
+          late_fee_type?: string
           logo_url?: string | null
           name: string
           overdue_email_message?: string | null
@@ -347,6 +359,12 @@ export type Database = {
           invoice_footer_message_fr?: string | null
           invoice_prefix?: string | null
           invoice_start_number?: number | null
+          late_fee_amount?: number | null
+          late_fee_enabled?: boolean
+          late_fee_grace_days?: number
+          late_fee_rate?: number | null
+          late_fee_terms_text?: string | null
+          late_fee_type?: string
           logo_url?: string | null
           name?: string
           overdue_email_message?: string | null
@@ -956,6 +974,47 @@ export type Database = {
           },
         ]
       }
+      invoice_late_fees: {
+        Row: {
+          amount: number
+          applied_at: string
+          applied_by: string | null
+          created_at: string
+          description: string
+          fee_type: string
+          id: string
+          invoice_id: string
+        }
+        Insert: {
+          amount: number
+          applied_at?: string
+          applied_by?: string | null
+          created_at?: string
+          description?: string
+          fee_type: string
+          id?: string
+          invoice_id: string
+        }
+        Update: {
+          amount?: number
+          applied_at?: string
+          applied_by?: string | null
+          created_at?: string
+          description?: string
+          fee_type?: string
+          id?: string
+          invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_late_fees_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_reminder_logs: {
         Row: {
           client_id: string | null
@@ -1015,6 +1074,9 @@ export type Database = {
           invoice_number: string
           is_archived: boolean
           issue_date: string
+          late_fee_applied_total: number
+          late_fee_last_applied_at: string | null
+          late_fee_status: string
           notes: string | null
           overdue_reminder_sent_at: string | null
           paid_at: string | null
@@ -1043,6 +1105,9 @@ export type Database = {
           invoice_number: string
           is_archived?: boolean
           issue_date?: string
+          late_fee_applied_total?: number
+          late_fee_last_applied_at?: string | null
+          late_fee_status?: string
           notes?: string | null
           overdue_reminder_sent_at?: string | null
           paid_at?: string | null
@@ -1071,6 +1136,9 @@ export type Database = {
           invoice_number?: string
           is_archived?: boolean
           issue_date?: string
+          late_fee_applied_total?: number
+          late_fee_last_applied_at?: string | null
+          late_fee_status?: string
           notes?: string | null
           overdue_reminder_sent_at?: string | null
           paid_at?: string | null
