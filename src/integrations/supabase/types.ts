@@ -139,6 +139,14 @@ export type Database = {
           id: string
           include_payment_link: boolean | null
           language: string | null
+          late_fee_amount_override: number | null
+          late_fee_auto_apply_mode_override: string | null
+          late_fee_cap_amount_override: number | null
+          late_fee_enabled_override: boolean | null
+          late_fee_grace_days_override: number | null
+          late_fee_override_enabled: boolean
+          late_fee_rate_override: number | null
+          late_fee_type_override: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -161,6 +169,14 @@ export type Database = {
           id?: string
           include_payment_link?: boolean | null
           language?: string | null
+          late_fee_amount_override?: number | null
+          late_fee_auto_apply_mode_override?: string | null
+          late_fee_cap_amount_override?: number | null
+          late_fee_enabled_override?: boolean | null
+          late_fee_grace_days_override?: number | null
+          late_fee_override_enabled?: boolean
+          late_fee_rate_override?: number | null
+          late_fee_type_override?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -183,6 +199,14 @@ export type Database = {
           id?: string
           include_payment_link?: boolean | null
           language?: string | null
+          late_fee_amount_override?: number | null
+          late_fee_auto_apply_mode_override?: string | null
+          late_fee_cap_amount_override?: number | null
+          late_fee_enabled_override?: boolean | null
+          late_fee_grace_days_override?: number | null
+          late_fee_override_enabled?: boolean
+          late_fee_rate_override?: number | null
+          late_fee_type_override?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
@@ -232,6 +256,9 @@ export type Database = {
           invoice_prefix: string | null
           invoice_start_number: number | null
           late_fee_amount: number | null
+          late_fee_auto_apply_enabled: boolean
+          late_fee_auto_apply_mode: string
+          late_fee_cap_amount: number | null
           late_fee_enabled: boolean
           late_fee_grace_days: number
           late_fee_rate: number | null
@@ -296,6 +323,9 @@ export type Database = {
           invoice_prefix?: string | null
           invoice_start_number?: number | null
           late_fee_amount?: number | null
+          late_fee_auto_apply_enabled?: boolean
+          late_fee_auto_apply_mode?: string
+          late_fee_cap_amount?: number | null
           late_fee_enabled?: boolean
           late_fee_grace_days?: number
           late_fee_rate?: number | null
@@ -360,6 +390,9 @@ export type Database = {
           invoice_prefix?: string | null
           invoice_start_number?: number | null
           late_fee_amount?: number | null
+          late_fee_auto_apply_enabled?: boolean
+          late_fee_auto_apply_mode?: string
+          late_fee_cap_amount?: number | null
           late_fee_enabled?: boolean
           late_fee_grace_days?: number
           late_fee_rate?: number | null
@@ -979,31 +1012,64 @@ export type Database = {
           amount: number
           applied_at: string
           applied_by: string | null
+          cap_in_effect: number | null
+          client_id: string | null
+          company_id: string | null
           created_at: string
           description: string
           fee_type: string
+          grace_days_used: number | null
           id: string
           invoice_id: string
+          rate_used: number | null
+          remaining_balance_at_calc: number | null
+          removal_reason: string | null
+          removed_at: string | null
+          removed_by: string | null
+          source: string
+          status: string
         }
         Insert: {
           amount: number
           applied_at?: string
           applied_by?: string | null
+          cap_in_effect?: number | null
+          client_id?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string
           fee_type: string
+          grace_days_used?: number | null
           id?: string
           invoice_id: string
+          rate_used?: number | null
+          remaining_balance_at_calc?: number | null
+          removal_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          source?: string
+          status?: string
         }
         Update: {
           amount?: number
           applied_at?: string
           applied_by?: string | null
+          cap_in_effect?: number | null
+          client_id?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string
           fee_type?: string
+          grace_days_used?: number | null
           id?: string
           invoice_id?: string
+          rate_used?: number | null
+          remaining_balance_at_calc?: number | null
+          removal_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          source?: string
+          status?: string
         }
         Relationships: [
           {
