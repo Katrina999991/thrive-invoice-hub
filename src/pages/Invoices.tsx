@@ -2460,7 +2460,14 @@ Best regards,
                     <TableCell>
                       {clients.find(c => c.id === invoice.client_id)?.name || 'Unknown Client'}
                     </TableCell>
-                    <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">
+                      ${invoice.total.toFixed(2)}
+                      {(invoice as any).late_fee_applied_total > 0 && (
+                        <span className="block text-xs text-amber-600">
+                          +${((invoice as any).late_fee_applied_total).toFixed(2)} {language === 'fr' ? 'frais' : 'fees'}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         {canEditInvoices ? (
