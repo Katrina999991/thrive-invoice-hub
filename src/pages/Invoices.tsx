@@ -95,7 +95,7 @@ const Invoices = () => {
   const canUseFormalNotice = hasFeature("formal_notice_enabled");
 
   // Late fees
-  const { checkEligibility, applyLateFee, fetchLateFees, deleteLateFee, getLateFeeTermsText, applying: applyingLateFee } = useLateFees();
+  const { checkEligibility, applyLateFee, fetchLateFees, removeLateFee, getLateFeeTermsText, evaluateAndAutoApply, getResolvedSettings, fetchActiveLateFeeCount, applying: applyingLateFee } = useLateFees();
   const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, LateFeeSettingsType>>({});
   const [lateFeeDialogInvoice, setLateFeeDialogInvoice] = useState<Invoice | null>(null);
   const [lateFeeRecords, setLateFeeRecords] = useState<LateFeeRecord[]>([]);
