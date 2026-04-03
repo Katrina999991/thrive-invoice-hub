@@ -814,6 +814,10 @@ const Invoices = () => {
         product_taxes: item.product_taxes as any
       }));
       
+      // Get late fee terms text if applicable
+      const lateFeSettings = company ? lateFeeSettings[company.id] : null;
+      const lateTermsText = lateFeSettings ? getLateFeeTermsText(lateFeSettings, language) : null;
+
       // Generate PDF using unified system
       await generateDocumentPdf({
         documentType: 'invoice',
@@ -827,7 +831,9 @@ const Invoices = () => {
           terms: invoice.terms,
           notes: invoice.notes,
           status: invoice.status,
-          items
+          items,
+          late_fee_applied_total: (invoice as any).late_fee_applied_total || 0,
+          late_fee_terms_text: lateTermsText,
         },
         client: client ? {
           name: client.name,
