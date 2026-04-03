@@ -814,6 +814,10 @@ const Invoices = () => {
         product_taxes: item.product_taxes as any
       }));
       
+      // Get late fee terms text if applicable
+      const lateFeSettings = company ? lateFeeSettings[company.id] : null;
+      const lateTermsText = lateFeSettings ? getLateFeeTermsText(lateFeSettings, language) : null;
+
       // Generate PDF using unified system
       await generateDocumentPdf({
         documentType: 'invoice',
@@ -827,7 +831,9 @@ const Invoices = () => {
           terms: invoice.terms,
           notes: invoice.notes,
           status: invoice.status,
-          items
+          items,
+          late_fee_applied_total: (invoice as any).late_fee_applied_total || 0,
+          late_fee_terms_text: lateTermsText,
         },
         client: client ? {
           name: client.name,
@@ -2023,6 +2029,26 @@ Best regards,
                                 ${viewingInvoice.total.toFixed(2)}
                               </TableCell>
                             </TableRow>
+                            {(viewingInvoice as any).late_fee_applied_total > 0 && (
+                              <>
+                                <TableRow className="bg-amber-50 dark:bg-amber-950/20">
+                                  <TableCell colSpan={3} className="text-right font-medium text-amber-700 dark:text-amber-400">
+                                    {language === 'fr' ? 'Frais de retard :' : 'Late fee:'}
+                                  </TableCell>
+                                  <TableCell className="text-right font-medium text-amber-700 dark:text-amber-400">
+                                    ${((viewingInvoice as any).late_fee_applied_total).toFixed(2)}
+                                  </TableCell>
+                                </TableRow>
+                                <TableRow className="bg-amber-50 dark:bg-amber-950/20 border-t">
+                                  <TableCell colSpan={3} className="text-right font-bold">
+                                    {language === 'fr' ? 'Solde dû :' : 'Balance due:'}
+                                  </TableCell>
+                                  <TableCell className="text-right font-bold text-lg">
+                                    ${(viewingInvoice.total + (viewingInvoice as any).late_fee_applied_total).toFixed(2)}
+                                  </TableCell>
+                                </TableRow>
+                              </>
+                            )}
                         </TableBody>
                       </Table>
                     </div>
@@ -2279,6 +2305,11 @@ Best regards,
                   <div>
                     <span className="text-muted-foreground">{language === 'fr' ? 'Montant:' : 'Amount:'}</span>
                     <span className="ml-1 font-medium">${invoice.total.toFixed(2)}</span>
+                    {(invoice as any).late_fee_applied_total > 0 && (
+                      <span className="block text-xs text-amber-600">
+                        +${((invoice as any).late_fee_applied_total).toFixed(2)} {language === 'fr' ? 'frais de retard' : 'late fees'}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <span className="text-muted-foreground">{language === 'fr' ? 'Échéance:' : 'Due:'}</span>
@@ -2547,7 +2578,7 @@ Best regards,
                             return (
                               <Badge variant="outline" className="border-amber-600 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px]">
                                 <DollarSign className="h-3 w-3 mr-0.5" />
-                                {language === 'fr' ? 'Frais appliqués' : 'Fee applied'}
+                                {language === 'fr' ? 'Frais de retard appliqués' : 'Late fee applied'}
                               </Badge>
                             );
                           }
@@ -2555,7 +2586,7 @@ Best regards,
                             return (
                               <Badge variant="outline" className="border-orange-400 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 text-[10px]">
                                 <DollarSign className="h-3 w-3 mr-0.5" />
-                                {language === 'fr' ? 'Frais éligible' : 'Fee eligible'}
+                                {language === 'fr' ? 'Frais de retard éligible' : 'Late fee eligible'}
                               </Badge>
                             );
                           }
@@ -2686,10 +2717,10 @@ Best regards,
                                       disabled={applyingLateFee}
                                     >
                                       {applyingLateFee ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
-                                    </Button>
+                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{language === 'fr' ? `Appliquer frais de retard ($${eligibility.calculatedAmount?.toFixed(2)})` : `Apply late fee ($${eligibility.calculatedAmount?.toFixed(2)})`}</p>
+                                    <p>{language === 'fr' ? `Appliquer le frais de retard ($${eligibility.calculatedAmount?.toFixed(2)})` : `Apply late fee ($${eligibility.calculatedAmount?.toFixed(2)})`}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               );

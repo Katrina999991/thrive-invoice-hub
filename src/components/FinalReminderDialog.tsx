@@ -15,6 +15,7 @@ interface FinalReminderDialogProps {
     id: string;
     invoice_number: string;
     total: number;
+    late_fee_applied_total?: number;
     due_date: string | null;
     payment_link: string | null;
     final_reminder_sent?: boolean;
@@ -112,11 +113,14 @@ Thank you for your attention,
     return new Date(dateStr).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA");
   };
 
+  const balanceDue = invoice.total + (invoice.late_fee_applied_total || 0);
+  const hasLateFees = (invoice.late_fee_applied_total || 0) > 0;
+
   const replaceVariables = (text: string) => {
     return text
       .replace(/\{\{client_name\}\}/g, clientName || '—')
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
-      .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
+      .replace(/\{\{amount_due\}\}/g, `$${balanceDue.toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, formatDate(invoice.due_date))
       .replace(/\{\{final_reminder_due_date\}\}/g, formatDate(responseDueDate))
       .replace(/\{\{company_name\}\}/g, company || '—');
@@ -161,8 +165,15 @@ Thank you for your attention,
           </DialogTitle>
           <DialogDescription>
             {language === "fr"
-              ? `Facture ${invoice.invoice_number} — $${invoice.total.toFixed(2)}`
-              : `Invoice ${invoice.invoice_number} — $${invoice.total.toFixed(2)}`}
+              ? `Facture ${invoice.invoice_number} — $${balanceDue.toFixed(2)}`
+              : `Invoice ${invoice.invoice_number} — $${balanceDue.toFixed(2)}`}
+            {hasLateFees && (
+              <span className="block text-xs mt-1 text-amber-600">
+                {language === "fr"
+                  ? `Ce solde inclut des frais de retard déjà appliqués.`
+                  : `This balance includes applicable late fees already added to the invoice.`}
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 

@@ -41,6 +41,8 @@ export interface DocumentData {
   notes?: string | null;
   items: DocumentItem[];
   status?: string;
+  late_fee_applied_total?: number;
+  late_fee_terms_text?: string | null;
 }
 
 export interface ClientData {
@@ -466,6 +468,15 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
   }
   
   tableData.push(['', '', `${t.total}:`, `$${document.total.toFixed(2)}`]);
+
+  // Add late fee line if applicable (invoices only)
+  const lateFeeTotal = document.late_fee_applied_total || 0;
+  if (documentType === 'invoice' && lateFeeTotal > 0) {
+    const lateFeeLabel = isClientFrench ? 'Frais de retard :' : 'Late fee:';
+    const balanceDueLabel = isClientFrench ? 'Solde dû :' : 'Balance due:';
+    tableData.push(['', '', lateFeeLabel, `$${lateFeeTotal.toFixed(2)}`]);
+    tableData.push(['', '', balanceDueLabel, `$${(document.total + lateFeeTotal).toFixed(2)}`]);
+  }
   
   // Table theme based on template
   const tableTheme = template === 'professional' ? 'grid' : 
@@ -634,6 +645,18 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     contentEndY = bodyY + (splitBody.length * 5);
   }
   
+  // Late fee terms note (invoices only)
+  if (documentType === 'invoice' && document.late_fee_terms_text) {
+    const lateTermsY = contentEndY + 10;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(120, 120, 120);
+    const splitLateTerms = doc.splitTextToSize(document.late_fee_terms_text, contentWidth);
+    doc.text(splitLateTerms, margin, lateTermsY);
+    contentEndY = lateTermsY + (splitLateTerms.length * 4);
+    doc.setFont('helvetica', 'normal');
+  }
+
   // Terms section
   if (document.terms) {
     const termsY = contentEndY + 15;
