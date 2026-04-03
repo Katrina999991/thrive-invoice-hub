@@ -128,10 +128,23 @@ const Invoices = () => {
     }
   }, [companies]);
 
-  const getLateFeeSettingsForInvoice = (invoice: any): LateFeeSettingsType | null => {
-    const client = clients.find(c => c.id === invoice.client_id);
+  const getLateFeeSettingsForInvoice = (invoice: any): ResolvedLateFeeSettings | null => {
+    const client = clients.find(c => c.id === invoice.client_id) as any;
     if (!client?.company_id) return null;
-    return lateFeeSettings[client.company_id] || null;
+    const companySettings = lateFeeSettings[client.company_id];
+    if (!companySettings) return null;
+    // Resolve with per-client overrides
+    const clientOverrides: ClientLateFeeOverrides | null = client.late_fee_override_enabled ? {
+      late_fee_override_enabled: client.late_fee_override_enabled,
+      late_fee_enabled_override: client.late_fee_enabled_override ?? null,
+      late_fee_type_override: client.late_fee_type_override ?? null,
+      late_fee_rate_override: client.late_fee_rate_override ?? null,
+      late_fee_amount_override: client.late_fee_amount_override ?? null,
+      late_fee_grace_days_override: client.late_fee_grace_days_override ?? null,
+      late_fee_auto_apply_mode_override: client.late_fee_auto_apply_mode_override ?? null,
+      late_fee_cap_amount_override: client.late_fee_cap_amount_override ?? null,
+    } : null;
+    return resolveLateFeeSettings(companySettings, clientOverrides);
   };
 
   const getLateFeeEligibility = (invoice: any) => {
