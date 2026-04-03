@@ -2051,6 +2051,22 @@ Best regards,
                   </div>
                 )}
 
+                {/* Late Fee Info in View Dialog */}
+                {viewingInvoice && (viewingInvoice as any).late_fee_applied_total > 0 && (
+                  <div className="p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium text-amber-800 dark:text-amber-300">
+                        {language === 'fr' ? 'Frais de retard' : 'Late Fees'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+                      <p>{language === 'fr' ? 'Total des frais' : 'Total fees'}: ${((viewingInvoice as any).late_fee_applied_total).toFixed(2)}</p>
+                      <p className="font-semibold">{language === 'fr' ? 'Total avec frais' : 'Total with fees'}: ${(viewingInvoice.total + (viewingInvoice as any).late_fee_applied_total).toFixed(2)}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <Button onClick={() => setIsViewDialogOpen(false)}>
                     Close
