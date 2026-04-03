@@ -109,7 +109,7 @@ const Invoices = () => {
   // Load late fee settings from companies
   useEffect(() => {
     if (companies.length > 0) {
-      const settingsMap: Record<string, LateFeeSettingsType> = {};
+      const settingsMap: Record<string, any> = {};
       companies.forEach((c: any) => {
         settingsMap[c.id] = {
           late_fee_enabled: c.late_fee_enabled || false,
@@ -118,6 +118,9 @@ const Invoices = () => {
           late_fee_amount: c.late_fee_amount ?? null,
           late_fee_grace_days: c.late_fee_grace_days ?? 5,
           late_fee_terms_text: c.late_fee_terms_text ?? null,
+          late_fee_auto_apply_enabled: c.late_fee_auto_apply_enabled || false,
+          late_fee_auto_apply_mode: c.late_fee_auto_apply_mode || 'manual_only',
+          late_fee_cap_amount: c.late_fee_cap_amount ?? null,
         };
       });
       setLateFeeSettings(settingsMap);
