@@ -2655,6 +2655,50 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          {/* Late Fee Button */}
+                          {(() => {
+                            const eligibility = getLateFeeEligibility(invoice);
+                            if (eligibility.eligible) {
+                              return (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                      onClick={() => handleApplyLateFee(invoice)}
+                                      disabled={applyingLateFee}
+                                    >
+                                      {applyingLateFee ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{language === 'fr' ? `Appliquer frais de retard ($${eligibility.calculatedAmount?.toFixed(2)})` : `Apply late fee ($${eligibility.calculatedAmount?.toFixed(2)})`}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            }
+                            if ((invoice as any).late_fee_applied_total > 0) {
+                              return (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-amber-600 text-amber-700 dark:text-amber-400"
+                                      onClick={() => openLateFeeDetails(invoice)}
+                                    >
+                                      <DollarSign className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{language === 'fr' ? 'Voir les frais de retard' : 'View late fees'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            }
+                            return null;
+                          })()}
                           {stripeAccountId && invoice.status !== "paid" && (
                             invoice.payment_link ? (
                               <>
