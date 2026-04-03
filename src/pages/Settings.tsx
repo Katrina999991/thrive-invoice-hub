@@ -54,6 +54,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { useEncryption } from "@/hooks/useEncryption";
 import { useEmailPreferences } from "@/hooks/useEmailPreferences";
 import { PWAInstallSection } from "@/components/PWAInstallSection";
+import { LateFeeSettings } from "@/components/LateFeeSettings";
 
 
 export default function Settings() {
