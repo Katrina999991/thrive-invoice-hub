@@ -163,7 +163,7 @@ const Invoices = () => {
 
   const handleDeleteLateFee = async (record: LateFeeRecord) => {
     if (!lateFeeDialogInvoice) return;
-    const success = await deleteLateFee(record.id, lateFeeDialogInvoice.id, record.amount);
+    const success = await removeLateFee(record.id, lateFeeDialogInvoice.id);
     if (success) {
       const records = await fetchLateFees(lateFeeDialogInvoice.id);
       setLateFeeRecords(records);
