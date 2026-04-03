@@ -3155,6 +3155,67 @@ Best regards,
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Late Fee Details Dialog */}
+      <Dialog open={!!lateFeeDialogInvoice} onOpenChange={(open) => !open && setLateFeeDialogInvoice(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              {language === 'fr' ? 'Frais de retard' : 'Late Fees'}
+            </DialogTitle>
+            <DialogDescription>
+              {lateFeeDialogInvoice && `${language === 'fr' ? 'Facture' : 'Invoice'} ${lateFeeDialogInvoice.invoice_number}`}
+            </DialogDescription>
+          </DialogHeader>
+          {loadingLateFees ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <div className="space-y-4">
+              {lateFeeRecords.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {language === 'fr' ? 'Aucun frais de retard' : 'No late fees'}
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{language === 'fr' ? 'Description' : 'Description'}</TableHead>
+                      <TableHead>{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
+                      <TableHead>{language === 'fr' ? 'Date' : 'Date'}</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lateFeeRecords.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell className="text-sm">{record.description}</TableCell>
+                        <TableCell className="font-medium">${record.amount.toFixed(2)}</TableCell>
+                        <TableCell className="text-sm">{new Date(record.applied_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA')}</TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteLateFee(record)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              {lateFeeDialogInvoice && (
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-medium">
+                    {language === 'fr' ? 'Total des frais' : 'Total fees'}: ${((lateFeeDialogInvoice as any).late_fee_applied_total || 0).toFixed(2)}
+                  </p>
+                  <p className="text-sm font-bold">
+                    {language === 'fr' ? 'Total avec frais' : 'Total with fees'}: ${(lateFeeDialogInvoice.total + ((lateFeeDialogInvoice as any).late_fee_applied_total || 0)).toFixed(2)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
