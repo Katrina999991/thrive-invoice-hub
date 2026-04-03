@@ -106,6 +106,68 @@ const Invoices = () => {
     loadStripeAccount();
   }, [loadStripeAccount]);
 
+  // Load late fee settings from companies
+  useEffect(() => {
+    if (companies.length > 0) {
+      const settingsMap: Record<string, LateFeeSettingsType> = {};
+      companies.forEach((c: any) => {
+        settingsMap[c.id] = {
+          late_fee_enabled: c.late_fee_enabled || false,
+          late_fee_type: c.late_fee_type || 'none',
+          late_fee_rate: c.late_fee_rate ?? null,
+          late_fee_amount: c.late_fee_amount ?? null,
+          late_fee_grace_days: c.late_fee_grace_days ?? 5,
+          late_fee_terms_text: c.late_fee_terms_text ?? null,
+        };
+      });
+      setLateFeeSettings(settingsMap);
+    }
+  }, [companies]);
+
+  const getLateFeeSettingsForInvoice = (invoice: any): LateFeeSettingsType | null => {
+    const client = clients.find(c => c.id === invoice.client_id);
+    if (!client?.company_id) return null;
+    return lateFeeSettings[client.company_id] || null;
+  };
+
+  const getLateFeeEligibility = (invoice: any) => {
+    const settings = getLateFeeSettingsForInvoice(invoice);
+    if (!settings) return { eligible: false };
+    return checkEligibility(invoice, settings);
+  };
+
+  const handleApplyLateFee = async (invoice: Invoice) => {
+    const settings = getLateFeeSettingsForInvoice(invoice);
+    if (!settings) return;
+    const eligibility = checkEligibility(invoice, settings);
+    if (!eligibility.eligible || !eligibility.calculatedAmount) return;
+
+    const description = settings.late_fee_type === 'fixed_once'
+      ? (language === 'fr' ? 'Frais de retard (fixe)' : 'Late fee (fixed)')
+      : (language === 'fr' ? 'Frais de retard (mensuel)' : 'Late fee (monthly)');
+
+    const success = await applyLateFee(invoice.id, eligibility.calculatedAmount, settings.late_fee_type, description);
+    if (success) fetchInvoices();
+  };
+
+  const openLateFeeDetails = async (invoice: Invoice) => {
+    setLateFeeDialogInvoice(invoice);
+    setLoadingLateFees(true);
+    const records = await fetchLateFees(invoice.id);
+    setLateFeeRecords(records);
+    setLoadingLateFees(false);
+  };
+
+  const handleDeleteLateFee = async (record: LateFeeRecord) => {
+    if (!lateFeeDialogInvoice) return;
+    const success = await deleteLateFee(record.id, lateFeeDialogInvoice.id, record.amount);
+    if (success) {
+      const records = await fetchLateFees(lateFeeDialogInvoice.id);
+      setLateFeeRecords(records);
+      fetchInvoices();
+    }
+  };
+
   // Limit dialog state
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
