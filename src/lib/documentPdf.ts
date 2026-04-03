@@ -41,6 +41,8 @@ export interface DocumentData {
   notes?: string | null;
   items: DocumentItem[];
   status?: string;
+  late_fee_applied_total?: number;
+  late_fee_terms_text?: string | null;
 }
 
 export interface ClientData {
