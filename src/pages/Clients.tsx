@@ -163,8 +163,16 @@ const Clients = () => {
         simplified_invoice_line: newClient.simplified_invoice_line,
         time_rounding_enabled: newClient.time_rounding_enabled,
         time_rounding_increment_minutes: newClient.time_rounding_increment_minutes,
-        time_rounding_method: newClient.time_rounding_method
-      });
+        time_rounding_method: newClient.time_rounding_method,
+        late_fee_override_enabled: newClient.late_fee_override_enabled,
+        late_fee_enabled_override: newClient.late_fee_override_enabled ? newClient.late_fee_enabled_override : null,
+        late_fee_type_override: newClient.late_fee_override_enabled ? newClient.late_fee_type_override : null,
+        late_fee_rate_override: newClient.late_fee_override_enabled && newClient.late_fee_rate_override ? parseFloat(newClient.late_fee_rate_override) : null,
+        late_fee_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_amount_override ? parseFloat(newClient.late_fee_amount_override) : null,
+        late_fee_grace_days_override: newClient.late_fee_override_enabled && newClient.late_fee_grace_days_override ? parseInt(newClient.late_fee_grace_days_override) : null,
+        late_fee_auto_apply_mode_override: newClient.late_fee_override_enabled ? newClient.late_fee_auto_apply_mode_override : null,
+        late_fee_cap_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_cap_amount_override ? parseFloat(newClient.late_fee_cap_amount_override) : null,
+      } as any);
     } else {
       await createClient({
         name: newClient.name,
