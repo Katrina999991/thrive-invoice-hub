@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X, Bell } from "lucide-react";
+import { ClientLateFeeOverride } from "@/components/ClientLateFeeOverride";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
