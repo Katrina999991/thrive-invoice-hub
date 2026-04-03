@@ -30,6 +30,7 @@ import { EmailReportDialog } from "@/components/EmailReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
 import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
+import { useLateFees, type LateFeeSettings as LateFeeSettingsType, type LateFeeRecord } from "@/hooks/useLateFees";
 
 type Client = Tables<"clients">;
 type Invoice = Tables<"invoices"> & {
