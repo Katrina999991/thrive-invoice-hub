@@ -2592,6 +2592,15 @@ Best regards,
                         )}
                         {(() => {
                           const eligibility = getLateFeeEligibility(invoice);
+                          const settings = getLateFeeSettingsForInvoice(invoice);
+                          if (eligibility.capReached) {
+                            return (
+                              <Badge variant="outline" className="border-destructive text-destructive px-1.5 py-0.5 text-[10px]">
+                                <DollarSign className="h-3 w-3 mr-0.5" />
+                                {language === 'fr' ? 'Plafond atteint' : 'Late fee cap reached'}
+                              </Badge>
+                            );
+                          }
                           if ((invoice as any).late_fee_status === 'applied') {
                             return (
                               <Badge variant="outline" className="border-amber-600 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px]">
@@ -2599,6 +2608,16 @@ Best regards,
                                 {language === 'fr' ? 'Frais de retard appliqués' : 'Late fee applied'}
                               </Badge>
                             );
+                          }
+                          if (settings?.late_fee_auto_apply_enabled && settings?.late_fee_auto_apply_mode !== 'manual_only') {
+                            if (eligibility.eligible) {
+                              return (
+                                <Badge variant="outline" className="border-orange-400 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 text-[10px]">
+                                  <DollarSign className="h-3 w-3 mr-0.5" />
+                                  {language === 'fr' ? 'Auto-application activée' : 'Late fee auto-apply enabled'}
+                                </Badge>
+                              );
+                            }
                           }
                           if (eligibility.eligible) {
                             return (
