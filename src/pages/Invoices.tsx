@@ -2029,6 +2029,26 @@ Best regards,
                                 ${viewingInvoice.total.toFixed(2)}
                               </TableCell>
                             </TableRow>
+                            {(viewingInvoice as any).late_fee_applied_total > 0 && (
+                              <>
+                                <TableRow className="bg-amber-50 dark:bg-amber-950/20">
+                                  <TableCell colSpan={3} className="text-right font-medium text-amber-700 dark:text-amber-400">
+                                    {language === 'fr' ? 'Frais de retard :' : 'Late fee:'}
+                                  </TableCell>
+                                  <TableCell className="text-right font-medium text-amber-700 dark:text-amber-400">
+                                    ${((viewingInvoice as any).late_fee_applied_total).toFixed(2)}
+                                  </TableCell>
+                                </TableRow>
+                                <TableRow className="bg-amber-50 dark:bg-amber-950/20 border-t">
+                                  <TableCell colSpan={3} className="text-right font-bold">
+                                    {language === 'fr' ? 'Solde dû :' : 'Balance due:'}
+                                  </TableCell>
+                                  <TableCell className="text-right font-bold text-lg">
+                                    ${(viewingInvoice.total + (viewingInvoice as any).late_fee_applied_total).toFixed(2)}
+                                  </TableCell>
+                                </TableRow>
+                              </>
+                            )}
                         </TableBody>
                       </Table>
                     </div>
