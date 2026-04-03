@@ -468,6 +468,15 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
   }
   
   tableData.push(['', '', `${t.total}:`, `$${document.total.toFixed(2)}`]);
+
+  // Add late fee line if applicable (invoices only)
+  const lateFeeTotal = document.late_fee_applied_total || 0;
+  if (documentType === 'invoice' && lateFeeTotal > 0) {
+    const lateFeeLabel = isClientFrench ? 'Frais de retard :' : 'Late fee:';
+    const balanceDueLabel = isClientFrench ? 'Solde dû :' : 'Balance due:';
+    tableData.push(['', '', lateFeeLabel, `$${lateFeeTotal.toFixed(2)}`]);
+    tableData.push(['', '', balanceDueLabel, `$${(document.total + lateFeeTotal).toFixed(2)}`]);
+  }
   
   // Table theme based on template
   const tableTheme = template === 'professional' ? 'grid' : 
