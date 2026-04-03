@@ -51,6 +51,7 @@ interface FormalNoticeEditorDialogProps {
     id: string;
     invoice_number: string;
     total: number;
+    late_fee_applied_total?: number;
     due_date: string | null;
     payment_link: string | null;
     status: string;
