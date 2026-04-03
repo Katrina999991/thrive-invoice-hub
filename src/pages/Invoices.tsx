@@ -3226,11 +3226,11 @@ Best regards,
 
       {/* Late Fee Details Dialog */}
       <Dialog open={!!lateFeeDialogInvoice} onOpenChange={(open) => !open && setLateFeeDialogInvoice(null)}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              {language === 'fr' ? 'Frais de retard' : 'Late Fees'}
+              {language === 'fr' ? 'Historique des frais de retard' : 'Late Fee History'}
             </DialogTitle>
             <DialogDescription>
               {lateFeeDialogInvoice && `${language === 'fr' ? 'Facture' : 'Invoice'} ${lateFeeDialogInvoice.invoice_number}`}
@@ -3245,35 +3245,78 @@ Best regards,
                   {language === 'fr' ? 'Aucun frais de retard' : 'No late fees'}
                 </p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{language === 'fr' ? 'Description' : 'Description'}</TableHead>
-                      <TableHead>{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
-                      <TableHead>{language === 'fr' ? 'Date' : 'Date'}</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lateFeeRecords.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell className="text-sm">{record.description}</TableCell>
-                        <TableCell className="font-medium">${record.amount.toFixed(2)}</TableCell>
-                        <TableCell className="text-sm">{new Date(record.applied_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA')}</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteLateFee(record)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <>
+                  {/* Active fees */}
+                  {lateFeeRecords.filter((r: any) => r.status === 'active').length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-foreground">{language === 'fr' ? 'Frais actifs' : 'Active fees'}</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Description' : 'Description'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Source' : 'Source'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Date' : 'Date'}</TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {lateFeeRecords.filter((r: any) => r.status === 'active').map((record: any) => (
+                            <TableRow key={record.id}>
+                              <TableCell className="text-sm">{record.description}</TableCell>
+                              <TableCell className="font-medium">${record.amount.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px] px-1.5">
+                                  {record.source === 'automatic' ? (language === 'fr' ? 'Auto' : 'Auto') : (language === 'fr' ? 'Manuel' : 'Manual')}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{new Date(record.applied_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA')}</TableCell>
+                              <TableCell>
+                                <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteLateFee(record)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+
+                  {/* Removed fees */}
+                  {lateFeeRecords.filter((r: any) => r.status === 'removed').length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">{language === 'fr' ? 'Frais retirés' : 'Removed fees'}</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Description' : 'Description'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Montant' : 'Amount'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Retiré le' : 'Removed'}</TableHead>
+                            <TableHead className="text-xs">{language === 'fr' ? 'Raison' : 'Reason'}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {lateFeeRecords.filter((r: any) => r.status === 'removed').map((record: any) => (
+                            <TableRow key={record.id} className="opacity-60">
+                              <TableCell className="text-sm line-through">{record.description}</TableCell>
+                              <TableCell className="font-medium line-through">${record.amount.toFixed(2)}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {record.removed_at ? new Date(record.removed_at).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA') : '—'}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{record.removal_reason || '—'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </>
               )}
               {lateFeeDialogInvoice && (
-                <div className="pt-2 border-t">
+                <div className="pt-2 border-t space-y-1">
                   <p className="text-sm font-medium">
-                    {language === 'fr' ? 'Total des frais' : 'Total fees'}: ${((lateFeeDialogInvoice as any).late_fee_applied_total || 0).toFixed(2)}
+                    {language === 'fr' ? 'Total des frais actifs' : 'Active fees total'}: ${((lateFeeDialogInvoice as any).late_fee_applied_total || 0).toFixed(2)}
                   </p>
                   <p className="text-sm font-bold">
                     {language === 'fr' ? 'Total avec frais' : 'Total with fees'}: ${(lateFeeDialogInvoice.total + ((lateFeeDialogInvoice as any).late_fee_applied_total || 0)).toFixed(2)}
