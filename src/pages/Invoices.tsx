@@ -833,7 +833,8 @@ const Invoices = () => {
       
       // Get late fee terms text if applicable
       const lateFeSettings = company ? lateFeeSettings[company.id] : null;
-      const lateTermsText = lateFeSettings ? getLateFeeTermsText(lateFeSettings, language) : null;
+      const resolvedForPdf = lateFeSettings ? resolveLateFeeSettings(lateFeSettings) : null;
+      const lateTermsText = resolvedForPdf ? getLateFeeTermsText(resolvedForPdf, language) : null;
 
       // Generate PDF using unified system
       await generateDocumentPdf({
