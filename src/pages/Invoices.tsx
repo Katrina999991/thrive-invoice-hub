@@ -94,6 +94,13 @@ const Invoices = () => {
   const canUseFinalReminder = hasFeature("final_reminder_enabled");
   const canUseFormalNotice = hasFeature("formal_notice_enabled");
 
+  // Late fees
+  const { checkEligibility, applyLateFee, fetchLateFees, deleteLateFee, getLateFeeTermsText, applying: applyingLateFee } = useLateFees();
+  const [lateFeeSettings, setLateFeeSettings] = useState<Record<string, LateFeeSettingsType>>({});
+  const [lateFeeDialogInvoice, setLateFeeDialogInvoice] = useState<Invoice | null>(null);
+  const [lateFeeRecords, setLateFeeRecords] = useState<LateFeeRecord[]>([]);
+  const [loadingLateFees, setLoadingLateFees] = useState(false);
+
   // Load Stripe account info on mount
   useEffect(() => {
     loadStripeAccount();
