@@ -2,107 +2,72 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import {
+  resolveLateFeeSettings,
+  checkLateFeeEligibility,
+  getDefaultTermsText,
+  shouldAutoApply,
+  type ResolvedLateFeeSettings,
+  type CompanyLateFeeSettings,
+  type ClientLateFeeOverrides,
+  type LateFeeEligibility,
+  type EnhancedLateFeeRecord,
+} from "@/lib/lateFeeService";
 
-export interface LateFeeSettings {
-  late_fee_enabled: boolean;
-  late_fee_type: 'none' | 'monthly_percentage' | 'fixed_once';
-  late_fee_rate: number | null;
-  late_fee_amount: number | null;
-  late_fee_grace_days: number;
-  late_fee_terms_text: string | null;
-}
-
-export interface LateFeeRecord {
-  id: string;
-  invoice_id: string;
-  amount: number;
-  fee_type: string;
-  description: string;
-  applied_at: string;
-  applied_by: string | null;
-  created_at: string;
-}
-
-export interface LateFeeEligibility {
-  eligible: boolean;
-  reason?: string;
-  calculatedAmount?: number;
-  daysOverdue?: number;
-}
+// Re-export for backward compat
+export type { ResolvedLateFeeSettings as LateFeeSettings, LateFeeEligibility, EnhancedLateFeeRecord as LateFeeRecord };
+export { resolveLateFeeSettings, getDefaultTermsText };
 
 export const useLateFees = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [applying, setApplying] = useState(false);
 
+  const getResolvedSettings = (
+    company: CompanyLateFeeSettings,
+    client?: ClientLateFeeOverrides | null
+  ): ResolvedLateFeeSettings => {
+    return resolveLateFeeSettings(company, client);
+  };
+
   const checkEligibility = (
     invoice: any,
-    settings: LateFeeSettings
+    settings: ResolvedLateFeeSettings,
+    activeLateFeeCount?: number
   ): LateFeeEligibility => {
-    if (!settings.late_fee_enabled || settings.late_fee_type === 'none') {
-      return { eligible: false, reason: 'Late fees not enabled' };
-    }
-
-    if (invoice.status === 'paid' || invoice.status === 'draft') {
-      return { eligible: false, reason: 'Invoice is paid or draft' };
-    }
-
-    if (!invoice.due_date) {
-      return { eligible: false, reason: 'No due date set' };
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(invoice.due_date);
-    dueDate.setHours(0, 0, 0, 0);
-
-    const graceDays = settings.late_fee_grace_days || 0;
-    const eligibleDate = new Date(dueDate);
-    eligibleDate.setDate(eligibleDate.getDate() + graceDays);
-
-    if (today <= eligibleDate) {
-      return { eligible: false, reason: 'Still within grace period' };
-    }
-
-    const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-    const remainingBalance = invoice.total - (invoice.late_fee_applied_total || 0);
-
-    if (remainingBalance <= 0) {
-      return { eligible: false, reason: 'No remaining balance' };
-    }
-
-    // Check for fixed_once: already applied?
-    if (settings.late_fee_type === 'fixed_once' && (invoice.late_fee_status === 'applied')) {
-      return { eligible: false, reason: 'Fixed fee already applied' };
-    }
-
-    let calculatedAmount = 0;
-    if (settings.late_fee_type === 'fixed_once') {
-      calculatedAmount = settings.late_fee_amount || 0;
-    } else if (settings.late_fee_type === 'monthly_percentage') {
-      calculatedAmount = remainingBalance * ((settings.late_fee_rate || 0) / 100);
-    }
-
-    calculatedAmount = Math.round(calculatedAmount * 100) / 100;
-
-    return {
-      eligible: true,
-      calculatedAmount,
-      daysOverdue,
-    };
+    return checkLateFeeEligibility(
+      {
+        status: invoice.status,
+        due_date: invoice.due_date,
+        total: invoice.total,
+        late_fee_applied_total: invoice.late_fee_applied_total || 0,
+        late_fee_status: invoice.late_fee_status || 'none',
+        late_fee_last_applied_at: invoice.late_fee_last_applied_at || null,
+      },
+      settings,
+      activeLateFeeCount ?? (invoice.late_fee_status === 'applied' ? 1 : 0)
+    );
   };
 
   const applyLateFee = async (
     invoiceId: string,
     amount: number,
     feeType: string,
-    description: string
+    description: string,
+    source: string = 'manual',
+    metadata?: {
+      companyId?: string;
+      clientId?: string;
+      rateUsed?: number;
+      remainingBalance?: number;
+      graceDaysUsed?: number;
+      capInEffect?: number;
+    }
   ): Promise<boolean> => {
     if (!user) return false;
     setApplying(true);
 
     try {
-      // Insert late fee record
       const { error: feeError } = await supabase
         .from("invoice_late_fees" as any)
         .insert({
@@ -110,23 +75,30 @@ export const useLateFees = () => {
           amount,
           fee_type: feeType,
           description,
-          applied_by: user.id,
+          applied_by: source === 'manual' ? user.id : null,
+          source,
+          status: 'active',
+          company_id: metadata?.companyId || null,
+          client_id: metadata?.clientId || null,
+          rate_used: metadata?.rateUsed || null,
+          remaining_balance_at_calc: metadata?.remainingBalance || null,
+          grace_days_used: metadata?.graceDaysUsed || null,
+          cap_in_effect: metadata?.capInEffect || null,
         });
 
       if (feeError) throw feeError;
 
-      // Get current late fee total
-      const { data: invoice, error: fetchError } = await supabase
-        .from("invoices")
-        .select("late_fee_applied_total")
-        .eq("id", invoiceId)
-        .single();
+      // Get current active total
+      const { data: activeFees, error: fetchError } = await supabase
+        .from("invoice_late_fees" as any)
+        .select("amount")
+        .eq("invoice_id", invoiceId)
+        .eq("status", "active");
 
       if (fetchError) throw fetchError;
 
-      const newTotal = ((invoice as any)?.late_fee_applied_total || 0) + amount;
+      const newTotal = (activeFees || []).reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
 
-      // Update invoice
       const { error: updateError } = await supabase
         .from("invoices")
         .update({
@@ -157,7 +129,7 @@ export const useLateFees = () => {
     }
   };
 
-  const fetchLateFees = async (invoiceId: string): Promise<LateFeeRecord[]> => {
+  const fetchLateFees = async (invoiceId: string): Promise<EnhancedLateFeeRecord[]> => {
     const { data, error } = await supabase
       .from("invoice_late_fees" as any)
       .select("*")
@@ -169,50 +141,59 @@ export const useLateFees = () => {
       return [];
     }
 
-    return (data || []) as unknown as LateFeeRecord[];
+    return (data || []) as unknown as EnhancedLateFeeRecord[];
   };
 
-  const deleteLateFee = async (
+  const fetchActiveLateFeeCount = async (invoiceId: string): Promise<number> => {
+    const { data, error } = await supabase
+      .from("invoice_late_fees" as any)
+      .select("id")
+      .eq("invoice_id", invoiceId)
+      .eq("status", "active");
+
+    if (error) return 0;
+    return (data || []).length;
+  };
+
+  const removeLateFee = async (
     lateFeeId: string,
     invoiceId: string,
-    amount: number
+    reason?: string
   ): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      // Delete the late fee record
-      const { error: deleteError } = await supabase
+      // Soft-delete: update status to removed
+      const { error: updateFeeError } = await supabase
         .from("invoice_late_fees" as any)
-        .delete()
+        .update({
+          status: 'removed',
+          removed_at: new Date().toISOString(),
+          removed_by: user.id,
+          removal_reason: reason || 'Removed by user',
+        })
         .eq("id", lateFeeId);
 
-      if (deleteError) throw deleteError;
+      if (updateFeeError) throw updateFeeError;
 
-      // Update invoice total
-      const { data: invoice, error: fetchError } = await supabase
-        .from("invoices")
-        .select("late_fee_applied_total")
-        .eq("id", invoiceId)
-        .single();
+      // Recalculate active total
+      const { data: activeFees, error: fetchError } = await supabase
+        .from("invoice_late_fees" as any)
+        .select("amount")
+        .eq("invoice_id", invoiceId)
+        .eq("status", "active");
 
       if (fetchError) throw fetchError;
 
-      const newTotal = Math.max(0, ((invoice as any)?.late_fee_applied_total || 0) - amount);
-
-      // Check if any late fees remain
-      const { data: remaining } = await supabase
-        .from("invoice_late_fees" as any)
-        .select("id")
-        .eq("invoice_id", invoiceId);
-
-      const newStatus = (remaining && remaining.length > 0) ? 'applied' : 'none';
+      const newTotal = (activeFees || []).reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+      const hasActive = (activeFees || []).length > 0;
 
       const { error: updateError } = await supabase
         .from("invoices")
         .update({
           late_fee_applied_total: newTotal,
-          late_fee_status: newStatus,
-          ...(newStatus === 'none' ? { late_fee_last_applied_at: null } : {}),
+          late_fee_status: hasActive ? 'applied' : 'none',
+          ...(hasActive ? {} : { late_fee_last_applied_at: null }),
         } as any)
         .eq("id", invoiceId);
 
@@ -225,7 +206,7 @@ export const useLateFees = () => {
 
       return true;
     } catch (error: any) {
-      console.error("Error deleting late fee:", error);
+      console.error("Error removing late fee:", error);
       toast({
         title: "Error",
         description: "Failed to remove late fee",
@@ -235,32 +216,75 @@ export const useLateFees = () => {
     }
   };
 
-  const getLateFeeTermsText = (settings: LateFeeSettings, language: string): string | null => {
-    if (!settings.late_fee_enabled || settings.late_fee_type === 'none') return null;
+  // Keep backward compat
+  const deleteLateFee = removeLateFee;
 
-    if (settings.late_fee_terms_text) return settings.late_fee_terms_text;
+  const getLateFeeTermsText = (settings: ResolvedLateFeeSettings, language: string): string | null => {
+    return getDefaultTermsText(settings, language);
+  };
 
-    if (settings.late_fee_type === 'monthly_percentage') {
-      return language === 'fr'
-        ? `Des frais de retard de ${settings.late_fee_rate || 0}% par mois peuvent s'appliquer sur les soldes en souffrance.`
-        : `Late fees of ${settings.late_fee_rate || 0}% per month may apply on overdue balances.`;
+  /**
+   * Evaluate and optionally auto-apply a late fee for a single invoice.
+   * Idempotent: safe to call multiple times.
+   */
+  const evaluateAndAutoApply = async (
+    invoice: any,
+    companySettings: CompanyLateFeeSettings,
+    clientOverrides?: ClientLateFeeOverrides | null
+  ): Promise<{ applied: boolean; eligibility: LateFeeEligibility }> => {
+    const resolved = resolveLateFeeSettings(companySettings, clientOverrides);
+    const activeCount = await fetchActiveLateFeeCount(invoice.id);
+    const eligibility = checkLateFeeEligibility(
+      {
+        status: invoice.status,
+        due_date: invoice.due_date,
+        total: invoice.total,
+        late_fee_applied_total: invoice.late_fee_applied_total || 0,
+        late_fee_status: invoice.late_fee_status || 'none',
+        late_fee_last_applied_at: invoice.late_fee_last_applied_at || null,
+      },
+      resolved,
+      activeCount
+    );
+
+    if (!shouldAutoApply(resolved, eligibility, activeCount)) {
+      return { applied: false, eligibility };
     }
 
-    if (settings.late_fee_type === 'fixed_once') {
-      return language === 'fr'
-        ? `Des frais de retard de ${settings.late_fee_amount || 0}$ peuvent s'appliquer sur les factures en souffrance.`
-        : `A late fee of $${settings.late_fee_amount || 0} may apply on overdue invoices.`;
-    }
+    const description = resolved.late_fee_type === 'fixed_once'
+      ? 'Late fee (fixed - auto)'
+      : 'Late fee (monthly - auto)';
 
-    return null;
+    const client = clientOverrides as any;
+    const success = await applyLateFee(
+      invoice.id,
+      eligibility.calculatedAmount!,
+      resolved.late_fee_type,
+      description,
+      'automatic',
+      {
+        companyId: client?.company_id,
+        clientId: invoice.client_id,
+        rateUsed: resolved.late_fee_rate ?? undefined,
+        remainingBalance: invoice.total - (invoice.late_fee_applied_total || 0),
+        graceDaysUsed: resolved.late_fee_grace_days,
+        capInEffect: resolved.late_fee_cap_amount ?? undefined,
+      }
+    );
+
+    return { applied: success, eligibility };
   };
 
   return {
+    getResolvedSettings,
     checkEligibility,
     applyLateFee,
     fetchLateFees,
+    fetchActiveLateFeeCount,
+    removeLateFee,
     deleteLateFee,
     getLateFeeTermsText,
+    evaluateAndAutoApply,
     applying,
   };
 };
