@@ -163,7 +163,22 @@ const Invoices = () => {
       ? (language === 'fr' ? 'Frais de retard (fixe)' : 'Late fee (fixed)')
       : (language === 'fr' ? 'Frais de retard (mensuel)' : 'Late fee (monthly)');
 
-    const success = await applyLateFee(invoice.id, eligibility.calculatedAmount, settings.late_fee_type, description);
+    const client = clients.find(c => c.id === invoice.client_id);
+    const success = await applyLateFee(
+      invoice.id,
+      eligibility.calculatedAmount,
+      settings.late_fee_type,
+      description,
+      'manual',
+      {
+        companyId: client?.company_id || undefined,
+        clientId: invoice.client_id || undefined,
+        rateUsed: settings.late_fee_rate ?? undefined,
+        remainingBalance: invoice.total - ((invoice as any).late_fee_applied_total || 0),
+        graceDaysUsed: settings.late_fee_grace_days,
+        capInEffect: settings.late_fee_cap_amount ?? undefined,
+      }
+    );
     if (success) fetchInvoices();
   };
 
