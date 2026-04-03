@@ -428,7 +428,7 @@ Sincerely,
       .replace(/\{\{client_address\}\}/g, clientAddress)
       .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number)
       .replace(/\{\{invoice_description\}\}/g, invoiceDescription)
-      .replace(/\{\{amount_due\}\}/g, `$${invoice.total.toFixed(2)}`)
+      .replace(/\{\{amount_due\}\}/g, `$${(invoice.total + (invoice.late_fee_applied_total || 0)).toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
       .replace(/\{\{today_date\}\}/g, formatDate(currentDate))
