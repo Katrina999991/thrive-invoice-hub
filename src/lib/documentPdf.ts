@@ -645,6 +645,18 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     contentEndY = bodyY + (splitBody.length * 5);
   }
   
+  // Late fee terms note (invoices only)
+  if (documentType === 'invoice' && document.late_fee_terms_text) {
+    const lateTermsY = contentEndY + 10;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(120, 120, 120);
+    const splitLateTerms = doc.splitTextToSize(document.late_fee_terms_text, contentWidth);
+    doc.text(splitLateTerms, margin, lateTermsY);
+    contentEndY = lateTermsY + (splitLateTerms.length * 4);
+    doc.setFont('helvetica', 'normal');
+  }
+
   // Terms section
   if (document.terms) {
     const termsY = contentEndY + 15;

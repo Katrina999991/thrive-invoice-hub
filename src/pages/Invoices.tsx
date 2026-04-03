@@ -2692,10 +2692,10 @@ Best regards,
                                       disabled={applyingLateFee}
                                     >
                                       {applyingLateFee ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
-                                    </Button>
+                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{language === 'fr' ? `Appliquer frais de retard ($${eligibility.calculatedAmount?.toFixed(2)})` : `Apply late fee ($${eligibility.calculatedAmount?.toFixed(2)})`}</p>
+                                    <p>{language === 'fr' ? `Appliquer le frais de retard ($${eligibility.calculatedAmount?.toFixed(2)})` : `Apply late fee ($${eligibility.calculatedAmount?.toFixed(2)})`}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               );
