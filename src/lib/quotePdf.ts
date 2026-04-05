@@ -169,7 +169,6 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
     returnBlob,
     sections
   });
-  });
 }
 
 // Re-export types from documentPdf for convenience
