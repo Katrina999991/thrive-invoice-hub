@@ -130,6 +130,8 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          chargeback_clause_enabled: boolean
+          chargeback_clause_text: string | null
           company_id: string | null
           contact_person: string | null
           contact_title: string | null
@@ -160,6 +162,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          chargeback_clause_enabled?: boolean
+          chargeback_clause_text?: string | null
           company_id?: string | null
           contact_person?: string | null
           contact_title?: string | null
@@ -190,6 +194,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          chargeback_clause_enabled?: boolean
+          chargeback_clause_text?: string | null
           company_id?: string | null
           contact_person?: string | null
           contact_title?: string | null
