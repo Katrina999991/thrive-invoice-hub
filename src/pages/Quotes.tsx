@@ -566,6 +566,9 @@ const Quotes = () => {
     setUnitPriceInput("0");
     setEditingQuote(null);
     setSelectedCompanyId("");
+    setExpiryManual(false);
+    setExpiryDuration(30);
+  };
   };
 
   const loadSections = async (quoteId: string): Promise<QuoteSection[]> => {
