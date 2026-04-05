@@ -44,6 +44,7 @@ export interface QuotePdfOptions {
   accentColor?: [number, number, number];
   customFooterText?: string;
   returnBlob?: boolean;
+  sections?: DocumentSection[];
 }
 
 // Helper to convert hex color to RGB array
