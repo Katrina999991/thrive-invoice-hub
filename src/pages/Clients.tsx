@@ -280,6 +280,8 @@ const Clients = () => {
       late_fee_grace_days_override: client.late_fee_grace_days_override?.toString() || "",
       late_fee_auto_apply_mode_override: client.late_fee_auto_apply_mode_override || null,
       late_fee_cap_amount_override: client.late_fee_cap_amount_override?.toString() || "",
+      chargeback_clause_enabled: client.chargeback_clause_enabled || false,
+      chargeback_clause_text: client.chargeback_clause_text || "",
     });
     setHourlyRateInput(client.hourly_rate ? String(client.hourly_rate) : "");
     setIsDialogOpen(true);
