@@ -31,6 +31,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
 import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
 import { useLateFees, type LateFeeRecord, resolveLateFeeSettings } from "@/hooks/useLateFees";
+import { appendChargebackClause } from "@/lib/chargebackClause";
 import type { CompanyLateFeeSettings, ClientLateFeeOverrides, ResolvedLateFeeSettings } from "@/lib/lateFeeService";
 
 type Client = Tables<"clients">;
