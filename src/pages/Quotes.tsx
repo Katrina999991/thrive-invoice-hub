@@ -569,7 +569,6 @@ const Quotes = () => {
     setExpiryManual(false);
     setExpiryDuration(30);
   };
-  };
 
   const loadSections = async (quoteId: string): Promise<QuoteSection[]> => {
     const { data, error } = await supabase
