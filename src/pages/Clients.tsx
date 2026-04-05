@@ -632,6 +632,56 @@ const Clients = () => {
                 onSettingsChange={(s) => setNewClient({...newClient, ...s})}
               />
 
+              {/* Chargeback Clause */}
+              <div className="space-y-3 border rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {language === "fr" ? "Clause de reconnaissance de réception" : "Receipt Acknowledgment Clause"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "fr" 
+                        ? "Ajouter automatiquement une clause anti-contestation aux devis et factures" 
+                        : "Automatically add a chargeback prevention clause to quotes and invoices"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={newClient.chargeback_clause_enabled}
+                    onCheckedChange={(checked) => {
+                      setNewClient({
+                        ...newClient, 
+                        chargeback_clause_enabled: checked,
+                        chargeback_clause_text: checked && !newClient.chargeback_clause_text 
+                          ? getDefaultClauseText(language as 'fr' | 'en') 
+                          : newClient.chargeback_clause_text
+                      });
+                    }}
+                  />
+                </div>
+                {newClient.chargeback_clause_enabled && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">
+                      {language === "fr" ? "Texte de la clause (modifiable)" : "Clause text (editable)"}
+                    </Label>
+                    <Textarea
+                      value={newClient.chargeback_clause_text || getDefaultClauseText(language as 'fr' | 'en')}
+                      onChange={(e) => setNewClient({...newClient, chargeback_clause_text: e.target.value})}
+                      rows={6}
+                      className="text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => setNewClient({...newClient, chargeback_clause_text: getDefaultClauseText(language as 'fr' | 'en')})}
+                    >
+                      {language === "fr" ? "Réinitialiser le texte par défaut" : "Reset to default text"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("clients.cancel")}
