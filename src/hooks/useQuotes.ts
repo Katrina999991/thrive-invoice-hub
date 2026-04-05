@@ -47,6 +47,13 @@ export interface QuoteItem {
   total: number;
   product_taxes: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}> | null;
   notes: string | null;
+  line_type: string;
+  estimated_hours: number;
+  hourly_rate: number;
+  min_units: number;
+  max_units: number;
+  rate: number;
+  unit_label: string | null;
   products?: {
     name: string;
   } | null;
@@ -75,6 +82,13 @@ export interface QuoteItemInsert {
   total?: number;
   product_taxes?: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
   notes?: string | null;
+  line_type?: string;
+  estimated_hours?: number;
+  hourly_rate?: number;
+  min_units?: number;
+  max_units?: number;
+  rate?: number;
+  unit_label?: string | null;
 }
 
 export const useQuotes = () => {
@@ -340,7 +354,14 @@ export const useQuotes = () => {
         unit_price: item.unit_price,
         total: item.total,
         product_taxes: item.product_taxes || [],
-        notes: item.notes
+        notes: item.notes,
+        line_type: item.line_type || 'fixed',
+        estimated_hours: item.estimated_hours || 0,
+        hourly_rate: item.hourly_rate || 0,
+        min_units: item.min_units || 0,
+        max_units: item.max_units || 0,
+        rate: item.rate || 0,
+        unit_label: item.unit_label || null,
       }));
 
       return await createQuote(newQuoteData, items);

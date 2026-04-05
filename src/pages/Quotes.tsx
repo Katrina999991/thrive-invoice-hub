@@ -22,16 +22,10 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-interface QuoteItemLocal {
-  description: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
-  product_id?: string;
-  notes?: string;
-  product_taxes?: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
-}
+import { 
+  QuoteItemLocal, QuoteLineType, createEmptyItem, computeLineTotals, 
+  computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay 
+} from "@/lib/quoteLineCalculations";
 
 const Quotes = () => {
   const { toast } = useToast();
@@ -77,16 +71,15 @@ const Quotes = () => {
     items: [] as QuoteItemLocal[]
   });
 
-  const [currentItem, setCurrentItem] = useState({
-    description: "",
-    quantity: 1,
-    unit_price: 0,
-    product_id: "",
-    notes: ""
-  });
+  const [currentItem, setCurrentItem] = useState<QuoteItemLocal>(createEmptyItem());
 
   const [quantityInput, setQuantityInput] = useState("1");
   const [unitPriceInput, setUnitPriceInput] = useState("0");
+  const [estimatedHoursInput, setEstimatedHoursInput] = useState("0");
+  const [hourlyRateInput, setHourlyRateInput] = useState("0");
+  const [minUnitsInput, setMinUnitsInput] = useState("0");
+  const [maxUnitsInput, setMaxUnitsInput] = useState("0");
+  const [rateInput, setRateInput] = useState("0");
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   const t = (key: string) => {
@@ -267,7 +260,12 @@ const Quotes = () => {
   };
 
   const addItem = () => {
-    if (!currentItem.description || currentItem.unit_price <= 0) return;
+    if (!currentItem.description) return;
+    
+    // Validate based on line type
+    if (currentItem.lineType === 'fixed' && currentItem.unit_price <= 0) return;
+    if (currentItem.lineType === 'hourly' && (currentItem.estimatedHours <= 0 || currentItem.hourlyRate <= 0)) return;
+    if (currentItem.lineType === 'estimate' && (currentItem.minUnits <= 0 || currentItem.maxUnits <= 0 || currentItem.rate <= 0)) return;
 
     let productTaxes: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}> = [];
     if (currentItem.product_id) {
@@ -278,13 +276,10 @@ const Quotes = () => {
     }
 
     const newItem: QuoteItemLocal = {
-      description: currentItem.description,
-      quantity: currentItem.quantity,
-      unit_price: currentItem.unit_price,
-      total: currentItem.quantity * currentItem.unit_price,
+      ...currentItem,
       product_id: currentItem.product_id || undefined,
       notes: currentItem.notes || undefined,
-      product_taxes: productTaxes.length > 0 ? productTaxes : undefined
+      product_taxes: productTaxes.length > 0 ? productTaxes : currentItem.product_taxes
     };
 
     if (editingItemIndex !== null) {
@@ -296,47 +291,41 @@ const Quotes = () => {
       setNewQuote({ ...newQuote, items: [...newQuote.items, newItem] });
     }
 
-    const selectedClient = clients.find(client => client.id === newQuote.client_id);
-    const defaultUnitPrice = selectedClient?.hourly_rate || 0;
+    resetCurrentItem();
+  };
 
-    setCurrentItem({ description: "", quantity: 1, unit_price: defaultUnitPrice, product_id: "", notes: "" });
+  const resetCurrentItem = () => {
+    const selectedClient = clients.find(client => client.id === newQuote.client_id);
+    const defaultRate = selectedClient?.hourly_rate || 0;
+    const item = createEmptyItem();
+    item.unit_price = defaultRate;
+    item.hourlyRate = defaultRate;
+    item.rate = defaultRate;
+    setCurrentItem(item);
     setQuantityInput("1");
-    setUnitPriceInput(defaultUnitPrice.toString());
+    setUnitPriceInput(defaultRate.toString());
+    setEstimatedHoursInput("0");
+    setHourlyRateInput(defaultRate.toString());
+    setMinUnitsInput("0");
+    setMaxUnitsInput("0");
+    setRateInput(defaultRate.toString());
   };
 
   const removeItem = (index: number) => {
     setNewQuote({ ...newQuote, items: newQuote.items.filter((_, i) => i !== index) });
   };
 
-  const calculateSubtotal = () => newQuote.items.reduce((sum, item) => sum + item.total, 0);
-
-  const calculateTaxes = () => {
+  const getQuoteTotals = () => {
     const selectedCompany = companies.find(c => c.id === selectedCompanyId);
-    let totalTax = 0;
-    
-    newQuote.items.forEach(item => {
-      if (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes)) {
-        selectedCompany.taxes.forEach((tax: any) => {
-          totalTax += item.total * (tax.percentage / 100);
-        });
-      }
-      if (item.product_taxes && item.product_taxes.length > 0) {
-        item.product_taxes.forEach((tax) => {
-          const taxType = tax.type || 'percentage';
-          const taxValue = tax.value !== undefined ? tax.value : tax.percentage || 0;
-          if (taxType === 'percentage') {
-            totalTax += item.total * (taxValue / 100);
-          } else {
-            totalTax += taxValue * item.quantity;
-          }
-        });
-      }
-    });
-    
-    return totalTax;
+    const companyTaxes = (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes)) 
+      ? selectedCompany.taxes as Array<{ percentage: number }> 
+      : null;
+    return computeQuoteTotals(newQuote.items, companyTaxes);
   };
 
-  const calculateTotal = () => calculateSubtotal() + calculateTaxes();
+  const calculateSubtotal = () => getQuoteTotals().subtotal;
+  const calculateTaxes = () => getQuoteTotals().taxAmount;
+  const calculateTotal = () => getQuoteTotals().total;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,29 +347,22 @@ const Quotes = () => {
     if (editingQuote) {
       // Delete old items and insert new ones
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
-      await supabase.from("quote_items").insert(newQuote.items.map(item => ({
-        quote_id: editingQuote.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total: item.total,
-        product_id: item.product_id || null,
-        notes: item.notes || null,
-        product_taxes: item.product_taxes || []
-      })));
+      await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)) as any);
       
+      const totals = getQuoteTotals();
       await updateQuote(editingQuote.id, {
         client_id: newQuote.client_id,
         issue_date: newQuote.issue_date,
         expiry_date: newQuote.expiry_date || null,
         terms: newQuote.terms,
         notes: newQuote.notes,
-        subtotal,
-        tax_amount: taxAmount,
-        total
+        subtotal: totals.subtotal,
+        tax_amount: totals.taxAmount,
+        total: totals.total
       });
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
+      const totals = getQuoteTotals();
       await createQuote({
         quote_number: quoteNumber,
         client_id: newQuote.client_id,
@@ -389,10 +371,10 @@ const Quotes = () => {
         status: 'draft',
         terms: newQuote.terms,
         notes: newQuote.notes,
-        subtotal,
-        tax_amount: taxAmount,
-        total
-      }, newQuote.items);
+        subtotal: totals.subtotal,
+        tax_amount: totals.taxAmount,
+        total: totals.total
+      }, newQuote.items.map(item => localItemToDb(item)));
     }
 
     resetForm();
@@ -408,7 +390,7 @@ const Quotes = () => {
       notes: "",
       items: []
     });
-    setCurrentItem({ description: "", quantity: 1, unit_price: 0, product_id: "", notes: "" });
+    setCurrentItem(createEmptyItem());
     setQuantityInput("1");
     setUnitPriceInput("0");
     setEditingQuote(null);
@@ -427,15 +409,7 @@ const Quotes = () => {
       expiry_date: quote.expiry_date || "",
       terms: quote.terms || "",
       notes: quote.notes || "",
-      items: (quote.quote_items || []).map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total: item.total,
-        product_id: item.product_id || undefined,
-        notes: item.notes || undefined,
-        product_taxes: item.product_taxes || undefined
-      }))
+      items: (quote.quote_items || []).map(item => dbItemToLocal(item))
     });
     setIsDialogOpen(true);
   };
@@ -476,7 +450,14 @@ const Quotes = () => {
           unit_price: item.unit_price,
           total: item.total,
           notes: item.notes,
-          product_taxes: item.product_taxes as any
+          product_taxes: item.product_taxes as any,
+          line_type: (item as any).line_type || 'fixed',
+          estimated_hours: (item as any).estimated_hours || 0,
+          hourly_rate: (item as any).hourly_rate || 0,
+          min_units: (item as any).min_units || 0,
+          max_units: (item as any).max_units || 0,
+          rate: (item as any).rate || 0,
+          unit_label: (item as any).unit_label || null,
         }))
       },
       client: client ? {
@@ -879,12 +860,36 @@ const Quotes = () => {
 
             <div className="space-y-4">
               <Label>{t("quotes.addItems")}</Label>
-              <div className="grid grid-cols-5 gap-2">
-                <Select value={currentItem.product_id} onValueChange={(value) => {
+              
+              {/* Line type selector */}
+              <div className="flex gap-2 flex-wrap">
+                <Label className="text-sm text-muted-foreground self-center mr-2">
+                  {language === 'fr' ? 'Type :' : 'Type:'}
+                </Label>
+                {(['fixed', 'hourly', 'estimate'] as QuoteLineType[]).map(type => (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant={currentItem.lineType === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentItem({ ...currentItem, lineType: type })}
+                  >
+                    {type === 'fixed' ? (language === 'fr' ? 'Prix fixe' : 'Fixed price') 
+                      : type === 'hourly' ? (language === 'fr' ? 'Horaire' : 'Hourly')
+                      : (language === 'fr' ? 'Estimation' : 'Estimate range')}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Product selector + description (common to all types) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <Select value={currentItem.product_id || ''} onValueChange={(value) => {
                   const product = products.find(p => p.id === value);
                   if (product) {
-                    setCurrentItem({ ...currentItem, product_id: value, description: product.name, unit_price: product.price });
+                    setCurrentItem({ ...currentItem, product_id: value, description: product.name, unit_price: product.price, hourlyRate: product.price, rate: product.price });
                     setUnitPriceInput(product.price.toString());
+                    setHourlyRateInput(product.price.toString());
+                    setRateInput(product.price.toString());
                   }
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("quotes.selectProduct")} /></SelectTrigger>
@@ -895,45 +900,148 @@ const Quotes = () => {
                   </SelectContent>
                 </Select>
                 <Input placeholder={t("quotes.description")} value={currentItem.description} onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })} />
-                <Input type="number" placeholder={t("quotes.quantity")} value={quantityInput} onChange={(e) => { setQuantityInput(e.target.value); setCurrentItem({ ...currentItem, quantity: parseFloat(e.target.value) || 0 }); }} />
-                <Input type="number" placeholder={t("quotes.unitPrice")} value={unitPriceInput} onChange={(e) => { setUnitPriceInput(e.target.value); setCurrentItem({ ...currentItem, unit_price: parseFloat(e.target.value) || 0 }); }} />
-                <Button type="button" onClick={addItem}>{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
               </div>
+
+              {/* Type-specific fields */}
+              {currentItem.lineType === 'fixed' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">{t("quotes.quantity")}</Label>
+                    <Input type="number" value={quantityInput} onChange={(e) => { setQuantityInput(e.target.value); setCurrentItem({ ...currentItem, quantity: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{t("quotes.unitPrice")}</Label>
+                    <Input type="number" value={unitPriceInput} onChange={(e) => { setUnitPriceInput(e.target.value); setCurrentItem({ ...currentItem, unit_price: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" onClick={addItem} className="w-full">{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
+                  </div>
+                </div>
+              )}
+
+              {currentItem.lineType === 'hourly' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Heures estimées' : 'Estimated hours'}</Label>
+                    <Input type="number" value={estimatedHoursInput} onChange={(e) => { setEstimatedHoursInput(e.target.value); setCurrentItem({ ...currentItem, estimatedHours: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Taux horaire' : 'Hourly rate'}</Label>
+                    <Input type="number" value={hourlyRateInput} onChange={(e) => { setHourlyRateInput(e.target.value); setCurrentItem({ ...currentItem, hourlyRate: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" onClick={addItem} className="w-full">{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
+                  </div>
+                </div>
+              )}
+
+              {currentItem.lineType === 'estimate' && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Min' : 'Min units'}</Label>
+                    <Input type="number" value={minUnitsInput} onChange={(e) => { setMinUnitsInput(e.target.value); setCurrentItem({ ...currentItem, minUnits: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Max' : 'Max units'}</Label>
+                    <Input type="number" value={maxUnitsInput} onChange={(e) => { setMaxUnitsInput(e.target.value); setCurrentItem({ ...currentItem, maxUnits: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Taux' : 'Rate'}</Label>
+                    <Input type="number" value={rateInput} onChange={(e) => { setRateInput(e.target.value); setCurrentItem({ ...currentItem, rate: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Unité' : 'Unit'}</Label>
+                    <Input placeholder="h" value={currentItem.unitLabel} onChange={(e) => setCurrentItem({ ...currentItem, unitLabel: e.target.value })} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" onClick={addItem} className="w-full">{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
+                  </div>
+                </div>
+              )}
 
               {newQuote.items.length > 0 && (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("quotes.description")}</TableHead>
-                      <TableHead>{t("quotes.quantity")}</TableHead>
-                      <TableHead>{t("quotes.unitPrice")}</TableHead>
+                      <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
                       <TableHead>{t("quotes.total")}</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {newQuote.items.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
-                        <TableCell>${item.unit_price.toFixed(2)}</TableCell>
-                        <TableCell>${item.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {newQuote.items.map((item, index) => {
+                      const computed = computeLineTotals(item);
+                      const lineTypeLabel = item.lineType === 'hourly' 
+                        ? (language === 'fr' ? 'Horaire' : 'Hourly') 
+                        : item.lineType === 'estimate' 
+                          ? (language === 'fr' ? 'Estimation' : 'Estimate') 
+                          : (language === 'fr' ? 'Fixe' : 'Fixed');
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <div>{item.description}</div>
+                            <div className="text-xs text-muted-foreground">{lineTypeLabel}</div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatLineDisplay(item)}
+                          </TableCell>
+                          <TableCell>
+                            {computed.isRange 
+                              ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
+                              : `$${computed.total.toFixed(2)}`
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => {
+                                setCurrentItem(item);
+                                setEditingItemIndex(index);
+                                if (item.lineType === 'fixed') {
+                                  setQuantityInput(item.quantity.toString());
+                                  setUnitPriceInput(item.unit_price.toString());
+                                } else if (item.lineType === 'hourly') {
+                                  setEstimatedHoursInput(item.estimatedHours.toString());
+                                  setHourlyRateInput(item.hourlyRate.toString());
+                                } else {
+                                  setMinUnitsInput(item.minUnits.toString());
+                                  setMaxUnitsInput(item.maxUnits.toString());
+                                  setRateInput(item.rate.toString());
+                                }
+                              }}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}
 
-              <div className="text-right space-y-1">
-                <p>{t("quotes.subtotal")}: ${calculateSubtotal().toFixed(2)}</p>
-                <p>{t("quotes.taxAmount")}: ${calculateTaxes().toFixed(2)}</p>
-                <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${calculateTotal().toFixed(2)}</p>
-              </div>
+              {(() => {
+                const totals = getQuoteTotals();
+                if (totals.hasRanges) {
+                  return (
+                    <div className="text-right space-y-1">
+                      <p>{t("quotes.subtotal")}: ${totals.minSubtotal.toFixed(2)} – ${totals.maxSubtotal.toFixed(2)}</p>
+                      <p>{t("quotes.taxAmount")}: ${totals.minTaxAmount.toFixed(2)} – ${totals.maxTaxAmount.toFixed(2)}</p>
+                      <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.minTotal.toFixed(2)} – ${totals.maxTotal.toFixed(2)}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="text-right space-y-1">
+                    <p>{t("quotes.subtotal")}: ${totals.subtotal.toFixed(2)}</p>
+                    <p>{t("quotes.taxAmount")}: ${totals.taxAmount.toFixed(2)}</p>
+                    <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.total.toFixed(2)}</p>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -985,20 +1093,27 @@ const Quotes = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("quotes.description")}</TableHead>
-                    <TableHead>{t("quotes.quantity")}</TableHead>
-                    <TableHead>{t("quotes.unitPrice")}</TableHead>
+                    <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
                     <TableHead>{t("quotes.total")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(viewingQuote.quote_items || []).map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>${item.unit_price.toFixed(2)}</TableCell>
-                      <TableCell>${item.total.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
+                  {(viewingQuote.quote_items || []).map((item) => {
+                    const localItem = dbItemToLocal(item);
+                    const computed = computeLineTotals(localItem);
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.description}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatLineDisplay(localItem)}</TableCell>
+                        <TableCell>
+                          {computed.isRange 
+                            ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
+                            : `$${computed.total.toFixed(2)}`
+                          }
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
               <div className="text-right space-y-1">
