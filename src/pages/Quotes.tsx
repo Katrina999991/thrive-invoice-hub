@@ -30,7 +30,7 @@ import {
 import { appendChargebackClause } from "@/lib/chargebackClause";
 
 // View Quote Dialog with sections support
-const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getStatusColor, getStatusLabel, loadSections }: {
+const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getStatusColor, getStatusLabel, loadSections, clients }: {
   viewingQuote: Quote | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,6 +39,7 @@ const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getS
   getStatusColor: (status: string) => string;
   getStatusLabel: (status: string) => string;
   loadSections: (quoteId: string) => Promise<QuoteSection[]>;
+  clients: any[];
 }) => {
   const [sections, setSections] = useState<QuoteSection[]>([]);
 
