@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -375,6 +376,57 @@ Sincerely,
   const [body, setBody] = useState(defaultBody);
   const [dueAt, setDueAt] = useState(getLocalDateIso(defaultDueDate));
 
+  // ─── Unsaved Changes Detection ──────────────────────────────────────
+  type FormSnapshot = {
+    recipient: string; recipientAddr: string; subject: string; body: string;
+    dueAt: string; delayDays: number; sendingMethod: DeliveryMethod;
+    proofSending: boolean; proofReceipt: boolean; trackingNumber: string;
+    deliveredDate: string; sentDate: string; trackingNotes: string; signatureApplied: boolean;
+  };
+
+  const getCurrentSnapshot = useCallback((): FormSnapshot => ({
+    recipient, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
+    proofSending, proofReceipt, trackingNumber, deliveredDate, sentDate, trackingNotes, signatureApplied,
+  }), [recipient, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
+    proofSending, proofReceipt, trackingNumber, deliveredDate, sentDate, trackingNotes, signatureApplied]);
+
+  const [initialSnapshot, setInitialSnapshot] = useState<FormSnapshot | null>(null);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (!initialSnapshot) return false;
+    const current = getCurrentSnapshot();
+    return (Object.keys(initialSnapshot) as (keyof FormSnapshot)[]).some(
+      key => current[key] !== initialSnapshot[key]
+    );
+  }, [initialSnapshot, getCurrentSnapshot]);
+
+  // Capture snapshot after form is loaded
+  const captureInitialSnapshot = useCallback(() => {
+    // Use a microtask to ensure all state updates from loading have settled
+    setTimeout(() => setInitialSnapshot(getCurrentSnapshot()), 0);
+  }, [getCurrentSnapshot]);
+
+  const attemptClose = useCallback(() => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+    } else {
+      onOpenChange(false);
+    }
+  }, [hasUnsavedChanges, onOpenChange]);
+
+  const handleSaveAndClose = async () => {
+    setShowUnsavedDialog(false);
+    await handleSave(editingNotice?.status === 'sent' ? 'sent' : 'draft');
+    // After successful save, snapshot is updated and we close
+    onOpenChange(false);
+  };
+
+  const handleDiscardAndClose = () => {
+    setShowUnsavedDialog(false);
+    onOpenChange(false);
+  };
+
   // ─── Load Existing Notice ────────────────────────────────────────────
   useEffect(() => {
     if (open && latestNotice) {
@@ -411,6 +463,15 @@ Sincerely,
       setTrackingNotes(latestNotice.tracking_notes || '');
     } else if (open) {
       setEditingNotice(null);
+    }
+  }, [open, latestNotice]);
+
+  // Capture initial snapshot after load settles
+  useEffect(() => {
+    if (open) {
+      captureInitialSnapshot();
+    } else {
+      setInitialSnapshot(null);
     }
   }, [open, latestNotice]);
 
@@ -527,6 +588,8 @@ Sincerely,
           ? (status === 'draft' ? 'Brouillon enregistré' : 'Mise en demeure enregistrée')
           : (status === 'draft' ? 'Draft saved' : 'Formal notice saved'),
       });
+      // Update snapshot so changes are no longer "unsaved"
+      setInitialSnapshot(getCurrentSnapshot());
     } finally {
       setIsSaving(false);
     }
@@ -821,7 +884,7 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) attemptClose(); }}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 flex-wrap">
@@ -1443,12 +1506,42 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
           </Tabs>
 
           <div className="flex justify-end pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={attemptClose}>
               {t('Fermer', 'Close')}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ══════════ Unsaved Changes Confirmation ══════════ */}
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('Modifications non sauvegardées', 'Unsaved Changes')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'Vous avez des modifications non sauvegardées. Voulez-vous enregistrer avant de fermer ?',
+                'You have unsaved changes. Would you like to save before closing?'
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowUnsavedDialog(false)}>
+              {t('Annuler', 'Cancel')}
+            </Button>
+            <Button variant="ghost" onClick={handleDiscardAndClose}>
+              {t('Fermer sans enregistrer', 'Close without saving')}
+            </Button>
+            <Button onClick={handleSaveAndClose} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              <Save className="h-4 w-4 mr-2" />
+              {t('Enregistrer et fermer', 'Save and close')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ══════════ Email Sub-Dialog ══════════ */}
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
