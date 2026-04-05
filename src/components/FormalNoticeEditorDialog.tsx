@@ -588,6 +588,8 @@ Sincerely,
           ? (status === 'draft' ? 'Brouillon enregistré' : 'Mise en demeure enregistrée')
           : (status === 'draft' ? 'Draft saved' : 'Formal notice saved'),
       });
+      // Update snapshot so changes are no longer "unsaved"
+      setInitialSnapshot(getCurrentSnapshot());
     } finally {
       setIsSaving(false);
     }
