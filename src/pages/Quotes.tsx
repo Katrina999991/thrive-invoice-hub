@@ -538,11 +538,10 @@ const Quotes = () => {
         deposit_type: newQuote.depositType,
         deposit_value: newQuote.depositValue,
         deposit_amount: totals.depositMinAmount,
+        online_payment_enabled: newQuote.onlinePaymentEnabled,
       }, newQuote.items.map(item => localItemToDb(item)));
       
       if (createdQuote) {
-        // Save online payment enabled separately
-        await supabase.from('quotes').update({ online_payment_enabled: newQuote.onlinePaymentEnabled }).eq('id', createdQuote.id);
         if (newQuote.sections.length > 0) {
           await saveSections(createdQuote.id, newQuote.sections);
         }
