@@ -77,7 +77,6 @@ const QuoteResponse = () => {
   const [note, setNote] = useState("");
   const [responseSubmitted, setResponseSubmitted] = useState(false);
   const [submittedResponse, setSubmittedResponse] = useState<"accepted" | "refused" | null>(null);
-  const [generatingPaymentLink, setGeneratingPaymentLink] = useState(false);
 
   // Detect language from browser
   const browserLang = navigator.language.startsWith("fr") ? "fr" : "en";
@@ -229,6 +228,28 @@ const QuoteResponse = () => {
     fetchQuote();
   }, [token]);
 
+  useEffect(() => {
+    if (!quote) return;
+
+    const debugPayload = {
+      quoteId: quote.id,
+      online_payment_enabled: quote.online_payment_enabled,
+      payment_link_present: !!quote.payment_link,
+      deposit_amount: quote.depositInfo?.amount ?? null,
+      total: quote.total,
+      status: quote.status,
+      isExpired: quote.isExpired,
+    };
+
+    if (quote.online_payment_enabled && quote.payment_link) {
+      console.log("[QUOTE-PAYMENT-DEBUG] Public payment CTA ready", debugPayload);
+    }
+
+    if (quote.online_payment_enabled && !quote.payment_link) {
+      console.warn("[QUOTE-PAYMENT-DEBUG] Payment CTA hidden because payment_link is missing", debugPayload);
+    }
+  }, [quote]);
+
   const handleResponse = async (response: "accepted" | "refused") => {
     if (!token) return;
 
@@ -268,49 +289,18 @@ const QuoteResponse = () => {
     }
   };
 
-  const handlePayment = async (paymentType: 'deposit' | 'full') => {
-    if (!quote) return;
-
-    // If payment link already exists, use it directly
-    if (quote.payment_link) {
-      window.open(quote.payment_link, '_blank');
+  const handlePayment = () => {
+    if (!quote?.payment_link) {
+      console.warn("[QUOTE-PAYMENT-DEBUG] Payment click ignored because payment_link is missing", {
+        quoteId: quote?.id,
+        online_payment_enabled: quote?.online_payment_enabled,
+        deposit_amount: quote?.depositInfo?.amount ?? null,
+        total: quote?.total ?? null,
+      });
       return;
     }
 
-    setGeneratingPaymentLink(true);
-    try {
-      const res = await fetch(
-        `https://dkinzkawntfzkabroeib.supabase.co/functions/v1/create-quote-payment-link`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            quoteId: quote.id,
-            paymentType,
-          }),
-        }
-      );
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || "Failed to create payment link");
-      }
-
-      if (result.url) {
-        window.open(result.url, '_blank');
-      }
-    } catch (err: any) {
-      toast({
-        title: text.error,
-        description: err.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingPaymentLink(false);
-    }
+    window.open(quote.payment_link, "_blank", "noopener,noreferrer");
   };
 
   const formatCurrency = (amount: number) => {
@@ -396,6 +386,16 @@ const QuoteResponse = () => {
   }
 
   const depositInfo = quote.depositInfo;
+  const depositPaymentAmount = depositInfo
+    ? depositInfo.hasRanges && depositInfo.minAmount !== depositInfo.maxAmount
+      ? `${formatCurrency(depositInfo.minAmount)} – ${formatCurrency(depositInfo.maxAmount)}`
+      : `${formatCurrency(depositInfo.amount)}${depositInfo.type === 'percentage' ? ` (${depositInfo.value}%)` : ''}`
+    : null;
+  const canShowPaymentSection =
+    quote.online_payment_enabled &&
+    !!quote.payment_link &&
+    quote.status !== 'refused' &&
+    (!depositInfo || !depositInfo.isPaid);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted py-8 px-4">
@@ -547,7 +547,7 @@ const QuoteResponse = () => {
         </Card>
 
         {/* Payment Section */}
-        {quote.online_payment_enabled && !quote.isExpired && quote.status !== 'refused' && (
+        {canShowPaymentSection && (
           <Card className="border-primary/20">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -556,44 +556,25 @@ const QuoteResponse = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3">
-                {depositInfo && !depositInfo.isPaid && (
-                  <Button
-                    onClick={() => handlePayment('deposit')}
-                    disabled={generatingPaymentLink}
-                    className="flex-1"
-                    size="lg"
-                  >
-                    {generatingPaymentLink ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <CreditCard className="h-4 w-4 mr-2" />
-                    )}
-                    {generatingPaymentLink
-                      ? text.generatingLink
-                      : `${text.payDeposit} (${formatCurrency(depositInfo.amount)})`
-                    }
-                  </Button>
-                )}
-                {(!depositInfo || depositInfo.isPaid) && (
-                  <Button
-                    onClick={() => handlePayment('full')}
-                    disabled={generatingPaymentLink}
-                    className="flex-1"
-                    size="lg"
-                  >
-                    {generatingPaymentLink ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <CreditCard className="h-4 w-4 mr-2" />
-                    )}
-                    {generatingPaymentLink
-                      ? text.generatingLink
-                      : `${text.payFull} (${formatCurrency(quote.total)})`
-                    }
-                  </Button>
-                )}
+              <div className="rounded-lg bg-muted/50 p-4 space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  {depositInfo ? text.depositRequired : text.totalAmount}
+                </p>
+                <p className="text-lg font-semibold">
+                  {depositInfo ? depositPaymentAmount : formatCurrency(quote.total)}
+                </p>
               </div>
+              <Button
+                onClick={handlePayment}
+                className="w-full"
+                size="lg"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                {depositInfo
+                  ? `${text.payDeposit} (${depositPaymentAmount})`
+                  : `${text.payFull} (${formatCurrency(quote.total)})`
+                }
+              </Button>
               <p className="text-xs text-muted-foreground text-center">
                 {browserLang === 'fr'
                   ? 'Paiement sécurisé via Stripe'
