@@ -853,12 +853,36 @@ const Quotes = () => {
 
             <div className="space-y-4">
               <Label>{t("quotes.addItems")}</Label>
-              <div className="grid grid-cols-5 gap-2">
-                <Select value={currentItem.product_id} onValueChange={(value) => {
+              
+              {/* Line type selector */}
+              <div className="flex gap-2 flex-wrap">
+                <Label className="text-sm text-muted-foreground self-center mr-2">
+                  {language === 'fr' ? 'Type :' : 'Type:'}
+                </Label>
+                {(['fixed', 'hourly', 'estimate'] as QuoteLineType[]).map(type => (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant={currentItem.lineType === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentItem({ ...currentItem, lineType: type })}
+                  >
+                    {type === 'fixed' ? (language === 'fr' ? 'Prix fixe' : 'Fixed price') 
+                      : type === 'hourly' ? (language === 'fr' ? 'Horaire' : 'Hourly')
+                      : (language === 'fr' ? 'Estimation' : 'Estimate range')}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Product selector + description (common to all types) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <Select value={currentItem.product_id || ''} onValueChange={(value) => {
                   const product = products.find(p => p.id === value);
                   if (product) {
-                    setCurrentItem({ ...currentItem, product_id: value, description: product.name, unit_price: product.price });
+                    setCurrentItem({ ...currentItem, product_id: value, description: product.name, unit_price: product.price, hourlyRate: product.price, rate: product.price });
                     setUnitPriceInput(product.price.toString());
+                    setHourlyRateInput(product.price.toString());
+                    setRateInput(product.price.toString());
                   }
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("quotes.selectProduct")} /></SelectTrigger>
@@ -869,18 +893,71 @@ const Quotes = () => {
                   </SelectContent>
                 </Select>
                 <Input placeholder={t("quotes.description")} value={currentItem.description} onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })} />
-                <Input type="number" placeholder={t("quotes.quantity")} value={quantityInput} onChange={(e) => { setQuantityInput(e.target.value); setCurrentItem({ ...currentItem, quantity: parseFloat(e.target.value) || 0 }); }} />
-                <Input type="number" placeholder={t("quotes.unitPrice")} value={unitPriceInput} onChange={(e) => { setUnitPriceInput(e.target.value); setCurrentItem({ ...currentItem, unit_price: parseFloat(e.target.value) || 0 }); }} />
-                <Button type="button" onClick={addItem}>{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
               </div>
+
+              {/* Type-specific fields */}
+              {currentItem.lineType === 'fixed' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">{t("quotes.quantity")}</Label>
+                    <Input type="number" value={quantityInput} onChange={(e) => { setQuantityInput(e.target.value); setCurrentItem({ ...currentItem, quantity: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{t("quotes.unitPrice")}</Label>
+                    <Input type="number" value={unitPriceInput} onChange={(e) => { setUnitPriceInput(e.target.value); setCurrentItem({ ...currentItem, unit_price: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" onClick={addItem} className="w-full">{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
+                  </div>
+                </div>
+              )}
+
+              {currentItem.lineType === 'hourly' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Heures estimées' : 'Estimated hours'}</Label>
+                    <Input type="number" value={estimatedHoursInput} onChange={(e) => { setEstimatedHoursInput(e.target.value); setCurrentItem({ ...currentItem, estimatedHours: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Taux horaire' : 'Hourly rate'}</Label>
+                    <Input type="number" value={hourlyRateInput} onChange={(e) => { setHourlyRateInput(e.target.value); setCurrentItem({ ...currentItem, hourlyRate: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" onClick={addItem} className="w-full">{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
+                  </div>
+                </div>
+              )}
+
+              {currentItem.lineType === 'estimate' && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Min' : 'Min units'}</Label>
+                    <Input type="number" value={minUnitsInput} onChange={(e) => { setMinUnitsInput(e.target.value); setCurrentItem({ ...currentItem, minUnits: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Max' : 'Max units'}</Label>
+                    <Input type="number" value={maxUnitsInput} onChange={(e) => { setMaxUnitsInput(e.target.value); setCurrentItem({ ...currentItem, maxUnits: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Taux' : 'Rate'}</Label>
+                    <Input type="number" value={rateInput} onChange={(e) => { setRateInput(e.target.value); setCurrentItem({ ...currentItem, rate: parseFloat(e.target.value) || 0 }); }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">{language === 'fr' ? 'Unité' : 'Unit'}</Label>
+                    <Input placeholder="h" value={currentItem.unitLabel} onChange={(e) => setCurrentItem({ ...currentItem, unitLabel: e.target.value })} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" onClick={addItem} className="w-full">{editingItemIndex !== null ? t("quotes.updateItem") : t("quotes.addItem")}</Button>
+                  </div>
+                </div>
+              )}
 
               {newQuote.items.length > 0 && (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("quotes.description")}</TableHead>
-                      <TableHead>{t("quotes.quantity")}</TableHead>
-                      <TableHead>{t("quotes.unitPrice")}</TableHead>
+                      <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
                       <TableHead>{t("quotes.total")}</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
