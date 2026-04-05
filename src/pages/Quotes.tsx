@@ -347,29 +347,22 @@ const Quotes = () => {
     if (editingQuote) {
       // Delete old items and insert new ones
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
-      await supabase.from("quote_items").insert(newQuote.items.map(item => ({
-        quote_id: editingQuote.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total: item.total,
-        product_id: item.product_id || null,
-        notes: item.notes || null,
-        product_taxes: item.product_taxes || []
-      })));
+      await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)));
       
+      const totals = getQuoteTotals();
       await updateQuote(editingQuote.id, {
         client_id: newQuote.client_id,
         issue_date: newQuote.issue_date,
         expiry_date: newQuote.expiry_date || null,
         terms: newQuote.terms,
         notes: newQuote.notes,
-        subtotal,
-        tax_amount: taxAmount,
-        total
+        subtotal: totals.subtotal,
+        tax_amount: totals.taxAmount,
+        total: totals.total
       });
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
+      const totals = getQuoteTotals();
       await createQuote({
         quote_number: quoteNumber,
         client_id: newQuote.client_id,
@@ -378,10 +371,10 @@ const Quotes = () => {
         status: 'draft',
         terms: newQuote.terms,
         notes: newQuote.notes,
-        subtotal,
-        tax_amount: taxAmount,
-        total
-      }, newQuote.items);
+        subtotal: totals.subtotal,
+        tax_amount: totals.taxAmount,
+        total: totals.total
+      }, newQuote.items.map(item => localItemToDb(item)));
     }
 
     resetForm();
