@@ -139,12 +139,16 @@ const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getS
               <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${viewingQuote.total.toFixed(2)}</p>
             </div>
 
-            {viewingQuote.terms && (
-              <div className="border-t pt-3">
-                <p className="text-sm font-medium mb-1">{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{viewingQuote.terms}</p>
-              </div>
-            )}
+            {(() => {
+              const client = clients.find((c: any) => c.id === viewingQuote.client_id);
+              const displayTerms = appendChargebackClause(viewingQuote.terms, client, language as 'fr' | 'en');
+              return displayTerms ? (
+                <div className="border-t pt-3">
+                  <p className="text-sm font-medium mb-1">{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{displayTerms}</p>
+                </div>
+              ) : null;
+            })()}
           </div>
         )}
       </DialogContent>
