@@ -1004,7 +1004,14 @@ const Quotes = () => {
                       return (
                         <TableRow key={index}>
                           <TableCell>
-                            <div>{item.description}</div>
+                            <div className="flex items-center gap-2">
+                              <span>{item.description}</span>
+                              {item.isOptional && (
+                                <Badge variant="outline" className="text-xs">
+                                  {language === 'fr' ? 'Optionnel' : 'Optional'}
+                                </Badge>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground">{lineTypeLabel}</div>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
