@@ -1056,23 +1056,78 @@ const Quotes = () => {
 
               {(() => {
                 const totals = getQuoteTotals();
-                if (totals.hasRanges) {
-                  return (
-                    <div className="text-right space-y-1">
-                      <p>{t("quotes.subtotal")}: ${totals.minSubtotal.toFixed(2)} – ${totals.maxSubtotal.toFixed(2)}</p>
-                      <p>{t("quotes.taxAmount")}: ${totals.minTaxAmount.toFixed(2)} – ${totals.maxTaxAmount.toFixed(2)}</p>
-                      <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.minTotal.toFixed(2)} – ${totals.maxTotal.toFixed(2)}</p>
-                    </div>
-                  );
-                }
+                const fmtRange = (min: number, max: number) => 
+                  totals.hasRanges && min !== max
+                    ? `$${min.toFixed(2)} – $${max.toFixed(2)}`
+                    : `$${min.toFixed(2)}`;
+
                 return (
-                  <div className="text-right space-y-1">
-                    <p>{t("quotes.subtotal")}: ${totals.subtotal.toFixed(2)}</p>
-                    <p>{t("quotes.taxAmount")}: ${totals.taxAmount.toFixed(2)}</p>
-                    <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.total.toFixed(2)}</p>
+                  <div className="text-right space-y-1 border-t pt-3">
+                    <p>{t("quotes.subtotal")}: {fmtRange(totals.minSubtotal, totals.maxSubtotal)}</p>
+                    <p>{t("quotes.taxAmount")}: {fmtRange(totals.minTaxAmount, totals.maxTaxAmount)}</p>
+                    <p className="font-bold text-lg">{t("quotes.totalAmount")}: {fmtRange(totals.minTotal, totals.maxTotal)}</p>
+                    
+                    {totals.hasOptionalItems && (
+                      <div className="border-t pt-2 mt-2 space-y-1">
+                        <p className="text-sm text-muted-foreground">
+                          {language === 'fr' ? 'Options :' : 'Optional items:'} {fmtRange(totals.optionalMinTotal, totals.optionalMaxTotal)}
+                        </p>
+                        <p className="font-semibold">
+                          {language === 'fr' ? 'Total avec options :' : 'Total with options:'} {fmtRange(totals.grandMinTotal, totals.grandMaxTotal)}
+                        </p>
+                      </div>
+                    )}
+
+                    {newQuote.depositType !== 'none' && newQuote.depositValue > 0 && (
+                      <div className="border-t pt-2 mt-2">
+                        <p className="font-semibold text-primary">
+                          {language === 'fr' ? 'Dépôt requis' : 'Deposit required'}: {formatDeposit(newQuote.depositType, newQuote.depositValue, totals.depositMinAmount, totals.depositMaxAmount, totals.hasRanges)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
+            </div>
+
+            {/* Deposit section */}
+            <div className="space-y-3">
+              <Label>{language === 'fr' ? 'Dépôt / Acompte' : 'Deposit'}</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                {(['none', 'percentage', 'fixed'] as DepositType[]).map(type => (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant={newQuote.depositType === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNewQuote({ ...newQuote, depositType: type })}
+                  >
+                    {type === 'none' 
+                      ? (language === 'fr' ? 'Aucun' : 'None')
+                      : type === 'percentage' 
+                        ? (language === 'fr' ? 'Pourcentage' : 'Percentage')
+                        : (language === 'fr' ? 'Montant fixe' : 'Fixed amount')}
+                  </Button>
+                ))}
+                {newQuote.depositType !== 'none' && (
+                  <Input
+                    type="number"
+                    className="w-32"
+                    value={depositValueInput}
+                    placeholder={newQuote.depositType === 'percentage' ? '50' : '500'}
+                    onChange={(e) => {
+                      setDepositValueInput(e.target.value);
+                      setNewQuote({ ...newQuote, depositValue: parseFloat(e.target.value) || 0 });
+                    }}
+                  />
+                )}
+                {newQuote.depositType === 'percentage' && (
+                  <span className="text-sm text-muted-foreground">%</span>
+                )}
+                {newQuote.depositType === 'fixed' && (
+                  <span className="text-sm text-muted-foreground">$</span>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
