@@ -1086,20 +1086,27 @@ const Quotes = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("quotes.description")}</TableHead>
-                    <TableHead>{t("quotes.quantity")}</TableHead>
-                    <TableHead>{t("quotes.unitPrice")}</TableHead>
+                    <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
                     <TableHead>{t("quotes.total")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(viewingQuote.quote_items || []).map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>${item.unit_price.toFixed(2)}</TableCell>
-                      <TableCell>${item.total.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
+                  {(viewingQuote.quote_items || []).map((item) => {
+                    const localItem = dbItemToLocal(item);
+                    const computed = computeLineTotals(localItem);
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.description}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatLineDisplay(localItem)}</TableCell>
+                        <TableCell>
+                          {computed.isRange 
+                            ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
+                            : `$${computed.total.toFixed(2)}`
+                          }
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
               <div className="text-right space-y-1">
