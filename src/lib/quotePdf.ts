@@ -166,7 +166,9 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
     customColor,
     hideBranding,
     customFooterText,
-    returnBlob
+    returnBlob,
+    sections
+  });
   });
 }
 
