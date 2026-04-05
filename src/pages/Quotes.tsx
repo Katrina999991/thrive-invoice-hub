@@ -23,8 +23,8 @@ import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  QuoteItemLocal, QuoteLineType, createEmptyItem, computeLineTotals, 
-  computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay 
+  QuoteItemLocal, QuoteLineType, DepositType, createEmptyItem, computeLineTotals, 
+  computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay, formatDeposit 
 } from "@/lib/quoteLineCalculations";
 
 const Quotes = () => {
