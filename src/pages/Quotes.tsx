@@ -1016,11 +1016,25 @@ const Quotes = () => {
                 </Table>
               )}
 
-              <div className="text-right space-y-1">
-                <p>{t("quotes.subtotal")}: ${calculateSubtotal().toFixed(2)}</p>
-                <p>{t("quotes.taxAmount")}: ${calculateTaxes().toFixed(2)}</p>
-                <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${calculateTotal().toFixed(2)}</p>
-              </div>
+              {(() => {
+                const totals = getQuoteTotals();
+                if (totals.hasRanges) {
+                  return (
+                    <div className="text-right space-y-1">
+                      <p>{t("quotes.subtotal")}: ${totals.minSubtotal.toFixed(2)} – ${totals.maxSubtotal.toFixed(2)}</p>
+                      <p>{t("quotes.taxAmount")}: ${totals.minTaxAmount.toFixed(2)} – ${totals.maxTaxAmount.toFixed(2)}</p>
+                      <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.minTotal.toFixed(2)} – ${totals.maxTotal.toFixed(2)}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="text-right space-y-1">
+                    <p>{t("quotes.subtotal")}: ${totals.subtotal.toFixed(2)}</p>
+                    <p>{t("quotes.taxAmount")}: ${totals.taxAmount.toFixed(2)}</p>
+                    <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.total.toFixed(2)}</p>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
