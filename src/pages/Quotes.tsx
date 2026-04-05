@@ -195,16 +195,28 @@ const Quotes = () => {
     ? "• Devis valide 30 jours\n• 50 % d'acompte requis avant le début des travaux\n• Solde dû à la livraison\n• Tout travail hors du périmètre estimé sera facturé séparément"
     : "• Quote valid for 30 days\n• 50% deposit required before work begins\n• Final payment due upon project completion\n• Work beyond the estimated scope will be billed separately";
 
-  const [newQuote, setNewQuote] = useState({
-    client_id: "",
-    issue_date: new Date().toISOString().split('T')[0],
-    expiry_date: "",
-    terms: "",
-    notes: "",
-    items: [] as QuoteItemLocal[],
-    depositType: 'none' as DepositType,
-    depositValue: 0,
-    sections: [] as QuoteSection[],
+  const addDaysToDate = (dateStr: string, days: number): string => {
+    const date = new Date(dateStr + 'T00:00:00');
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  const [expiryManual, setExpiryManual] = useState(false);
+  const [expiryDuration, setExpiryDuration] = useState<number | null>(30);
+
+  const [newQuote, setNewQuote] = useState(() => {
+    const issueDate = new Date().toISOString().split('T')[0];
+    return {
+      client_id: "",
+      issue_date: issueDate,
+      expiry_date: addDaysToDate(issueDate, 30),
+      terms: "",
+      notes: "",
+      items: [] as QuoteItemLocal[],
+      depositType: 'none' as DepositType,
+      depositValue: 0,
+      sections: [] as QuoteSection[],
+    };
   });
 
   const [depositValueInput, setDepositValueInput] = useState("0");
@@ -240,7 +252,10 @@ const Quotes = () => {
         "quotes.amount": "Montant",
         "quotes.status": "Statut",
         "quotes.issueDate": "Date",
-        "quotes.expiryDate": "Date d'expiration (optionnel)",
+        "quotes.expiryDate": "Date d'expiration",
+        "quotes.expiryPreset": "Duree de validite",
+        "quotes.expiryDays": "jours",
+        "quotes.expiryNone": "Aucune",
         "quotes.actions": "Actions",
         "quotes.view": "Voir",
         "quotes.edit": "Modifier",
@@ -308,7 +323,10 @@ const Quotes = () => {
         "quotes.amount": "Amount",
         "quotes.status": "Status",
         "quotes.issueDate": "Date",
-        "quotes.expiryDate": "Expiry Date (optional)",
+        "quotes.expiryDate": "Expiry Date",
+        "quotes.expiryPreset": "Validity period",
+        "quotes.expiryDays": "days",
+        "quotes.expiryNone": "None",
         "quotes.actions": "Actions",
         "quotes.view": "View",
         "quotes.edit": "Edit",
@@ -530,10 +548,11 @@ const Quotes = () => {
   };
 
   const resetForm = () => {
+    const issueDate = new Date().toISOString().split('T')[0];
     setNewQuote({
       client_id: "",
-      issue_date: new Date().toISOString().split('T')[0],
-      expiry_date: "",
+      issue_date: issueDate,
+      expiry_date: addDaysToDate(issueDate, 30),
       terms: "",
       notes: "",
       items: [],
@@ -547,6 +566,9 @@ const Quotes = () => {
     setUnitPriceInput("0");
     setEditingQuote(null);
     setSelectedCompanyId("");
+    setExpiryManual(false);
+    setExpiryDuration(30);
+  };
   };
 
   const loadSections = async (quoteId: string): Promise<QuoteSection[]> => {
@@ -602,6 +624,8 @@ const Quotes = () => {
       depositValue,
       sections,
     });
+    setExpiryManual(!!quote.expiry_date);
+    setExpiryDuration(null);
     setDepositValueInput(depositValue.toString());
     setIsDialogOpen(true);
   };
@@ -1046,11 +1070,55 @@ const Quotes = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{t("quotes.issueDate")}</Label>
-                <Input type="date" value={newQuote.issue_date} onChange={(e) => setNewQuote({ ...newQuote, issue_date: e.target.value })} />
+                <Input type="date" value={newQuote.issue_date} onChange={(e) => {
+                  const newIssueDate = e.target.value;
+                  const updates: any = { ...newQuote, issue_date: newIssueDate };
+                  if (!expiryManual && expiryDuration !== null) {
+                    updates.expiry_date = addDaysToDate(newIssueDate, expiryDuration);
+                  }
+                  setNewQuote(updates);
+                }} />
               </div>
               <div>
                 <Label>{t("quotes.expiryDate")}</Label>
-                <Input type="date" value={newQuote.expiry_date} onChange={(e) => setNewQuote({ ...newQuote, expiry_date: e.target.value })} />
+                <Input type="date" value={newQuote.expiry_date} onChange={(e) => {
+                  setExpiryManual(true);
+                  setExpiryDuration(null);
+                  setNewQuote({ ...newQuote, expiry_date: e.target.value });
+                }} />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm text-muted-foreground">{t("quotes.expiryPreset")}</Label>
+              <div className="flex gap-2 mt-1">
+                {[7, 14, 30].map(days => (
+                  <Button
+                    key={days}
+                    type="button"
+                    variant={expiryDuration === days && !expiryManual ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setExpiryDuration(days);
+                      setExpiryManual(false);
+                      setNewQuote({ ...newQuote, expiry_date: addDaysToDate(newQuote.issue_date, days) });
+                    }}
+                  >
+                    {days} {t("quotes.expiryDays")}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  variant={expiryDuration === null && !expiryManual ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setExpiryDuration(null);
+                    setExpiryManual(false);
+                    setNewQuote({ ...newQuote, expiry_date: "" });
+                  }}
+                >
+                  {t("quotes.expiryNone")}
+                </Button>
               </div>
             </div>
 
