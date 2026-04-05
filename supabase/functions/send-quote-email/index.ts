@@ -511,6 +511,42 @@ const handler = async (req: Request): Promise<Response> => {
     const hasDeposit = depositType !== 'none' && depositAmount > 0;
     const onlinePaymentEnabled = quote.online_payment_enabled || false;
 
+    console.log('[QUOTE-EMAIL-PAYMENT-DEBUG]', {
+      quoteId,
+      online_payment_enabled: onlinePaymentEnabled,
+      payment_link_in_db: quote.payment_link || null,
+      has_deposit: hasDeposit,
+      deposit_amount: depositAmount,
+      total: quote.total,
+    });
+
+    // Auto-generate payment link if online payment is enabled but no link exists yet
+    let paymentLink = quote.payment_link;
+    if (onlinePaymentEnabled && !paymentLink) {
+      console.log('[QUOTE-EMAIL-PAYMENT-DEBUG] No payment link exists, generating one...');
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const paymentType = hasDeposit ? 'deposit' : 'full';
+        const res = await fetch(`${supabaseUrl}/functions/v1/create-quote-payment-link`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: JSON.stringify({ quoteId, paymentType }),
+        });
+        const result = await res.json();
+        if (res.ok && result.url) {
+          paymentLink = result.url;
+          console.log('[QUOTE-EMAIL-PAYMENT-DEBUG] Payment link generated successfully:', paymentLink);
+        } else {
+          console.error('[QUOTE-EMAIL-PAYMENT-DEBUG] Failed to generate payment link:', result.error || result);
+        }
+      } catch (err) {
+        console.error('[QUOTE-EMAIL-PAYMENT-DEBUG] Error calling create-quote-payment-link:', err);
+      }
+    }
+
     let depositSummaryHtml = '';
     if (hasDeposit) {
       const depositLabel = isFrench ? 'Acompte requis' : 'Deposit required';
@@ -524,19 +560,21 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
-    // Payment button (if online payment enabled)
+    // Payment button (if online payment enabled and link available)
     let paymentButtonHtml = '';
-    if (onlinePaymentEnabled && quote.payment_link) {
+    if (onlinePaymentEnabled && paymentLink) {
       const payBtnText = hasDeposit
         ? (isFrench ? 'Payer l\'acompte' : 'Pay Deposit')
         : (isFrench ? 'Payer maintenant' : 'Pay Now');
       paymentButtonHtml = `
         <div style="margin-top: 15px; text-align: center;">
-          <a href="${quote.payment_link}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">
+          <a href="${paymentLink}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">
             ${payBtnText}
           </a>
         </div>
       `;
+    } else if (onlinePaymentEnabled && !paymentLink) {
+      console.warn('[QUOTE-EMAIL-PAYMENT-DEBUG] online_payment_enabled=true but no payment link could be generated. Check Stripe Connect setup.');
     }
 
     // Always add a response button at the end of the email
