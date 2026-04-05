@@ -560,6 +560,7 @@ const Quotes = () => {
       depositType: 'none',
       depositValue: 0,
       sections: [],
+      onlinePaymentEnabled: false,
     });
     setDepositValueInput("0");
     setCurrentItem(createEmptyItem());
