@@ -1,7 +1,7 @@
 // Quote PDF generation - now uses the unified document PDF system
 // This file provides backward compatibility for existing code
 
-import { generateDocumentPdf, DocumentPdfOptions, DocumentItem, ClientData, CompanyData, TemplateType, COLOR_PRESETS } from './documentPdf';
+import { generateDocumentPdf, DocumentPdfOptions, DocumentItem, DocumentSection, ClientData, CompanyData, TemplateType, COLOR_PRESETS } from './documentPdf';
 
 export interface QuoteItem {
   description: string;
