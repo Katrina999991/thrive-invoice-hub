@@ -1509,6 +1509,7 @@ export type Database = {
           estimated_hours: number | null
           hourly_rate: number | null
           id: string
+          is_optional: boolean
           line_type: string
           max_units: number | null
           min_units: number | null
@@ -1529,6 +1530,7 @@ export type Database = {
           estimated_hours?: number | null
           hourly_rate?: number | null
           id?: string
+          is_optional?: boolean
           line_type?: string
           max_units?: number | null
           min_units?: number | null
@@ -1549,6 +1551,7 @@ export type Database = {
           estimated_hours?: number | null
           hourly_rate?: number | null
           id?: string
+          is_optional?: boolean
           line_type?: string
           max_units?: number | null
           min_units?: number | null
@@ -1588,6 +1591,9 @@ export type Database = {
           converted_at: string | null
           converted_to_invoice_id: string | null
           created_at: string
+          deposit_amount: number
+          deposit_type: string
+          deposit_value: number
           expiry_date: string | null
           has_ranges: boolean
           id: string
@@ -1617,6 +1623,9 @@ export type Database = {
           converted_at?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
+          deposit_amount?: number
+          deposit_type?: string
+          deposit_value?: number
           expiry_date?: string | null
           has_ranges?: boolean
           id?: string
@@ -1646,6 +1655,9 @@ export type Database = {
           converted_at?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
+          deposit_amount?: number
+          deposit_type?: string
+          deposit_value?: number
           expiry_date?: string | null
           has_ranges?: boolean
           id?: string

@@ -54,6 +54,7 @@ export interface QuoteItem {
   max_units: number;
   rate: number;
   unit_label: string | null;
+  is_optional: boolean;
   products?: {
     name: string;
   } | null;
@@ -71,6 +72,9 @@ export interface QuoteInsert {
   total?: number;
   notes?: string | null;
   terms?: string | null;
+  deposit_type?: string;
+  deposit_value?: number;
+  deposit_amount?: number;
 }
 
 export interface QuoteItemInsert {
@@ -89,6 +93,7 @@ export interface QuoteItemInsert {
   max_units?: number;
   rate?: number;
   unit_label?: string | null;
+  is_optional?: boolean;
 }
 
 export const useQuotes = () => {
@@ -362,6 +367,7 @@ export const useQuotes = () => {
         max_units: item.max_units || 0,
         rate: item.rate || 0,
         unit_label: item.unit_label || null,
+        is_optional: item.is_optional || false,
       }));
 
       return await createQuote(newQuoteData, items);

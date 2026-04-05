@@ -23,8 +23,8 @@ import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  QuoteItemLocal, QuoteLineType, createEmptyItem, computeLineTotals, 
-  computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay 
+  QuoteItemLocal, QuoteLineType, DepositType, createEmptyItem, computeLineTotals, 
+  computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay, formatDeposit 
 } from "@/lib/quoteLineCalculations";
 
 const Quotes = () => {
@@ -68,8 +68,12 @@ const Quotes = () => {
     expiry_date: "",
     terms: "",
     notes: "",
-    items: [] as QuoteItemLocal[]
+    items: [] as QuoteItemLocal[],
+    depositType: 'none' as DepositType,
+    depositValue: 0,
   });
+
+  const [depositValueInput, setDepositValueInput] = useState("0");
 
   const [currentItem, setCurrentItem] = useState<QuoteItemLocal>(createEmptyItem());
 
@@ -320,7 +324,7 @@ const Quotes = () => {
     const companyTaxes = (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes)) 
       ? selectedCompany.taxes as Array<{ percentage: number }> 
       : null;
-    return computeQuoteTotals(newQuote.items, companyTaxes);
+    return computeQuoteTotals(newQuote.items, companyTaxes, newQuote.depositType, newQuote.depositValue);
   };
 
   const calculateSubtotal = () => getQuoteTotals().subtotal;
@@ -345,7 +349,6 @@ const Quotes = () => {
     const total = calculateTotal();
 
     if (editingQuote) {
-      // Delete old items and insert new ones
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
       await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)) as any);
       
@@ -358,7 +361,10 @@ const Quotes = () => {
         notes: newQuote.notes,
         subtotal: totals.subtotal,
         tax_amount: totals.taxAmount,
-        total: totals.total
+        total: totals.total,
+        deposit_type: newQuote.depositType,
+        deposit_value: newQuote.depositValue,
+        deposit_amount: totals.depositMinAmount,
       });
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
@@ -373,7 +379,10 @@ const Quotes = () => {
         notes: newQuote.notes,
         subtotal: totals.subtotal,
         tax_amount: totals.taxAmount,
-        total: totals.total
+        total: totals.total,
+        deposit_type: newQuote.depositType,
+        deposit_value: newQuote.depositValue,
+        deposit_amount: totals.depositMinAmount,
       }, newQuote.items.map(item => localItemToDb(item)));
     }
 
@@ -388,8 +397,11 @@ const Quotes = () => {
       expiry_date: "",
       terms: "",
       notes: "",
-      items: []
+      items: [],
+      depositType: 'none',
+      depositValue: 0,
     });
+    setDepositValueInput("0");
     setCurrentItem(createEmptyItem());
     setQuantityInput("1");
     setUnitPriceInput("0");
@@ -403,14 +415,19 @@ const Quotes = () => {
       setSelectedCompanyId(client.company_id);
     }
     setEditingQuote(quote);
+    const depositType = ((quote as any).deposit_type || 'none') as DepositType;
+    const depositValue = (quote as any).deposit_value || 0;
     setNewQuote({
       client_id: quote.client_id || "",
       issue_date: quote.issue_date,
       expiry_date: quote.expiry_date || "",
       terms: quote.terms || "",
       notes: quote.notes || "",
-      items: (quote.quote_items || []).map(item => dbItemToLocal(item))
+      items: (quote.quote_items || []).map(item => dbItemToLocal(item)),
+      depositType,
+      depositValue,
     });
+    setDepositValueInput(depositValue.toString());
     setIsDialogOpen(true);
   };
 
@@ -959,6 +976,18 @@ const Quotes = () => {
                 </div>
               )}
 
+              {/* Optional item checkbox */}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="optional-item"
+                  checked={currentItem.isOptional}
+                  onCheckedChange={(checked) => setCurrentItem({ ...currentItem, isOptional: !!checked })}
+                />
+                <Label htmlFor="optional-item" className="text-sm font-normal cursor-pointer">
+                  {language === 'fr' ? 'Article optionnel' : 'Optional item'}
+                </Label>
+              </div>
+
               {newQuote.items.length > 0 && (
                 <Table>
                   <TableHeader>
@@ -980,7 +1009,14 @@ const Quotes = () => {
                       return (
                         <TableRow key={index}>
                           <TableCell>
-                            <div>{item.description}</div>
+                            <div className="flex items-center gap-2">
+                              <span>{item.description}</span>
+                              {item.isOptional && (
+                                <Badge variant="outline" className="text-xs">
+                                  {language === 'fr' ? 'Optionnel' : 'Optional'}
+                                </Badge>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground">{lineTypeLabel}</div>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
@@ -1025,23 +1061,78 @@ const Quotes = () => {
 
               {(() => {
                 const totals = getQuoteTotals();
-                if (totals.hasRanges) {
-                  return (
-                    <div className="text-right space-y-1">
-                      <p>{t("quotes.subtotal")}: ${totals.minSubtotal.toFixed(2)} – ${totals.maxSubtotal.toFixed(2)}</p>
-                      <p>{t("quotes.taxAmount")}: ${totals.minTaxAmount.toFixed(2)} – ${totals.maxTaxAmount.toFixed(2)}</p>
-                      <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.minTotal.toFixed(2)} – ${totals.maxTotal.toFixed(2)}</p>
-                    </div>
-                  );
-                }
+                const fmtRange = (min: number, max: number) => 
+                  totals.hasRanges && min !== max
+                    ? `$${min.toFixed(2)} – $${max.toFixed(2)}`
+                    : `$${min.toFixed(2)}`;
+
                 return (
-                  <div className="text-right space-y-1">
-                    <p>{t("quotes.subtotal")}: ${totals.subtotal.toFixed(2)}</p>
-                    <p>{t("quotes.taxAmount")}: ${totals.taxAmount.toFixed(2)}</p>
-                    <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${totals.total.toFixed(2)}</p>
+                  <div className="text-right space-y-1 border-t pt-3">
+                    <p>{t("quotes.subtotal")}: {fmtRange(totals.minSubtotal, totals.maxSubtotal)}</p>
+                    <p>{t("quotes.taxAmount")}: {fmtRange(totals.minTaxAmount, totals.maxTaxAmount)}</p>
+                    <p className="font-bold text-lg">{t("quotes.totalAmount")}: {fmtRange(totals.minTotal, totals.maxTotal)}</p>
+                    
+                    {totals.hasOptionalItems && (
+                      <div className="border-t pt-2 mt-2 space-y-1">
+                        <p className="text-sm text-muted-foreground">
+                          {language === 'fr' ? 'Options :' : 'Optional items:'} {fmtRange(totals.optionalMinTotal, totals.optionalMaxTotal)}
+                        </p>
+                        <p className="font-semibold">
+                          {language === 'fr' ? 'Total avec options :' : 'Total with options:'} {fmtRange(totals.grandMinTotal, totals.grandMaxTotal)}
+                        </p>
+                      </div>
+                    )}
+
+                    {newQuote.depositType !== 'none' && newQuote.depositValue > 0 && (
+                      <div className="border-t pt-2 mt-2">
+                        <p className="font-semibold text-primary">
+                          {language === 'fr' ? 'Dépôt requis' : 'Deposit required'}: {formatDeposit(newQuote.depositType, newQuote.depositValue, totals.depositMinAmount, totals.depositMaxAmount, totals.hasRanges)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
+            </div>
+
+            {/* Deposit section */}
+            <div className="space-y-3">
+              <Label>{language === 'fr' ? 'Dépôt / Acompte' : 'Deposit'}</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                {(['none', 'percentage', 'fixed'] as DepositType[]).map(type => (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant={newQuote.depositType === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNewQuote({ ...newQuote, depositType: type })}
+                  >
+                    {type === 'none' 
+                      ? (language === 'fr' ? 'Aucun' : 'None')
+                      : type === 'percentage' 
+                        ? (language === 'fr' ? 'Pourcentage' : 'Percentage')
+                        : (language === 'fr' ? 'Montant fixe' : 'Fixed amount')}
+                  </Button>
+                ))}
+                {newQuote.depositType !== 'none' && (
+                  <Input
+                    type="number"
+                    className="w-32"
+                    value={depositValueInput}
+                    placeholder={newQuote.depositType === 'percentage' ? '50' : '500'}
+                    onChange={(e) => {
+                      setDepositValueInput(e.target.value);
+                      setNewQuote({ ...newQuote, depositValue: parseFloat(e.target.value) || 0 });
+                    }}
+                  />
+                )}
+                {newQuote.depositType === 'percentage' && (
+                  <span className="text-sm text-muted-foreground">%</span>
+                )}
+                {newQuote.depositType === 'fixed' && (
+                  <span className="text-sm text-muted-foreground">$</span>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

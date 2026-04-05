@@ -17,6 +17,7 @@ export interface QuoteItem {
   max_units?: number;
   rate?: number;
   unit_label?: string | null;
+  is_optional?: boolean;
 }
 
 export interface QuoteData {
@@ -29,6 +30,9 @@ export interface QuoteData {
   terms?: string | null;
   notes?: string | null;
   quote_items: QuoteItem[];
+  deposit_type?: string;
+  deposit_value?: number;
+  deposit_amount?: number;
 }
 
 export interface QuotePdfOptions {
@@ -106,6 +110,11 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
       unitPrice = item.rate;
       total = minTotal;
       // Note: range display in PDF shows min total; the quote-level totals handle the range
+    }
+
+    // Mark optional items in description
+    if (item.is_optional) {
+      description = `${description}\n[${language === 'fr' ? 'Optionnel' : 'Optional'}]`;
     }
 
     return {
