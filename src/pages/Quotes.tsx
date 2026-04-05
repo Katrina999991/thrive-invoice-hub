@@ -1373,6 +1373,7 @@ const Quotes = () => {
         getStatusColor={getStatusColor}
         getStatusLabel={getStatusLabel}
         loadSections={loadSections}
+        clients={clients}
       />
 
       {/* Email Dialog */}
