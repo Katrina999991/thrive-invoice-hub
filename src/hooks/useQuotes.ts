@@ -367,6 +367,7 @@ export const useQuotes = () => {
         max_units: item.max_units || 0,
         rate: item.rate || 0,
         unit_label: item.unit_label || null,
+        is_optional: item.is_optional || false,
       }));
 
       return await createQuote(newQuoteData, items);
