@@ -390,7 +390,7 @@ const Quotes = () => {
       notes: "",
       items: []
     });
-    setCurrentItem({ description: "", quantity: 1, unit_price: 0, product_id: "", notes: "" });
+    setCurrentItem(createEmptyItem());
     setQuantityInput("1");
     setUnitPriceInput("0");
     setEditingQuote(null);
