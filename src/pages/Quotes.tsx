@@ -886,19 +886,55 @@ const Quotes = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {newQuote.items.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
-                        <TableCell>${item.unit_price.toFixed(2)}</TableCell>
-                        <TableCell>${item.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {newQuote.items.map((item, index) => {
+                      const computed = computeLineTotals(item);
+                      const lineTypeLabel = item.lineType === 'hourly' 
+                        ? (language === 'fr' ? 'Horaire' : 'Hourly') 
+                        : item.lineType === 'estimate' 
+                          ? (language === 'fr' ? 'Estimation' : 'Estimate') 
+                          : (language === 'fr' ? 'Fixe' : 'Fixed');
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <div>{item.description}</div>
+                            <div className="text-xs text-muted-foreground">{lineTypeLabel}</div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatLineDisplay(item)}
+                          </TableCell>
+                          <TableCell>
+                            {computed.isRange 
+                              ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
+                              : `$${computed.total.toFixed(2)}`
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => {
+                                setCurrentItem(item);
+                                setEditingItemIndex(index);
+                                if (item.lineType === 'fixed') {
+                                  setQuantityInput(item.quantity.toString());
+                                  setUnitPriceInput(item.unit_price.toString());
+                                } else if (item.lineType === 'hourly') {
+                                  setEstimatedHoursInput(item.estimatedHours.toString());
+                                  setHourlyRateInput(item.hourlyRate.toString());
+                                } else {
+                                  setMinUnitsInput(item.minUnits.toString());
+                                  setMaxUnitsInput(item.maxUnits.toString());
+                                  setRateInput(item.rate.toString());
+                                }
+                              }}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}
