@@ -548,6 +548,7 @@ Sincerely,
     proof_of_sending: proofSending,
     proof_of_receipt: proofReceipt,
     tracking_notes: trackingNotes || undefined,
+    payment_term_days: delayDays,
   });
 
   const buildTrackingData = (): FormalNoticeInput => ({
