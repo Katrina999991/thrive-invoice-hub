@@ -1,6 +1,7 @@
 // Centralized quote line calculation logic
 
 export type QuoteLineType = 'fixed' | 'hourly' | 'estimate';
+export type DepositType = 'none' | 'percentage' | 'fixed';
 
 export interface QuoteItemLocal {
   lineType: QuoteLineType;
@@ -16,6 +17,8 @@ export interface QuoteItemLocal {
   maxUnits: number;
   rate: number;
   unitLabel: string;
+  // Optional flag
+  isOptional: boolean;
   // Common
   product_id?: string;
   notes?: string;
@@ -23,7 +26,7 @@ export interface QuoteItemLocal {
 }
 
 export interface ComputedLineTotals {
-  total: number;       // For fixed/hourly, the single total. For estimate, the min total.
+  total: number;
   minTotal: number;
   maxTotal: number;
   isRange: boolean;
@@ -49,6 +52,7 @@ export function computeLineTotals(item: QuoteItemLocal): ComputedLineTotals {
 }
 
 export interface QuoteTotals {
+  // Base totals (non-optional items only)
   hasRanges: boolean;
   subtotal: number;
   minSubtotal: number;
@@ -59,58 +63,113 @@ export interface QuoteTotals {
   total: number;
   minTotal: number;
   maxTotal: number;
+  // Optional items totals
+  hasOptionalItems: boolean;
+  optionalSubtotal: number;
+  optionalMinSubtotal: number;
+  optionalMaxSubtotal: number;
+  optionalTaxAmount: number;
+  optionalMinTaxAmount: number;
+  optionalMaxTaxAmount: number;
+  optionalTotal: number;
+  optionalMinTotal: number;
+  optionalMaxTotal: number;
+  // Grand totals (base + optional)
+  grandTotal: number;
+  grandMinTotal: number;
+  grandMaxTotal: number;
+  // Deposit
+  depositAmount: number;
+  depositMinAmount: number;
+  depositMaxAmount: number;
+}
+
+function calcTaxForItems(
+  items: QuoteItemLocal[],
+  companyTaxes: Array<{ percentage: number }> | null | undefined,
+  useMax: boolean
+): number {
+  let totalTax = 0;
+  items.forEach(item => {
+    const computed = computeLineTotals(item);
+    const baseAmount = useMax ? computed.maxTotal : computed.minTotal;
+
+    if (companyTaxes && companyTaxes.length > 0) {
+      companyTaxes.forEach(tax => {
+        totalTax += baseAmount * (tax.percentage / 100);
+      });
+    }
+
+    if (item.product_taxes && item.product_taxes.length > 0) {
+      const qty = item.lineType === 'fixed' ? item.quantity 
+                : item.lineType === 'hourly' ? item.estimatedHours 
+                : (useMax ? item.maxUnits : item.minUnits);
+      item.product_taxes.forEach(tax => {
+        const taxType = tax.type || 'percentage';
+        const taxValue = tax.value !== undefined ? tax.value : tax.percentage || 0;
+        if (taxType === 'percentage') {
+          totalTax += baseAmount * (taxValue / 100);
+        } else {
+          totalTax += taxValue * qty;
+        }
+      });
+    }
+  });
+  return totalTax;
 }
 
 export function computeQuoteTotals(
   items: QuoteItemLocal[],
-  companyTaxes?: Array<{ percentage: number }> | null
+  companyTaxes?: Array<{ percentage: number }> | null,
+  depositType: DepositType = 'none',
+  depositValue: number = 0
 ): QuoteTotals {
+  const baseItems = items.filter(i => !i.isOptional);
+  const optionalItems = items.filter(i => i.isOptional);
+
+  const hasOptionalItems = optionalItems.length > 0;
+
+  // Base
   let hasRanges = false;
-  let minSubtotal = 0;
-  let maxSubtotal = 0;
-
-  items.forEach(item => {
-    const computed = computeLineTotals(item);
-    if (computed.isRange) hasRanges = true;
-    minSubtotal += computed.minTotal;
-    maxSubtotal += computed.maxTotal;
+  let minSubtotal = 0, maxSubtotal = 0;
+  baseItems.forEach(item => {
+    const c = computeLineTotals(item);
+    if (c.isRange) hasRanges = true;
+    minSubtotal += c.minTotal;
+    maxSubtotal += c.maxTotal;
   });
+  const minTaxAmount = calcTaxForItems(baseItems, companyTaxes, false);
+  const maxTaxAmount = calcTaxForItems(baseItems, companyTaxes, true);
 
-  // Calculate taxes on min and max
-  const calcTax = (items: QuoteItemLocal[], useMax: boolean) => {
-    let totalTax = 0;
-    items.forEach(item => {
-      const computed = computeLineTotals(item);
-      const baseAmount = useMax ? computed.maxTotal : computed.minTotal;
+  // Optional
+  let optHasRanges = false;
+  let optMinSubtotal = 0, optMaxSubtotal = 0;
+  optionalItems.forEach(item => {
+    const c = computeLineTotals(item);
+    if (c.isRange) { hasRanges = true; optHasRanges = true; }
+    optMinSubtotal += c.minTotal;
+    optMaxSubtotal += c.maxTotal;
+  });
+  const optMinTax = calcTaxForItems(optionalItems, companyTaxes, false);
+  const optMaxTax = calcTaxForItems(optionalItems, companyTaxes, true);
 
-      // Company-level taxes
-      if (companyTaxes && companyTaxes.length > 0) {
-        companyTaxes.forEach(tax => {
-          totalTax += baseAmount * (tax.percentage / 100);
-        });
-      }
+  const minTotal = minSubtotal + minTaxAmount;
+  const maxTotal = maxSubtotal + maxTaxAmount;
+  const optMinTotal = optMinSubtotal + optMinTax;
+  const optMaxTotal = optMaxSubtotal + optMaxTax;
 
-      // Product-level taxes
-      if (item.product_taxes && item.product_taxes.length > 0) {
-        const qty = item.lineType === 'fixed' ? item.quantity 
-                  : item.lineType === 'hourly' ? item.estimatedHours 
-                  : (useMax ? item.maxUnits : item.minUnits);
-        item.product_taxes.forEach(tax => {
-          const taxType = tax.type || 'percentage';
-          const taxValue = tax.value !== undefined ? tax.value : tax.percentage || 0;
-          if (taxType === 'percentage') {
-            totalTax += baseAmount * (taxValue / 100);
-          } else {
-            totalTax += taxValue * qty;
-          }
-        });
-      }
-    });
-    return totalTax;
-  };
+  const grandMinTotal = minTotal + optMinTotal;
+  const grandMaxTotal = maxTotal + optMaxTotal;
 
-  const minTaxAmount = calcTax(items, false);
-  const maxTaxAmount = calcTax(items, true);
+  // Deposit calculation (based on base total only)
+  let depositMinAmount = 0, depositMaxAmount = 0;
+  if (depositType === 'percentage' && depositValue > 0) {
+    depositMinAmount = minTotal * (depositValue / 100);
+    depositMaxAmount = maxTotal * (depositValue / 100);
+  } else if (depositType === 'fixed' && depositValue > 0) {
+    depositMinAmount = depositValue;
+    depositMaxAmount = depositValue;
+  }
 
   return {
     hasRanges,
@@ -120,9 +179,25 @@ export function computeQuoteTotals(
     taxAmount: minTaxAmount,
     minTaxAmount,
     maxTaxAmount,
-    total: minSubtotal + minTaxAmount,
-    minTotal: minSubtotal + minTaxAmount,
-    maxTotal: maxSubtotal + maxTaxAmount,
+    total: minTotal,
+    minTotal,
+    maxTotal,
+    hasOptionalItems,
+    optionalSubtotal: optMinSubtotal,
+    optionalMinSubtotal: optMinSubtotal,
+    optionalMaxSubtotal: optMaxSubtotal,
+    optionalTaxAmount: optMinTax,
+    optionalMinTaxAmount: optMinTax,
+    optionalMaxTaxAmount: optMaxTax,
+    optionalTotal: optMinTotal,
+    optionalMinTotal: optMinTotal,
+    optionalMaxTotal: optMaxTotal,
+    grandTotal: grandMinTotal,
+    grandMinTotal,
+    grandMaxTotal,
+    depositAmount: depositMinAmount,
+    depositMinAmount,
+    depositMaxAmount,
   };
 }
 
@@ -138,6 +213,7 @@ export function createEmptyItem(): QuoteItemLocal {
     maxUnits: 0,
     rate: 0,
     unitLabel: 'h',
+    isOptional: false,
     product_id: undefined,
     notes: undefined,
     product_taxes: undefined,
@@ -158,6 +234,7 @@ export function dbItemToLocal(dbItem: any): QuoteItemLocal {
     maxUnits: dbItem.max_units || 0,
     rate: dbItem.rate || 0,
     unitLabel: dbItem.unit_label || 'h',
+    isOptional: dbItem.is_optional || false,
     product_id: dbItem.product_id || undefined,
     notes: dbItem.notes || undefined,
     product_taxes: dbItem.product_taxes || undefined,
@@ -180,6 +257,7 @@ export function localItemToDb(item: QuoteItemLocal, quoteId?: string) {
     max_units: item.maxUnits,
     rate: item.rate,
     unit_label: item.unitLabel || null,
+    is_optional: item.isOptional,
     product_id: item.product_id || null,
     notes: item.notes || null,
     product_taxes: item.product_taxes || [],
@@ -198,4 +276,21 @@ export function formatLineDisplay(item: QuoteItemLocal, currencySymbol = '$'): s
     default:
       return `${item.quantity} × ${currencySymbol}${item.unit_price.toFixed(2)} = ${currencySymbol}${computed.total.toFixed(2)}`;
   }
+}
+
+// Format deposit display
+export function formatDeposit(
+  depositType: DepositType, 
+  depositValue: number, 
+  depositMinAmount: number, 
+  depositMaxAmount: number, 
+  hasRanges: boolean,
+  currencySymbol = '$'
+): string {
+  if (depositType === 'none' || depositValue <= 0) return '';
+  const label = depositType === 'percentage' ? `${depositValue}%` : `${currencySymbol}${depositValue.toFixed(2)}`;
+  if (hasRanges && depositType === 'percentage') {
+    return `${label} → ${currencySymbol}${depositMinAmount.toFixed(2)} – ${currencySymbol}${depositMaxAmount.toFixed(2)}`;
+  }
+  return `${label} → ${currencySymbol}${depositMinAmount.toFixed(2)}`;
 }
