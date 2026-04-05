@@ -67,6 +67,9 @@ const Clients = () => {
     late_fee_grace_days_override: "",
     late_fee_auto_apply_mode_override: null as string | null,
     late_fee_cap_amount_override: "",
+    // Chargeback clause
+    chargeback_clause_enabled: false,
+    chargeback_clause_text: "",
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
