@@ -63,6 +63,10 @@ const Quotes = () => {
   const [availableEmails, setAvailableEmails] = useState<string[]>([]);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
+  const defaultTerms = language === 'fr' 
+    ? "• Devis valide 30 jours\n• 50 % d'acompte requis avant le début des travaux\n• Solde dû à la livraison\n• Tout travail hors du périmètre estimé sera facturé séparément"
+    : "• Quote valid for 30 days\n• 50% deposit required before work begins\n• Final payment due upon project completion\n• Work beyond the estimated scope will be billed separately";
+
   const [newQuote, setNewQuote] = useState({
     client_id: "",
     issue_date: new Date().toISOString().split('T')[0],
@@ -72,6 +76,7 @@ const Quotes = () => {
     items: [] as QuoteItemLocal[],
     depositType: 'none' as DepositType,
     depositValue: 0,
+    sections: [] as QuoteSection[],
   });
 
   const [depositValueInput, setDepositValueInput] = useState("0");
