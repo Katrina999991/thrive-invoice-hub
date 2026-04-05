@@ -68,8 +68,12 @@ const Quotes = () => {
     expiry_date: "",
     terms: "",
     notes: "",
-    items: [] as QuoteItemLocal[]
+    items: [] as QuoteItemLocal[],
+    depositType: 'none' as DepositType,
+    depositValue: 0,
   });
+
+  const [depositValueInput, setDepositValueInput] = useState("0");
 
   const [currentItem, setCurrentItem] = useState<QuoteItemLocal>(createEmptyItem());
 
