@@ -10,6 +10,13 @@ export interface QuoteItem {
   total: number;
   notes?: string;
   product_taxes?: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
+  line_type?: string;
+  estimated_hours?: number;
+  hourly_rate?: number;
+  min_units?: number;
+  max_units?: number;
+  rate?: number;
+  unit_label?: string | null;
 }
 
 export interface QuoteData {
