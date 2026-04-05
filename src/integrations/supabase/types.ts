@@ -1506,39 +1506,60 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          estimated_hours: number | null
+          hourly_rate: number | null
           id: string
+          line_type: string
+          max_units: number | null
+          min_units: number | null
           notes: string | null
           product_id: string | null
           product_taxes: Json | null
           quantity: number
           quote_id: string
+          rate: number | null
           total: number
+          unit_label: string | null
           unit_price: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           description: string
+          estimated_hours?: number | null
+          hourly_rate?: number | null
           id?: string
+          line_type?: string
+          max_units?: number | null
+          min_units?: number | null
           notes?: string | null
           product_id?: string | null
           product_taxes?: Json | null
           quantity?: number
           quote_id: string
+          rate?: number | null
           total?: number
+          unit_label?: string | null
           unit_price?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string
+          estimated_hours?: number | null
+          hourly_rate?: number | null
           id?: string
+          line_type?: string
+          max_units?: number | null
+          min_units?: number | null
           notes?: string | null
           product_id?: string | null
           product_taxes?: Json | null
           quantity?: number
           quote_id?: string
+          rate?: number | null
           total?: number
+          unit_label?: string | null
           unit_price?: number
           updated_at?: string
         }
@@ -1568,8 +1589,15 @@ export type Database = {
           converted_to_invoice_id: string | null
           created_at: string
           expiry_date: string | null
+          has_ranges: boolean
           id: string
           issue_date: string
+          max_subtotal: number | null
+          max_tax_amount: number | null
+          max_total: number | null
+          min_subtotal: number | null
+          min_tax_amount: number | null
+          min_total: number | null
           notes: string | null
           quote_number: string
           responded_at: string | null
@@ -1590,8 +1618,15 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           expiry_date?: string | null
+          has_ranges?: boolean
           id?: string
           issue_date?: string
+          max_subtotal?: number | null
+          max_tax_amount?: number | null
+          max_total?: number | null
+          min_subtotal?: number | null
+          min_tax_amount?: number | null
+          min_total?: number | null
           notes?: string | null
           quote_number: string
           responded_at?: string | null
@@ -1612,8 +1647,15 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           expiry_date?: string | null
+          has_ranges?: boolean
           id?: string
           issue_date?: string
+          max_subtotal?: number | null
+          max_tax_amount?: number | null
+          max_total?: number | null
+          min_subtotal?: number | null
+          min_tax_amount?: number | null
+          min_total?: number | null
           notes?: string | null
           quote_number?: string
           responded_at?: string | null
