@@ -112,6 +112,11 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
       // Note: range display in PDF shows min total; the quote-level totals handle the range
     }
 
+    // Mark optional items in description
+    if (item.is_optional) {
+      description = `${description}\n[${language === 'fr' ? 'Optionnel' : 'Optional'}]`;
+    }
+
     return {
       description,
       quantity,
