@@ -357,6 +357,7 @@ const Quotes = () => {
     if (editingQuote) {
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
       await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)) as any);
+      await saveSections(editingQuote.id, newQuote.sections);
       
       const totals = getQuoteTotals();
       await updateQuote(editingQuote.id, {
@@ -375,7 +376,7 @@ const Quotes = () => {
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
       const totals = getQuoteTotals();
-      await createQuote({
+      const createdQuote = await createQuote({
         quote_number: quoteNumber,
         client_id: newQuote.client_id,
         issue_date: newQuote.issue_date,
@@ -390,6 +391,10 @@ const Quotes = () => {
         deposit_value: newQuote.depositValue,
         deposit_amount: totals.depositMinAmount,
       }, newQuote.items.map(item => localItemToDb(item)));
+      
+      if (createdQuote && newQuote.sections.length > 0) {
+        await saveSections(createdQuote.id, newQuote.sections);
+      }
     }
 
     resetForm();
