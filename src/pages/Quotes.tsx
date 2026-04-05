@@ -612,13 +612,13 @@ const Quotes = () => {
     const { generateQuotePdf } = await import('@/lib/quotePdf');
     
     const client = clients.find(c => c.id === quote.client_id);
-    // Get company from client's company_id, or fall back to first available company
     const company = client?.company_id 
       ? companies.find(c => c.id === client.company_id) 
       : companies[0] || null;
     const hidePdfBranding = localStorage.getItem('hidePdfBranding') === 'true' && planLimits?.plan_type === 'pro';
 
-    console.log('Generating PDF with company:', company?.name, 'logo_url:', company?.logo_url);
+    // Load sections for PDF
+    const pdfSections = await loadSections(quote.id);
 
     await generateQuotePdf({
       quote: {
@@ -666,7 +666,8 @@ const Quotes = () => {
         tax_id: company.tax_id
       } : null,
       language: language as 'fr' | 'en',
-      hideBranding: hidePdfBranding
+      hideBranding: hidePdfBranding,
+      sections: pdfSections.map(s => ({ title: s.title, content: s.content, placement: s.placement })),
     });
   };
 
