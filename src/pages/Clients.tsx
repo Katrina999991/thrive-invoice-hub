@@ -1,6 +1,8 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
+import { getDefaultClauseText } from "@/lib/chargebackClause";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X, Bell } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Phone, Mail, Building, Loader2, Languages, X, Bell, FileText } from "lucide-react";
 import { ClientLateFeeOverride } from "@/components/ClientLateFeeOverride";
 import { useClients } from "@/hooks/useClients";
 import { useCompanies } from "@/hooks/useCompanies";
@@ -65,6 +67,9 @@ const Clients = () => {
     late_fee_grace_days_override: "",
     late_fee_auto_apply_mode_override: null as string | null,
     late_fee_cap_amount_override: "",
+    // Chargeback clause
+    chargeback_clause_enabled: false,
+    chargeback_clause_text: "",
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -172,6 +177,8 @@ const Clients = () => {
         late_fee_grace_days_override: newClient.late_fee_override_enabled && newClient.late_fee_grace_days_override ? parseInt(newClient.late_fee_grace_days_override) : null,
         late_fee_auto_apply_mode_override: newClient.late_fee_override_enabled ? newClient.late_fee_auto_apply_mode_override : null,
         late_fee_cap_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_cap_amount_override ? parseFloat(newClient.late_fee_cap_amount_override) : null,
+        chargeback_clause_enabled: newClient.chargeback_clause_enabled,
+        chargeback_clause_text: newClient.chargeback_clause_enabled && newClient.chargeback_clause_text ? newClient.chargeback_clause_text : null,
       } as any);
     } else {
       await createClient({
@@ -200,6 +207,8 @@ const Clients = () => {
         late_fee_grace_days_override: newClient.late_fee_override_enabled && newClient.late_fee_grace_days_override ? parseInt(newClient.late_fee_grace_days_override) : null,
         late_fee_auto_apply_mode_override: newClient.late_fee_override_enabled ? newClient.late_fee_auto_apply_mode_override : null,
         late_fee_cap_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_cap_amount_override ? parseFloat(newClient.late_fee_cap_amount_override) : null,
+        chargeback_clause_enabled: newClient.chargeback_clause_enabled,
+        chargeback_clause_text: newClient.chargeback_clause_enabled && newClient.chargeback_clause_text ? newClient.chargeback_clause_text : null,
       } as any);
     }
 
@@ -233,6 +242,8 @@ const Clients = () => {
       late_fee_grace_days_override: "",
       late_fee_auto_apply_mode_override: null,
       late_fee_cap_amount_override: "",
+      chargeback_clause_enabled: false,
+      chargeback_clause_text: "",
     });
     setEmailList([""]);
     setEditingClient(null);
@@ -273,6 +284,8 @@ const Clients = () => {
       late_fee_grace_days_override: client.late_fee_grace_days_override?.toString() || "",
       late_fee_auto_apply_mode_override: client.late_fee_auto_apply_mode_override || null,
       late_fee_cap_amount_override: client.late_fee_cap_amount_override?.toString() || "",
+      chargeback_clause_enabled: client.chargeback_clause_enabled || false,
+      chargeback_clause_text: client.chargeback_clause_text || "",
     });
     setHourlyRateInput(client.hourly_rate ? String(client.hourly_rate) : "");
     setIsDialogOpen(true);
@@ -619,6 +632,56 @@ const Clients = () => {
                 onSettingsChange={(s) => setNewClient({...newClient, ...s})}
               />
 
+              {/* Chargeback Clause */}
+              <div className="space-y-3 border rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {language === "fr" ? "Clause de reconnaissance de réception" : "Receipt Acknowledgment Clause"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "fr" 
+                        ? "Ajouter automatiquement une clause anti-contestation aux devis et factures" 
+                        : "Automatically add a chargeback prevention clause to quotes and invoices"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={newClient.chargeback_clause_enabled}
+                    onCheckedChange={(checked) => {
+                      setNewClient({
+                        ...newClient, 
+                        chargeback_clause_enabled: checked,
+                        chargeback_clause_text: checked && !newClient.chargeback_clause_text 
+                          ? getDefaultClauseText(language as 'fr' | 'en') 
+                          : newClient.chargeback_clause_text
+                      });
+                    }}
+                  />
+                </div>
+                {newClient.chargeback_clause_enabled && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">
+                      {language === "fr" ? "Texte de la clause (modifiable)" : "Clause text (editable)"}
+                    </Label>
+                    <Textarea
+                      value={newClient.chargeback_clause_text || getDefaultClauseText(language as 'fr' | 'en')}
+                      onChange={(e) => setNewClient({...newClient, chargeback_clause_text: e.target.value})}
+                      rows={6}
+                      className="text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => setNewClient({...newClient, chargeback_clause_text: getDefaultClauseText(language as 'fr' | 'en')})}
+                    >
+                      {language === "fr" ? "Réinitialiser le texte par défaut" : "Reset to default text"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   {t("clients.cancel")}
@@ -668,6 +731,12 @@ const Clients = () => {
                           <Badge variant="secondary" className="text-xs">
                             <Bell className="h-3 w-3 mr-1" />
                             {language === "fr" ? "Rappel" : "Reminder"}
+                          </Badge>
+                        )}
+                        {(client as any).chargeback_clause_enabled && (
+                          <Badge variant="secondary" className="text-xs">
+                            <FileText className="h-3 w-3 mr-1" />
+                            {language === "fr" ? "Clause" : "Clause"}
                           </Badge>
                         )}
                         {isOverLimit && (
@@ -784,12 +853,18 @@ const Clients = () => {
                                <Bell className="h-3 w-3 mr-1" />
                                {language === "fr" ? "Rappel auto" : "Auto reminder"}
                              </Badge>
-                           )}
-                           {isOverLimit && (
-                             <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs whitespace-nowrap">
-                               {language === "fr" ? "Hors limite" : "Over Limit"}
-                             </Badge>
-                           )}
+                            )}
+                            {(client as any).chargeback_clause_enabled && (
+                              <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                                <FileText className="h-3 w-3 mr-1" />
+                                {language === "fr" ? "Clause" : "Clause"}
+                              </Badge>
+                            )}
+                            {isOverLimit && (
+                              <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs whitespace-nowrap">
+                                {language === "fr" ? "Hors limite" : "Over Limit"}
+                              </Badge>
+                            )}
                          </div>
                        </TableCell>
                     <TableCell className="whitespace-nowrap">

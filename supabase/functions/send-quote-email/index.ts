@@ -115,6 +115,20 @@ async function decryptClientData(client: any): Promise<any> {
   return decryptedClient;
 }
 
+// Append chargeback clause to terms if enabled for client
+function appendChargebackClauseServer(terms: string | null, client: any): string | null {
+  if (!client?.chargeback_clause_enabled) return terms;
+  const isFrench = client.language === 'french';
+  const defaultClause = isFrench
+    ? `Le paiement complet de cette facture constitue une confirmation que les services ou produits ont été livrés et acceptés par le client.\n\nToute contestation ou demande de rétrofacturation (chargeback) devra être précédée d'une tentative raisonnable de résolution directement avec nous.\n\nEn cas de contestation abusive ou frauduleuse, nous nous réservons le droit de fournir toutes preuves nécessaires aux institutions financières afin de contester la réclamation.`
+    : `Full payment of this invoice constitutes confirmation that the services or products have been delivered and accepted by the client.\n\nAny dispute or chargeback request must be preceded by a reasonable attempt at resolution directly with us.\n\nIn the event of an abusive or fraudulent dispute, we reserve the right to provide all necessary evidence to financial institutions to contest the claim.`;
+  const clauseText = client.chargeback_clause_text || defaultClause;
+  const header = isFrench ? '📋 Clause de reconnaissance de réception' : '📋 Receipt Acknowledgment Clause';
+  const formatted = `${header}\n\n${clauseText}`;
+  if (terms && terms.trim()) return `${terms}\n\n───────────────────────────\n\n${formatted}`;
+  return formatted;
+}
+
 // Generate a secure random token
 function generateSecureToken(): string {
   const array = new Uint8Array(32);
@@ -237,6 +251,8 @@ const handler = async (req: Request): Promise<Response> => {
           phone,
           language,
           company_id,
+          chargeback_clause_enabled,
+          chargeback_clause_text,
           companies (
             name,
             logo_url,
@@ -381,7 +397,7 @@ const handler = async (req: Request): Promise<Response> => {
         subtotal: quote.subtotal,
         tax_amount: quote.tax_amount,
         total: quote.total,
-        terms: quote.terms,
+        terms: appendChargebackClauseServer(quote.terms, client),
         notes: quote.notes,
         items: (quote.quote_items || []).map((item: any) => ({
           description: item.description,

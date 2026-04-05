@@ -31,6 +31,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { FinalReminderDialog } from "@/components/FinalReminderDialog";
 import { FormalNoticeEditorDialog } from "@/components/FormalNoticeEditorDialog";
 import { useLateFees, type LateFeeRecord, resolveLateFeeSettings } from "@/hooks/useLateFees";
+import { appendChargebackClause } from "@/lib/chargebackClause";
 import type { CompanyLateFeeSettings, ClientLateFeeOverrides, ResolvedLateFeeSettings } from "@/lib/lateFeeService";
 
 type Client = Tables<"clients">;
@@ -851,6 +852,9 @@ const Invoices = () => {
       const resolvedForPdf = lateFeSettings ? resolveLateFeeSettings(lateFeSettings) : null;
       const lateTermsText = resolvedForPdf ? getLateFeeTermsText(resolvedForPdf, language) : null;
 
+      // Append chargeback clause if enabled for this client
+      const termsWithClause = appendChargebackClause(invoice.terms, client as any, language as 'fr' | 'en');
+
       // Generate PDF using unified system
       await generateDocumentPdf({
         documentType: 'invoice',
@@ -861,7 +865,7 @@ const Invoices = () => {
           subtotal: invoice.subtotal,
           tax_amount: invoice.tax_amount,
           total: invoice.total,
-          terms: invoice.terms,
+          terms: termsWithClause,
           notes: invoice.notes,
           status: invoice.status,
           items,
