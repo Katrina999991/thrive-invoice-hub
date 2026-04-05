@@ -1182,14 +1182,44 @@ const Quotes = () => {
               </div>
             </div>
 
+            {/* Sections */}
+            <QuoteSectionsEditor
+              sections={newQuote.sections}
+              onChange={(sections) => setNewQuote({ ...newQuote, sections })}
+              language={language}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t("quotes.terms")}</Label>
-                <Textarea value={newQuote.terms} onChange={(e) => setNewQuote({ ...newQuote, terms: e.target.value })} />
+                <div className="flex items-center justify-between mb-1">
+                  <Label>{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</Label>
+                  {!newQuote.terms && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6"
+                      onClick={() => setNewQuote({ ...newQuote, terms: defaultTerms })}
+                    >
+                      {language === 'fr' ? 'Utiliser le modèle' : 'Use template'}
+                    </Button>
+                  )}
+                </div>
+                <Textarea 
+                  value={newQuote.terms} 
+                  onChange={(e) => setNewQuote({ ...newQuote, terms: e.target.value })} 
+                  placeholder={language === 'fr' ? 'Ajoutez vos conditions...' : 'Add your terms & conditions...'}
+                  rows={5}
+                />
               </div>
               <div>
                 <Label>{t("quotes.notes")}</Label>
-                <Textarea value={newQuote.notes} onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} />
+                <Textarea 
+                  value={newQuote.notes} 
+                  onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} 
+                  placeholder={language === 'fr' ? 'Notes internes ou pour le client...' : 'Internal or client-facing notes...'}
+                  rows={5}
+                />
               </div>
             </div>
 
