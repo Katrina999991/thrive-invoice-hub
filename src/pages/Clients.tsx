@@ -733,6 +733,12 @@ const Clients = () => {
                             {language === "fr" ? "Rappel" : "Reminder"}
                           </Badge>
                         )}
+                        {(client as any).chargeback_clause_enabled && (
+                          <Badge variant="secondary" className="text-xs">
+                            <FileText className="h-3 w-3 mr-1" />
+                            {language === "fr" ? "Clause" : "Clause"}
+                          </Badge>
+                        )}
                         {isOverLimit && (
                           <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs">
                             {language === "fr" ? "Hors limite" : "Over Limit"}
