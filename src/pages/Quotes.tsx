@@ -10,7 +10,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight, Mail } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight, Mail, LayoutList } from "lucide-react";
+import { QuoteSectionsEditor, QuoteSection } from "@/components/quotes/QuoteSectionsEditor";
 import { useToast } from "@/hooks/use-toast";
 import { useQuotes, Quote, QuoteItemInsert } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
