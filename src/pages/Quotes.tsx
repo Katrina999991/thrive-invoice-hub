@@ -410,14 +410,19 @@ const Quotes = () => {
       setSelectedCompanyId(client.company_id);
     }
     setEditingQuote(quote);
+    const depositType = ((quote as any).deposit_type || 'none') as DepositType;
+    const depositValue = (quote as any).deposit_value || 0;
     setNewQuote({
       client_id: quote.client_id || "",
       issue_date: quote.issue_date,
       expiry_date: quote.expiry_date || "",
       terms: quote.terms || "",
       notes: quote.notes || "",
-      items: (quote.quote_items || []).map(item => dbItemToLocal(item))
+      items: (quote.quote_items || []).map(item => dbItemToLocal(item)),
+      depositType,
+      depositValue,
     });
+    setDepositValueInput(depositValue.toString());
     setIsDialogOpen(true);
   };
 
