@@ -27,6 +27,7 @@ import {
   QuoteItemLocal, QuoteLineType, DepositType, createEmptyItem, computeLineTotals, 
   computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay, formatDeposit 
 } from "@/lib/quoteLineCalculations";
+import { appendChargebackClause } from "@/lib/chargebackClause";
 
 // View Quote Dialog with sections support
 const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getStatusColor, getStatusLabel, loadSections }: {
