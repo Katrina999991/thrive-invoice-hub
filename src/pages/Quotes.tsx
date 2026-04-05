@@ -624,6 +624,7 @@ const Quotes = () => {
       depositType,
       depositValue,
       sections,
+      onlinePaymentEnabled: (quote as any).online_payment_enabled || false,
     });
     setExpiryManual(!!quote.expiry_date);
     setExpiryDuration(null);
