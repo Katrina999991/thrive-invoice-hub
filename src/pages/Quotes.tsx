@@ -260,7 +260,12 @@ const Quotes = () => {
   };
 
   const addItem = () => {
-    if (!currentItem.description || currentItem.unit_price <= 0) return;
+    if (!currentItem.description) return;
+    
+    // Validate based on line type
+    if (currentItem.lineType === 'fixed' && currentItem.unit_price <= 0) return;
+    if (currentItem.lineType === 'hourly' && (currentItem.estimatedHours <= 0 || currentItem.hourlyRate <= 0)) return;
+    if (currentItem.lineType === 'estimate' && (currentItem.minUnits <= 0 || currentItem.maxUnits <= 0 || currentItem.rate <= 0)) return;
 
     let productTaxes: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}> = [];
     if (currentItem.product_id) {
@@ -271,13 +276,10 @@ const Quotes = () => {
     }
 
     const newItem: QuoteItemLocal = {
-      description: currentItem.description,
-      quantity: currentItem.quantity,
-      unit_price: currentItem.unit_price,
-      total: currentItem.quantity * currentItem.unit_price,
+      ...currentItem,
       product_id: currentItem.product_id || undefined,
       notes: currentItem.notes || undefined,
-      product_taxes: productTaxes.length > 0 ? productTaxes : undefined
+      product_taxes: productTaxes.length > 0 ? productTaxes : currentItem.product_taxes
     };
 
     if (editingItemIndex !== null) {
@@ -289,12 +291,24 @@ const Quotes = () => {
       setNewQuote({ ...newQuote, items: [...newQuote.items, newItem] });
     }
 
-    const selectedClient = clients.find(client => client.id === newQuote.client_id);
-    const defaultUnitPrice = selectedClient?.hourly_rate || 0;
+    resetCurrentItem();
+  };
 
-    setCurrentItem({ description: "", quantity: 1, unit_price: defaultUnitPrice, product_id: "", notes: "" });
+  const resetCurrentItem = () => {
+    const selectedClient = clients.find(client => client.id === newQuote.client_id);
+    const defaultRate = selectedClient?.hourly_rate || 0;
+    const item = createEmptyItem();
+    item.unit_price = defaultRate;
+    item.hourlyRate = defaultRate;
+    item.rate = defaultRate;
+    setCurrentItem(item);
     setQuantityInput("1");
-    setUnitPriceInput(defaultUnitPrice.toString());
+    setUnitPriceInput(defaultRate.toString());
+    setEstimatedHoursInput("0");
+    setHourlyRateInput(defaultRate.toString());
+    setMinUnitsInput("0");
+    setMaxUnitsInput("0");
+    setRateInput(defaultRate.toString());
   };
 
   const removeItem = (index: number) => {
