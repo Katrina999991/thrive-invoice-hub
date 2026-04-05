@@ -172,4 +172,4 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
 }
 
 // Re-export types from documentPdf for convenience
-export type { ClientData, CompanyData } from './documentPdf';
+export type { ClientData, CompanyData, DocumentSection } from './documentPdf';
