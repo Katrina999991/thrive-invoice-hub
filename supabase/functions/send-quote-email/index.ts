@@ -345,8 +345,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Generate response link - use the current published app URL
-    const baseUrl = 'https://thrive-invoice-hub.lovable.app';
+    // Generate response link - use the production domain
+    const baseUrl = 'https://gestionflow.net';
     const responseLink = `${baseUrl}/quote/${accessToken}`;
     const isFrench = client.language === 'french';
     const responseLinkText = isFrench ? quoteEmailTranslations.fr.responseLink : quoteEmailTranslations.en.responseLink;
