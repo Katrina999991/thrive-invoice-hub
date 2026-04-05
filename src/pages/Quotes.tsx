@@ -28,6 +28,128 @@ import {
   computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay, formatDeposit 
 } from "@/lib/quoteLineCalculations";
 
+// View Quote Dialog with sections support
+const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getStatusColor, getStatusLabel, loadSections }: {
+  viewingQuote: Quote | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  t: (key: string) => string;
+  language: string;
+  getStatusColor: (status: string) => string;
+  getStatusLabel: (status: string) => string;
+  loadSections: (quoteId: string) => Promise<QuoteSection[]>;
+}) => {
+  const [sections, setSections] = useState<QuoteSection[]>([]);
+
+  useEffect(() => {
+    if (isOpen && viewingQuote) {
+      loadSections(viewingQuote.id).then(setSections);
+    } else {
+      setSections([]);
+    }
+  }, [isOpen, viewingQuote?.id]);
+
+  const beforeSections = sections.filter(s => s.placement === 'before_items');
+  const afterSections = sections.filter(s => s.placement === 'after_items');
+
+  const renderSections = (secs: QuoteSection[]) => secs.map((section, i) => (
+    <div key={i} className="border-l-2 border-primary/30 pl-3 py-1">
+      <p className="font-medium text-sm">{section.title}</p>
+      {section.content && <p className="text-sm text-muted-foreground whitespace-pre-line">{section.content}</p>}
+    </div>
+  ));
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t("quotes.quoteDetails")}</DialogTitle>
+        </DialogHeader>
+        {viewingQuote && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.quoteNumber")}</p>
+                <p className="font-medium">{viewingQuote.quote_number}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.status")}</p>
+                <Badge className={getStatusColor(viewingQuote.status)}>{getStatusLabel(viewingQuote.status)}</Badge>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.client")}</p>
+                <p className="font-medium">{viewingQuote.clients?.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.issueDate")}</p>
+                <p className="font-medium">{viewingQuote.issue_date}</p>
+              </div>
+            </div>
+
+            {beforeSections.length > 0 && (
+              <div className="space-y-2">{renderSections(beforeSections)}</div>
+            )}
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("quotes.description")}</TableHead>
+                  <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
+                  <TableHead>{t("quotes.total")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(viewingQuote.quote_items || []).map((item) => {
+                  const localItem = dbItemToLocal(item);
+                  const computed = computeLineTotals(localItem);
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span>{item.description}</span>
+                          {(item as any).is_optional && (
+                            <Badge variant="outline" className="text-xs">
+                              {language === 'fr' ? 'Optionnel' : 'Optional'}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatLineDisplay(localItem)}</TableCell>
+                      <TableCell>
+                        {computed.isRange 
+                          ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
+                          : `$${computed.total.toFixed(2)}`
+                        }
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+
+            {afterSections.length > 0 && (
+              <div className="space-y-2">{renderSections(afterSections)}</div>
+            )}
+
+            <div className="text-right space-y-1">
+              <p>{t("quotes.subtotal")}: ${viewingQuote.subtotal.toFixed(2)}</p>
+              <p>{t("quotes.taxAmount")}: ${viewingQuote.tax_amount.toFixed(2)}</p>
+              <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${viewingQuote.total.toFixed(2)}</p>
+            </div>
+
+            {viewingQuote.terms && (
+              <div className="border-t pt-3">
+                <p className="text-sm font-medium mb-1">{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{viewingQuote.terms}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Quotes = () => {
   const { toast } = useToast();
   const { language } = useLanguage();
