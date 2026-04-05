@@ -324,7 +324,7 @@ const Quotes = () => {
     const companyTaxes = (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes)) 
       ? selectedCompany.taxes as Array<{ percentage: number }> 
       : null;
-    return computeQuoteTotals(newQuote.items, companyTaxes);
+    return computeQuoteTotals(newQuote.items, companyTaxes, newQuote.depositType, newQuote.depositValue);
   };
 
   const calculateSubtotal = () => getQuoteTotals().subtotal;
