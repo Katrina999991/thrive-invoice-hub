@@ -237,6 +237,8 @@ const handler = async (req: Request): Promise<Response> => {
           phone,
           language,
           company_id,
+          chargeback_clause_enabled,
+          chargeback_clause_text,
           companies (
             name,
             logo_url,
