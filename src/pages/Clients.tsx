@@ -177,6 +177,8 @@ const Clients = () => {
         late_fee_grace_days_override: newClient.late_fee_override_enabled && newClient.late_fee_grace_days_override ? parseInt(newClient.late_fee_grace_days_override) : null,
         late_fee_auto_apply_mode_override: newClient.late_fee_override_enabled ? newClient.late_fee_auto_apply_mode_override : null,
         late_fee_cap_amount_override: newClient.late_fee_override_enabled && newClient.late_fee_cap_amount_override ? parseFloat(newClient.late_fee_cap_amount_override) : null,
+        chargeback_clause_enabled: newClient.chargeback_clause_enabled,
+        chargeback_clause_text: newClient.chargeback_clause_enabled && newClient.chargeback_clause_text ? newClient.chargeback_clause_text : null,
       } as any);
     } else {
       await createClient({
