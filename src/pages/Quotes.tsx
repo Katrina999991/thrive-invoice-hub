@@ -548,10 +548,11 @@ const Quotes = () => {
   };
 
   const resetForm = () => {
+    const issueDate = new Date().toISOString().split('T')[0];
     setNewQuote({
       client_id: "",
-      issue_date: new Date().toISOString().split('T')[0],
-      expiry_date: "",
+      issue_date: issueDate,
+      expiry_date: addDaysToDate(issueDate, 30),
       terms: "",
       notes: "",
       items: [],
