@@ -22,16 +22,10 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useSelectedCompany } from "@/hooks/useSelectedCompany";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-interface QuoteItemLocal {
-  description: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
-  product_id?: string;
-  notes?: string;
-  product_taxes?: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
-}
+import { 
+  QuoteItemLocal, QuoteLineType, createEmptyItem, computeLineTotals, 
+  computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay 
+} from "@/lib/quoteLineCalculations";
 
 const Quotes = () => {
   const { toast } = useToast();
