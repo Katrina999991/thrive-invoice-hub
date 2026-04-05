@@ -349,7 +349,6 @@ const Quotes = () => {
     const total = calculateTotal();
 
     if (editingQuote) {
-      // Delete old items and insert new ones
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
       await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)) as any);
       
@@ -362,7 +361,10 @@ const Quotes = () => {
         notes: newQuote.notes,
         subtotal: totals.subtotal,
         tax_amount: totals.taxAmount,
-        total: totals.total
+        total: totals.total,
+        deposit_type: newQuote.depositType,
+        deposit_value: newQuote.depositValue,
+        deposit_amount: totals.depositMinAmount,
       });
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
@@ -377,7 +379,10 @@ const Quotes = () => {
         notes: newQuote.notes,
         subtotal: totals.subtotal,
         tax_amount: totals.taxAmount,
-        total: totals.total
+        total: totals.total,
+        deposit_type: newQuote.depositType,
+        deposit_value: newQuote.depositValue,
+        deposit_amount: totals.depositMinAmount,
       }, newQuote.items.map(item => localItemToDb(item)));
     }
 
