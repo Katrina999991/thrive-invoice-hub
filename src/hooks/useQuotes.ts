@@ -82,6 +82,13 @@ export interface QuoteItemInsert {
   total?: number;
   product_taxes?: Array<{name: string, type?: 'percentage' | 'amount', value?: number, percentage?: number}>;
   notes?: string | null;
+  line_type?: string;
+  estimated_hours?: number;
+  hourly_rate?: number;
+  min_units?: number;
+  max_units?: number;
+  rate?: number;
+  unit_label?: string | null;
 }
 
 export const useQuotes = () => {
