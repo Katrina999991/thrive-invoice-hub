@@ -624,6 +624,8 @@ const Quotes = () => {
       depositValue,
       sections,
     });
+    setExpiryManual(!!quote.expiry_date);
+    setExpiryDuration(null);
     setDepositValueInput(depositValue.toString());
     setIsDialogOpen(true);
   };
