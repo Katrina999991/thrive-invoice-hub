@@ -206,8 +206,12 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     customColor,
     hideBranding = false,
     customFooterText,
-    returnBlob = false
+    returnBlob = false,
+    sections = []
   } = options;
+
+  const beforeSections = sections.filter(s => s.placement === 'before_items');
+  const afterSections = sections.filter(s => s.placement === 'after_items');
 
   // Determine if client prefers French
   const isClientFrench = client?.language === 'french';
