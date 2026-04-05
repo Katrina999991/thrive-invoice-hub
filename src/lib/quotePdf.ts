@@ -1,7 +1,7 @@
 // Quote PDF generation - now uses the unified document PDF system
 // This file provides backward compatibility for existing code
 
-import { generateDocumentPdf, DocumentPdfOptions, DocumentItem, ClientData, CompanyData, TemplateType, COLOR_PRESETS } from './documentPdf';
+import { generateDocumentPdf, DocumentPdfOptions, DocumentItem, DocumentSection, ClientData, CompanyData, TemplateType, COLOR_PRESETS } from './documentPdf';
 
 export interface QuoteItem {
   description: string;
@@ -44,6 +44,7 @@ export interface QuotePdfOptions {
   accentColor?: [number, number, number];
   customFooterText?: string;
   returnBlob?: boolean;
+  sections?: DocumentSection[];
 }
 
 // Helper to convert hex color to RGB array
@@ -64,7 +65,7 @@ function createLightVariant(primary: [number, number, number]): [number, number,
 }
 
 export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob | void> {
-  const { quote, client, company, language, hideBranding = false, accentColor, customFooterText, returnBlob = false } = options;
+  const { quote, client, company, language, hideBranding = false, accentColor, customFooterText, returnBlob = false, sections } = options;
 
   // Get template and color settings from localStorage (same settings as invoices)
   const template = (localStorage.getItem("invoice-template") || "classic") as TemplateType;
@@ -165,9 +166,10 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
     customColor,
     hideBranding,
     customFooterText,
-    returnBlob
+    returnBlob,
+    sections
   });
 }
 
 // Re-export types from documentPdf for convenience
-export type { ClientData, CompanyData } from './documentPdf';
+export type { ClientData, CompanyData, DocumentSection } from './documentPdf';

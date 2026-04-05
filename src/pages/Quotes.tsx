@@ -10,7 +10,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight, Mail } from "lucide-react";
+import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight, Mail, LayoutList } from "lucide-react";
+import { QuoteSectionsEditor, QuoteSection } from "@/components/quotes/QuoteSectionsEditor";
 import { useToast } from "@/hooks/use-toast";
 import { useQuotes, Quote, QuoteItemInsert } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
@@ -26,6 +27,128 @@ import {
   QuoteItemLocal, QuoteLineType, DepositType, createEmptyItem, computeLineTotals, 
   computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay, formatDeposit 
 } from "@/lib/quoteLineCalculations";
+
+// View Quote Dialog with sections support
+const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getStatusColor, getStatusLabel, loadSections }: {
+  viewingQuote: Quote | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  t: (key: string) => string;
+  language: string;
+  getStatusColor: (status: string) => string;
+  getStatusLabel: (status: string) => string;
+  loadSections: (quoteId: string) => Promise<QuoteSection[]>;
+}) => {
+  const [sections, setSections] = useState<QuoteSection[]>([]);
+
+  useEffect(() => {
+    if (isOpen && viewingQuote) {
+      loadSections(viewingQuote.id).then(setSections);
+    } else {
+      setSections([]);
+    }
+  }, [isOpen, viewingQuote?.id]);
+
+  const beforeSections = sections.filter(s => s.placement === 'before_items');
+  const afterSections = sections.filter(s => s.placement === 'after_items');
+
+  const renderSections = (secs: QuoteSection[]) => secs.map((section, i) => (
+    <div key={i} className="border-l-2 border-primary/30 pl-3 py-1">
+      <p className="font-medium text-sm">{section.title}</p>
+      {section.content && <p className="text-sm text-muted-foreground whitespace-pre-line">{section.content}</p>}
+    </div>
+  ));
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t("quotes.quoteDetails")}</DialogTitle>
+        </DialogHeader>
+        {viewingQuote && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.quoteNumber")}</p>
+                <p className="font-medium">{viewingQuote.quote_number}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.status")}</p>
+                <Badge className={getStatusColor(viewingQuote.status)}>{getStatusLabel(viewingQuote.status)}</Badge>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.client")}</p>
+                <p className="font-medium">{viewingQuote.clients?.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("quotes.issueDate")}</p>
+                <p className="font-medium">{viewingQuote.issue_date}</p>
+              </div>
+            </div>
+
+            {beforeSections.length > 0 && (
+              <div className="space-y-2">{renderSections(beforeSections)}</div>
+            )}
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("quotes.description")}</TableHead>
+                  <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
+                  <TableHead>{t("quotes.total")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(viewingQuote.quote_items || []).map((item) => {
+                  const localItem = dbItemToLocal(item);
+                  const computed = computeLineTotals(localItem);
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span>{item.description}</span>
+                          {(item as any).is_optional && (
+                            <Badge variant="outline" className="text-xs">
+                              {language === 'fr' ? 'Optionnel' : 'Optional'}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatLineDisplay(localItem)}</TableCell>
+                      <TableCell>
+                        {computed.isRange 
+                          ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
+                          : `$${computed.total.toFixed(2)}`
+                        }
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+
+            {afterSections.length > 0 && (
+              <div className="space-y-2">{renderSections(afterSections)}</div>
+            )}
+
+            <div className="text-right space-y-1">
+              <p>{t("quotes.subtotal")}: ${viewingQuote.subtotal.toFixed(2)}</p>
+              <p>{t("quotes.taxAmount")}: ${viewingQuote.tax_amount.toFixed(2)}</p>
+              <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${viewingQuote.total.toFixed(2)}</p>
+            </div>
+
+            {viewingQuote.terms && (
+              <div className="border-t pt-3">
+                <p className="text-sm font-medium mb-1">{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{viewingQuote.terms}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const Quotes = () => {
   const { toast } = useToast();
@@ -62,6 +185,10 @@ const Quotes = () => {
   const [availableEmails, setAvailableEmails] = useState<string[]>([]);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
+  const defaultTerms = language === 'fr' 
+    ? "• Devis valide 30 jours\n• 50 % d'acompte requis avant le début des travaux\n• Solde dû à la livraison\n• Tout travail hors du périmètre estimé sera facturé séparément"
+    : "• Quote valid for 30 days\n• 50% deposit required before work begins\n• Final payment due upon project completion\n• Work beyond the estimated scope will be billed separately";
+
   const [newQuote, setNewQuote] = useState({
     client_id: "",
     issue_date: new Date().toISOString().split('T')[0],
@@ -71,6 +198,7 @@ const Quotes = () => {
     items: [] as QuoteItemLocal[],
     depositType: 'none' as DepositType,
     depositValue: 0,
+    sections: [] as QuoteSection[],
   });
 
   const [depositValueInput, setDepositValueInput] = useState("0");
@@ -351,6 +479,7 @@ const Quotes = () => {
     if (editingQuote) {
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
       await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)) as any);
+      await saveSections(editingQuote.id, newQuote.sections);
       
       const totals = getQuoteTotals();
       await updateQuote(editingQuote.id, {
@@ -369,7 +498,7 @@ const Quotes = () => {
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
       const totals = getQuoteTotals();
-      await createQuote({
+      const createdQuote = await createQuote({
         quote_number: quoteNumber,
         client_id: newQuote.client_id,
         issue_date: newQuote.issue_date,
@@ -384,6 +513,10 @@ const Quotes = () => {
         deposit_value: newQuote.depositValue,
         deposit_amount: totals.depositMinAmount,
       }, newQuote.items.map(item => localItemToDb(item)));
+      
+      if (createdQuote && newQuote.sections.length > 0) {
+        await saveSections(createdQuote.id, newQuote.sections);
+      }
     }
 
     resetForm();
@@ -400,6 +533,7 @@ const Quotes = () => {
       items: [],
       depositType: 'none',
       depositValue: 0,
+      sections: [],
     });
     setDepositValueInput("0");
     setCurrentItem(createEmptyItem());
@@ -409,7 +543,40 @@ const Quotes = () => {
     setSelectedCompanyId("");
   };
 
-  const openEditDialog = (quote: Quote) => {
+  const loadSections = async (quoteId: string): Promise<QuoteSection[]> => {
+    const { data, error } = await supabase
+      .from("quote_sections")
+      .select("*")
+      .eq("quote_id", quoteId)
+      .order("position", { ascending: true });
+    if (error) { console.error("Error loading sections:", error); return []; }
+    return (data || []).map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      content: s.content,
+      position: s.position,
+      placement: s.placement as 'before_items' | 'after_items',
+    }));
+  };
+
+  const saveSections = async (quoteId: string, sections: QuoteSection[]) => {
+    // Delete existing sections
+    await supabase.from("quote_sections").delete().eq("quote_id", quoteId);
+    // Insert new ones
+    if (sections.length > 0) {
+      await supabase.from("quote_sections").insert(
+        sections.map((s, i) => ({
+          quote_id: quoteId,
+          title: s.title,
+          content: s.content,
+          position: i,
+          placement: s.placement,
+        })) as any
+      );
+    }
+  };
+
+  const openEditDialog = async (quote: Quote) => {
     const client = clients.find(c => c.id === quote.client_id);
     if (client?.company_id) {
       setSelectedCompanyId(client.company_id);
@@ -417,6 +584,7 @@ const Quotes = () => {
     setEditingQuote(quote);
     const depositType = ((quote as any).deposit_type || 'none') as DepositType;
     const depositValue = (quote as any).deposit_value || 0;
+    const sections = await loadSections(quote.id);
     setNewQuote({
       client_id: quote.client_id || "",
       issue_date: quote.issue_date,
@@ -426,6 +594,7 @@ const Quotes = () => {
       items: (quote.quote_items || []).map(item => dbItemToLocal(item)),
       depositType,
       depositValue,
+      sections,
     });
     setDepositValueInput(depositValue.toString());
     setIsDialogOpen(true);
@@ -443,13 +612,13 @@ const Quotes = () => {
     const { generateQuotePdf } = await import('@/lib/quotePdf');
     
     const client = clients.find(c => c.id === quote.client_id);
-    // Get company from client's company_id, or fall back to first available company
     const company = client?.company_id 
       ? companies.find(c => c.id === client.company_id) 
       : companies[0] || null;
     const hidePdfBranding = localStorage.getItem('hidePdfBranding') === 'true' && planLimits?.plan_type === 'pro';
 
-    console.log('Generating PDF with company:', company?.name, 'logo_url:', company?.logo_url);
+    // Load sections for PDF
+    const pdfSections = await loadSections(quote.id);
 
     await generateQuotePdf({
       quote: {
@@ -497,7 +666,8 @@ const Quotes = () => {
         tax_id: company.tax_id
       } : null,
       language: language as 'fr' | 'en',
-      hideBranding: hidePdfBranding
+      hideBranding: hidePdfBranding,
+      sections: pdfSections.map(s => ({ title: s.title, content: s.content, placement: s.placement })),
     });
   };
 
@@ -1135,14 +1305,44 @@ const Quotes = () => {
               </div>
             </div>
 
+            {/* Sections */}
+            <QuoteSectionsEditor
+              sections={newQuote.sections}
+              onChange={(sections) => setNewQuote({ ...newQuote, sections })}
+              language={language}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t("quotes.terms")}</Label>
-                <Textarea value={newQuote.terms} onChange={(e) => setNewQuote({ ...newQuote, terms: e.target.value })} />
+                <div className="flex items-center justify-between mb-1">
+                  <Label>{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</Label>
+                  {!newQuote.terms && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6"
+                      onClick={() => setNewQuote({ ...newQuote, terms: defaultTerms })}
+                    >
+                      {language === 'fr' ? 'Utiliser le modèle' : 'Use template'}
+                    </Button>
+                  )}
+                </div>
+                <Textarea 
+                  value={newQuote.terms} 
+                  onChange={(e) => setNewQuote({ ...newQuote, terms: e.target.value })} 
+                  placeholder={language === 'fr' ? 'Ajoutez vos conditions...' : 'Add your terms & conditions...'}
+                  rows={5}
+                />
               </div>
               <div>
                 <Label>{t("quotes.notes")}</Label>
-                <Textarea value={newQuote.notes} onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} />
+                <Textarea 
+                  value={newQuote.notes} 
+                  onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} 
+                  placeholder={language === 'fr' ? 'Notes internes ou pour le client...' : 'Internal or client-facing notes...'}
+                  rows={5}
+                />
               </div>
             </div>
 
@@ -1155,67 +1355,16 @@ const Quotes = () => {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t("quotes.quoteDetails")}</DialogTitle>
-          </DialogHeader>
-          {viewingQuote && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.quoteNumber")}</p>
-                  <p className="font-medium">{viewingQuote.quote_number}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.status")}</p>
-                  <Badge className={getStatusColor(viewingQuote.status)}>{getStatusLabel(viewingQuote.status)}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.client")}</p>
-                  <p className="font-medium">{viewingQuote.clients?.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.issueDate")}</p>
-                  <p className="font-medium">{viewingQuote.issue_date}</p>
-                </div>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("quotes.description")}</TableHead>
-                    <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
-                    <TableHead>{t("quotes.total")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(viewingQuote.quote_items || []).map((item) => {
-                    const localItem = dbItemToLocal(item);
-                    const computed = computeLineTotals(localItem);
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{formatLineDisplay(localItem)}</TableCell>
-                        <TableCell>
-                          {computed.isRange 
-                            ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
-                            : `$${computed.total.toFixed(2)}`
-                          }
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <div className="text-right space-y-1">
-                <p>{t("quotes.subtotal")}: ${viewingQuote.subtotal.toFixed(2)}</p>
-                <p>{t("quotes.taxAmount")}: ${viewingQuote.tax_amount.toFixed(2)}</p>
-                <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${viewingQuote.total.toFixed(2)}</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ViewQuoteDialog
+        viewingQuote={viewingQuote}
+        isOpen={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        t={t}
+        language={language}
+        getStatusColor={getStatusColor}
+        getStatusLabel={getStatusLabel}
+        loadSections={loadSections}
+      />
 
       {/* Email Dialog */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>

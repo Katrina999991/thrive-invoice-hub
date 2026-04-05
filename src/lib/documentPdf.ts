@@ -86,6 +86,12 @@ export interface CompanyData {
   quote_footer_message_fr?: string | null;
 }
 
+export interface DocumentSection {
+  title: string;
+  content: string;
+  placement: 'before_items' | 'after_items';
+}
+
 export interface DocumentPdfOptions {
   documentType: DocumentType;
   document: DocumentData;
@@ -98,6 +104,7 @@ export interface DocumentPdfOptions {
   hideBranding?: boolean;
   customFooterText?: string;
   returnBlob?: boolean;
+  sections?: DocumentSection[];
 }
 
 // Translations for both document types
@@ -199,8 +206,12 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     customColor,
     hideBranding = false,
     customFooterText,
-    returnBlob = false
+    returnBlob = false,
+    sections = []
   } = options;
+
+  const beforeSections = sections.filter(s => s.placement === 'before_items');
+  const afterSections = sections.filter(s => s.placement === 'after_items');
 
   // Determine if client prefers French
   const isClientFrench = client?.language === 'french';
@@ -426,6 +437,28 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     }
   }
 
+  // ========== BEFORE-ITEMS SECTIONS ==========
+  if (beforeSections.length > 0) {
+    nextY += 10;
+    beforeSections.forEach(section => {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(section.title, margin, nextY);
+      nextY += 6;
+      if (section.content) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        const splitContent = doc.splitTextToSize(section.content, contentWidth);
+        doc.text(splitContent, margin, nextY);
+        nextY += splitContent.length * 4.5 + 4;
+      } else {
+        nextY += 2;
+      }
+    });
+  }
+
   // ========== ITEMS TABLE ==========
   const startY = nextY + 15;
   
@@ -613,9 +646,32 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     }
   });
 
-  // ========== NOTES, TERMS & FOOTER ==========
+  // ========== AFTER-ITEMS SECTIONS ==========
   const tableEndY = (doc as any).lastAutoTable?.finalY || startY + 100;
   let contentEndY = tableEndY;
+
+  if (afterSections.length > 0) {
+    contentEndY += 10;
+    afterSections.forEach(section => {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(section.title, margin, contentEndY);
+      contentEndY += 6;
+      if (section.content) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        const splitContent = doc.splitTextToSize(section.content, contentWidth);
+        doc.text(splitContent, margin, contentEndY);
+        contentEndY += splitContent.length * 4.5 + 4;
+      } else {
+        contentEndY += 2;
+      }
+    });
+  }
+
+  // ========== NOTES, TERMS & FOOTER ==========
   
   // Notes section
   if (document.notes) {

@@ -1583,6 +1583,47 @@ export type Database = {
           },
         ]
       }
+      quote_sections: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          placement: string
+          position: number
+          quote_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          placement?: string
+          position?: number
+          quote_id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          placement?: string
+          position?: number
+          quote_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_sections_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           access_token: string | null
