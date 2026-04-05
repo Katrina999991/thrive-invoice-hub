@@ -379,12 +379,29 @@ Sincerely,
   // ─── Unsaved Changes Detection ──────────────────────────────────────
   type FormSnapshot = {
     recipient: string; recipientAddr: string; subject: string; body: string;
-    dueAt: string; delayDays: number; sendingMethod: DeliveryMethod;
+    dueAt: string; delayDays: number; sendingMethod: string;
     proofSending: boolean; proofReceipt: boolean; trackingNumber: string;
     deliveredDate: string; sentDate: string; trackingNotes: string; signatureApplied: boolean;
   };
 
-  const getCurrentSnapshot = useCallback((): FormSnapshot => ({
+  const normalizeSnapshot = useCallback((snap: FormSnapshot): FormSnapshot => ({
+    recipient: (snap.recipient || '').trim(),
+    recipientAddr: (snap.recipientAddr || '').trim(),
+    subject: (snap.subject || '').trim(),
+    body: (snap.body || '').trim(),
+    dueAt: (snap.dueAt || '').trim(),
+    delayDays: snap.delayDays ?? 10,
+    sendingMethod: (snap.sendingMethod || '').trim(),
+    proofSending: !!snap.proofSending,
+    proofReceipt: !!snap.proofReceipt,
+    trackingNumber: (snap.trackingNumber || '').trim(),
+    deliveredDate: (snap.deliveredDate || '').trim(),
+    sentDate: (snap.sentDate || '').split('T')[0].trim(),
+    trackingNotes: (snap.trackingNotes || '').trim(),
+    signatureApplied: !!snap.signatureApplied,
+  }), []);
+
+  const getRawSnapshot = useCallback((): FormSnapshot => ({
     recipient, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
     proofSending, proofReceipt, trackingNumber, deliveredDate, sentDate, trackingNotes, signatureApplied,
   }), [recipient, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
@@ -392,20 +409,38 @@ Sincerely,
 
   const [initialSnapshot, setInitialSnapshot] = useState<FormSnapshot | null>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const needsSnapshotRef = useRef(false);
 
   const hasUnsavedChanges = useMemo(() => {
     if (!initialSnapshot) return false;
-    const current = getCurrentSnapshot();
-    return (Object.keys(initialSnapshot) as (keyof FormSnapshot)[]).some(
-      key => current[key] !== initialSnapshot[key]
-    );
-  }, [initialSnapshot, getCurrentSnapshot]);
+    const current = normalizeSnapshot(getRawSnapshot());
+    const initial = initialSnapshot; // already normalized
+    const keys = Object.keys(initial) as (keyof FormSnapshot)[];
+    const changed = keys.filter(key => String(current[key]) !== String(initial[key]));
+    // DEBUG: temporary logs to diagnose false positives
+    if (changed.length > 0) {
+      console.log('[UnsavedChanges] Dirty fields:', changed.map(k => ({
+        field: k,
+        initial: initial[k],
+        current: current[k],
+      })));
+    }
+    return changed.length > 0;
+  }, [initialSnapshot, getRawSnapshot, normalizeSnapshot]);
 
-  // Capture snapshot after form is loaded
+  // Capture snapshot on next render after state has settled
+  useEffect(() => {
+    if (needsSnapshotRef.current && open) {
+      needsSnapshotRef.current = false;
+      const snap = normalizeSnapshot(getRawSnapshot());
+      console.log('[UnsavedChanges] Capturing initial snapshot:', snap);
+      setInitialSnapshot(snap);
+    }
+  });
+
   const captureInitialSnapshot = useCallback(() => {
-    // Use a microtask to ensure all state updates from loading have settled
-    setTimeout(() => setInitialSnapshot(getCurrentSnapshot()), 0);
-  }, [getCurrentSnapshot]);
+    needsSnapshotRef.current = true;
+  }, []);
 
   const attemptClose = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -581,7 +616,7 @@ Sincerely,
           : (status === 'draft' ? 'Draft saved' : 'Formal notice saved'),
       });
       // Update snapshot so changes are no longer "unsaved"
-      setInitialSnapshot(getCurrentSnapshot());
+      setInitialSnapshot(normalizeSnapshot(getRawSnapshot()));
     } finally {
       setIsSaving(false);
     }
