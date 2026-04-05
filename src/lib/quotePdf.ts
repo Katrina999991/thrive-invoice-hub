@@ -84,15 +84,39 @@ export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob |
     };
   }
 
-  // Convert quote items to document items
-  const items: DocumentItem[] = quote.quote_items.map(item => ({
-    description: item.description,
-    quantity: item.quantity,
-    unit_price: item.unit_price,
-    total: item.total,
-    notes: item.notes,
-    product_taxes: item.product_taxes
-  }));
+  // Convert quote items to document items, enriching descriptions for non-fixed types
+  const items: DocumentItem[] = quote.quote_items.map(item => {
+    const lineType = item.line_type || 'fixed';
+    let description = item.description;
+    let quantity = item.quantity;
+    let unitPrice = item.unit_price;
+    let total = item.total;
+
+    if (lineType === 'hourly' && item.estimated_hours && item.hourly_rate) {
+      description = `${item.description}\n${item.estimated_hours} h × ${language === 'fr' ? '' : '$'}${item.hourly_rate.toFixed(2)}${language === 'fr' ? ' $' : ''}/h`;
+      quantity = item.estimated_hours;
+      unitPrice = item.hourly_rate;
+      total = item.estimated_hours * item.hourly_rate;
+    } else if (lineType === 'estimate' && item.min_units !== undefined && item.max_units !== undefined && item.rate) {
+      const unit = item.unit_label || 'h';
+      const minTotal = item.min_units * item.rate;
+      const maxTotal = item.max_units * item.rate;
+      description = `${item.description}\n${item.min_units}–${item.max_units} ${unit} × $${item.rate.toFixed(2)}/${unit}`;
+      quantity = item.min_units;
+      unitPrice = item.rate;
+      total = minTotal;
+      // Note: range display in PDF shows min total; the quote-level totals handle the range
+    }
+
+    return {
+      description,
+      quantity,
+      unit_price: unitPrice,
+      total,
+      notes: item.notes,
+      product_taxes: item.product_taxes
+    };
+  });
 
   // Call unified PDF generator
   return generateDocumentPdf({
