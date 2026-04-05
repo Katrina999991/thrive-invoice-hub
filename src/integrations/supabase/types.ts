@@ -1639,6 +1639,8 @@ export type Database = {
           converted_to_invoice_id: string | null
           created_at: string
           deposit_amount: number
+          deposit_paid_at: string | null
+          deposit_payment_intent_id: string | null
           deposit_type: string
           deposit_value: number
           expiry_date: string | null
@@ -1652,6 +1654,8 @@ export type Database = {
           min_tax_amount: number | null
           min_total: number | null
           notes: string | null
+          online_payment_enabled: boolean
+          payment_link: string | null
           quote_number: string
           responded_at: string | null
           status: string
@@ -1671,6 +1675,8 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           deposit_amount?: number
+          deposit_paid_at?: string | null
+          deposit_payment_intent_id?: string | null
           deposit_type?: string
           deposit_value?: number
           expiry_date?: string | null
@@ -1684,6 +1690,8 @@ export type Database = {
           min_tax_amount?: number | null
           min_total?: number | null
           notes?: string | null
+          online_payment_enabled?: boolean
+          payment_link?: string | null
           quote_number: string
           responded_at?: string | null
           status?: string
@@ -1703,6 +1711,8 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           deposit_amount?: number
+          deposit_paid_at?: string | null
+          deposit_payment_intent_id?: string | null
           deposit_type?: string
           deposit_value?: number
           expiry_date?: string | null
@@ -1716,6 +1726,8 @@ export type Database = {
           min_tax_amount?: number | null
           min_total?: number | null
           notes?: string | null
+          online_payment_enabled?: boolean
+          payment_link?: string | null
           quote_number?: string
           responded_at?: string | null
           status?: string

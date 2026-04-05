@@ -161,8 +161,61 @@ serve(async (req) => {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const invoiceId = session.metadata?.invoice_id;
-        
-        if (invoiceId) {
+        const quoteId = session.metadata?.quote_id;
+
+        if (quoteId) {
+          // Handle quote payment
+          const paymentType = session.metadata?.payment_type || 'full';
+          logStep("Quote payment received", { quoteId, paymentType });
+
+          if (paymentType === 'deposit') {
+            // Mark deposit as paid, set quote to accepted
+            await supabaseClient.from("quotes").update({
+              deposit_paid_at: new Date().toISOString(),
+              deposit_payment_intent_id: session.payment_intent as string,
+              status: 'accepted',
+            }).eq("id", quoteId);
+
+            // Auto-create invoice from quote
+            const { data: quote } = await supabaseClient.from("quotes").select(`
+              *, clients (company_id, name, email, language)
+            `).eq("id", quoteId).single();
+
+            if (quote?.clients?.company_id) {
+              const { data: invoiceNumber } = await supabaseClient.rpc('generate_invoice_number', { company_id: quote.clients.company_id });
+              if (invoiceNumber) {
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 30);
+                await supabaseClient.from("invoices").insert({
+                  invoice_number: invoiceNumber,
+                  client_id: quote.client_id,
+                  user_id: quote.user_id,
+                  issue_date: new Date().toISOString().split('T')[0],
+                  due_date: dueDate.toISOString().split('T')[0],
+                  subtotal: quote.subtotal,
+                  tax_amount: quote.tax_amount,
+                  total: quote.total,
+                  notes: quote.notes,
+                  terms: quote.terms,
+                  status: 'sent',
+                });
+                await supabaseClient.from("quotes").update({
+                  converted_to_invoice_id: invoiceNumber,
+                  converted_at: new Date().toISOString(),
+                }).eq("id", quoteId);
+                logStep("Invoice created from quote deposit", { invoiceNumber });
+              }
+            }
+          } else {
+            // Full payment
+            await supabaseClient.from("quotes").update({
+              status: 'accepted',
+              deposit_paid_at: new Date().toISOString(),
+              deposit_payment_intent_id: session.payment_intent as string,
+            }).eq("id", quoteId);
+            logStep("Quote fully paid", { quoteId });
+          }
+        } else if (invoiceId) {
           logStep("Updating invoice status to paid", { invoiceId });
           
           // Update invoice status

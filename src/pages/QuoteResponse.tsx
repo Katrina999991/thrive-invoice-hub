@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { Check, X, FileText, Calendar, DollarSign, Clock, Building2, Loader2 } from "lucide-react";
+import { Check, X, FileText, Calendar, DollarSign, Clock, Building2, Loader2, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 
@@ -15,6 +15,17 @@ interface QuoteItem {
   quantity: number;
   unit_price: number;
   total: number;
+}
+
+interface DepositInfo {
+  type: string;
+  value: number;
+  amount: number;
+  hasRanges: boolean;
+  minAmount: number;
+  maxAmount: number;
+  isPaid: boolean;
+  paidAt: string | null;
 }
 
 interface QuoteData {
@@ -32,6 +43,9 @@ interface QuoteData {
   client_response_note: string | null;
   isExpired: boolean;
   canRespond: boolean;
+  payment_link: string | null;
+  online_payment_enabled: boolean;
+  depositInfo: DepositInfo | null;
   clients: {
     name: string;
     email: string | null;
@@ -63,6 +77,7 @@ const QuoteResponse = () => {
   const [note, setNote] = useState("");
   const [responseSubmitted, setResponseSubmitted] = useState(false);
   const [submittedResponse, setSubmittedResponse] = useState<"accepted" | "refused" | null>(null);
+  const [generatingPaymentLink, setGeneratingPaymentLink] = useState(false);
 
   // Detect language from browser
   const browserLang = navigator.language.startsWith("fr") ? "fr" : "en";
@@ -108,6 +123,13 @@ const QuoteResponse = () => {
       quoteRefused: "Vous avez refusé le devis",
       contactUs: "L'entreprise vous contactera bientôt.",
       processing: "Traitement...",
+      depositRequired: "Acompte requis",
+      depositPaid: "Acompte payé",
+      payDeposit: "Payer l'acompte",
+      payFull: "Payer le total",
+      paymentMethods: "Moyens de paiement",
+      creditCard: "Carte de crédit",
+      generatingLink: "Génération du lien...",
     },
     en: {
       loading: "Loading quote...",
@@ -148,6 +170,13 @@ const QuoteResponse = () => {
       quoteRefused: "You have refused the quote",
       contactUs: "The company will contact you soon.",
       processing: "Processing...",
+      depositRequired: "Deposit required",
+      depositPaid: "Deposit paid",
+      payDeposit: "Pay Deposit",
+      payFull: "Pay Full Amount",
+      paymentMethods: "Payment Methods",
+      creditCard: "Credit Card",
+      generatingLink: "Generating link...",
     },
   };
 
@@ -162,12 +191,6 @@ const QuoteResponse = () => {
       }
 
       try {
-        const { data, error: fetchError } = await supabase.functions.invoke("get-quote-by-token", {
-          body: null,
-          method: "GET",
-        });
-
-        // Use fetch directly for GET request with query params
         const response = await fetch(
           `https://dkinzkawntfzkabroeib.supabase.co/functions/v1/get-quote-by-token?token=${token}`,
           {
@@ -232,6 +255,51 @@ const QuoteResponse = () => {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePayment = async (paymentType: 'deposit' | 'full') => {
+    if (!quote) return;
+
+    // If payment link already exists, use it directly
+    if (quote.payment_link) {
+      window.open(quote.payment_link, '_blank');
+      return;
+    }
+
+    setGeneratingPaymentLink(true);
+    try {
+      const res = await fetch(
+        `https://dkinzkawntfzkabroeib.supabase.co/functions/v1/create-quote-payment-link`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quoteId: quote.id,
+            paymentType,
+          }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to create payment link");
+      }
+
+      if (result.url) {
+        window.open(result.url, '_blank');
+      }
+    } catch (err: any) {
+      toast({
+        title: text.error,
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingPaymentLink(false);
     }
   };
 
@@ -317,6 +385,8 @@ const QuoteResponse = () => {
     );
   }
 
+  const depositInfo = quote.depositInfo;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -330,7 +400,6 @@ const QuoteResponse = () => {
                   alt={company.name}
                   className="max-w-full max-h-full w-auto h-auto object-contain"
                   onError={(e) => {
-                    // Hide image container if logo fails to load
                     (e.currentTarget.parentElement as HTMLElement).style.display = 'none';
                   }}
                 />
@@ -440,9 +509,90 @@ const QuoteResponse = () => {
                 <span>{text.totalAmount}</span>
                 <span>{formatCurrency(quote.total)}</span>
               </div>
+
+              {/* Deposit Info */}
+              {depositInfo && (
+                <div className="pt-3 mt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-primary">
+                      {depositInfo.isPaid ? text.depositPaid : text.depositRequired}
+                    </span>
+                    <span className="font-semibold text-primary">
+                      {depositInfo.hasRanges && depositInfo.minAmount !== depositInfo.maxAmount
+                        ? `${formatCurrency(depositInfo.minAmount)} – ${formatCurrency(depositInfo.maxAmount)}`
+                        : formatCurrency(depositInfo.amount)
+                      }
+                      {depositInfo.type === 'percentage' && ` (${depositInfo.value}%)`}
+                    </span>
+                  </div>
+                  {depositInfo.isPaid && depositInfo.paidAt && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {format(new Date(depositInfo.paidAt), "PPP", { locale: dateLocale })}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Payment Section */}
+        {quote.online_payment_enabled && !quote.isExpired && quote.status !== 'refused' && (
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                {text.paymentMethods}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                {depositInfo && !depositInfo.isPaid && (
+                  <Button
+                    onClick={() => handlePayment('deposit')}
+                    disabled={generatingPaymentLink}
+                    className="flex-1"
+                    size="lg"
+                  >
+                    {generatingPaymentLink ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CreditCard className="h-4 w-4 mr-2" />
+                    )}
+                    {generatingPaymentLink
+                      ? text.generatingLink
+                      : `${text.payDeposit} (${formatCurrency(depositInfo.amount)})`
+                    }
+                  </Button>
+                )}
+                {(!depositInfo || depositInfo.isPaid) && (
+                  <Button
+                    onClick={() => handlePayment('full')}
+                    disabled={generatingPaymentLink}
+                    className="flex-1"
+                    size="lg"
+                  >
+                    {generatingPaymentLink ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CreditCard className="h-4 w-4 mr-2" />
+                    )}
+                    {generatingPaymentLink
+                      ? text.generatingLink
+                      : `${text.payFull} (${formatCurrency(quote.total)})`
+                    }
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                {browserLang === 'fr'
+                  ? 'Paiement sécurisé via Stripe'
+                  : 'Secure payment via Stripe'
+                }
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Notes & Terms */}
         {(quote.notes || quote.terms) && (

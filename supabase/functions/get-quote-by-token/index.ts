@@ -42,6 +42,15 @@ const handler = async (req: Request): Promise<Response> => {
         terms,
         responded_at,
         client_response_note,
+        deposit_type,
+        deposit_value,
+        deposit_amount,
+        payment_link,
+        deposit_paid_at,
+        online_payment_enabled,
+        has_ranges,
+        min_total,
+        max_total,
         clients (
           name,
           email,
@@ -89,12 +98,30 @@ const handler = async (req: Request): Promise<Response> => {
     // Check if expired
     const isExpired = quote.expiry_date ? new Date(quote.expiry_date) < new Date() : false;
 
+    // Calculate deposit display info
+    let depositInfo = null;
+    if (quote.deposit_type && quote.deposit_type !== 'none' && quote.deposit_amount > 0) {
+      depositInfo = {
+        type: quote.deposit_type,
+        value: quote.deposit_value,
+        amount: quote.deposit_amount,
+        hasRanges: quote.has_ranges,
+        minAmount: quote.deposit_amount,
+        maxAmount: quote.has_ranges && quote.deposit_type === 'percentage' && quote.max_total
+          ? Math.round(quote.max_total * (quote.deposit_value / 100) * 100) / 100
+          : quote.deposit_amount,
+        isPaid: !!quote.deposit_paid_at,
+        paidAt: quote.deposit_paid_at,
+      };
+    }
+
     return new Response(
       JSON.stringify({ 
         quote: {
           ...quote,
           isExpired,
-          canRespond: !isExpired && quote.status !== "accepted" && quote.status !== "refused"
+          canRespond: !isExpired && quote.status !== "accepted" && quote.status !== "refused",
+          depositInfo,
         },
         company 
       }),

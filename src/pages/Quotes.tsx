@@ -216,6 +216,7 @@ const Quotes = () => {
       depositType: 'none' as DepositType,
       depositValue: 0,
       sections: [] as QuoteSection[],
+      onlinePaymentEnabled: false,
     };
   });
 
@@ -519,6 +520,8 @@ const Quotes = () => {
         deposit_value: newQuote.depositValue,
         deposit_amount: totals.depositMinAmount,
       });
+      // Save online payment enabled separately (not in QuoteInsert type)
+      await supabase.from('quotes').update({ online_payment_enabled: newQuote.onlinePaymentEnabled }).eq('id', editingQuote.id);
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
       const totals = getQuoteTotals();
@@ -538,8 +541,12 @@ const Quotes = () => {
         deposit_amount: totals.depositMinAmount,
       }, newQuote.items.map(item => localItemToDb(item)));
       
-      if (createdQuote && newQuote.sections.length > 0) {
-        await saveSections(createdQuote.id, newQuote.sections);
+      if (createdQuote) {
+        // Save online payment enabled separately
+        await supabase.from('quotes').update({ online_payment_enabled: newQuote.onlinePaymentEnabled }).eq('id', createdQuote.id);
+        if (newQuote.sections.length > 0) {
+          await saveSections(createdQuote.id, newQuote.sections);
+        }
       }
     }
 
@@ -559,6 +566,7 @@ const Quotes = () => {
       depositType: 'none',
       depositValue: 0,
       sections: [],
+      onlinePaymentEnabled: false,
     });
     setDepositValueInput("0");
     setCurrentItem(createEmptyItem());
@@ -622,6 +630,7 @@ const Quotes = () => {
       depositType,
       depositValue,
       sections,
+      onlinePaymentEnabled: (quote as any).online_payment_enabled || false,
     });
     setExpiryManual(!!quote.expiry_date);
     setExpiryDuration(null);
@@ -1379,6 +1388,18 @@ const Quotes = () => {
                   <span className="text-sm text-muted-foreground">$</span>
                 )}
               </div>
+            </div>
+
+            {/* Online Payment Toggle */}
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="onlinePayment"
+                checked={newQuote.onlinePaymentEnabled}
+                onCheckedChange={(checked) => setNewQuote({ ...newQuote, onlinePaymentEnabled: !!checked })}
+              />
+              <Label htmlFor="onlinePayment" className="cursor-pointer">
+                {language === 'fr' ? 'Activer le paiement en ligne (Stripe)' : 'Enable online payment (Stripe)'}
+              </Label>
             </div>
 
             {/* Sections */}
