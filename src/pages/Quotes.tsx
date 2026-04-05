@@ -409,15 +409,7 @@ const Quotes = () => {
       expiry_date: quote.expiry_date || "",
       terms: quote.terms || "",
       notes: quote.notes || "",
-      items: (quote.quote_items || []).map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total: item.total,
-        product_id: item.product_id || undefined,
-        notes: item.notes || undefined,
-        product_taxes: item.product_taxes || undefined
-      }))
+      items: (quote.quote_items || []).map(item => dbItemToLocal(item))
     });
     setIsDialogOpen(true);
   };
