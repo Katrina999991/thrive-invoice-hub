@@ -520,6 +520,8 @@ const Quotes = () => {
         deposit_value: newQuote.depositValue,
         deposit_amount: totals.depositMinAmount,
       });
+      // Save online payment enabled separately (not in QuoteInsert type)
+      await supabase.from('quotes').update({ online_payment_enabled: newQuote.onlinePaymentEnabled }).eq('id', editingQuote.id);
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
       const totals = getQuoteTotals();
