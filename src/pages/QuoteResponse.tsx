@@ -206,6 +206,16 @@ const QuoteResponse = () => {
         }
 
         const result = await response.json();
+        
+        // Debug logs for payment link troubleshooting
+        console.log("[QUOTE-PAYMENT-DEBUG] Quote ID:", result.quote?.id);
+        console.log("[QUOTE-PAYMENT-DEBUG] online_payment_enabled:", result.quote?.online_payment_enabled);
+        console.log("[QUOTE-PAYMENT-DEBUG] payment_link:", result.quote?.payment_link || "NULL");
+        console.log("[QUOTE-PAYMENT-DEBUG] deposit info:", result.quote?.depositInfo);
+        console.log("[QUOTE-PAYMENT-DEBUG] total:", result.quote?.total);
+        console.log("[QUOTE-PAYMENT-DEBUG] status:", result.quote?.status);
+        console.log("[QUOTE-PAYMENT-DEBUG] isExpired:", result.quote?.isExpired);
+        
         setQuote(result.quote);
         setCompany(result.company);
       } catch (err: any) {
