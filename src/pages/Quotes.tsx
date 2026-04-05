@@ -71,16 +71,15 @@ const Quotes = () => {
     items: [] as QuoteItemLocal[]
   });
 
-  const [currentItem, setCurrentItem] = useState({
-    description: "",
-    quantity: 1,
-    unit_price: 0,
-    product_id: "",
-    notes: ""
-  });
+  const [currentItem, setCurrentItem] = useState<QuoteItemLocal>(createEmptyItem());
 
   const [quantityInput, setQuantityInput] = useState("1");
   const [unitPriceInput, setUnitPriceInput] = useState("0");
+  const [estimatedHoursInput, setEstimatedHoursInput] = useState("0");
+  const [hourlyRateInput, setHourlyRateInput] = useState("0");
+  const [minUnitsInput, setMinUnitsInput] = useState("0");
+  const [maxUnitsInput, setMaxUnitsInput] = useState("0");
+  const [rateInput, setRateInput] = useState("0");
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   const t = (key: string) => {
