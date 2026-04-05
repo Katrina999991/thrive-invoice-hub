@@ -505,13 +505,51 @@ const handler = async (req: Request): Promise<Response> => {
       fromAddress = `${company.name} via GestionFlow <${defaultDomain}>`;
     }
     
+    // Build deposit summary for email
+    const depositAmount = quote.deposit_amount || 0;
+    const depositType = quote.deposit_type || 'none';
+    const hasDeposit = depositType !== 'none' && depositAmount > 0;
+    const onlinePaymentEnabled = quote.online_payment_enabled || false;
+
+    let depositSummaryHtml = '';
+    if (hasDeposit) {
+      const depositLabel = isFrench ? 'Acompte requis' : 'Deposit required';
+      const depositDisplay = depositType === 'percentage'
+        ? `$${depositAmount.toFixed(2)} (${quote.deposit_value}%)`
+        : `$${depositAmount.toFixed(2)}`;
+      depositSummaryHtml = `
+        <div style="margin-top: 15px; padding: 12px 16px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px;">
+          <p style="margin: 0; font-weight: 600; color: #1e40af;">${depositLabel}: ${depositDisplay}</p>
+        </div>
+      `;
+    }
+
+    // Payment button (if online payment enabled)
+    let paymentButtonHtml = '';
+    if (onlinePaymentEnabled && quote.payment_link) {
+      const payBtnText = hasDeposit
+        ? (isFrench ? 'Payer l\'acompte' : 'Pay Deposit')
+        : (isFrench ? 'Payer maintenant' : 'Pay Now');
+      paymentButtonHtml = `
+        <div style="margin-top: 15px; text-align: center;">
+          <a href="${quote.payment_link}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            ${payBtnText}
+          </a>
+        </div>
+      `;
+    }
+
     // Always add a response button at the end of the email
     const responseButtonText = isFrench ? 'Répondre au devis' : 'Respond to Quote';
     const responseButtonHtml = `
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-        <a href="${responseLink}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
-          ${responseButtonText}
-        </a>
+        ${depositSummaryHtml}
+        ${paymentButtonHtml}
+        <div style="margin-top: 15px;">
+          <a href="${responseLink}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+            ${responseButtonText}
+          </a>
+        </div>
         <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
           ${isFrench ? 'Ou copiez ce lien :' : 'Or copy this link:'} <a href="${responseLink}" style="color: #2563eb;">${responseLink}</a>
         </p>
