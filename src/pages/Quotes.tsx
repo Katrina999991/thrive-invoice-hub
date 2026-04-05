@@ -1232,67 +1232,16 @@ const Quotes = () => {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t("quotes.quoteDetails")}</DialogTitle>
-          </DialogHeader>
-          {viewingQuote && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.quoteNumber")}</p>
-                  <p className="font-medium">{viewingQuote.quote_number}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.status")}</p>
-                  <Badge className={getStatusColor(viewingQuote.status)}>{getStatusLabel(viewingQuote.status)}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.client")}</p>
-                  <p className="font-medium">{viewingQuote.clients?.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("quotes.issueDate")}</p>
-                  <p className="font-medium">{viewingQuote.issue_date}</p>
-                </div>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("quotes.description")}</TableHead>
-                    <TableHead>{language === 'fr' ? 'Détails' : 'Details'}</TableHead>
-                    <TableHead>{t("quotes.total")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(viewingQuote.quote_items || []).map((item) => {
-                    const localItem = dbItemToLocal(item);
-                    const computed = computeLineTotals(localItem);
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{formatLineDisplay(localItem)}</TableCell>
-                        <TableCell>
-                          {computed.isRange 
-                            ? `$${computed.minTotal.toFixed(2)} – $${computed.maxTotal.toFixed(2)}`
-                            : `$${computed.total.toFixed(2)}`
-                          }
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <div className="text-right space-y-1">
-                <p>{t("quotes.subtotal")}: ${viewingQuote.subtotal.toFixed(2)}</p>
-                <p>{t("quotes.taxAmount")}: ${viewingQuote.tax_amount.toFixed(2)}</p>
-                <p className="font-bold text-lg">{t("quotes.totalAmount")}: ${viewingQuote.total.toFixed(2)}</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ViewQuoteDialog
+        viewingQuote={viewingQuote}
+        isOpen={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        t={t}
+        language={language}
+        getStatusColor={getStatusColor}
+        getStatusLabel={getStatusLabel}
+        loadSections={loadSections}
+      />
 
       {/* Email Dialog */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
