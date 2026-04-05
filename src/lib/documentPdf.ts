@@ -646,9 +646,32 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     }
   });
 
-  // ========== NOTES, TERMS & FOOTER ==========
+  // ========== AFTER-ITEMS SECTIONS ==========
   const tableEndY = (doc as any).lastAutoTable?.finalY || startY + 100;
   let contentEndY = tableEndY;
+
+  if (afterSections.length > 0) {
+    contentEndY += 10;
+    afterSections.forEach(section => {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(section.title, margin, contentEndY);
+      contentEndY += 6;
+      if (section.content) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        const splitContent = doc.splitTextToSize(section.content, contentWidth);
+        doc.text(splitContent, margin, contentEndY);
+        contentEndY += splitContent.length * 4.5 + 4;
+      } else {
+        contentEndY += 2;
+      }
+    });
+  }
+
+  // ========== NOTES, TERMS & FOOTER ==========
   
   // Notes section
   if (document.notes) {
