@@ -437,6 +437,28 @@ export async function generateDocumentPdf(options: DocumentPdfOptions): Promise<
     }
   }
 
+  // ========== BEFORE-ITEMS SECTIONS ==========
+  if (beforeSections.length > 0) {
+    nextY += 10;
+    beforeSections.forEach(section => {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(selectedColor.primary[0], selectedColor.primary[1], selectedColor.primary[2]);
+      doc.text(section.title, margin, nextY);
+      nextY += 6;
+      if (section.content) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        const splitContent = doc.splitTextToSize(section.content, contentWidth);
+        doc.text(splitContent, margin, nextY);
+        nextY += splitContent.length * 4.5 + 4;
+      } else {
+        nextY += 2;
+      }
+    });
+  }
+
   // ========== ITEMS TABLE ==========
   const startY = nextY + 15;
   
