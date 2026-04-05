@@ -201,6 +201,8 @@ const handler = async (req: Request): Promise<Response> => {
           notes,
           company_id,
           include_payment_link,
+          chargeback_clause_enabled,
+          chargeback_clause_text,
           companies (
             name,
             logo_url,
