@@ -1506,12 +1506,42 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
           </Tabs>
 
           <div className="flex justify-end pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={attemptClose}>
               {t('Fermer', 'Close')}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ══════════ Unsaved Changes Confirmation ══════════ */}
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('Modifications non sauvegardées', 'Unsaved Changes')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'Vous avez des modifications non sauvegardées. Voulez-vous enregistrer avant de fermer ?',
+                'You have unsaved changes. Would you like to save before closing?'
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowUnsavedDialog(false)}>
+              {t('Annuler', 'Cancel')}
+            </Button>
+            <Button variant="ghost" onClick={handleDiscardAndClose}>
+              {t('Fermer sans enregistrer', 'Close without saving')}
+            </Button>
+            <Button onClick={handleSaveAndClose} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              <Save className="h-4 w-4 mr-2" />
+              {t('Enregistrer et fermer', 'Save and close')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ══════════ Email Sub-Dialog ══════════ */}
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
