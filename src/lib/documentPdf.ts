@@ -86,6 +86,12 @@ export interface CompanyData {
   quote_footer_message_fr?: string | null;
 }
 
+export interface DocumentSection {
+  title: string;
+  content: string;
+  placement: 'before_items' | 'after_items';
+}
+
 export interface DocumentPdfOptions {
   documentType: DocumentType;
   document: DocumentData;
@@ -98,6 +104,7 @@ export interface DocumentPdfOptions {
   hideBranding?: boolean;
   customFooterText?: string;
   returnBlob?: boolean;
+  sections?: DocumentSection[];
 }
 
 // Translations for both document types
