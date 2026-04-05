@@ -72,6 +72,9 @@ export interface QuoteInsert {
   total?: number;
   notes?: string | null;
   terms?: string | null;
+  deposit_type?: string;
+  deposit_value?: number;
+  deposit_amount?: number;
 }
 
 export interface QuoteItemInsert {
@@ -90,6 +93,7 @@ export interface QuoteItemInsert {
   max_units?: number;
   rate?: number;
   unit_label?: string | null;
+  is_optional?: boolean;
 }
 
 export const useQuotes = () => {
