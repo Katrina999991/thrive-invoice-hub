@@ -75,6 +75,7 @@ export interface QuoteInsert {
   deposit_type?: string;
   deposit_value?: number;
   deposit_amount?: number;
+  online_payment_enabled?: boolean;
 }
 
 export interface QuoteItemInsert {
