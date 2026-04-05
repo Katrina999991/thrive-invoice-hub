@@ -406,6 +406,7 @@ const Quotes = () => {
       items: [],
       depositType: 'none',
       depositValue: 0,
+      sections: [],
     });
     setDepositValueInput("0");
     setCurrentItem(createEmptyItem());
@@ -415,7 +416,40 @@ const Quotes = () => {
     setSelectedCompanyId("");
   };
 
-  const openEditDialog = (quote: Quote) => {
+  const loadSections = async (quoteId: string): Promise<QuoteSection[]> => {
+    const { data, error } = await supabase
+      .from("quote_sections")
+      .select("*")
+      .eq("quote_id", quoteId)
+      .order("position", { ascending: true });
+    if (error) { console.error("Error loading sections:", error); return []; }
+    return (data || []).map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      content: s.content,
+      position: s.position,
+      placement: s.placement as 'before_items' | 'after_items',
+    }));
+  };
+
+  const saveSections = async (quoteId: string, sections: QuoteSection[]) => {
+    // Delete existing sections
+    await supabase.from("quote_sections").delete().eq("quote_id", quoteId);
+    // Insert new ones
+    if (sections.length > 0) {
+      await supabase.from("quote_sections").insert(
+        sections.map((s, i) => ({
+          quote_id: quoteId,
+          title: s.title,
+          content: s.content,
+          position: i,
+          placement: s.placement,
+        })) as any
+      );
+    }
+  };
+
+  const openEditDialog = async (quote: Quote) => {
     const client = clients.find(c => c.id === quote.client_id);
     if (client?.company_id) {
       setSelectedCompanyId(client.company_id);
