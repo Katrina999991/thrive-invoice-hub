@@ -971,6 +971,18 @@ const Quotes = () => {
                 </div>
               )}
 
+              {/* Optional item checkbox */}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="optional-item"
+                  checked={currentItem.isOptional}
+                  onCheckedChange={(checked) => setCurrentItem({ ...currentItem, isOptional: !!checked })}
+                />
+                <Label htmlFor="optional-item" className="text-sm font-normal cursor-pointer">
+                  {language === 'fr' ? 'Article optionnel' : 'Optional item'}
+                </Label>
+              </div>
+
               {newQuote.items.length > 0 && (
                 <Table>
                   <TableHeader>
