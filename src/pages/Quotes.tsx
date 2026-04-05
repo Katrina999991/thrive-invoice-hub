@@ -347,7 +347,7 @@ const Quotes = () => {
     if (editingQuote) {
       // Delete old items and insert new ones
       await supabase.from("quote_items").delete().eq("quote_id", editingQuote.id);
-      await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)));
+      await supabase.from("quote_items").insert(newQuote.items.map(item => localItemToDb(item, editingQuote.id)) as any);
       
       const totals = getQuoteTotals();
       await updateQuote(editingQuote.id, {
