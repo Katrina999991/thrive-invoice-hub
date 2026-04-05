@@ -392,8 +392,11 @@ const Quotes = () => {
       expiry_date: "",
       terms: "",
       notes: "",
-      items: []
+      items: [],
+      depositType: 'none',
+      depositValue: 0,
     });
+    setDepositValueInput("0");
     setCurrentItem(createEmptyItem());
     setQuantityInput("1");
     setUnitPriceInput("0");
