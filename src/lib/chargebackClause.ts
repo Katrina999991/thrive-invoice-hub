@@ -34,8 +34,8 @@ export function appendChargebackClause(
   const clauseText = client.chargeback_clause_text || getDefaultClauseText(language);
   const separator = '\n\n───────────────────────────\n\n';
   const clauseHeader = language === 'fr' 
-    ? '📋 Clause de reconnaissance de réception' 
-    : '📋 Receipt Acknowledgment Clause';
+    ? 'Clause de reconnaissance de reception' 
+    : 'Receipt Acknowledgment Clause';
 
   const formattedClause = `${clauseHeader}\n\n${clauseText}`;
 
