@@ -65,7 +65,7 @@ function createLightVariant(primary: [number, number, number]): [number, number,
 }
 
 export async function generateQuotePdf(options: QuotePdfOptions): Promise<Blob | void> {
-  const { quote, client, company, language, hideBranding = false, accentColor, customFooterText, returnBlob = false } = options;
+  const { quote, client, company, language, hideBranding = false, accentColor, customFooterText, returnBlob = false, sections } = options;
 
   // Get template and color settings from localStorage (same settings as invoices)
   const template = (localStorage.getItem("invoice-template") || "classic") as TemplateType;
