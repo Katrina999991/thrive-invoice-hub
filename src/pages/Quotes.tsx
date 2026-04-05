@@ -1390,6 +1390,18 @@ const Quotes = () => {
               </div>
             </div>
 
+            {/* Online Payment Toggle */}
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="onlinePayment"
+                checked={newQuote.onlinePaymentEnabled}
+                onCheckedChange={(checked) => setNewQuote({ ...newQuote, onlinePaymentEnabled: !!checked })}
+              />
+              <Label htmlFor="onlinePayment" className="cursor-pointer">
+                {language === 'fr' ? 'Activer le paiement en ligne (Stripe)' : 'Enable online payment (Stripe)'}
+              </Label>
+            </div>
+
             {/* Sections */}
             <QuoteSectionsEditor
               sections={newQuote.sections}
