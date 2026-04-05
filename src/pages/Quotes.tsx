@@ -1070,11 +1070,55 @@ const Quotes = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{t("quotes.issueDate")}</Label>
-                <Input type="date" value={newQuote.issue_date} onChange={(e) => setNewQuote({ ...newQuote, issue_date: e.target.value })} />
+                <Input type="date" value={newQuote.issue_date} onChange={(e) => {
+                  const newIssueDate = e.target.value;
+                  const updates: any = { ...newQuote, issue_date: newIssueDate };
+                  if (!expiryManual && expiryDuration !== null) {
+                    updates.expiry_date = addDaysToDate(newIssueDate, expiryDuration);
+                  }
+                  setNewQuote(updates);
+                }} />
               </div>
               <div>
                 <Label>{t("quotes.expiryDate")}</Label>
-                <Input type="date" value={newQuote.expiry_date} onChange={(e) => setNewQuote({ ...newQuote, expiry_date: e.target.value })} />
+                <Input type="date" value={newQuote.expiry_date} onChange={(e) => {
+                  setExpiryManual(true);
+                  setExpiryDuration(null);
+                  setNewQuote({ ...newQuote, expiry_date: e.target.value });
+                }} />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm text-muted-foreground">{t("quotes.expiryPreset")}</Label>
+              <div className="flex gap-2 mt-1">
+                {[7, 14, 30].map(days => (
+                  <Button
+                    key={days}
+                    type="button"
+                    variant={expiryDuration === days && !expiryManual ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setExpiryDuration(days);
+                      setExpiryManual(false);
+                      setNewQuote({ ...newQuote, expiry_date: addDaysToDate(newQuote.issue_date, days) });
+                    }}
+                  >
+                    {days} {t("quotes.expiryDays")}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  variant={expiryDuration === null && !expiryManual ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setExpiryDuration(null);
+                    setExpiryManual(false);
+                    setNewQuote({ ...newQuote, expiry_date: "" });
+                  }}
+                >
+                  {t("quotes.expiryNone")}
+                </Button>
               </div>
             </div>
 
