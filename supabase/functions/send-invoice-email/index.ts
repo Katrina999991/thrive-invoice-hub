@@ -430,7 +430,7 @@ const handler = async (req: Request): Promise<Response> => {
           subtotal: invoice.subtotal,
           tax_amount: invoice.tax_amount,
           total: invoice.total,
-          terms: invoice.terms,
+          terms: appendChargebackClauseServer(invoice.terms, client),
           notes: invoice.notes,
           items: invoice.invoice_items || []
         },
