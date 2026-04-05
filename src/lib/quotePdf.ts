@@ -17,6 +17,7 @@ export interface QuoteItem {
   max_units?: number;
   rate?: number;
   unit_label?: string | null;
+  is_optional?: boolean;
 }
 
 export interface QuoteData {
@@ -29,6 +30,9 @@ export interface QuoteData {
   terms?: string | null;
   notes?: string | null;
   quote_items: QuoteItem[];
+  deposit_type?: string;
+  deposit_value?: number;
+  deposit_amount?: number;
 }
 
 export interface QuotePdfOptions {
