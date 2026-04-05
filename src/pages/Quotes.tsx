@@ -621,6 +621,9 @@ const Quotes = () => {
     // Load sections for PDF
     const pdfSections = await loadSections(quote.id);
 
+    // Append chargeback clause if enabled for this client
+    const termsWithClause = appendChargebackClause(quote.terms, client as any, language as 'fr' | 'en');
+
     await generateQuotePdf({
       quote: {
         quote_number: quote.quote_number,
@@ -629,7 +632,7 @@ const Quotes = () => {
         subtotal: quote.subtotal,
         tax_amount: quote.tax_amount,
         total: quote.total,
-        terms: quote.terms,
+        terms: termsWithClause,
         notes: quote.notes,
         quote_items: (quote.quote_items || []).map(item => ({
           description: item.description,
