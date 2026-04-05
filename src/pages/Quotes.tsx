@@ -216,6 +216,7 @@ const Quotes = () => {
       depositType: 'none' as DepositType,
       depositValue: 0,
       sections: [] as QuoteSection[],
+      onlinePaymentEnabled: false,
     };
   });
 
