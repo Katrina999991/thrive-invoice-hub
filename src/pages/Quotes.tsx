@@ -457,6 +457,7 @@ const Quotes = () => {
     setEditingQuote(quote);
     const depositType = ((quote as any).deposit_type || 'none') as DepositType;
     const depositValue = (quote as any).deposit_value || 0;
+    const sections = await loadSections(quote.id);
     setNewQuote({
       client_id: quote.client_id || "",
       issue_date: quote.issue_date,
@@ -466,6 +467,7 @@ const Quotes = () => {
       items: (quote.quote_items || []).map(item => dbItemToLocal(item)),
       depositType,
       depositValue,
+      sections,
     });
     setDepositValueInput(depositValue.toString());
     setIsDialogOpen(true);
