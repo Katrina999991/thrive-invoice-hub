@@ -450,7 +450,14 @@ const Quotes = () => {
           unit_price: item.unit_price,
           total: item.total,
           notes: item.notes,
-          product_taxes: item.product_taxes as any
+          product_taxes: item.product_taxes as any,
+          line_type: (item as any).line_type || 'fixed',
+          estimated_hours: (item as any).estimated_hours || 0,
+          hourly_rate: (item as any).hourly_rate || 0,
+          min_units: (item as any).min_units || 0,
+          max_units: (item as any).max_units || 0,
+          rate: (item as any).rate || 0,
+          unit_label: (item as any).unit_label || null,
         }))
       },
       client: client ? {
