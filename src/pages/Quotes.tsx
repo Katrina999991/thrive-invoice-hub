@@ -315,35 +315,17 @@ const Quotes = () => {
     setNewQuote({ ...newQuote, items: newQuote.items.filter((_, i) => i !== index) });
   };
 
-  const calculateSubtotal = () => newQuote.items.reduce((sum, item) => sum + item.total, 0);
-
-  const calculateTaxes = () => {
+  const getQuoteTotals = () => {
     const selectedCompany = companies.find(c => c.id === selectedCompanyId);
-    let totalTax = 0;
-    
-    newQuote.items.forEach(item => {
-      if (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes)) {
-        selectedCompany.taxes.forEach((tax: any) => {
-          totalTax += item.total * (tax.percentage / 100);
-        });
-      }
-      if (item.product_taxes && item.product_taxes.length > 0) {
-        item.product_taxes.forEach((tax) => {
-          const taxType = tax.type || 'percentage';
-          const taxValue = tax.value !== undefined ? tax.value : tax.percentage || 0;
-          if (taxType === 'percentage') {
-            totalTax += item.total * (taxValue / 100);
-          } else {
-            totalTax += taxValue * item.quantity;
-          }
-        });
-      }
-    });
-    
-    return totalTax;
+    const companyTaxes = (selectedCompany?.taxes && Array.isArray(selectedCompany.taxes)) 
+      ? selectedCompany.taxes as Array<{ percentage: number }> 
+      : null;
+    return computeQuoteTotals(newQuote.items, companyTaxes);
   };
 
-  const calculateTotal = () => calculateSubtotal() + calculateTaxes();
+  const calculateSubtotal = () => getQuoteTotals().subtotal;
+  const calculateTaxes = () => getQuoteTotals().taxAmount;
+  const calculateTotal = () => getQuoteTotals().total;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
