@@ -1,0 +1,1 @@
+ALTER TABLE public.invoice_formal_notices ADD COLUMN payment_term_days integer DEFAULT 10;

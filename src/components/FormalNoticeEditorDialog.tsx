@@ -439,18 +439,9 @@ Sincerely,
         const savedDueAt = latestNotice.due_at || getLocalDateIso(defaultDueDate);
         setDueAt(savedDueAt);
 
-        if (latestNotice.due_at && latestNotice.created_at) {
-          const created = parseLocalDateString(latestNotice.created_at.split('T')[0]);
-          const due = parseLocalDateString(latestNotice.due_at);
-          const diffDays = Math.round((due.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-          if ([5, 10, 15].includes(diffDays)) {
-            setDelayDays(diffDays);
-          } else {
-            const closest = [5, 10, 15].reduce((prev, curr) =>
-              Math.abs(curr - diffDays) < Math.abs(prev - diffDays) ? curr : prev
-            );
-            setDelayDays(closest);
-          }
+        // Restore persisted payment term days
+        if (latestNotice.payment_term_days && [5, 10, 15].includes(latestNotice.payment_term_days)) {
+          setDelayDays(latestNotice.payment_term_days);
         }
       }
       if (latestNotice.sending_method) setSendingMethod(latestNotice.sending_method as DeliveryMethod);
@@ -557,6 +548,7 @@ Sincerely,
     proof_of_sending: proofSending,
     proof_of_receipt: proofReceipt,
     tracking_notes: trackingNotes || undefined,
+    payment_term_days: delayDays,
   });
 
   const buildTrackingData = (): FormalNoticeInput => ({
