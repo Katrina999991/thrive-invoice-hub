@@ -866,6 +866,7 @@ export type Database = {
           due_at: string | null
           id: string
           invoice_id: string
+          payment_term_days: number | null
           pdf_url: string | null
           proof_of_receipt: boolean
           proof_of_sending: boolean
@@ -894,6 +895,7 @@ export type Database = {
           due_at?: string | null
           id?: string
           invoice_id: string
+          payment_term_days?: number | null
           pdf_url?: string | null
           proof_of_receipt?: boolean
           proof_of_sending?: boolean
@@ -922,6 +924,7 @@ export type Database = {
           due_at?: string | null
           id?: string
           invoice_id?: string
+          payment_term_days?: number | null
           pdf_url?: string | null
           proof_of_receipt?: boolean
           proof_of_sending?: boolean

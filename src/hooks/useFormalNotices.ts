@@ -57,6 +57,7 @@ export interface FormalNoticeInput {
   proof_of_sending?: boolean;
   proof_of_receipt?: boolean;
   tracking_notes?: string;
+  payment_term_days?: number;
 }
 
 export const useFormalNotices = (invoiceId?: string) => {
