@@ -853,12 +853,18 @@ const Clients = () => {
                                <Bell className="h-3 w-3 mr-1" />
                                {language === "fr" ? "Rappel auto" : "Auto reminder"}
                              </Badge>
-                           )}
-                           {isOverLimit && (
-                             <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs whitespace-nowrap">
-                               {language === "fr" ? "Hors limite" : "Over Limit"}
-                             </Badge>
-                           )}
+                            )}
+                            {(client as any).chargeback_clause_enabled && (
+                              <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                                <FileText className="h-3 w-3 mr-1" />
+                                {language === "fr" ? "Clause" : "Clause"}
+                              </Badge>
+                            )}
+                            {isOverLimit && (
+                              <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/50 text-xs whitespace-nowrap">
+                                {language === "fr" ? "Hors limite" : "Over Limit"}
+                              </Badge>
+                            )}
                          </div>
                        </TableCell>
                     <TableCell className="whitespace-nowrap">
