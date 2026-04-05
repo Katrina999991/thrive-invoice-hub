@@ -54,6 +54,7 @@ export interface QuoteItem {
   max_units: number;
   rate: number;
   unit_label: string | null;
+  is_optional: boolean;
   products?: {
     name: string;
   } | null;
