@@ -65,17 +65,7 @@ const AcceptInvite = () => {
 
       try {
         const { data, error: fetchError } = await supabase
-          .from('company_invites')
-          .select(`
-            id,
-            email,
-            expires_at,
-            accepted_at,
-            companies (name),
-            company_roles (name)
-          `)
-          .eq('token', token)
-          .single();
+          .rpc('get_invite_by_token', { _token: token });
 
         if (fetchError || !data) {
           setError(t.inviteNotFound);
