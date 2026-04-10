@@ -614,7 +614,7 @@ export function TeamAccessTab() {
                           )}
                         <div className="flex gap-2">
                             {/* Show edit/delete only for non-system roles, OR for system roles (except Owner) if user is Owner */}
-                            {(!role.is_system || (canEditSystemRoles && role.name !== "Owner")) && (
+                            {canEditRole(role) && (
                               <>
                                 <Button 
                                   variant="outline" 
@@ -689,11 +689,11 @@ export function TeamAccessTab() {
                 : (language === "fr" ? "Nouveau rôle" : "New role")}
             </DialogTitle>
             <DialogDescription>
-              {editingRole?.is_system && !canEditSystemRoles ? (
+              {editingRole && !canEditRole(editingRole) ? (
                 <span className="text-amber-600">
                   {language === "fr" 
-                    ? "Les permissions des rôles système ne peuvent être modifiées que par le propriétaire."
-                    : "System role permissions can only be modified by the owner."}
+                    ? "Ce rôle est protégé et ne peut pas être modifié."
+                    : "This role is protected and cannot be modified."}
                 </span>
               ) : (
                 language === "fr" 
@@ -711,7 +711,7 @@ export function TeamAccessTab() {
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder={language === "fr" ? "Ex: Gestionnaire" : "Ex: Manager"}
-                disabled={editingRole?.is_system && !canEditSystemRoles}
+                disabled={editingRole ? !canEditRole(editingRole) : false}
               />
             </div>
             <div className="space-y-2">
@@ -721,7 +721,7 @@ export function TeamAccessTab() {
                 value={roleDescription}
                 onChange={(e) => setRoleDescription(e.target.value)}
                 placeholder={language === "fr" ? "Description optionnelle" : "Optional description"}
-                disabled={editingRole?.is_system && !canEditSystemRoles}
+                disabled={editingRole ? !canEditRole(editingRole) : false}
               />
             </div>
 
