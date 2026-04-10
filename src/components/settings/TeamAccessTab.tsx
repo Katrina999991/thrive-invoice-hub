@@ -732,7 +732,7 @@ export function TeamAccessTab() {
                   const modulePerms = ALL_PERMISSIONS.filter(p => p.module === module);
                   const allSelected = modulePerms.every(p => selectedPermissions.includes(p.key));
                   const someSelected = modulePerms.some(p => selectedPermissions.includes(p.key));
-                  const isDisabled = editingRole?.is_system && !canEditSystemRoles;
+                  const isDisabled = editingRole ? !canEditRole(editingRole) : false;
                   return (
                     <div key={module} className="space-y-2">
                       <div className="flex items-center space-x-2">
