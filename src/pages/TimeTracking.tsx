@@ -1009,16 +1009,19 @@ export default function TimeTracking() {
     }
     
     // Filtre par date (compare as YYYY-MM-DD strings to avoid timezone issues)
+    // Use UTC getters to extract the date parts since react-day-picker creates dates at UTC midnight
     if (dateRange?.from) {
       const entryDateStr = entry.date; // already "YYYY-MM-DD"
-      const fromStr = format(dateRange.from, "yyyy-MM-dd");
+      const f = dateRange.from;
+      const fromStr = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
       
       if (entryDateStr < fromStr) {
         return false;
       }
       
       if (dateRange.to) {
-        const toStr = format(dateRange.to, "yyyy-MM-dd");
+        const t = dateRange.to;
+        const toStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
         if (entryDateStr > toStr) {
           return false;
         }
