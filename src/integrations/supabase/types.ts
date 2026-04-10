@@ -2192,6 +2192,15 @@ export type Database = {
         Args: { _company_id: string }
         Returns: number
       }
+      create_company_invite: {
+        Args: {
+          _company_id: string
+          _email: string
+          _invited_by: string
+          _role_id: string
+        }
+        Returns: Json
+      }
       create_company_role: {
         Args: { _company_id: string; _description?: string; _name: string }
         Returns: string
