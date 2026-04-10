@@ -54,9 +54,27 @@ export function TeamAccessTab() {
   // Check if current user is Owner of selected company
   const currentUserMember = members.find(m => m.user_id === user?.id);
   const isOwner = currentUserMember?.role_name === "Owner";
+  const isAdmin = currentUserMember?.role_name === "Admin";
   
-  // Admins can manage custom roles but NOT system roles (Owner, Admin)
-  const canEditSystemRoles = isOwner;
+  // Protected system roles that only Owner can modify (and Owner itself is fully locked)
+  const PROTECTED_ROLE_NAMES = ["Owner", "Admin"];
+  
+  // Determine if a role can be edited by the current user
+  const canEditRole = (role: CompanyRole): boolean => {
+    // Owner role is NEVER editable by anyone
+    if (role.name === "Owner") return false;
+    // Owner can edit all other roles (including Admin)
+    if (isOwner) return true;
+    // Admin can edit non-protected roles only
+    if (isAdmin && canManageRoles) {
+      return !PROTECTED_ROLE_NAMES.includes(role.name);
+    }
+    // Other roles with manage_roles can also edit non-protected roles
+    if (canManageRoles) {
+      return !PROTECTED_ROLE_NAMES.includes(role.name);
+    }
+    return false;
+  };
 
   // Set first company as default
   useEffect(() => {
