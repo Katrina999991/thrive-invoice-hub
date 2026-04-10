@@ -2248,6 +2248,7 @@ export type Database = {
         }
       }
       get_current_user_email: { Args: never; Returns: string }
+      get_invite_by_token: { Args: { _token: string }; Returns: Json }
       get_role_company_id: { Args: { _role_id: string }; Returns: string }
       get_role_company_id_safe: { Args: { _role_id: string }; Returns: string }
       get_role_permissions: {
