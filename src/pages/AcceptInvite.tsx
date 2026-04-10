@@ -64,8 +64,10 @@ const AcceptInvite = () => {
       }
 
       try {
-        const { data, error: fetchError } = await supabase
+        const { data: rawData, error: fetchError } = await supabase
           .rpc('get_invite_by_token', { _token: token });
+
+        const data = rawData as Record<string, any> | null;
 
         if (fetchError || !data) {
           setError(t.inviteNotFound);
@@ -88,8 +90,8 @@ const AcceptInvite = () => {
         setInvite({
           id: data.id,
           email: data.email,
-          company_name: (data.companies as any)?.name || '',
-          role_name: (data.company_roles as any)?.name || '',
+          company_name: data.company_name || '',
+          role_name: data.role_name || '',
           expires_at: data.expires_at,
           accepted_at: data.accepted_at,
         });
