@@ -204,29 +204,27 @@ export function useCompanyMembers(companyId: string | null) {
     if (!companyId) return;
 
     try {
-      const { data: inviteData, error } = await supabase
-        .from("company_invites")
-        .insert({
-          company_id: companyId,
-          email,
-          role_id: roleId,
-          invited_by: invitedBy
-        })
-        .select()
-        .single();
+      // Use RPC function to bypass RLS issues
+      const { data: inviteData, error } = await supabase.rpc('create_company_invite', {
+        _company_id: companyId,
+        _email: email,
+        _role_id: roleId,
+        _invited_by: invitedBy
+      });
 
       if (error) throw error;
 
+      const inviteResult = inviteData as Record<string, any> | null;
+
       // Send invite email
-      if (inviteData) {
+      if (inviteResult?.id) {
         try {
           const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
-            body: { inviteId: inviteData.id }
+            body: { inviteId: inviteResult.id }
           });
           
           if (emailError) {
             console.error("Error sending invite email:", emailError);
-            // Don't fail the invite if email fails, just warn
             toast({
               title: language === "fr" ? "Invitation créée" : "Invitation created",
               description: language === "fr" 
