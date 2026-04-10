@@ -54,9 +54,27 @@ export function TeamAccessTab() {
   // Check if current user is Owner of selected company
   const currentUserMember = members.find(m => m.user_id === user?.id);
   const isOwner = currentUserMember?.role_name === "Owner";
+  const isAdmin = currentUserMember?.role_name === "Admin";
   
-  // Admins can manage custom roles but NOT system roles (Owner, Admin)
-  const canEditSystemRoles = isOwner;
+  // Protected system roles that only Owner can modify (and Owner itself is fully locked)
+  const PROTECTED_ROLE_NAMES = ["Owner", "Admin"];
+  
+  // Determine if a role can be edited by the current user
+  const canEditRole = (role: CompanyRole): boolean => {
+    // Owner role is NEVER editable by anyone
+    if (role.name === "Owner") return false;
+    // Owner can edit all other roles (including Admin)
+    if (isOwner) return true;
+    // Admin can edit non-protected roles only
+    if (isAdmin && canManageRoles) {
+      return !PROTECTED_ROLE_NAMES.includes(role.name);
+    }
+    // Other roles with manage_roles can also edit non-protected roles
+    if (canManageRoles) {
+      return !PROTECTED_ROLE_NAMES.includes(role.name);
+    }
+    return false;
+  };
 
   // Set first company as default
   useEffect(() => {
@@ -596,7 +614,7 @@ export function TeamAccessTab() {
                           )}
                         <div className="flex gap-2">
                             {/* Show edit/delete only for non-system roles, OR for system roles (except Owner) if user is Owner */}
-                            {(!role.is_system || (canEditSystemRoles && role.name !== "Owner")) && (
+                            {canEditRole(role) && (
                               <>
                                 <Button 
                                   variant="outline" 
@@ -671,11 +689,11 @@ export function TeamAccessTab() {
                 : (language === "fr" ? "Nouveau rôle" : "New role")}
             </DialogTitle>
             <DialogDescription>
-              {editingRole?.is_system && !canEditSystemRoles ? (
+              {editingRole && !canEditRole(editingRole) ? (
                 <span className="text-amber-600">
                   {language === "fr" 
-                    ? "Les permissions des rôles système ne peuvent être modifiées que par le propriétaire."
-                    : "System role permissions can only be modified by the owner."}
+                    ? "Ce rôle est protégé et ne peut pas être modifié."
+                    : "This role is protected and cannot be modified."}
                 </span>
               ) : (
                 language === "fr" 
@@ -693,7 +711,7 @@ export function TeamAccessTab() {
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder={language === "fr" ? "Ex: Gestionnaire" : "Ex: Manager"}
-                disabled={editingRole?.is_system && !canEditSystemRoles}
+                disabled={editingRole ? !canEditRole(editingRole) : false}
               />
             </div>
             <div className="space-y-2">
@@ -703,7 +721,7 @@ export function TeamAccessTab() {
                 value={roleDescription}
                 onChange={(e) => setRoleDescription(e.target.value)}
                 placeholder={language === "fr" ? "Description optionnelle" : "Optional description"}
-                disabled={editingRole?.is_system && !canEditSystemRoles}
+                disabled={editingRole ? !canEditRole(editingRole) : false}
               />
             </div>
 
@@ -714,7 +732,7 @@ export function TeamAccessTab() {
                   const modulePerms = ALL_PERMISSIONS.filter(p => p.module === module);
                   const allSelected = modulePerms.every(p => selectedPermissions.includes(p.key));
                   const someSelected = modulePerms.some(p => selectedPermissions.includes(p.key));
-                  const isDisabled = editingRole?.is_system && !canEditSystemRoles;
+                  const isDisabled = editingRole ? !canEditRole(editingRole) : false;
                   return (
                     <div key={module} className="space-y-2">
                       <div className="flex items-center space-x-2">
