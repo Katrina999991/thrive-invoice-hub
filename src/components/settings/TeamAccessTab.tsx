@@ -354,6 +354,11 @@ export function TeamAccessTab() {
                       onClick={() => {
                         const inviteSection = document.getElementById("invite-section");
                         inviteSection?.scrollIntoView({ behavior: "smooth" });
+                        // Focus the email input after scroll completes
+                        setTimeout(() => {
+                          const emailInput = document.getElementById("invite-email");
+                          emailInput?.focus();
+                        }, 500);
                       }}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
