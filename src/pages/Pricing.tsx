@@ -227,9 +227,9 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Ideal for growing businesses and multi-company management",
-          stripeInfo: "Lowest payment fees",
-          stripeInfoShort: "Maximum savings on payments",
-          stripeFeeNote: "Best rates for high volume",
+          stripeInfo: "No GestionFlow fees",
+          stripeInfoShort: "0% GestionFlow fees",
+          stripeFeeNote: "No additional processing costs",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
             { text: "Unlimited clients, invoices & quotes", icon: "Users" },
@@ -250,7 +250,7 @@ const Pricing = () => {
       stripeFeesDesc3: "Upgrading your plan reduces your payment processing costs:",
       stripeFeesFree: "Free: Standard rates",
       stripeFeesPremium: "Premium: Reduced rates",
-      stripeFeesPro: "Pro: Lowest rates",
+      stripeFeesPro: "Pro: 0% GestionFlow fees",
       switchToFreeWarning: "Switching to the Free plan will disable paid features at the end of your billing cycle."
     },
     fr: {
@@ -336,9 +336,9 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Parfait pour entreprises en croissance et gestion multi-entreprises",
-          stripeInfo: "Frais de paiement les plus bas",
-          stripeInfoShort: "Économies maximales sur les paiements",
-          stripeFeeNote: "Meilleurs tarifs pour gros volumes",
+          stripeInfo: "Aucuns frais GestionFlow",
+          stripeInfoShort: "0 % frais GestionFlow",
+          stripeFeeNote: "Aucuns frais supplémentaires",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
             { text: "Clients, factures et devis illimités", icon: "Users" },
@@ -359,7 +359,7 @@ const Pricing = () => {
       stripeFeesDesc3: "Passez à un plan supérieur pour réduire vos coûts de traitement :",
       stripeFeesFree: "Gratuit : Tarifs standards",
       stripeFeesPremium: "Premium : Tarifs réduits",
-      stripeFeesPro: "Pro : Tarifs les plus bas",
+      stripeFeesPro: "Pro : 0 % frais GestionFlow",
       switchToFreeWarning: "Passer au plan Gratuit désactivera les fonctionnalités payantes à la fin de votre cycle de facturation."
     }
   };
