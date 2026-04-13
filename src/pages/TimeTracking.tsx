@@ -577,9 +577,10 @@ export default function TimeTracking() {
       : undefined;
     
     if (editingEntry) {
+      const effectiveCompanyIdUpdate = data.company_id || clients.find(c => c.id === data.client_id)?.company_id || null;
       const updateData: any = {
         client_id: data.client_id,
-        company_id: data.company_id || null,
+        company_id: effectiveCompanyIdUpdate,
         description: data.description,
         hours: parseFloat(hours || "0"),
         hourly_rate: parseFloat(data.hourly_rate),
@@ -595,10 +596,12 @@ export default function TimeTracking() {
       
       await updateTimeEntry(editingEntry, updateData, ranges);
     } else {
+      // Derive company_id from client if not explicitly set
+      const effectiveCompanyId = data.company_id || clients.find(c => c.id === data.client_id)?.company_id || null;
       // Build the entry data with timer-specific fields if applicable
       const entryData: any = {
         client_id: data.client_id,
-        company_id: data.company_id || null,
+        company_id: effectiveCompanyId,
         description: data.description,
         hours: parseFloat(hours || "0"),
         hourly_rate: parseFloat(data.hourly_rate),
@@ -716,6 +719,10 @@ export default function TimeTracking() {
     const client = clients.find((c) => c.id === clientId);
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
+    }
+    // Auto-set company_id from the selected client
+    if (client?.company_id) {
+      form.setValue("company_id", client.company_id);
     }
     // Auto-select first filtered service for this client
     const clientServices = services.filter(s => !s.client_id || s.client_id === clientId);
