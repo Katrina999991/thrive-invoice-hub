@@ -180,9 +180,9 @@ const Pricing = () => {
         free: {
           name: "Free",
           description: "Discover and test GestionFlow",
-          stripeInfo: "Payments accepted via Stripe",
-          stripeInfoShort: "Payment processing included",
-          stripeFeeNote: "Standard rates apply",
+          stripeInfo: "+2% GestionFlow fee per payment",
+          stripeInfoShort: "+2% GestionFlow fee",
+          stripeFeeNote: "Stripe fees apply",
           noInventory: "Inventory management not included",
           features: [
             { text: "1 company", icon: "Building2" },
@@ -202,9 +202,10 @@ const Pricing = () => {
           description: "Best for freelancers and small businesses",
           popular: "Most Popular",
           chosenBy: "Chosen by most of our users",
-          stripeInfo: "Reduced payment fees",
-          stripeInfoShort: "Save on every payment",
-          stripeFeeNote: "Lower processing costs",
+          stripeInfo: "0% GestionFlow fees 🎉",
+          stripeInfoShort: "0% GestionFlow fees",
+          stripeFeeNote: "Stripe fees apply",
+          stripeBadge: "Stop paying fees on every invoice",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
@@ -227,9 +228,9 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Ideal for growing businesses and multi-company management",
-          stripeInfo: "No GestionFlow fees",
+          stripeInfo: "0% GestionFlow fees",
           stripeInfoShort: "0% GestionFlow fees",
-          stripeFeeNote: "No additional processing costs",
+          stripeFeeNote: "Stripe fees apply",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
             { text: "Unlimited clients, invoices & quotes", icon: "Users" },
@@ -246,10 +247,10 @@ const Pricing = () => {
       },
       stripeFeesTitle: "Payment Processing",
       stripeFeesDesc: "Accept payments securely via Stripe.",
-      stripeFeesDesc2: "Standard Stripe fees apply to all transactions.",
-      stripeFeesDesc3: "Upgrading your plan reduces your payment processing costs:",
-      stripeFeesFree: "Free: Standard rates",
-      stripeFeesPremium: "Premium: Reduced rates",
+      stripeFeesDesc2: "Standard Stripe fees (~2.9% + $0.30) apply to all plans.",
+      stripeFeesDesc3: "GestionFlow fees by plan:",
+      stripeFeesFree: "Free: +2% GestionFlow fee",
+      stripeFeesPremium: "Premium: 0% GestionFlow fees 🎉",
       stripeFeesPro: "Pro: 0% GestionFlow fees",
       switchToFreeWarning: "Switching to the Free plan will disable paid features at the end of your billing cycle."
     },
@@ -289,9 +290,9 @@ const Pricing = () => {
         free: {
           name: "Gratuit",
           description: "Découvrez et testez GestionFlow",
-          stripeInfo: "Paiements acceptés via Stripe",
-          stripeInfoShort: "Traitement des paiements inclus",
-          stripeFeeNote: "Tarifs standards",
+          stripeInfo: "+2 % frais GestionFlow par paiement",
+          stripeInfoShort: "+2 % frais GestionFlow",
+          stripeFeeNote: "Les frais Stripe s'appliquent",
           noInventory: "Gestion des stocks non incluse",
           features: [
             { text: "1 entreprise", icon: "Building2" },
@@ -311,9 +312,10 @@ const Pricing = () => {
           description: "Idéal pour freelances et petites entreprises",
           popular: "Le plus populaire",
           chosenBy: "Choisi par la majorité de nos utilisateurs",
-          stripeInfo: "Frais de paiement réduits",
-          stripeInfoShort: "Économisez sur chaque paiement",
-          stripeFeeNote: "Coûts de traitement réduits",
+          stripeInfo: "0 % frais GestionFlow 🎉",
+          stripeInfoShort: "0 % frais GestionFlow",
+          stripeFeeNote: "Les frais Stripe s'appliquent",
+          stripeBadge: "Arrêtez de payer des frais sur chaque facture",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
@@ -336,9 +338,9 @@ const Pricing = () => {
         pro: {
           name: "Pro",
           description: "Parfait pour entreprises en croissance et gestion multi-entreprises",
-          stripeInfo: "Aucuns frais GestionFlow",
+          stripeInfo: "0 % frais GestionFlow",
           stripeInfoShort: "0 % frais GestionFlow",
-          stripeFeeNote: "Aucuns frais supplémentaires",
+          stripeFeeNote: "Les frais Stripe s'appliquent",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
             { text: "Clients, factures et devis illimités", icon: "Users" },
@@ -355,10 +357,10 @@ const Pricing = () => {
       },
       stripeFeesTitle: "Traitement des paiements",
       stripeFeesDesc: "Acceptez les paiements de manière sécurisée via Stripe.",
-      stripeFeesDesc2: "Les frais Stripe standards s'appliquent à toutes les transactions.",
-      stripeFeesDesc3: "Passez à un plan supérieur pour réduire vos coûts de traitement :",
-      stripeFeesFree: "Gratuit : Tarifs standards",
-      stripeFeesPremium: "Premium : Tarifs réduits",
+      stripeFeesDesc2: "Les frais standard de Stripe (~2,9 % + 0,30 $) s'appliquent à tous les plans.",
+      stripeFeesDesc3: "Frais GestionFlow selon votre plan :",
+      stripeFeesFree: "Gratuit : +2 % frais GestionFlow",
+      stripeFeesPremium: "Premium : 0 % frais GestionFlow 🎉",
       stripeFeesPro: "Pro : 0 % frais GestionFlow",
       switchToFreeWarning: "Passer au plan Gratuit désactivera les fonctionnalités payantes à la fin de votre cycle de facturation."
     }
