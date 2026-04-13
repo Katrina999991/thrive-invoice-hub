@@ -946,8 +946,8 @@ const Pricing = () => {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pl-6">
                 {language === 'fr'
-                  ? "Les paiements sont traités de manière sécurisée via Stripe. Les frais de traitement standard de Stripe s'appliquent. GestionFlow ajoute des frais supplémentaires selon votre plan : Gratuit +2 %, Premium +1 %, Pro +0,5 %."
-                  : "Payments are processed securely via Stripe. Standard Stripe processing fees apply. GestionFlow adds an additional fee based on your plan: Free +2%, Premium +1%, Pro +0.5%."}
+                  ? "Les paiements sont traités de manière sécurisée via Stripe. Les frais standard de Stripe (~2,9 % + 0,30 $) s'appliquent à tous les plans. GestionFlow ajoute des frais selon votre plan : Gratuit +2 %, Premium 0 %, Pro 0 %."
+                  : "Payments are processed securely via Stripe. Standard Stripe fees (~2.9% + $0.30) apply to all plans. GestionFlow adds a fee based on your plan: Free +2%, Premium 0%, Pro 0%."}
               </AccordionContent>
             </AccordionItem>
 
@@ -960,8 +960,8 @@ const Pricing = () => {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 {language === 'fr'
-                  ? "Les plans Premium et Pro offrent des frais GestionFlow réduits afin de soutenir les entreprises qui encaissent des volumes plus élevés. Les frais standard Stripe s'appliquent toujours en plus."
-                  : "Premium and Pro plans offer reduced GestionFlow fees to support businesses that process higher volumes. Standard Stripe fees always apply in addition."}
+                  ? "Les plans Premium et Pro offrent 0 % de frais GestionFlow. Le plan Gratuit applique 2 % de frais GestionFlow par paiement. Les frais standard de Stripe s'appliquent toujours à tous les plans."
+                  : "Premium and Pro plans enjoy 0% GestionFlow fees. The Free plan applies a 2% GestionFlow fee per payment. Standard Stripe fees always apply to all plans."}
               </AccordionContent>
             </AccordionItem>
 
