@@ -141,8 +141,8 @@ serve(async (req) => {
     // Calculate application fee
     let applicationFeeRate = 0;
     if (planType === 'free') applicationFeeRate = 0.02;
-    else if (planType === 'premium') applicationFeeRate = 0.01;
-    else if (planType === 'pro') applicationFeeRate = 0.005;
+    else if (planType === 'premium') applicationFeeRate = 0;
+    else if (planType === 'pro') applicationFeeRate = 0;
     const applicationFee = Math.round(amountInCents * applicationFeeRate);
 
     logStep("Creating payment link", { amountInCents, applicationFee, paymentType });

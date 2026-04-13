@@ -87,7 +87,8 @@ const PublicPricing = () => {
           period: "/mois",
           description: "Idéal pour découvrir GestionFlow et démarrer votre activité",
           cta: "Commencer gratuitement",
-          stripeInfo: "💳 Paiements Stripe (+2 % frais GestionFlow)",
+          stripeInfo: "💳 +2 % frais GestionFlow par paiement",
+          stripeNote: "Les frais Stripe s'appliquent",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
@@ -112,8 +113,9 @@ const PublicPricing = () => {
           yearlySavings: "Économisez environ 2 mois avec l'abonnement annuel",
           popularText: "Choisi par la majorité de nos utilisateurs",
           cta: "Passer à Premium",
-          stripeInfo: "💳 Paiements Stripe (+1 % frais GestionFlow)",
-          stripeNote: "Payez moins de frais sur chaque paiement encaissé",
+          stripeInfo: "💳 0 % frais GestionFlow 🎉",
+          stripeNote: "Les frais Stripe s'appliquent",
+          stripeBadge: "Arrêtez de payer des frais sur chaque facture",
           features: [
             { text: "1 entreprise", icon: "Building2" },
             { text: "Clients illimités", icon: "Users" },
@@ -142,8 +144,8 @@ const PublicPricing = () => {
           description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
           yearlySavings: "Économisez environ 2 mois",
           cta: "Passer à Pro",
-          stripeInfo: "💳 Paiements Stripe (0 % frais GestionFlow)",
-          stripeNote: "Aucuns frais supplémentaires GestionFlow sur vos paiements",
+          stripeInfo: "💳 0 % frais GestionFlow",
+          stripeNote: "Les frais Stripe s'appliquent",
           features: [
             { text: "Entreprises illimitées", icon: "Building2" },
             { text: "Tous les designs de factures et devis", icon: "Palette" },
@@ -170,9 +172,9 @@ const PublicPricing = () => {
         cancel: "Aucun engagement à long terme. Changez de plan à tout moment."
       },
       stripeFootnote: {
-        line1: "Les paiements sont traités de manière sécurisée via Stripe.",
-        line2: "Les frais de traitement standard de Stripe s'appliquent.",
-        line3: "GestionFlow ajoute des frais de traitement supplémentaires selon votre plan."
+        line1: "Les paiements sont traités de manière sécurisée via Stripe. Les frais standard de Stripe (~2,9 % + 0,30 $) s'appliquent à tous les plans.",
+        line2: "Le plan Gratuit inclut des frais GestionFlow de 2 % par paiement. Les plans Premium et Pro bénéficient de 0 % de frais GestionFlow.",
+        line3: ""
       },
       cta: {
         title: "Prêt à simplifier votre gestion ?",
@@ -210,7 +212,7 @@ const PublicPricing = () => {
           },
           {
             question: "Comment fonctionnent les paiements et les frais Stripe ?",
-            answer: "Les paiements sont traités de manière sécurisée via Stripe. Les frais de traitement standard de Stripe s'appliquent. GestionFlow ajoute des frais supplémentaires selon votre plan : Gratuit : +2 %, Premium : +1 %, Pro : 0 % (aucuns frais supplémentaires).",
+            answer: "Les paiements sont traités de manière sécurisée via Stripe. Les frais standard de Stripe (~2,9 % + 0,30 $) s'appliquent à tous les plans. GestionFlow ajoute des frais selon votre plan : Gratuit : +2 %, Premium : 0 %, Pro : 0 %.",
             highlight: "stripe"
           },
           {
@@ -256,7 +258,8 @@ const PublicPricing = () => {
           period: "/month",
           description: "Ideal to discover GestionFlow and start your business",
           cta: "Get Started Free",
-          stripeInfo: "💳 Stripe Payments (+2% GestionFlow fee)",
+          stripeInfo: "💳 +2% GestionFlow fee per payment",
+          stripeNote: "Stripe fees apply",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "10 clients", icon: "Users" },
@@ -281,8 +284,9 @@ const PublicPricing = () => {
           yearlySavings: "Save about 2 months with annual subscription",
           popularText: "Chosen by the majority of our users",
           cta: "Upgrade to Premium",
-          stripeInfo: "💳 Stripe Payments (+1% GestionFlow fee)",
-          stripeNote: "Pay less fees on every payment received",
+          stripeInfo: "💳 0% GestionFlow fees 🎉",
+          stripeNote: "Stripe fees apply",
+          stripeBadge: "Stop paying fees on every invoice",
           features: [
             { text: "1 company", icon: "Building2" },
             { text: "Unlimited clients", icon: "Users" },
@@ -311,8 +315,8 @@ const PublicPricing = () => {
           description: "Built for growing businesses and multi-company management",
           yearlySavings: "Save about 2 months",
           cta: "Upgrade to Pro",
-          stripeInfo: "💳 Stripe Payments (0% GestionFlow fee)",
-          stripeNote: "No additional GestionFlow fees on your payments",
+          stripeInfo: "💳 0% GestionFlow fees",
+          stripeNote: "Stripe fees apply",
           features: [
             { text: "Unlimited companies", icon: "Building2" },
             { text: "All invoice & quote designs", icon: "Palette" },
@@ -339,9 +343,9 @@ const PublicPricing = () => {
         cancel: "No long-term commitment. Change your plan at any time."
       },
       stripeFootnote: {
-        line1: "Payments are processed securely via Stripe.",
-        line2: "Standard Stripe processing fees apply.",
-        line3: "GestionFlow adds an additional processing fee based on your plan."
+        line1: "Payments are securely processed by Stripe. Standard Stripe fees (~2.9% + $0.30) apply to all plans.",
+        line2: "The Free plan includes a 2% GestionFlow fee per payment. Premium and Pro plans enjoy 0% GestionFlow fees.",
+        line3: ""
       },
       cta: {
         title: "Ready to simplify your business?",
@@ -379,7 +383,7 @@ const PublicPricing = () => {
           },
           {
             question: "How do payments and Stripe fees work?",
-            answer: "Payments are securely processed via Stripe. Standard Stripe processing fees apply. GestionFlow adds an additional fee based on your plan: Free: +2%, Premium: +1%, Pro: 0% (no additional fees).",
+            answer: "Payments are securely processed by Stripe. Standard Stripe fees (~2.9% + $0.30) apply to all plans. GestionFlow adds a fee based on your plan: Free: +2%, Premium: 0%, Pro: 0%.",
             highlight: "stripe"
           },
           {
@@ -555,6 +559,7 @@ const PublicPricing = () => {
                 </ul>
                 <div className="mt-6 pt-4 border-t border-border">
                   <p className="text-sm font-medium text-muted-foreground">{t.plans.free.stripeInfo}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t.plans.free.stripeNote}</p>
                 </div>
               </CardContent>
             </Card>
@@ -611,6 +616,11 @@ const PublicPricing = () => {
                 <div className="mt-6 pt-4 border-t border-border">
                   <p className="text-sm font-bold text-primary">{t.plans.premium.stripeInfo}</p>
                   <p className="text-xs text-muted-foreground mt-1">{t.plans.premium.stripeNote}</p>
+                  {'stripeBadge' in t.plans.premium && (
+                    <p className="text-xs font-semibold text-primary mt-2 bg-primary/10 rounded-full px-3 py-1 inline-block">
+                      {(t.plans.premium as any).stripeBadge}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

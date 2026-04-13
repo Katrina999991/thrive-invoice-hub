@@ -5,6 +5,7 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { SubscriptionLimitsCard } from "@/components/SubscriptionLimitsCard";
+import { GestionFlowFeeBanner } from "@/components/GestionFlowFeeBanner";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -50,6 +51,7 @@ const Dashboard = () => {
           {t("dashboard.subtitle")}
         </p>
       </div>
+      <GestionFlowFeeBanner />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
