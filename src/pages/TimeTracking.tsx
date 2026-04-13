@@ -322,7 +322,7 @@ export default function TimeTracking() {
     // Reset form and populate with timer data
     form.reset({
       client_id: activeTimer.clientId,
-      company_id: "",
+      company_id: client?.company_id || "",
       service_id: activeTimer.serviceId || "",
       description: activeTimer.description || "",
       hours: billedHours.toFixed(2),
