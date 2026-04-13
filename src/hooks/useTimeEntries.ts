@@ -84,26 +84,59 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
         allEntries = (companyEntries || []) as TimeEntry[];
       }
 
-      // Always fetch user's own entries without company_id (legacy data)
-      const { data: ownedEntries, error: ownedError } = await supabase
-        .from("time_entries")
-        .select(`
-          *,
-          clients (name, hourly_rate),
-          companies (name),
-          time_entry_ranges (id, start_time, end_time)
-        `)
-        .eq("user_id", user.id)
-        .is("company_id", null)
-        .order("date", { ascending: true })
-        .order("created_at", { ascending: true });
+      // Also fetch entries without company_id:
+      // - If filterOwnOnly: only the current user's legacy entries
+      // - If not filterOwnOnly (admin/owner): all team members' legacy entries
+      if (!filterOwnOnly && companyIds.length > 0) {
+        // Get all user_ids in the user's companies
+        const { data: teamMembers, error: teamError } = await supabase
+          .from("company_members")
+          .select("user_id")
+          .in("company_id", companyIds)
+          .eq("status", "active");
+        
+        if (!teamError && teamMembers && teamMembers.length > 0) {
+          const teamUserIds = [...new Set(teamMembers.map(m => m.user_id))];
+          const { data: legacyEntries, error: legacyError } = await supabase
+            .from("time_entries")
+            .select(`
+              *,
+              clients (name, hourly_rate),
+              companies (name),
+              time_entry_ranges (id, start_time, end_time)
+            `)
+            .in("user_id", teamUserIds)
+            .is("company_id", null)
+            .order("date", { ascending: true })
+            .order("created_at", { ascending: true });
 
-      if (ownedError) throw ownedError;
-      
-      // Merge entries, avoiding duplicates
-      const existingIds = new Set(allEntries.map(e => e.id));
-      const legacyEntries = ((ownedEntries || []) as TimeEntry[]).filter(e => !existingIds.has(e.id));
-      allEntries = [...allEntries, ...legacyEntries];
+          if (!legacyError) {
+            const existingIds = new Set(allEntries.map(e => e.id));
+            const newLegacy = ((legacyEntries || []) as TimeEntry[]).filter(e => !existingIds.has(e.id));
+            allEntries = [...allEntries, ...newLegacy];
+          }
+        }
+      } else {
+        // Current user's own legacy entries only
+        const { data: ownedEntries, error: ownedError } = await supabase
+          .from("time_entries")
+          .select(`
+            *,
+            clients (name, hourly_rate),
+            companies (name),
+            time_entry_ranges (id, start_time, end_time)
+          `)
+          .eq("user_id", user.id)
+          .is("company_id", null)
+          .order("date", { ascending: true })
+          .order("created_at", { ascending: true });
+
+        if (!ownedError) {
+          const existingIds = new Set(allEntries.map(e => e.id));
+          const legacyEntries = ((ownedEntries || []) as TimeEntry[]).filter(e => !existingIds.has(e.id));
+          allEntries = [...allEntries, ...legacyEntries];
+        }
+      }
       
       // Sort by date and created_at
       allEntries.sort((a, b) => {
