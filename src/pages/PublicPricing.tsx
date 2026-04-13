@@ -559,6 +559,7 @@ const PublicPricing = () => {
                 </ul>
                 <div className="mt-6 pt-4 border-t border-border">
                   <p className="text-sm font-medium text-muted-foreground">{t.plans.free.stripeInfo}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t.plans.free.stripeNote}</p>
                 </div>
               </CardContent>
             </Card>
@@ -615,6 +616,11 @@ const PublicPricing = () => {
                 <div className="mt-6 pt-4 border-t border-border">
                   <p className="text-sm font-bold text-primary">{t.plans.premium.stripeInfo}</p>
                   <p className="text-xs text-muted-foreground mt-1">{t.plans.premium.stripeNote}</p>
+                  {'stripeBadge' in t.plans.premium && (
+                    <p className="text-xs font-semibold text-primary mt-2 bg-primary/10 rounded-full px-3 py-1 inline-block">
+                      {(t.plans.premium as any).stripeBadge}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
