@@ -1519,6 +1519,7 @@ export default function TimeTracking() {
                           )}
                         </Button>
                       </TableHead>
+                      <TableHead>{language === "fr" ? "Compagnie" : "Company"}</TableHead>
                       <TableHead>{language === "fr" ? "Client" : "Client"}</TableHead>
                       <TableHead>{language === "fr" ? "Description" : "Description"}</TableHead>
                       {permissions.canViewAll && (
@@ -1576,6 +1577,7 @@ export default function TimeTracking() {
                               return dateStr;
                             })()}
                           </TableCell>
+                          <TableCell className="text-sm">{entry.companies?.name || "-"}</TableCell>
                           <TableCell>{entry.clients?.name || "-"}</TableCell>
                           <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
                           {permissions.canViewAll && (
