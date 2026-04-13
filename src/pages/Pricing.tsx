@@ -690,6 +690,11 @@ const Pricing = () => {
                       {(planData as any).stripeFeeNote}
                     </p>
                   )}
+                  {'stripeBadge' in planData && (
+                    <p className="text-xs font-semibold text-primary mt-2 ml-6 bg-primary/10 rounded-full px-3 py-1 inline-block">
+                      {(planData as any).stripeBadge}
+                    </p>
+                  )}
                 </div>
               </CardContent>
 
