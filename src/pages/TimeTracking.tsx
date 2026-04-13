@@ -717,6 +717,10 @@ export default function TimeTracking() {
     if (client?.hourly_rate) {
       form.setValue("hourly_rate", client.hourly_rate.toString());
     }
+    // Auto-set company_id from the selected client
+    if (client?.company_id) {
+      form.setValue("company_id", client.company_id);
+    }
     // Auto-select first filtered service for this client
     const clientServices = services.filter(s => !s.client_id || s.client_id === clientId);
     if (clientServices.length > 0) {
