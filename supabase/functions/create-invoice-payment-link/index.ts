@@ -178,7 +178,7 @@ serve(async (req) => {
     } else if (planType === 'premium') {
       applicationFeeRate = 0.01; // 1% commission
     } else if (planType === 'pro') {
-      applicationFeeRate = 0.005; // 0.5% commission
+      applicationFeeRate = 0; // 0% commission - free for Pro
     }
     
     const applicationFee = Math.round(amountInCents * applicationFeeRate);
