@@ -1852,7 +1852,7 @@ export default function TimeTracking() {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{entry.description}</div>
                             <div className="text-sm text-muted-foreground">
-                              {entry.clients?.name || "-"}
+                              {entry.companies?.name ? `${entry.companies.name} · ` : ""}{entry.clients?.name || "-"}
                             </div>
                             {permissions.canViewAll && (
                               <div className="text-xs text-primary">
