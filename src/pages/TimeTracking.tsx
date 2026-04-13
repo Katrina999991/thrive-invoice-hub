@@ -1159,6 +1159,19 @@ export default function TimeTracking() {
               {language === "fr" ? "Archiver" : "Archive"} ({selectedEntries.length})
             </Button>
           )}
+          {/* Archive All button - show when filtering by billed and nothing selected yet */}
+          {selectedEntries.length === 0 && permissions.canMarkAsBilled && selectionMode === "archive" && billedFilteredEntries.length > 0 && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedEntries(billedFilteredEntries.map(e => e.id));
+              }} 
+              className="flex-1 sm:flex-none"
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              {language === "fr" ? `Tout archiver (${billedFilteredEntries.length})` : `Archive all (${billedFilteredEntries.length})`}
+            </Button>
+          )}
           {/* Timer button - only show if user can create entries */}
           {!activeTimer && permissions.canCreate && (
             <Button variant="outline" onClick={handleOpenStartTimerDialog} className="flex-1 sm:flex-none">
