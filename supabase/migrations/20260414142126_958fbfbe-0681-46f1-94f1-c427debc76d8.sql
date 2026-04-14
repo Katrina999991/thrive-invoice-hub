@@ -1,0 +1,1 @@
+UPDATE public.user_subscriptions SET plan_type = 'free', expires_at = NULL, updated_at = now() WHERE user_id = '7c8cffa9-1ff4-4476-a4c0-397d7da2bdd9';
