@@ -1540,7 +1540,7 @@ export default function TimeTracking() {
                       const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                       const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
                       const isApproved = !!(entry as any).approved_at;
-                      const canApproveEntry = permissions.canApprove && entry.user_id !== user?.id; // Can't approve own entries
+                      const canApproveEntry = permissions.canApprove && entry.user_id !== user?.id && !!entry.company_id; // Can't approve own entries or entries without company
                       
                       return (
                         <TableRow key={entry.id}>
@@ -1833,7 +1833,7 @@ export default function TimeTracking() {
                   const canEdit = permissions.canEditEntry(entry.user_id, entry.is_billed);
                   const canDelete = permissions.canDeleteEntry(entry.user_id, entry.is_billed);
                   const isApproved = !!(entry as any).approved_at;
-                  const canApproveEntry = permissions.canApprove && entry.user_id !== user?.id;
+                  const canApproveEntry = permissions.canApprove && entry.user_id !== user?.id && !!entry.company_id;
                   
                   return (
                     <div key={entry.id} className="border rounded-lg p-3 space-y-2">
