@@ -1995,7 +1995,7 @@ export default function TimeTracking() {
                           <>
                             {isApproved ? (
                               <div className="flex items-center gap-1">
-                                <Badge variant="default" className="bg-green-600 cursor-default pointer-events-none">
+                                <Badge variant="default" className="bg-green-600 cursor-default">
                                   <CheckCircle className="h-3 w-3 mr-1" />
                                   {language === "fr" ? "Approuvé" : "Approved"}
                                 </Badge>
