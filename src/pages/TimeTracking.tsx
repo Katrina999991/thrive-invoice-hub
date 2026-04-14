@@ -1672,7 +1672,7 @@ export default function TimeTracking() {
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div className="flex items-center gap-1">
-                                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                      <Badge variant="default" className="bg-green-600 cursor-default pointer-events-none">
                                         <CheckCircle className="h-3 w-3 mr-1" />
                                         {language === "fr" ? "Approuvé" : "Approved"}
                                       </Badge>
@@ -1995,7 +1995,7 @@ export default function TimeTracking() {
                           <>
                             {isApproved ? (
                               <div className="flex items-center gap-1">
-                                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                <Badge variant="default" className="bg-green-600 cursor-default pointer-events-none">
                                   <CheckCircle className="h-3 w-3 mr-1" />
                                   {language === "fr" ? "Approuvé" : "Approved"}
                                 </Badge>
