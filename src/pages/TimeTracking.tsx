@@ -1669,33 +1669,33 @@ export default function TimeTracking() {
                           {permissions.canViewAll && (
                             <TableCell>
                               {isApproved ? (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1">
-                                      <Badge variant="default" className="bg-green-600 cursor-default pointer-events-none">
+                                <div className="flex items-center gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge variant="default" className="bg-green-600 cursor-default">
                                         <CheckCircle className="h-3 w-3 mr-1" />
                                         {language === "fr" ? "Approuvé" : "Approved"}
                                       </Badge>
-                                      {canApproveEntry && (
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-6 w-6"
-                                          onClick={() => unapproveTimeEntry(entry.id)}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>
-                                      {language === "fr" ? "Par" : "By"}: {(entry as any).approved_by_profile?.display_name || (entry as any).approved_by_profile?.username || (language === "fr" ? "Inconnu" : "Unknown")}
-                                      <br />
-                                      {format(new Date((entry as any).approved_at), "d MMM yyyy HH:mm", { locale: language === "fr" ? fr : undefined })}
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>
+                                        {language === "fr" ? "Par" : "By"}: {(entry as any).approved_by_profile?.display_name || (entry as any).approved_by_profile?.username || (language === "fr" ? "Inconnu" : "Unknown")}
+                                        <br />
+                                        {format(new Date((entry as any).approved_at), "d MMM yyyy HH:mm", { locale: language === "fr" ? fr : undefined })}
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                  {canApproveEntry && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => unapproveTimeEntry(entry.id)}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               ) : canApproveEntry ? (
                                 <Button
                                   size="sm"
