@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check } from "lucide-react";
+import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check, Send, Activity, Clock, History } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface User {
   id: string;
@@ -31,6 +32,19 @@ interface User {
   quotes_count: number;
   expenses_count: number;
   clients_count: number;
+  invoices_sent_count?: number;
+  invoices_paid_count?: number;
+  last_invoice_sent_at?: string | null;
+  last_invoice_paid_at?: string | null;
+  last_activity_at?: string | null;
+}
+
+interface AuditLogEntry {
+  id: string;
+  created_at: string;
+  category: string;
+  event_type: string;
+  description: string;
 }
 
 // Emails to exclude from stats (test/internal accounts)
