@@ -1409,8 +1409,12 @@ Best regards,
         description: `Invoice email sent to ${selectedEmails.length} recipient(s)`,
       });
       
-      // Update invoice status to sent
-      await updateInvoice(emailingInvoice.id, { status: 'sent' });
+      // Update invoice status to sent and set sent_at if not already set
+      const updates: any = { status: 'sent' };
+      if (!(emailingInvoice as any).sent_at) {
+        updates.sent_at = new Date().toISOString();
+      }
+      await updateInvoice(emailingInvoice.id, updates);
       
       setIsEmailDialogOpen(false);
       setEmailingInvoice(null);

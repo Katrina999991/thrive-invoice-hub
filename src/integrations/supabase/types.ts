@@ -1156,6 +1156,7 @@ export type Database = {
           overdue_reminder_sent_at: string | null
           paid_at: string | null
           payment_link: string | null
+          sent_at: string | null
           status: string
           stripe_payment_intent_id: string | null
           subtotal: number
@@ -1187,6 +1188,7 @@ export type Database = {
           overdue_reminder_sent_at?: string | null
           paid_at?: string | null
           payment_link?: string | null
+          sent_at?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal?: number
@@ -1218,6 +1220,7 @@ export type Database = {
           overdue_reminder_sent_at?: string | null
           paid_at?: string | null
           payment_link?: string | null
+          sent_at?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal?: number
