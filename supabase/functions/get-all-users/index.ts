@@ -65,15 +65,32 @@ serve(async (req) => {
 
     logStep("Admin verified, fetching users");
 
-    // Fetch all users from auth.users
-    const { data: authUsers, error: authError } = await supabaseClient.auth.admin.listUsers();
-    
-    if (authError) {
-      logStep("Error fetching auth users", { error: authError.message });
-      throw new Error(`Failed to fetch users: ${authError.message}`);
+    // Fetch all users from auth.users (paginated API)
+    const perPage = 1000;
+    let page = 1;
+    const allAuthUsers: Array<any> = [];
+
+    while (true) {
+      const { data: authUsersPage, error: authError } = await supabaseClient.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+
+      if (authError) {
+        logStep("Error fetching auth users", { error: authError.message, page });
+        throw new Error(`Failed to fetch users: ${authError.message}`);
+      }
+
+      const pageUsers = authUsersPage?.users || [];
+      allAuthUsers.push(...pageUsers);
+
+      logStep("Auth users page fetched", { page, count: pageUsers.length });
+
+      if (pageUsers.length < perPage) break;
+      page += 1;
     }
 
-    logStep("Auth users fetched", { count: authUsers?.users?.length || 0 });
+    logStep("All auth users fetched", { count: allAuthUsers.length, pages: page });
 
     // Fetch all subscriptions
     const { data: subscriptions, error: subError } = await supabaseClient
@@ -204,7 +221,7 @@ serve(async (req) => {
     });
 
     // Combine data
-    const users = authUsers.users.map((user) => {
+    const users = allAuthUsers.map((user) => {
       const subscription = subscriptions?.find((s) => s.user_id === user.id);
       const profile = profiles?.find((p) => p.user_id === user.id);
 
