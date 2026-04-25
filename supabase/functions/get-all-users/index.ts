@@ -112,7 +112,7 @@ serve(async (req) => {
     // Fetch invoices existence per user
     const { data: invoices, error: invoicesError } = await supabaseClient
       .from("invoices")
-      .select("user_id");
+      .select("user_id, created_at, sent_at, paid_at, status");
 
     if (invoicesError) {
       logStep("Error fetching invoices", { error: invoicesError.message });
@@ -122,7 +122,7 @@ serve(async (req) => {
     // Fetch quotes existence per user
     const { data: quotes, error: quotesError } = await supabaseClient
       .from("quotes")
-      .select("user_id");
+      .select("user_id, created_at");
 
     if (quotesError) {
       logStep("Error fetching quotes", { error: quotesError.message });
@@ -132,7 +132,7 @@ serve(async (req) => {
     // Fetch expenses existence per user
     const { data: expenses, error: expensesError } = await supabaseClient
       .from("expenses")
-      .select("user_id");
+      .select("user_id, created_at");
 
     if (expensesError) {
       logStep("Error fetching expenses", { error: expensesError.message });
@@ -142,7 +142,7 @@ serve(async (req) => {
     // Fetch clients count per user
     const { data: clients, error: clientsError } = await supabaseClient
       .from("clients")
-      .select("user_id");
+      .select("user_id, created_at");
 
     if (clientsError) {
       logStep("Error fetching clients", { error: clientsError.message });
@@ -157,31 +157,77 @@ serve(async (req) => {
       companiesCountMap.set(c.user_id, (companiesCountMap.get(c.user_id) || 0) + 1);
     });
 
+    // Per-user aggregates
     const invoicesCountMap = new Map<string, number>();
-    invoices?.forEach((i) => {
+    const invoicesSentCountMap = new Map<string, number>();
+    const invoicesPaidCountMap = new Map<string, number>();
+    const lastInvoiceCreatedMap = new Map<string, string>();
+    const lastInvoiceSentMap = new Map<string, string>();
+    const lastInvoicePaidMap = new Map<string, string>();
+    const maxStr = (a: string | undefined, b: string | null | undefined) =>
+      b ? (a && a > b ? a : b) : a;
+
+    invoices?.forEach((i: any) => {
       invoicesCountMap.set(i.user_id, (invoicesCountMap.get(i.user_id) || 0) + 1);
+      if (i.sent_at) {
+        invoicesSentCountMap.set(i.user_id, (invoicesSentCountMap.get(i.user_id) || 0) + 1);
+        lastInvoiceSentMap.set(i.user_id, maxStr(lastInvoiceSentMap.get(i.user_id), i.sent_at)!);
+      }
+      if (i.paid_at) {
+        invoicesPaidCountMap.set(i.user_id, (invoicesPaidCountMap.get(i.user_id) || 0) + 1);
+        lastInvoicePaidMap.set(i.user_id, maxStr(lastInvoicePaidMap.get(i.user_id), i.paid_at)!);
+      }
+      if (i.created_at) {
+        lastInvoiceCreatedMap.set(i.user_id, maxStr(lastInvoiceCreatedMap.get(i.user_id), i.created_at)!);
+      }
     });
 
     const quotesCountMap = new Map<string, number>();
-    quotes?.forEach((q) => {
+    const lastQuoteMap = new Map<string, string>();
+    quotes?.forEach((q: any) => {
       quotesCountMap.set(q.user_id, (quotesCountMap.get(q.user_id) || 0) + 1);
+      if (q.created_at) lastQuoteMap.set(q.user_id, maxStr(lastQuoteMap.get(q.user_id), q.created_at)!);
     });
 
     const expensesCountMap = new Map<string, number>();
-    expenses?.forEach((e) => {
+    const lastExpenseMap = new Map<string, string>();
+    expenses?.forEach((e: any) => {
       expensesCountMap.set(e.user_id, (expensesCountMap.get(e.user_id) || 0) + 1);
+      if (e.created_at) lastExpenseMap.set(e.user_id, maxStr(lastExpenseMap.get(e.user_id), e.created_at)!);
     });
 
     const clientsCountMap = new Map<string, number>();
-    clients?.forEach((c) => {
+    const lastClientMap = new Map<string, string>();
+    clients?.forEach((c: any) => {
       clientsCountMap.set(c.user_id, (clientsCountMap.get(c.user_id) || 0) + 1);
+      if (c.created_at) lastClientMap.set(c.user_id, maxStr(lastClientMap.get(c.user_id), c.created_at)!);
     });
 
     // Combine data
     const users = authUsers.users.map((user) => {
       const subscription = subscriptions?.find((s) => s.user_id === user.id);
       const profile = profiles?.find((p) => p.user_id === user.id);
-      
+
+      const lastInvoiceSent = lastInvoiceSentMap.get(user.id) || null;
+      const lastInvoiceCreated = lastInvoiceCreatedMap.get(user.id) || null;
+      const lastInvoicePaid = lastInvoicePaidMap.get(user.id) || null;
+      const lastQuote = lastQuoteMap.get(user.id) || null;
+      const lastExpense = lastExpenseMap.get(user.id) || null;
+      const lastClient = lastClientMap.get(user.id) || null;
+
+      const candidates = [
+        user.last_sign_in_at,
+        lastInvoiceCreated,
+        lastInvoiceSent,
+        lastInvoicePaid,
+        lastClient,
+        lastQuote,
+        lastExpense,
+      ].filter(Boolean) as string[];
+      const lastActivityAt = candidates.length
+        ? candidates.reduce((a, b) => (a > b ? a : b))
+        : null;
+
       return {
         id: user.id,
         email: user.email,
@@ -196,9 +242,14 @@ serve(async (req) => {
         stripe_connected: !!(profile?.stripe_account_id && profile?.stripe_onboarding_complete),
         companies_count: companiesCountMap.get(user.id) || 0,
         invoices_count: invoicesCountMap.get(user.id) || 0,
+        invoices_sent_count: invoicesSentCountMap.get(user.id) || 0,
+        invoices_paid_count: invoicesPaidCountMap.get(user.id) || 0,
         quotes_count: quotesCountMap.get(user.id) || 0,
         expenses_count: expensesCountMap.get(user.id) || 0,
         clients_count: clientsCountMap.get(user.id) || 0,
+        last_invoice_sent_at: lastInvoiceSent,
+        last_invoice_paid_at: lastInvoicePaid,
+        last_activity_at: lastActivityAt,
       };
     });
 

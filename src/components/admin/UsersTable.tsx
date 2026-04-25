@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check } from "lucide-react";
+import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check, Send, Activity, Clock, History } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface User {
   id: string;
@@ -31,6 +32,19 @@ interface User {
   quotes_count: number;
   expenses_count: number;
   clients_count: number;
+  invoices_sent_count?: number;
+  invoices_paid_count?: number;
+  last_invoice_sent_at?: string | null;
+  last_invoice_paid_at?: string | null;
+  last_activity_at?: string | null;
+}
+
+interface AuditLogEntry {
+  id: string;
+  created_at: string;
+  category: string;
+  event_type: string;
+  description: string;
 }
 
 // Emails to exclude from stats (test/internal accounts)
@@ -61,6 +75,9 @@ export function UsersTable() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
   const [storedPasswords, setStoredPasswords] = useState<Record<string, { password: string; updatedAt: string }>>({});
+  const [activityUser, setActivityUser] = useState<User | null>(null);
+  const [activityLogs, setActivityLogs] = useState<AuditLogEntry[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const locale = language === "fr" ? fr : enUS;
 
@@ -76,7 +93,7 @@ export function UsersTable() {
       registrationDate: "Inscription",
       lastLogin: "Dernière connexion",
       plan: "Plan",
-      activation: "Activation",
+      activation: "Activité",
       search: "Rechercher par email ou nom...",
       refresh: "Actualiser",
       never: "Jamais",
@@ -98,6 +115,18 @@ export function UsersTable() {
       hasClients: "A créé des clients",
       noClients: "Aucun client",
       activeUsers: "Utilisateurs actifs",
+      invoicesSent: "Factures envoyées",
+      invoicesPaid: "Factures payées",
+      lastActivity: "Dernière activité",
+      lastInvoiceSent: "Dernière facture envoyée",
+      noActivity: "Aucune activité",
+      activityActive: "Active",
+      activityWarm: "Modérée",
+      activityInactive: "Inactive",
+      viewActivity: "Voir l'activité",
+      activityHistory: "Historique d'activité",
+      noActivityLogs: "Aucune activité enregistrée",
+      stripe: "Stripe Connect",
     },
     en: {
       title: "Users",
@@ -110,7 +139,7 @@ export function UsersTable() {
       registrationDate: "Registration",
       lastLogin: "Last login",
       plan: "Plan",
-      activation: "Activation",
+      activation: "Activity",
       search: "Search by email or name...",
       refresh: "Refresh",
       never: "Never",
@@ -132,6 +161,18 @@ export function UsersTable() {
       hasClients: "Has created clients",
       noClients: "No clients",
       activeUsers: "Active users",
+      invoicesSent: "Sent invoices",
+      invoicesPaid: "Paid invoices",
+      lastActivity: "Last activity",
+      lastInvoiceSent: "Last invoice sent",
+      noActivity: "No activity",
+      activityActive: "Active",
+      activityWarm: "Warm",
+      activityInactive: "Inactive",
+      viewActivity: "View activity",
+      activityHistory: "Activity history",
+      noActivityLogs: "No activity recorded",
+      stripe: "Stripe Connect",
     },
   };
 
@@ -314,6 +355,161 @@ export function UsersTable() {
     return 'bg-emerald-500/20 text-emerald-600';
   };
 
+  // Activity badge logic
+  const getActivityStatus = (lastActivityAt: string | null | undefined) => {
+    if (!lastActivityAt) return { key: 'none', label: t.noActivity, className: 'bg-muted text-muted-foreground border-transparent' };
+    const days = (Date.now() - new Date(lastActivityAt).getTime()) / 86400000;
+    if (days <= 3) return { key: 'active', label: t.activityActive, className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' };
+    if (days <= 10) return { key: 'warm', label: t.activityWarm, className: 'bg-amber-500/15 text-amber-600 border-amber-500/30' };
+    return { key: 'inactive', label: t.activityInactive, className: 'bg-rose-500/15 text-rose-600 border-rose-500/30' };
+  };
+
+  const renderCount = (n: number) => (n > 0 ? n.toString() : '—');
+
+  const openActivityDrawer = async (user: User) => {
+    setActivityUser(user);
+    setActivityLogs([]);
+    setLoadingActivity(true);
+    try {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('id, created_at, category, event_type, description')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      setActivityLogs((data || []) as AuditLogEntry[]);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error loading activity');
+    } finally {
+      setLoadingActivity(false);
+    }
+  };
+
+  const renderActivityCell = (user: User) => {
+    const status = getActivityStatus(user.last_activity_at);
+    const sentCount = user.invoices_sent_count ?? 0;
+    const paidCount = user.invoices_paid_count ?? 0;
+    return (
+      <TooltipProvider delayDuration={200}>
+        <div className="flex flex-col gap-1.5 min-w-[260px]">
+          {/* Top row: badge + last activity + view button */}
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant="outline" className={`text-xs gap-1 ${status.className}`}>
+              <Activity className="h-3 w-3" />
+              {status.label}
+            </Badge>
+            <div className="flex items-center gap-1">
+              {user.last_activity_at && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(user.last_activity_at), { addSuffix: true, locale })}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t.lastActivity}: {format(new Date(user.last_activity_at), 'PPpp', { locale })}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openActivityDrawer(user)}>
+                    <History className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t.viewActivity}</TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+          {/* Counters row */}
+          <div className="flex items-center flex-wrap gap-1.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
+                  <CreditCard className="h-3 w-3" />
+                  {user.stripe_connected ? '✓' : '✕'}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{user.stripe_connected ? t.stripeConnected : t.stripeNotConnected}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
+                  <Building2 className="h-3 w-3" />
+                  {renderCount(user.companies_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.companies}: {user.companies_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}>
+                  <FileText className="h-3 w-3" />
+                  {renderCount(user.invoices_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasInvoices}: {user.invoices_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(sentCount)}`}>
+                  <Send className="h-3 w-3" />
+                  {renderCount(sentCount)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t.invoicesSent}: {sentCount}
+                {user.last_invoice_sent_at && (
+                  <div className="text-xs opacity-80 mt-0.5">
+                    {t.lastInvoiceSent}: {format(new Date(user.last_invoice_sent_at), 'PP', { locale })}
+                  </div>
+                )}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(paidCount)}`}>
+                  <Check className="h-3 w-3" />
+                  {renderCount(paidCount)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.invoicesPaid}: {paidCount}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}>
+                  <Receipt className="h-3 w-3" />
+                  {renderCount(user.quotes_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasQuotes}: {user.quotes_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}>
+                  <Receipt className="h-3 w-3" />
+                  {renderCount(user.expenses_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasExpenses}: {user.expenses_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}>
+                  <UserRound className="h-3 w-3" />
+                  {renderCount(user.clients_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasClients}: {user.clients_count}</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </TooltipProvider>
+    );
+  };
+
   if (loading) {
     return (
       <Card>
@@ -466,34 +662,7 @@ export function UsersTable() {
                             : t.never}
                         </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
-                              <CreditCard className="h-3 w-3" />
-                              {user.stripe_connected ? '✓' : '✕'}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
-                              <Building2 className="h-3 w-3" />
-                              {user.companies_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`} title={t.hasInvoices}>
-                              <FileText className="h-3 w-3" />
-                              {user.invoices_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`} title={t.hasQuotes}>
-                              <Receipt className="h-3 w-3" />
-                              {user.quotes_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`} title={t.hasExpenses}>
-                              <Receipt className="h-3 w-3" />
-                              {user.expenses_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`} title={t.hasClients}>
-                              <UserRound className="h-3 w-3" />
-                              {user.clients_count}
-                            </span>
-                          </div>
-                        </TableCell>
+                        <TableCell>{renderActivityCell(user)}</TableCell>
                       </TableRow>
                     ))}
 
@@ -574,32 +743,7 @@ export function UsersTable() {
                               </Select>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center justify-center gap-2">
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
-                                  <CreditCard className="h-3 w-3" />
-                                  {user.stripe_connected ? '✓' : '✕'}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
-                                  <Building2 className="h-3 w-3" />
-                                  {user.companies_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}>
-                                  <FileText className="h-3 w-3" />
-                                  {user.invoices_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}>
-                                  <Receipt className="h-3 w-3" />
-                                  {user.quotes_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}>
-                                  <Receipt className="h-3 w-3" />
-                                  {user.expenses_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}>
-                                  <UserRound className="h-3 w-3" />
-                                  {user.clients_count}
-                                </span>
-                              </div>
+                              {renderActivityCell(user)}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -713,6 +857,50 @@ export function UsersTable() {
               {language === "fr" ? "Enregistrer" : "Save"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity History Dialog */}
+      <Dialog open={!!activityUser} onOpenChange={(open) => { if (!open) { setActivityUser(null); setActivityLogs([]); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              {t.activityHistory}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">{activityUser?.email}</p>
+            {activityUser?.last_activity_at && (
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {t.lastActivity}: {format(new Date(activityUser.last_activity_at), 'PPpp', { locale })}
+              </div>
+            )}
+            <div className="border rounded-md max-h-[400px] overflow-y-auto divide-y">
+              {loadingActivity ? (
+                <div className="p-6 flex justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : activityLogs.length === 0 ? (
+                <div className="p-6 text-center text-sm text-muted-foreground">{t.noActivityLogs}</div>
+              ) : (
+                activityLogs.map((log) => (
+                  <div key={log.id} className="p-3 text-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{log.event_type}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{log.description}</p>
+                      </div>
+                      <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                        {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale })}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
