@@ -859,6 +859,50 @@ export function UsersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Activity History Dialog */}
+      <Dialog open={!!activityUser} onOpenChange={(open) => { if (!open) { setActivityUser(null); setActivityLogs([]); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              {t.activityHistory}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">{activityUser?.email}</p>
+            {activityUser?.last_activity_at && (
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {t.lastActivity}: {format(new Date(activityUser.last_activity_at), 'PPpp', { locale })}
+              </div>
+            )}
+            <div className="border rounded-md max-h-[400px] overflow-y-auto divide-y">
+              {loadingActivity ? (
+                <div className="p-6 flex justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : activityLogs.length === 0 ? (
+                <div className="p-6 text-center text-sm text-muted-foreground">{t.noActivityLogs}</div>
+              ) : (
+                activityLogs.map((log) => (
+                  <div key={log.id} className="p-3 text-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{log.event_type}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{log.description}</p>
+                      </div>
+                      <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                        {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale })}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
