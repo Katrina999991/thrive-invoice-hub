@@ -32,7 +32,7 @@ async function decryptData(ciphertext: string, keyString: string): Promise<strin
       const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
       return new TextDecoder().decode(decrypted);
     } catch (error) {
-      logStep("AES Decryption error", { error: error.message });
+      logStep("AES Decryption error", { error: (error as Error).message });
       return ciphertext;
     }
   }
@@ -47,7 +47,7 @@ async function decryptData(ciphertext: string, keyString: string): Promise<strin
       }
       return new TextDecoder().decode(decrypted);
     } catch (error) {
-      logStep("Legacy XOR Decryption error", { error: error.message });
+      logStep("Legacy XOR Decryption error", { error: (error as Error).message });
       return ciphertext;
     }
   }
@@ -199,8 +199,9 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    logStep("ERROR", { message: error.message });
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = (error as Error).message;
+    logStep("ERROR", { message: msg });
+    return new Response(JSON.stringify({ error: msg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

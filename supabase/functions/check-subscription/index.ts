@@ -94,7 +94,7 @@ serve(async (req) => {
             logStep("Invalid date from subscription", { subscriptionId: subscription.id, timestamp: subscription.current_period_end });
           }
         } catch (error) {
-          logStep("Error converting date", { error: error.message, timestamp: subscription.current_period_end });
+          logStep("Error converting date", { error: (error as Error).message, timestamp: subscription.current_period_end });
         }
       } else {
         logStep("No end date in subscription", { subscriptionId: subscription.id });

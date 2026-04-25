@@ -28,7 +28,7 @@ function encryptData(plaintext: string, key: string): string {
     encrypted[i] = textBytes[i] ^ keyBytes[i % keyBytes.length];
   }
   
-  return "ENC:" + encodeBase64(encrypted);
+  return "ENC:" + encodeBase64(encrypted as unknown as ArrayBuffer);
 }
 
 serve(async (req) => {

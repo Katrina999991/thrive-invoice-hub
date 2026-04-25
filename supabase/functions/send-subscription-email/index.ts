@@ -156,7 +156,7 @@ serve(async (req) => {
     const { data, error } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'GestionFlow <onboarding@resend.dev>',
       to: [userEmail],
-      reply_to: 'support@gestionflow.net',
+      replyTo: 'support@gestionflow.net',
       subject: getSubject(emailType),
       html,
     })

@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 import { translateTemplate, emailTranslations } from './translations.ts';
 import { generateInvoicePdfForEmail } from './invoicePdf.ts';
@@ -140,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
     const validationResult = SendInvoiceEmailSchema.safeParse(requestBody);
     
     if (!validationResult.success) {
-      console.error("Validation error:", validationResult.error.errors);
+      console.error("Validation error:", (validationResult as any).error?.errors);
       return new Response(
         JSON.stringify({ 
           error: "Invalid request data. Please check your inputs and try again." 

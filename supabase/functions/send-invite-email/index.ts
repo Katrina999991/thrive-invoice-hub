@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -156,7 +156,7 @@ GestionFlow - Simplified management for your business
     const { data, error } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'GestionFlow <noreply@gestionflow.net>',
       to: [invite.email],
-      reply_to: 'support@gestionflow.net',
+      replyTo: 'support@gestionflow.net',
       subject: emailSubject,
       html: emailHtml,
       text: textContent,

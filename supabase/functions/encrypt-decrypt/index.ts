@@ -53,7 +53,7 @@ async function encryptData(plaintext: string, keyString: string): Promise<string
     combined.set(new Uint8Array(encrypted), iv.length);
     
     // Add prefix to identify AES encrypted data
-    return "AESENC:" + encodeBase64(combined);
+    return "AESENC:" + encodeBase64(combined as unknown as ArrayBuffer);
   } catch (error) {
     logStep("Encryption error", { error: String(error) });
     throw new Error("Encryption failed");

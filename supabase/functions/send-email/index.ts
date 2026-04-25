@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     console.log('Target email:', targetEmail)
 
     // Extract user language from metadata, default to French
-    const userLanguage = user.raw_user_meta_data?.language || 'fr'
+    const userLanguage = (user as any).raw_user_meta_data?.language || 'fr'
     console.log('User language:', userLanguage)
 
     const html = await renderAsync(
@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     const { data, error } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'GestionFlow <onboarding@resend.dev>',
       to: [targetEmail],
-      reply_to: 'support@gestionflow.net',
+      replyTo: 'support@gestionflow.net',
       subject: getSubject(),
       html,
       text: getTextContent(),
