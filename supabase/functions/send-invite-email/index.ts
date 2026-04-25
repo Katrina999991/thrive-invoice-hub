@@ -156,7 +156,7 @@ GestionFlow - Simplified management for your business
     const { data, error } = await resend.emails.send({
       from: Deno.env.get('RESEND_FROM') || 'GestionFlow <noreply@gestionflow.net>',
       to: [invite.email],
-      reply_to: 'support@gestionflow.net',
+      replyTo: 'support@gestionflow.net',
       subject: emailSubject,
       html: emailHtml,
       text: textContent,
