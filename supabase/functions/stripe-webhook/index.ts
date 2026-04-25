@@ -322,7 +322,7 @@ serve(async (req) => {
           
           // Get user by email
           const { data: userData } = await supabaseClient.auth.admin.listUsers();
-          const user = userData.users.find(u => u.email === session.customer_email);
+          const user = userData.users.find((u: any) => u.email === session.customer_email);
           
           if (user && session.subscription) {
             const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
@@ -411,7 +411,7 @@ serve(async (req) => {
         const customer = await stripe.customers.retrieve(subscription.customer as string);
         if (!customer.deleted && customer.email) {
           const { data: userData } = await supabaseClient.auth.admin.listUsers();
-          const user = userData.users.find(u => u.email === customer.email);
+          const user = userData.users.find((u: any) => u.email === customer.email);
 
           if (user) {
             const currentPriceId = subscription.items.data[0]?.price.id;
@@ -509,7 +509,7 @@ serve(async (req) => {
         const customer = await stripe.customers.retrieve(subscription.customer as string);
         if (!customer.deleted && customer.email) {
           const { data: userData } = await supabaseClient.auth.admin.listUsers();
-          const user = userData.users.find(u => u.email === customer.email);
+          const user = userData.users.find((u: any) => u.email === customer.email);
 
           if (user) {
             const currentPriceId = subscription.items.data[0]?.price.id;

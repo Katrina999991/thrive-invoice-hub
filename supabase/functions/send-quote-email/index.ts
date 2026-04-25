@@ -199,7 +199,7 @@ const handler = async (req: Request): Promise<Response> => {
     const validationResult = SendQuoteEmailSchema.safeParse(requestBody);
     
     if (!validationResult.success) {
-      console.error("Validation error:", validationResult.error.errors);
+      console.error("Validation error:", (validationResult as any).error?.errors);
       return new Response(
         JSON.stringify({ error: "Invalid request data" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -628,7 +628,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, messageId: emailResponse.id }),
+      JSON.stringify({ success: true, messageId: (emailResponse as any).id }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
 

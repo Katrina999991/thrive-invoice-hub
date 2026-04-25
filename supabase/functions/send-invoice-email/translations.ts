@@ -133,13 +133,13 @@ Cordialement,
 export function translateTemplate(englishText: string, templateType: 'newInvoice' | 'overdue' | 'paymentConfirmation' | 'footer', isSubject: boolean = false): string {
   // Get the default French template
   const frenchDefault = isSubject 
-    ? emailTranslations.fr[templateType === 'footer' ? 'footer' : templateType].subject
+    ? (emailTranslations.fr[templateType === 'footer' ? 'footer' : templateType] as any).subject
     : (templateType === 'footer' 
         ? emailTranslations.fr.footer 
         : emailTranslations.fr[templateType].body);
   
   const englishDefault = isSubject
-    ? emailTranslations.en[templateType === 'footer' ? 'footer' : templateType].subject
+    ? (emailTranslations.en[templateType === 'footer' ? 'footer' : templateType] as any).subject
     : (templateType === 'footer'
         ? emailTranslations.en.footer
         : emailTranslations.en[templateType].body);
