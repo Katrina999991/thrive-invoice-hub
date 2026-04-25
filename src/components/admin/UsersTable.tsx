@@ -75,6 +75,9 @@ export function UsersTable() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
   const [storedPasswords, setStoredPasswords] = useState<Record<string, { password: string; updatedAt: string }>>({});
+  const [activityUser, setActivityUser] = useState<User | null>(null);
+  const [activityLogs, setActivityLogs] = useState<AuditLogEntry[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const locale = language === "fr" ? fr : enUS;
 
@@ -350,6 +353,37 @@ export function UsersTable() {
     if (count === 0) return 'bg-muted text-muted-foreground';
     if (count <= 5) return 'bg-blue-500/20 text-blue-600';
     return 'bg-emerald-500/20 text-emerald-600';
+  };
+
+  // Activity badge logic
+  const getActivityStatus = (lastActivityAt: string | null | undefined) => {
+    if (!lastActivityAt) return { key: 'none', label: t.noActivity, className: 'bg-muted text-muted-foreground border-transparent' };
+    const days = (Date.now() - new Date(lastActivityAt).getTime()) / 86400000;
+    if (days <= 3) return { key: 'active', label: t.activityActive, className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' };
+    if (days <= 10) return { key: 'warm', label: t.activityWarm, className: 'bg-amber-500/15 text-amber-600 border-amber-500/30' };
+    return { key: 'inactive', label: t.activityInactive, className: 'bg-rose-500/15 text-rose-600 border-rose-500/30' };
+  };
+
+  const renderCount = (n: number) => (n > 0 ? n.toString() : '—');
+
+  const openActivityDrawer = async (user: User) => {
+    setActivityUser(user);
+    setActivityLogs([]);
+    setLoadingActivity(true);
+    try {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('id, created_at, category, event_type, description')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      setActivityLogs((data || []) as AuditLogEntry[]);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error loading activity');
+    } finally {
+      setLoadingActivity(false);
+    }
   };
 
   if (loading) {
