@@ -386,6 +386,130 @@ export function UsersTable() {
     }
   };
 
+  const renderActivityCell = (user: User) => {
+    const status = getActivityStatus(user.last_activity_at);
+    const sentCount = user.invoices_sent_count ?? 0;
+    const paidCount = user.invoices_paid_count ?? 0;
+    return (
+      <TooltipProvider delayDuration={200}>
+        <div className="flex flex-col gap-1.5 min-w-[260px]">
+          {/* Top row: badge + last activity + view button */}
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant="outline" className={`text-xs gap-1 ${status.className}`}>
+              <Activity className="h-3 w-3" />
+              {status.label}
+            </Badge>
+            <div className="flex items-center gap-1">
+              {user.last_activity_at && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(user.last_activity_at), { addSuffix: true, locale })}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t.lastActivity}: {format(new Date(user.last_activity_at), 'PPpp', { locale })}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openActivityDrawer(user)}>
+                    <History className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t.viewActivity}</TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+          {/* Counters row */}
+          <div className="flex items-center flex-wrap gap-1.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
+                  <CreditCard className="h-3 w-3" />
+                  {user.stripe_connected ? '✓' : '✕'}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{user.stripe_connected ? t.stripeConnected : t.stripeNotConnected}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
+                  <Building2 className="h-3 w-3" />
+                  {renderCount(user.companies_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.companies}: {user.companies_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}>
+                  <FileText className="h-3 w-3" />
+                  {renderCount(user.invoices_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasInvoices}: {user.invoices_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(sentCount)}`}>
+                  <Send className="h-3 w-3" />
+                  {renderCount(sentCount)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t.invoicesSent}: {sentCount}
+                {user.last_invoice_sent_at && (
+                  <div className="text-xs opacity-80 mt-0.5">
+                    {t.lastInvoiceSent}: {format(new Date(user.last_invoice_sent_at), 'PP', { locale })}
+                  </div>
+                )}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(paidCount)}`}>
+                  <Check className="h-3 w-3" />
+                  {renderCount(paidCount)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.invoicesPaid}: {paidCount}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}>
+                  <Receipt className="h-3 w-3" />
+                  {renderCount(user.quotes_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasQuotes}: {user.quotes_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}>
+                  <Receipt className="h-3 w-3" />
+                  {renderCount(user.expenses_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasExpenses}: {user.expenses_count}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}>
+                  <UserRound className="h-3 w-3" />
+                  {renderCount(user.clients_count)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t.hasClients}: {user.clients_count}</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </TooltipProvider>
+    );
+  };
+
   if (loading) {
     return (
       <Card>
