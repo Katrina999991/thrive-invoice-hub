@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "npm:resend@4.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -28,7 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
     const validationResult = RecoveryRequestSchema.safeParse(requestBody);
     
     if (!validationResult.success) {
-      console.error("Validation error:", validationResult.error.errors);
+      console.error("Validation error:", (validationResult as any).error?.errors);
       return new Response(
         JSON.stringify({ 
           error: "Invalid request. Please check your email format and try again." 

@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
