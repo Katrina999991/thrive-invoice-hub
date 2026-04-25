@@ -68,7 +68,7 @@ serve(async (req) => {
     // Fetch all users from auth.users (paginated API)
     const perPage = 1000;
     let page = 1;
-    const allAuthUsers: NonNullable<(await supabaseClient.auth.admin.listUsers()).data>['users'] = [];
+    const allAuthUsers: Array<any> = [];
 
     while (true) {
       const { data: authUsersPage, error: authError } = await supabaseClient.auth.admin.listUsers({
