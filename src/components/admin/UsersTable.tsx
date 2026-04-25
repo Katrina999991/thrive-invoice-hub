@@ -662,34 +662,7 @@ export function UsersTable() {
                             : t.never}
                         </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
-                              <CreditCard className="h-3 w-3" />
-                              {user.stripe_connected ? '✓' : '✕'}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
-                              <Building2 className="h-3 w-3" />
-                              {user.companies_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`} title={t.hasInvoices}>
-                              <FileText className="h-3 w-3" />
-                              {user.invoices_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`} title={t.hasQuotes}>
-                              <Receipt className="h-3 w-3" />
-                              {user.quotes_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`} title={t.hasExpenses}>
-                              <Receipt className="h-3 w-3" />
-                              {user.expenses_count}
-                            </span>
-                            <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`} title={t.hasClients}>
-                              <UserRound className="h-3 w-3" />
-                              {user.clients_count}
-                            </span>
-                          </div>
-                        </TableCell>
+                        <TableCell>{renderActivityCell(user)}</TableCell>
                       </TableRow>
                     ))}
 
@@ -770,32 +743,7 @@ export function UsersTable() {
                               </Select>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center justify-center gap-2">
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.stripe_connected ? 'bg-purple-500/20 text-purple-600' : 'bg-muted text-muted-foreground'}`}>
-                                  <CreditCard className="h-3 w-3" />
-                                  {user.stripe_connected ? '✓' : '✕'}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${user.companies_count === 0 ? 'bg-muted text-muted-foreground' : user.companies_count === 1 ? 'bg-blue-500/20 text-blue-600' : 'bg-emerald-500/20 text-emerald-600'}`}>
-                                  <Building2 className="h-3 w-3" />
-                                  {user.companies_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.invoices_count)}`}>
-                                  <FileText className="h-3 w-3" />
-                                  {user.invoices_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.quotes_count)}`}>
-                                  <Receipt className="h-3 w-3" />
-                                  {user.quotes_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.expenses_count)}`}>
-                                  <Receipt className="h-3 w-3" />
-                                  {user.expenses_count}
-                                </span>
-                                <span className={`inline-flex items-center justify-center min-w-8 h-6 px-1.5 rounded text-xs font-semibold gap-1 ${getCountStyle(user.clients_count)}`}>
-                                  <UserRound className="h-3 w-3" />
-                                  {user.clients_count}
-                                </span>
-                              </div>
+                              {renderActivityCell(user)}
                             </TableCell>
                           </TableRow>
                         ))}
