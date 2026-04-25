@@ -72,7 +72,7 @@ async function generateHOTP(secret: string, counter: number): Promise<string> {
   // Import key for HMAC
   const key = await crypto.subtle.importKey(
     'raw',
-    secretBytes,
+    secretBytes as unknown as BufferSource,
     { name: 'HMAC', hash: 'SHA-1' },
     false,
     ['sign']
@@ -670,7 +670,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('MFA Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Erreur interne' }),
+      JSON.stringify({ error: (error as Error).message || 'Erreur interne' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
