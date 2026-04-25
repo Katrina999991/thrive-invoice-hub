@@ -77,7 +77,7 @@ serve(async (req) => {
       const { data: authUsers } = await supabase.auth.admin.listUsers();
       
       usersToEmail = testEmailList.map(email => {
-        const matchingUser = authUsers?.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+        const matchingUser = authUsers?.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
         return {
           id: matchingUser?.id || `test-user-${email}`,
           email: email,
@@ -129,7 +129,7 @@ serve(async (req) => {
 
       // Filter to only opted-in users and get their emails + language preference
       usersToEmail = authUsers.users
-        .filter(user => userIds.includes(user.id) && user.email && !excludedEmails.includes(user.email.toLowerCase()))
+        .filter((user: any) => userIds.includes(user.id) && user.email && !excludedEmails.includes(user.email.toLowerCase()))
         .map(user => ({
           id: user.id,
           email: user.email!,
