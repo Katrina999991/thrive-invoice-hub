@@ -140,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
     const validationResult = SendInvoiceEmailSchema.safeParse(requestBody);
     
     if (!validationResult.success) {
-      console.error("Validation error:", validationResult.error.errors);
+      console.error("Validation error:", (validationResult as any).error?.errors);
       return new Response(
         JSON.stringify({ 
           error: "Invalid request data. Please check your inputs and try again." 
