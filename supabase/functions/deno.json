@@ -8,6 +8,7 @@
     "strictBindCallApply": false,
     "strictFunctionTypes": false,
     "strictPropertyInitialization": false,
-    "noImplicitReturns": false
+    "noImplicitReturns": false,
+    "noUnusedLocals": false
   }
 }
