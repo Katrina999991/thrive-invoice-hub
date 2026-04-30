@@ -617,6 +617,7 @@ export function UsersTable() {
                   <TableHead>{t.name}</TableHead>
                   <TableHead>{t.registrationDate}</TableHead>
                   <TableHead>{t.lastLogin}</TableHead>
+                  <TableHead>{t.lastSeen}</TableHead>
                   <TableHead>{t.plan}</TableHead>
                   <TableHead className="text-center">{t.activation}</TableHead>
                 </TableRow>
@@ -624,7 +625,7 @@ export function UsersTable() {
               <TableBody>
                 {filteredUsers.length === 0 && filteredTestUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       {t.noUsers}
                     </TableCell>
                   </TableRow>
