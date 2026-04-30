@@ -233,7 +233,6 @@ serve(async (req) => {
       const lastClient = lastClientMap.get(user.id) || null;
 
       const candidates = [
-        user.last_sign_in_at,
         lastInvoiceCreated,
         lastInvoiceSent,
         lastInvoicePaid,
