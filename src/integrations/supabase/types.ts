@@ -1472,6 +1472,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          last_seen_at: string | null
           password_change_required: boolean
           phone_number: string | null
           recovery_email: string | null
@@ -1486,6 +1487,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          last_seen_at?: string | null
           password_change_required?: boolean
           phone_number?: string | null
           recovery_email?: string | null
@@ -1500,6 +1502,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          last_seen_at?: string | null
           password_change_required?: boolean
           phone_number?: string | null
           recovery_email?: string | null
@@ -2338,6 +2341,7 @@ export type Database = {
         Args: { _permissions: string[]; _role_id: string }
         Returns: undefined
       }
+      touch_last_seen: { Args: never; Returns: undefined }
       update_company_role: {
         Args: { _description?: string; _name: string; _role_id: string }
         Returns: undefined
