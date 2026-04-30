@@ -1,6 +1,8 @@
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
+import AdminApp from './admin/AdminApp.tsx'
+import { isAdminHost } from './lib/adminHost.ts'
 import './index.css'
 
 // Load saved theme preferences before rendering
@@ -15,4 +17,5 @@ if (savedDarkMode === "dark") {
 }
 
 const root = createRoot(document.getElementById("root")!);
-root.render(createElement(App));
+const RootComponent = isAdminHost() ? AdminApp : App;
+root.render(createElement(RootComponent));

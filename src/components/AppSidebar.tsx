@@ -14,7 +14,6 @@ import {
   Settings,
   ChevronDown,
   Crown,
-  Shield,
   Lock
 } from "lucide-react";
 import {
@@ -23,9 +22,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-// Admin access by email
-const ADMIN_EMAIL = "martine@3d-art.ca";
 
 import {
   Sidebar,
@@ -147,11 +143,9 @@ export function AppSidebar() {
   const settingsItems = [
     { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null, adminOnly: false, requiredPermission: "settings:view" },
     { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings, requiresFeature: null, adminOnly: false, requiredPermission: "settings:view" },
-    { titleKey: "nav.admin", url: "/dashboard/admin", icon: Shield, requiresFeature: null, adminOnly: true, requiredPermission: null },
   ];
 
   const visibleSettingsItems = settingsItems.filter(item => {
-    if (item.adminOnly && user?.email !== ADMIN_EMAIL) return false;
     if (item.requiredPermission) {
       if (!permissionsReady) return true;
       return hasPermission(item.requiredPermission);
