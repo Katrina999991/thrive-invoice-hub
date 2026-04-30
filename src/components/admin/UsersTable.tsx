@@ -665,6 +665,11 @@ export function UsersTable() {
                               })
                             : t.never}
                         </TableCell>
+                        <TableCell>
+                          {user.last_seen_at
+                            ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
+                            : t.never}
+                        </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
                         <TableCell>{renderActivityCell(user)}</TableCell>
                       </TableRow>
@@ -674,7 +679,7 @@ export function UsersTable() {
                     {filteredTestUsers.length > 0 && (
                       <>
                         <TableRow>
-                          <TableCell colSpan={6} className="bg-muted/50 py-2 text-center">
+                          <TableCell colSpan={7} className="bg-muted/50 py-2 text-center">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                               {language === "fr" ? "Comptes test / internes" : "Test / Internal accounts"}
                               {" "}({filteredTestUsers.length})
@@ -720,6 +725,11 @@ export function UsersTable() {
                                     addSuffix: true,
                                     locale,
                                   })
+                                : t.never}
+                            </TableCell>
+                            <TableCell>
+                              {user.last_seen_at
+                                ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
                                 : t.never}
                             </TableCell>
                             <TableCell>
