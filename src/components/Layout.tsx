@@ -6,11 +6,13 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { LogOut, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { usePresence } from "@/hooks/usePresence";
 
 export default function Layout() {
   const { user, signOut } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
+  usePresence();
 
   const handleSignOut = async () => {
     await signOut();

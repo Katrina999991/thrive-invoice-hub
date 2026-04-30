@@ -21,6 +21,7 @@ interface User {
   display_name: string | null;
   created_at: string;
   last_sign_in_at: string | null;
+  last_seen_at?: string | null;
   plan_type: "free" | "premium" | "pro";
   billing_cycle: "monthly" | "yearly" | null;
   subscription_started_at: string | null;
@@ -92,6 +93,7 @@ export function UsersTable() {
       name: "Nom",
       registrationDate: "Inscription",
       lastLogin: "Dernière connexion",
+      lastSeen: "Dernière visite",
       plan: "Plan",
       activation: "Activité",
       search: "Rechercher par email ou nom...",
@@ -138,6 +140,7 @@ export function UsersTable() {
       name: "Name",
       registrationDate: "Registration",
       lastLogin: "Last login",
+      lastSeen: "Last seen",
       plan: "Plan",
       activation: "Activity",
       search: "Search by email or name...",
@@ -614,6 +617,7 @@ export function UsersTable() {
                   <TableHead>{t.name}</TableHead>
                   <TableHead>{t.registrationDate}</TableHead>
                   <TableHead>{t.lastLogin}</TableHead>
+                  <TableHead>{t.lastSeen}</TableHead>
                   <TableHead>{t.plan}</TableHead>
                   <TableHead className="text-center">{t.activation}</TableHead>
                 </TableRow>
@@ -621,7 +625,7 @@ export function UsersTable() {
               <TableBody>
                 {filteredUsers.length === 0 && filteredTestUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       {t.noUsers}
                     </TableCell>
                   </TableRow>
@@ -661,6 +665,11 @@ export function UsersTable() {
                               })
                             : t.never}
                         </TableCell>
+                        <TableCell>
+                          {user.last_seen_at
+                            ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
+                            : t.never}
+                        </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
                         <TableCell>{renderActivityCell(user)}</TableCell>
                       </TableRow>
@@ -670,7 +679,7 @@ export function UsersTable() {
                     {filteredTestUsers.length > 0 && (
                       <>
                         <TableRow>
-                          <TableCell colSpan={6} className="bg-muted/50 py-2 text-center">
+                          <TableCell colSpan={7} className="bg-muted/50 py-2 text-center">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                               {language === "fr" ? "Comptes test / internes" : "Test / Internal accounts"}
                               {" "}({filteredTestUsers.length})
@@ -716,6 +725,11 @@ export function UsersTable() {
                                     addSuffix: true,
                                     locale,
                                   })
+                                : t.never}
+                            </TableCell>
+                            <TableCell>
+                              {user.last_seen_at
+                                ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
                                 : t.never}
                             </TableCell>
                             <TableCell>
