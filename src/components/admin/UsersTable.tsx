@@ -21,6 +21,7 @@ interface User {
   display_name: string | null;
   created_at: string;
   last_sign_in_at: string | null;
+  last_seen_at?: string | null;
   plan_type: "free" | "premium" | "pro";
   billing_cycle: "monthly" | "yearly" | null;
   subscription_started_at: string | null;
@@ -92,6 +93,7 @@ export function UsersTable() {
       name: "Nom",
       registrationDate: "Inscription",
       lastLogin: "Dernière connexion",
+      lastSeen: "Dernière visite",
       plan: "Plan",
       activation: "Activité",
       search: "Rechercher par email ou nom...",
@@ -138,6 +140,7 @@ export function UsersTable() {
       name: "Name",
       registrationDate: "Registration",
       lastLogin: "Last login",
+      lastSeen: "Last seen",
       plan: "Plan",
       activation: "Activity",
       search: "Search by email or name...",
