@@ -28,6 +28,22 @@ const formatPastDistance = (iso: string, locale: Locale) => {
   return formatDistanceToNow(safe, { addSuffix: true, locale });
 };
 
+/**
+ * Format a duration in minutes as a human-readable string.
+ * Examples: "0 min", "42 min", "3h 12m", "2j 4h"
+ */
+const formatSessionDuration = (totalMinutes: number, language: string): string => {
+  const m = Math.max(0, Math.floor(totalMinutes || 0));
+  if (m < 60) return `${m} min`;
+  const hours = Math.floor(m / 60);
+  const mins = m % 60;
+  if (hours < 24) return `${hours}h ${mins}m`;
+  const days = Math.floor(hours / 24);
+  const remHours = hours % 24;
+  const dayLabel = language === "fr" ? "j" : "d";
+  return `${days}${dayLabel} ${remHours}h`;
+};
+
 interface User {
   id: string;
   email: string;
