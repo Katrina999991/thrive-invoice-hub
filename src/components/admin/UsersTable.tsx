@@ -15,6 +15,19 @@ import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+/**
+ * Format a timestamp as a human-readable distance from now.
+ * Clamps to "now" if the value is in the future (e.g. when the
+ * viewer's clock is slightly behind the server clock), so we never
+ * show "in 2 minutes" for a Last seen value.
+ */
+const formatPastDistance = (iso: string, locale: Locale) => {
+  const d = new Date(iso);
+  const now = new Date();
+  const safe = d.getTime() > now.getTime() ? now : d;
+  return formatDistanceToNow(safe, { addSuffix: true, locale });
+};
+
 interface User {
   id: string;
   email: string;
