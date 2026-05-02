@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check, Send, Activity, Clock, History } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
-import { fr, enUS } from "date-fns/locale";
+import { fr, enUS, type Locale } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
