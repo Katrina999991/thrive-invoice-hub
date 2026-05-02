@@ -126,14 +126,25 @@ serve(async (req) => {
       throw new Error(`Failed to fetch companies: ${companiesError.message}`);
     }
 
-    // Fetch invoices existence per user
-    const { data: invoices, error: invoicesError } = await supabaseClient
-      .from("invoices")
-      .select("user_id, created_at, sent_at, paid_at, status");
-
-    if (invoicesError) {
-      logStep("Error fetching invoices", { error: invoicesError.message });
-      throw new Error(`Failed to fetch invoices: ${invoicesError.message}`);
+    // Fetch invoices existence per user (paginated to bypass 1000-row limit)
+    const invoices: any[] = [];
+    {
+      const pageSize = 1000;
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabaseClient
+          .from("invoices")
+          .select("user_id, created_at, sent_at, paid_at, status")
+          .range(from, from + pageSize - 1);
+        if (error) {
+          logStep("Error fetching invoices", { error: error.message });
+          throw new Error(`Failed to fetch invoices: ${error.message}`);
+        }
+        if (!data || data.length === 0) break;
+        invoices.push(...data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
     }
 
     // Fetch quotes existence per user
@@ -184,16 +195,26 @@ serve(async (req) => {
     const maxStr = (a: string | undefined, b: string | null | undefined) =>
       b ? (a && a > b ? a : b) : a;
 
+    // A status in ('sent','paid','overdue') means the invoice has been issued.
+    // A status of 'paid' means the invoice has been paid (timestamps are not always populated).
+    const SENT_STATUSES = new Set(["sent", "paid", "overdue"]);
     invoices?.forEach((i: any) => {
       invoicesCountMap.set(i.user_id, (invoicesCountMap.get(i.user_id) || 0) + 1);
-      if (i.sent_at) {
+
+      const isSent = !!i.sent_at || SENT_STATUSES.has(i.status);
+      if (isSent) {
         invoicesSentCountMap.set(i.user_id, (invoicesSentCountMap.get(i.user_id) || 0) + 1);
-        lastInvoiceSentMap.set(i.user_id, maxStr(lastInvoiceSentMap.get(i.user_id), i.sent_at)!);
+        const sentTs = i.sent_at || i.created_at;
+        if (sentTs) lastInvoiceSentMap.set(i.user_id, maxStr(lastInvoiceSentMap.get(i.user_id), sentTs)!);
       }
-      if (i.paid_at) {
+
+      const isPaid = !!i.paid_at || i.status === "paid";
+      if (isPaid) {
         invoicesPaidCountMap.set(i.user_id, (invoicesPaidCountMap.get(i.user_id) || 0) + 1);
-        lastInvoicePaidMap.set(i.user_id, maxStr(lastInvoicePaidMap.get(i.user_id), i.paid_at)!);
+        const paidTs = i.paid_at || i.created_at;
+        if (paidTs) lastInvoicePaidMap.set(i.user_id, maxStr(lastInvoicePaidMap.get(i.user_id), paidTs)!);
       }
+
       if (i.created_at) {
         lastInvoiceCreatedMap.set(i.user_id, maxStr(lastInvoiceCreatedMap.get(i.user_id), i.created_at)!);
       }
