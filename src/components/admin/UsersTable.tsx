@@ -671,17 +671,10 @@ export function UsersTable() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {user.last_sign_in_at
-                            ? formatDistanceToNow(new Date(user.last_sign_in_at), {
-                                addSuffix: true,
-                                locale,
-                              })
-                            : t.never}
+                          {user.last_sign_in_at ? formatPastDistance(user.last_sign_in_at, locale) : t.never}
                         </TableCell>
                         <TableCell>
-                          {user.last_seen_at
-                            ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
-                            : t.never}
+                          {user.last_seen_at ? formatPastDistance(user.last_seen_at, locale) : t.never}
                         </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
                         <TableCell>{renderActivityCell(user)}</TableCell>
@@ -733,17 +726,10 @@ export function UsersTable() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {user.last_sign_in_at
-                                ? formatDistanceToNow(new Date(user.last_sign_in_at), {
-                                    addSuffix: true,
-                                    locale,
-                                  })
-                                : t.never}
+                              {user.last_sign_in_at ? formatPastDistance(user.last_sign_in_at, locale) : t.never}
                             </TableCell>
                             <TableCell>
-                              {user.last_seen_at
-                                ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
-                                : t.never}
+                              {user.last_seen_at ? formatPastDistance(user.last_seen_at, locale) : t.never}
                             </TableCell>
                             <TableCell>
                               <Select
