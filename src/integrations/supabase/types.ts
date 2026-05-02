@@ -1478,6 +1478,7 @@ export type Database = {
           recovery_email: string | null
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean | null
+          total_session_minutes: number
           updated_at: string
           user_id: string
           username: string | null
@@ -1493,6 +1494,7 @@ export type Database = {
           recovery_email?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          total_session_minutes?: number
           updated_at?: string
           user_id: string
           username?: string | null
@@ -1508,6 +1510,7 @@ export type Database = {
           recovery_email?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          total_session_minutes?: number
           updated_at?: string
           user_id?: string
           username?: string | null
