@@ -8,6 +8,41 @@ const corsHeaders = {
 
 const ADMIN_USER_ID = "e6c5ca56-8437-4782-bc6a-3b0f77993ebc";
 
+// AES-GCM encryption helpers using ENCRYPTION_KEY secret
+async function getKey(): Promise<CryptoKey> {
+  const raw = Deno.env.get("ENCRYPTION_KEY") ?? "";
+  // Derive a 256-bit key from the secret via SHA-256 (works for any secret length)
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  return crypto.subtle.importKey("raw", hash, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
+
+async function encryptText(plain: string): Promise<string> {
+  const key = await getKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(
+    await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plain))
+  );
+  const combined = new Uint8Array(iv.length + ct.length);
+  combined.set(iv, 0);
+  combined.set(ct, iv.length);
+  return "enc:v1:" + btoa(String.fromCharCode(...combined));
+}
+
+async function decryptText(value: string): Promise<string> {
+  if (!value || !value.startsWith("enc:v1:")) return value; // legacy plaintext
+  try {
+    const key = await getKey();
+    const bin = Uint8Array.from(atob(value.slice(7)), (c) => c.charCodeAt(0));
+    const iv = bin.slice(0, 12);
+    const ct = bin.slice(12);
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+    return new TextDecoder().decode(pt);
+  } catch (e) {
+    console.error("[ADMIN-RESET-PASSWORD] Decrypt failed:", (e as Error).message);
+    return "[decrypt error]";
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,14 +67,21 @@ serve(async (req) => {
     const action = url.searchParams.get("action") || "reset";
 
     if (action === "get-passwords") {
-      // Return all stored test passwords
+      // Return all stored test passwords (decrypt on the fly)
       const { data, error } = await supabaseClient
         .from("test_account_passwords")
         .select("user_id, email, password_plain, updated_at");
 
       if (error) throw error;
 
-      return new Response(JSON.stringify({ passwords: data || [] }), {
+      const decrypted = await Promise.all(
+        (data || []).map(async (row: any) => ({
+          ...row,
+          password_plain: await decryptText(row.password_plain || ""),
+        }))
+      );
+
+      return new Response(JSON.stringify({ passwords: decrypted }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -57,11 +99,12 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    // Store password in test_account_passwords table
+    // Store password ENCRYPTED in test_account_passwords table
+    const encrypted = await encryptText(newPassword);
     const { error: upsertError } = await supabaseClient
       .from("test_account_passwords")
       .upsert(
-        { user_id: userId, email: email || "", password_plain: newPassword, updated_at: new Date().toISOString() },
+        { user_id: userId, email: email || "", password_plain: encrypted, updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
 
