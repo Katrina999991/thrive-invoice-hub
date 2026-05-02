@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import PasswordChangeDialog from "@/components/PasswordChangeDialog";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { PresenceTracker } from "@/components/PresenceTracker";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -57,6 +58,7 @@ const App = () => {
             <AuthProvider>
               <PasswordChangeDialog />
               <PWAInstallBanner />
+              <PresenceTracker />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/software" element={<Software />} />

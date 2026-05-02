@@ -17,6 +17,7 @@ import { UsersTable } from "@/components/admin/UsersTable";
 import { ReceiptScanStatsCard } from "@/components/admin/ReceiptScanStatsCard";
 import { ProductUpdateEmailSection } from "@/components/ProductUpdateEmailSection";
 import { ProductUpdateLogsTable } from "@/components/admin/ProductUpdateLogsTable";
+import { PresenceTracker } from "@/components/PresenceTracker";
 
 const queryClient = new QueryClient();
 
@@ -200,6 +201,7 @@ export default function AdminApp() {
         <BrowserRouter>
           <LanguageProvider>
             <AuthProvider>
+              <PresenceTracker />
               <Routes>
                 <Route path="/" element={<AdminGate />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
