@@ -11,9 +11,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Users, Crown, Zap, RefreshCw, Search, Calendar, UserPlus, CreditCard, Building2, FileText, Receipt, UserRound, Loader2, KeyRound, Eye, EyeOff, Copy, Check, Send, Activity, Clock, History } from "lucide-react";
 import { format, formatDistanceToNow, subDays, isAfter } from "date-fns";
-import { fr, enUS } from "date-fns/locale";
+import { fr, enUS, type Locale } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+/**
+ * Format a timestamp as a human-readable distance from now.
+ * Clamps to "now" if the value is in the future (e.g. when the
+ * viewer's clock is slightly behind the server clock), so we never
+ * show "in 2 minutes" for a Last seen value.
+ */
+const formatPastDistance = (iso: string, locale: Locale) => {
+  const d = new Date(iso);
+  const now = new Date();
+  const safe = d.getTime() > now.getTime() ? now : d;
+  return formatDistanceToNow(safe, { addSuffix: true, locale });
+};
 
 interface User {
   id: string;
@@ -658,17 +671,10 @@ export function UsersTable() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {user.last_sign_in_at
-                            ? formatDistanceToNow(new Date(user.last_sign_in_at), {
-                                addSuffix: true,
-                                locale,
-                              })
-                            : t.never}
+                          {user.last_sign_in_at ? formatPastDistance(user.last_sign_in_at, locale) : t.never}
                         </TableCell>
                         <TableCell>
-                          {user.last_seen_at
-                            ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
-                            : t.never}
+                          {user.last_seen_at ? formatPastDistance(user.last_seen_at, locale) : t.never}
                         </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
                         <TableCell>{renderActivityCell(user)}</TableCell>
@@ -720,17 +726,10 @@ export function UsersTable() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {user.last_sign_in_at
-                                ? formatDistanceToNow(new Date(user.last_sign_in_at), {
-                                    addSuffix: true,
-                                    locale,
-                                  })
-                                : t.never}
+                              {user.last_sign_in_at ? formatPastDistance(user.last_sign_in_at, locale) : t.never}
                             </TableCell>
                             <TableCell>
-                              {user.last_seen_at
-                                ? formatDistanceToNow(new Date(user.last_seen_at), { addSuffix: true, locale })
-                                : t.never}
+                              {user.last_seen_at ? formatPastDistance(user.last_seen_at, locale) : t.never}
                             </TableCell>
                             <TableCell>
                               <Select
