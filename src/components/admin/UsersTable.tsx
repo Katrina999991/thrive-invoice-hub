@@ -35,6 +35,7 @@ interface User {
   created_at: string;
   last_sign_in_at: string | null;
   last_seen_at?: string | null;
+  total_session_minutes?: number;
   plan_type: "free" | "premium" | "pro";
   billing_cycle: "monthly" | "yearly" | null;
   subscription_started_at: string | null;
@@ -107,6 +108,7 @@ export function UsersTable() {
       registrationDate: "Inscription",
       lastLogin: "Dernière connexion",
       lastSeen: "Dernière visite",
+      totalSessionTime: "Temps total",
       plan: "Plan",
       activation: "Activité",
       search: "Rechercher par email ou nom...",
@@ -154,6 +156,7 @@ export function UsersTable() {
       registrationDate: "Registration",
       lastLogin: "Last login",
       lastSeen: "Last seen",
+      totalSessionTime: "Total time",
       plan: "Plan",
       activation: "Activity",
       search: "Search by email or name...",
@@ -631,6 +634,7 @@ export function UsersTable() {
                   <TableHead>{t.registrationDate}</TableHead>
                   <TableHead>{t.lastLogin}</TableHead>
                   <TableHead>{t.lastSeen}</TableHead>
+                  <TableHead>{t.totalSessionTime}</TableHead>
                   <TableHead>{t.plan}</TableHead>
                   <TableHead className="text-center">{t.activation}</TableHead>
                 </TableRow>
@@ -638,7 +642,7 @@ export function UsersTable() {
               <TableBody>
                 {filteredUsers.length === 0 && filteredTestUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       {t.noUsers}
                     </TableCell>
                   </TableRow>
@@ -676,6 +680,9 @@ export function UsersTable() {
                         <TableCell>
                           {user.last_seen_at ? formatPastDistance(user.last_seen_at, locale) : t.never}
                         </TableCell>
+                        <TableCell>
+                          {formatSessionDuration(user.total_session_minutes || 0, language)}
+                        </TableCell>
                         <TableCell>{getPlanBadge(user.plan_type)}</TableCell>
                         <TableCell>{renderActivityCell(user)}</TableCell>
                       </TableRow>
@@ -685,7 +692,7 @@ export function UsersTable() {
                     {filteredTestUsers.length > 0 && (
                       <>
                         <TableRow>
-                          <TableCell colSpan={7} className="bg-muted/50 py-2 text-center">
+                          <TableCell colSpan={8} className="bg-muted/50 py-2 text-center">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                               {language === "fr" ? "Comptes test / internes" : "Test / Internal accounts"}
                               {" "}({filteredTestUsers.length})
@@ -730,6 +737,9 @@ export function UsersTable() {
                             </TableCell>
                             <TableCell>
                               {user.last_seen_at ? formatPastDistance(user.last_seen_at, locale) : t.never}
+                            </TableCell>
+                            <TableCell>
+                              {formatSessionDuration(user.total_session_minutes || 0, language)}
                             </TableCell>
                             <TableCell>
                               <Select
