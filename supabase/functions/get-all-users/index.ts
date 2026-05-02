@@ -107,7 +107,7 @@ serve(async (req) => {
     // Fetch all profiles for display names and Stripe info
     const { data: profiles, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("user_id, display_name, username, stripe_account_id, stripe_onboarding_complete, last_seen_at");
+      .select("user_id, display_name, username, stripe_account_id, stripe_onboarding_complete, last_seen_at, total_session_minutes");
 
     if (profileError) {
       logStep("Error fetching profiles", { error: profileError.message });
@@ -272,6 +272,7 @@ serve(async (req) => {
         created_at: user.created_at,
         last_sign_in_at: user.last_sign_in_at,
         last_seen_at: profile?.last_seen_at || null,
+        total_session_minutes: profile?.total_session_minutes || 0,
         plan_type: subscription?.plan_type || "free",
         billing_cycle: subscription?.billing_cycle || null,
         subscription_started_at: subscription?.started_at || null,
