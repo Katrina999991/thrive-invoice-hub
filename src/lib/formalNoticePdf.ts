@@ -53,6 +53,14 @@ export const generateFormalNoticePdf = (data: FormalNoticePdfData, action: 'down
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(0, 0, 0);
+  const recipientCompany = data.recipientCompany?.trim();
+  if (recipientCompany) {
+    doc.setFont('helvetica', 'bold');
+    const companyLines = doc.splitTextToSize(recipientCompany, contentWidth / 2);
+    doc.text(companyLines, margin, y);
+    y += companyLines.length * 5;
+    doc.setFont('helvetica', 'normal');
+  }
   const recipientBlock = data.recipientName + (data.recipientAddress ? '\n' + data.recipientAddress : '');
   const recipientLines = doc.splitTextToSize(recipientBlock, contentWidth / 2);
   doc.text(recipientLines, margin, y);
