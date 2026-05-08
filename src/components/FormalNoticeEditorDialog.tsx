@@ -975,6 +975,14 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
               <Separator />
 
               {/* Recipient */}
+              <div className="space-y-2">
+                <Label>{t('Entreprise destinataire', 'Recipient company')}</Label>
+                <Input
+                  value={recipientCompany}
+                  onChange={(e) => setRecipientCompany(e.target.value)}
+                  placeholder={t('Ex. ABC Construction inc.', 'e.g. ABC Construction inc.')}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t('Destinataire', 'Recipient')}</Label>
