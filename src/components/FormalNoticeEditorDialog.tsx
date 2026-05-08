@@ -333,7 +333,7 @@ Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}},
 
 Cette facture était exigible depuis le {{invoice_due_date}}.
 
-Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme au plus tard le {{formal_notice_due_date}}.
+Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme {{deadline_phrase}}.
 
 À défaut de recevoir votre paiement dans ce délai, nous nous verrons dans l'obligation d'entreprendre les recours nécessaires afin de recouvrer la somme due, sans autre avis, incluant notamment toute démarche appropriée auprès des instances compétentes, le tout à vos frais, incluant les intérêts et frais applicables.${invoice.payment_link ? `
 
@@ -352,7 +352,7 @@ Despite our previous reminders, the balance of invoice {{invoice_number}}, regar
 
 This invoice was due on {{invoice_due_date}}.
 
-We hereby formally demand that you proceed with the full payment of the amount owed no later than {{formal_notice_due_date}}.
+We hereby formally demand that you proceed with the full payment of the amount owed {{deadline_phrase}}.
 
 If payment is not received within this timeframe, we will be required to take the necessary steps to recover the amount due, without further notice, including any appropriate actions before the competent authorities, at your expense, including applicable interest and fees.${invoice.payment_link ? `
 
