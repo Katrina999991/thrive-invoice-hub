@@ -493,7 +493,7 @@ Sincerely,
     } else if (open) {
       setEditingNotice(null);
     }
-  }, [open, latestNotice]);
+  }, [open, latestNotice?.id]);
 
   // Capture initial snapshot after load settles
   useEffect(() => {
@@ -502,7 +502,7 @@ Sincerely,
     } else {
       setInitialSnapshot(null);
     }
-  }, [open, latestNotice]);
+  }, [open, latestNotice?.id]);
 
   const signerDisplayName = useMemo(() => {
     if (userSignature?.signer_name?.trim()) return userSignature.signer_name.trim();
