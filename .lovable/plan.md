@@ -1,55 +1,66 @@
-## Problème
+## Objectif
 
-Dans la mise en demeure, après avoir saisi la date d'envoi, le numéro de suivi et coché « Preuve d'envoi », l'ajout d'un fichier de preuve **efface ces champs**.
+Adapter le texte de la mise en demeure pour qu'il dise **« à compter de la réception »** au lieu d'une date butoir fixe **lorsque le mode d'envoi est postal** (courrier recommandé, certifié, LRAR, courrier standard, huissier). Pour les modes instantanés (courriel), on garde la date fixe actuelle.
 
-## Cause
+C'est la pratique standard des avocats au Québec/France pour les envois postaux : elle protège juridiquement contre l'argument du débiteur qui aurait reçu la lettre après la date limite.
 
-Dans `src/components/FormalNoticeEditorDialog.tsx`, le `useEffect` de chargement (lignes 468-496) qui hydrate les champs (`recipient`, `tracking_number`, `sent_at`, etc.) à partir de `latestNotice` a comme dépendances `[open, latestNotice]`.
+## Comportement attendu
 
-Le téléversement d'un fichier appelle `fetchAttachments()` qui déclenche une nouvelle exécution du composant. Lors de ce re-render, la référence de `latestNotice` (recalculée à chaque render via `notices[0]`) peut changer, ce qui relance l'effet et **réécrit les champs locaux non encore sauvegardés** avec les valeurs (vides) de la BD.
+Selon le mode d'envoi sélectionné dans l'éditeur de mise en demeure :
 
-De plus, `buildTrackingData()` (ligne 594) **n'inclut pas `sent_at`** : même si l'utilisateur cliquait sur « Enregistrer le suivi », la date d'envoi qu'il a saisie ne serait pas persistée et serait perdue au rechargement.
+| Mode d'envoi | Phrasing dans le PDF / HTML / courriel |
+|---|---|
+| Courriel | *« …avant le **15 mai 2026** »* (date fixe — comportement actuel) |
+| Courrier recommandé / certifié / LRAR / standard / messagerie / huissier | *« …dans un délai de **5 jours** à compter de la réception de la présente mise en demeure »* |
 
-## Correctifs
+Le délai en jours utilisé est celui déjà saisi par l'utilisateur (`payment_term_days`, ex. 5, 10, 15, 30).
 
-### 1. Hydratation : ne charger qu'une seule fois par notice
+## Avertissement dans l'éditeur
 
-Dans `src/components/FormalNoticeEditorDialog.tsx`, remplacer la dépendance `latestNotice` par `latestNotice?.id` afin de ne ré-hydrater le formulaire **que si on change de mise en demeure**, pas à chaque re-render parent (notamment après `fetchAttachments`).
+Ajouter un petit message d'information (non-bloquant) dans l'éditeur quand l'utilisateur choisit un mode postal :
 
-- Ligne 496 : `}, [open, latestNotice]);` → `}, [open, latestNotice?.id]);`
-- Ligne 505 (effet de snapshot) : même changement.
+> *« Le PDF mentionnera "X jours à compter de la réception" plutôt qu'une date fixe, pour tenir compte du délai postal. »*
 
-### 2. `buildTrackingData` doit inclure `sent_at`
+## Fichiers à modifier
 
-Pour que la date d'envoi saisie soit réellement persistée par « Enregistrer le suivi » :
+### 1. `src/lib/formalNoticeHtml.ts`
+- Ajouter une fonction utilitaire `getDeadlinePhrase(method, days, dueDate, lang)` qui retourne soit la phrase « à compter de la réception » soit la date fixe selon le mode.
+- Remplacer le bloc actuel qui affiche `due_at` formaté par cette phrase contextuelle.
 
-```ts
-const buildTrackingData = (): FormalNoticeInput => ({
-  sending_method: sendingMethod,
-  proof_status: proofStatus,
-  tracking_number: trackingNumber || undefined,
-  delivered_date: deliveredDate || null,
-  sent_at: sentDate ? new Date(sentDate).toISOString() : undefined, // ← ajout
-  risk_level: docRisk,
-  delivery_status: deliveryStatus,
-  proof_of_sending: proofSending,
-  proof_of_receipt: proofReceipt,
-  tracking_notes: trackingNotes || undefined,
-});
-```
+### 2. `src/lib/formalNoticePdf.ts`
+- Même logique : utiliser `getDeadlinePhrase(...)` au lieu de la date butoir formatée.
 
-Idem dans `buildSaveData` (ligne 571) : ajouter `sent_at: sentDate ? new Date(sentDate).toISOString() : undefined` pour que « Enregistrer brouillon » conserve aussi la date d'envoi.
+### 3. `src/components/FormalNoticeEditorDialog.tsx`
+- Ajouter un encart d'information (Alert/composant existant) sous le sélecteur de mode d'envoi qui apparaît uniquement quand `sendingMethod` est postal, expliquant le changement de phrasing.
+- (Optionnel) Griser/désactiver le champ « Date limite (due_at) » avec un libellé « calculée à la réception » pour les modes postaux, car la valeur ne sera pas affichée comme date dans le document final.
 
-### 3. Vérification
+### 4. Traductions
+Ajouter les chaînes bilingues (FR/EN) :
 
-Après les changements :
-1. Ouvrir une mise en demeure existante.
-2. Saisir date d'envoi + n° de suivi + cocher « Preuve d'envoi ».
-3. Téléverser un fichier de preuve.
-4. **Attendu** : les trois champs restent remplis ; le fichier apparaît dans la liste.
-5. Cliquer « Enregistrer le suivi », fermer/rouvrir : tout est conservé, y compris la date d'envoi.
+- FR : *« dans un délai de {days} jours à compter de la réception de la présente mise en demeure »*
+- EN : *« within {days} days from the receipt of this formal notice »*
+- FR (avertissement éditeur) : *« Mode postal sélectionné : le document mentionnera "{days} jours à compter de la réception" au lieu d'une date fixe. »*
+- EN : *« Postal delivery selected: the document will state "{days} days from receipt" instead of a fixed date. »*
+
+## Détails techniques
+
+- Modes considérés comme **postaux** (phrasing « à compter de la réception ») :
+  `standard_mail`, `registered_mail`, `certified_mail`, `courier`, `bailiff`, `lrar`
+- Modes considérés comme **instantanés** (date fixe) :
+  `email`
+- La langue (`fr`/`en`) est déjà détectée via `detectNoticeLanguage(...)` dans `formalNoticeConfig.ts` — réutiliser.
+- Aucun changement BD : `payment_term_days` et `due_at` existent déjà.
+- Aucun changement aux courriels transactionnels (le PDF joint reflètera déjà le bon phrasing).
 
 ## Hors scope
 
-- Aucun changement BD nécessaire (la colonne `sent_at` existe déjà dans `invoice_formal_notices`).
-- Aucun changement au PDF, au HTML ni aux courriels.
+- Pas de calcul automatique d'un délai de transit ajouté à `due_at` (ce serait l'Option A — peut être fait dans une itération ultérieure si tu le souhaites).
+- Pas de modification des mises en demeure déjà envoyées par courriel.
+- Pas de changement aux relances de paiement régulières (uniquement les mises en demeure formelles).
+
+## Vérification
+
+1. Créer une mise en demeure avec mode = **Courrier recommandé**, délai = 5 jours → le PDF doit dire *« dans un délai de 5 jours à compter de la réception… »*.
+2. Créer une mise en demeure avec mode = **Courriel**, délai = 5 jours → le PDF garde la date fixe actuelle.
+3. Tester en FR et en EN.
+4. Vérifier l'avertissement dans l'éditeur quand on bascule entre courriel et courrier recommandé.
