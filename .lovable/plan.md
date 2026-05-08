@@ -1,44 +1,55 @@
-## Objectif
+## Problème
 
-Ajouter un champ explicite **Entreprise destinataire** dans la mise en demeure, en plus du champ actuel **Destinataire** (« À l'intention de la direction / des administrateurs ») et de l'**Adresse**. Le nom de la compagnie destinataire apparaîtra clairement sur le PDF, dans l'aperçu et dans le HTML imprimable.
+Dans la mise en demeure, après avoir saisi la date d'envoi, le numéro de suivi et coché « Preuve d'envoi », l'ajout d'un fichier de preuve **efface ces champs**.
 
-## Affichage cible (bloc destinataire du PDF)
+## Cause
 
+Dans `src/components/FormalNoticeEditorDialog.tsx`, le `useEffect` de chargement (lignes 468-496) qui hydrate les champs (`recipient`, `tracking_number`, `sent_at`, etc.) à partir de `latestNotice` a comme dépendances `[open, latestNotice]`.
+
+Le téléversement d'un fichier appelle `fetchAttachments()` qui déclenche une nouvelle exécution du composant. Lors de ce re-render, la référence de `latestNotice` (recalculée à chaque render via `notices[0]`) peut changer, ce qui relance l'effet et **réécrit les champs locaux non encore sauvegardés** avec les valeurs (vides) de la BD.
+
+De plus, `buildTrackingData()` (ligne 594) **n'inclut pas `sent_at`** : même si l'utilisateur cliquait sur « Enregistrer le suivi », la date d'envoi qu'il a saisie ne serait pas persistée et serait perdue au rechargement.
+
+## Correctifs
+
+### 1. Hydratation : ne charger qu'une seule fois par notice
+
+Dans `src/components/FormalNoticeEditorDialog.tsx`, remplacer la dépendance `latestNotice` par `latestNotice?.id` afin de ne ré-hydrater le formulaire **que si on change de mise en demeure**, pas à chaque re-render parent (notamment après `fetchAttachments`).
+
+- Ligne 496 : `}, [open, latestNotice]);` → `}, [open, latestNotice?.id]);`
+- Ligne 505 (effet de snapshot) : même changement.
+
+### 2. `buildTrackingData` doit inclure `sent_at`
+
+Pour que la date d'envoi saisie soit réellement persistée par « Enregistrer le suivi » :
+
+```ts
+const buildTrackingData = (): FormalNoticeInput => ({
+  sending_method: sendingMethod,
+  proof_status: proofStatus,
+  tracking_number: trackingNumber || undefined,
+  delivered_date: deliveredDate || null,
+  sent_at: sentDate ? new Date(sentDate).toISOString() : undefined, // ← ajout
+  risk_level: docRisk,
+  delivery_status: deliveryStatus,
+  proof_of_sending: proofSending,
+  proof_of_receipt: proofReceipt,
+  tracking_notes: trackingNotes || undefined,
+});
 ```
-[Entreprise destinataire]          ← nouveau (ex: ABC Construction inc.)
-À l'intention de la direction      ← recipient existant
-123 Rue Principale                 ← recipient_address existant
-Montréal, QC H1A 1A1
-```
 
-## Changements
+Idem dans `buildSaveData` (ligne 571) : ajouter `sent_at: sentDate ? new Date(sentDate).toISOString() : undefined` pour que « Enregistrer brouillon » conserve aussi la date d'envoi.
 
-### 1. Base de données
-- Migration : ajouter la colonne `recipient_company text` à `public.invoice_formal_notices`.
-- Backfill optionnel : pour les anciens enregistrements, laisser `NULL` (le PDF retombera sur le comportement actuel).
+### 3. Vérification
 
-### 2. Hook `src/hooks/useFormalNotices.ts`
-- Ajouter `recipient_company` dans l'interface `FormalNotice` et `FormalNoticeInput`.
+Après les changements :
+1. Ouvrir une mise en demeure existante.
+2. Saisir date d'envoi + n° de suivi + cocher « Preuve d'envoi ».
+3. Téléverser un fichier de preuve.
+4. **Attendu** : les trois champs restent remplis ; le fichier apparaît dans la liste.
+5. Cliquer « Enregistrer le suivi », fermer/rouvrir : tout est conservé, y compris la date d'envoi.
 
-### 3. Éditeur `src/components/FormalNoticeEditorDialog.tsx`
-- Nouveau state `recipientCompany`, pré-rempli avec `invoice.clients?.name`.
-- Nouveau champ Input « Entreprise destinataire » / « Recipient company » placé **au-dessus** du champ Destinataire actuel.
-- Inclure dans le snapshot d'unsaved changes, le `createNotice`/`updateNotice`, et le hydrate depuis `editingNotice`.
-- Passer la valeur à `generateFormalNoticePdf` via un nouveau champ `recipientCompany`.
+## Hors scope
 
-### 4. PDF `src/lib/formalNoticePdf.ts`
-- Ajouter `recipientCompany?: string` à `FormalNoticePdfData`.
-- Dans le bloc destinataire, afficher `recipientCompany` en **gras** sur la première ligne (si fourni), puis `recipientName`, puis `recipientAddress`.
-- Inclure dans le nom de fichier seulement si pertinent (sinon laisser le comportement actuel).
-
-### 5. HTML `src/lib/formalNoticeHtml.ts`
-- Même logique : si `recipientCompany`, l'ajouter en première ligne `<strong>` du `.recipient`.
-
-### 6. Aperçu dans le dialog
-- Mettre à jour le bloc d'aperçu (preview) du dialog pour refléter la même structure.
-
-## Notes
-
-- Champ optionnel : si vide, le PDF reste identique à aujourd'hui.
-- Bilingue : libellé `Entreprise destinataire` (FR) / `Recipient company` (EN) selon `language`.
-- Aucun changement aux courriels d'envoi (le sujet/corps utilisent déjà les variables existantes).
+- Aucun changement BD nécessaire (la colonne `sent_at` existe déjà dans `invoice_formal_notices`).
+- Aucun changement au PDF, au HTML ni aux courriels.

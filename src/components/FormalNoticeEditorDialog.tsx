@@ -493,7 +493,7 @@ Sincerely,
     } else if (open) {
       setEditingNotice(null);
     }
-  }, [open, latestNotice]);
+  }, [open, latestNotice?.id]);
 
   // Capture initial snapshot after load settles
   useEffect(() => {
@@ -502,7 +502,7 @@ Sincerely,
     } else {
       setInitialSnapshot(null);
     }
-  }, [open, latestNotice]);
+  }, [open, latestNotice?.id]);
 
   const signerDisplayName = useMemo(() => {
     if (userSignature?.signer_name?.trim()) return userSignature.signer_name.trim();
@@ -580,6 +580,7 @@ Sincerely,
     proof_status: proofStatus,
     tracking_number: trackingNumber || undefined,
     delivered_date: deliveredDate || null,
+    sent_at: sentDate ? new Date(sentDate).toISOString() : undefined,
     client_language: noticeLang,
     country: jKey,
     region: rKey !== 'default' ? rKey : undefined,
@@ -596,6 +597,7 @@ Sincerely,
     proof_status: proofStatus,
     tracking_number: trackingNumber || undefined,
     delivered_date: deliveredDate || null,
+    sent_at: sentDate ? new Date(sentDate).toISOString() : undefined,
     risk_level: docRisk,
     delivery_status: deliveryStatus,
     proof_of_sending: proofSending,
