@@ -25,7 +25,10 @@ export const generateFormalNoticeHtml = (data: FormalNoticePdfData): string => {
   const senderBlock = escHtml(data.senderName) +
     (data.senderAddress ? '<br>' + escHtml(data.senderAddress).replace(/\n/g, '<br>') : '');
 
-  const recipientBlock = escHtml(data.recipientName) +
+  const recipientCompany = data.recipientCompany?.trim();
+  const recipientBlock =
+    (recipientCompany ? `<strong>${escHtml(recipientCompany)}</strong><br>` : '') +
+    escHtml(data.recipientName) +
     (data.recipientAddress ? '<br>' + escHtml(data.recipientAddress).replace(/\n/g, '<br>') : '');
 
   const titleText = escHtml(data.title.toUpperCase());
