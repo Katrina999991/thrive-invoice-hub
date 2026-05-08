@@ -10,6 +10,7 @@ export interface FormalNotice {
   user_id: string;
   recipient: string | null;
   recipient_address: string | null;
+  recipient_company: string | null;
   subject: string | null;
   body: string | null;
   due_at: string | null;
@@ -38,6 +39,7 @@ export interface FormalNotice {
 export interface FormalNoticeInput {
   recipient?: string;
   recipient_address?: string;
+  recipient_company?: string;
   subject?: string;
   body?: string;
   due_at?: string;

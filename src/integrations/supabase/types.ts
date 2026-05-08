@@ -879,6 +879,7 @@ export type Database = {
           proof_status: string | null
           recipient: string | null
           recipient_address: string | null
+          recipient_company: string | null
           region: string | null
           risk_level: string | null
           sending_method: string | null
@@ -908,6 +909,7 @@ export type Database = {
           proof_status?: string | null
           recipient?: string | null
           recipient_address?: string | null
+          recipient_company?: string | null
           region?: string | null
           risk_level?: string | null
           sending_method?: string | null
@@ -937,6 +939,7 @@ export type Database = {
           proof_status?: string | null
           recipient?: string | null
           recipient_address?: string | null
+          recipient_company?: string | null
           region?: string | null
           risk_level?: string | null
           sending_method?: string | null

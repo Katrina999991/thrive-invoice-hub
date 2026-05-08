@@ -1,0 +1,1 @@
+ALTER TABLE public.invoice_formal_notices ADD COLUMN IF NOT EXISTS recipient_company text;

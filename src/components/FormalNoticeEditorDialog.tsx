@@ -367,6 +367,7 @@ Sincerely,
   // ─── Form State ──────────────────────────────────────────────────────
   const [title, setTitle] = useState(noticeLang === 'fr' ? 'Mise en demeure' : 'Formal Notice');
   const [recipient, setRecipient] = useState(clientName);
+  const [recipientCompany, setRecipientCompany] = useState(invoice.clients?.name || '');
   const [recipientAddr, setRecipientAddr] = useState(clientAddress);
   const [subject, setSubject] = useState(
     noticeLang === 'fr'
@@ -378,7 +379,7 @@ Sincerely,
 
   // ─── Unsaved Changes Detection ──────────────────────────────────────
   type FormSnapshot = {
-    recipient: string; recipientAddr: string; subject: string; body: string;
+    recipient: string; recipientCompany: string; recipientAddr: string; subject: string; body: string;
     dueAt: string; delayDays: number; sendingMethod: string;
     proofSending: boolean; proofReceipt: boolean; trackingNumber: string;
     deliveredDate: string; sentDate: string; trackingNotes: string; signatureApplied: boolean;
@@ -386,6 +387,7 @@ Sincerely,
 
   const normalizeSnapshot = useCallback((snap: FormSnapshot): FormSnapshot => ({
     recipient: (snap.recipient || '').trim(),
+    recipientCompany: (snap.recipientCompany || '').trim(),
     recipientAddr: (snap.recipientAddr || '').trim(),
     subject: (snap.subject || '').trim(),
     body: (snap.body || '').trim(),
@@ -402,9 +404,9 @@ Sincerely,
   }), []);
 
   const getRawSnapshot = useCallback((): FormSnapshot => ({
-    recipient, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
+    recipient, recipientCompany, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
     proofSending, proofReceipt, trackingNumber, deliveredDate, sentDate, trackingNotes, signatureApplied,
-  }), [recipient, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
+  }), [recipient, recipientCompany, recipientAddr, subject, body, dueAt, delayDays, sendingMethod,
     proofSending, proofReceipt, trackingNumber, deliveredDate, sentDate, trackingNotes, signatureApplied]);
 
   const [initialSnapshot, setInitialSnapshot] = useState<FormSnapshot | null>(null);
@@ -468,6 +470,7 @@ Sincerely,
       setEditingNotice(latestNotice);
       if (latestNotice.status !== 'sent') {
         setRecipient(latestNotice.recipient || clientName);
+        setRecipientCompany(latestNotice.recipient_company ?? (invoice.clients?.name || ''));
         setRecipientAddr(latestNotice.recipient_address || clientAddress);
         setSubject(latestNotice.subject || subject);
         setBody(latestNotice.body || defaultBody);
@@ -552,6 +555,7 @@ Sincerely,
       date: formatDate(documentDateIso),
       recipientName: recipient,
       recipientAddress: recipientAddr,
+      recipientCompany: recipientCompany,
       senderName: signerDisplayName,
       senderAddress: companyAddress,
       subject: replaceVariables(subject, documentDateIso),
@@ -566,6 +570,7 @@ Sincerely,
 
   const buildSaveData = (status: string): FormalNoticeInput => ({
     recipient,
+    recipient_company: recipientCompany,
     recipient_address: recipientAddr,
     subject,
     body,
@@ -893,6 +898,7 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
     setEditingNotice(notice);
     if (contentToo) {
       setRecipient(notice.recipient || clientName);
+      setRecipientCompany(notice.recipient_company ?? (invoice.clients?.name || ''));
       setRecipientAddr(notice.recipient_address || clientAddress);
       setSubject(notice.subject || '');
       setBody(notice.body || '');
@@ -969,6 +975,14 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
               <Separator />
 
               {/* Recipient */}
+              <div className="space-y-2">
+                <Label>{t('Entreprise destinataire', 'Recipient company')}</Label>
+                <Input
+                  value={recipientCompany}
+                  onChange={(e) => setRecipientCompany(e.target.value)}
+                  placeholder={t('Ex. ABC Construction inc.', 'e.g. ABC Construction inc.')}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t('Destinataire', 'Recipient')}</Label>
@@ -1390,6 +1404,7 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
                     <p className="text-sm text-muted-foreground">{getDocumentDateDisplay()}</p>
                   </div>
                   <div className="text-sm">
+                    {recipientCompany && <p className="font-semibold">{recipientCompany}</p>}
                     <p className="font-medium">{recipient}</p>
                     <p className="whitespace-pre-line text-muted-foreground">{recipientAddr}</p>
                   </div>
