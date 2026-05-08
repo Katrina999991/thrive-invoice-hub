@@ -16,6 +16,7 @@ export interface FormalNoticePdfData {
   date: string;
   recipientName: string;
   recipientAddress: string;
+  recipientCompany?: string;
   senderName: string;
   senderAddress: string;
   subject: string;
