@@ -38,6 +38,8 @@ import {
   documentationRiskLabels,
   deliveryStatusLabels,
   deliveryStatusColors,
+  isPostalDeliveryMethod,
+  getDeadlinePhrase,
   type DeliveryMethod,
   type DeliveryStatus,
   type DocumentationRisk,
