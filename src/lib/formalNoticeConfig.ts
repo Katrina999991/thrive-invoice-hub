@@ -151,6 +151,44 @@ export const documentationRiskLabels: Record<DocumentationRisk, BilingualText> =
 // Keep old riskLabels for backward compat
 export const riskLabels = documentationRiskLabels;
 
+// ─── Postal vs instantaneous delivery ────────────────────────────────────────
+
+/** Methods where the recipient does not receive the document instantly
+ * (i.e. there is a transit delay). For these, the formal notice should
+ * phrase the deadline as "X days from receipt" instead of a fixed date. */
+export const POSTAL_DELIVERY_METHODS: DeliveryMethod[] = [
+  'standard_mail',
+  'registered_mail',
+  'certified_mail',
+  'courier',
+  'bailiff',
+  'lrar',
+];
+
+export function isPostalDeliveryMethod(method?: DeliveryMethod | string | null): boolean {
+  if (!method) return false;
+  return POSTAL_DELIVERY_METHODS.includes(method as DeliveryMethod);
+}
+
+/** Returns the deadline phrase to inject into the formal notice body.
+ * - Postal methods → "dans un délai de X jours à compter de la réception …"
+ * - Email / instantaneous → "au plus tard le {date}" */
+export function getDeadlinePhrase(
+  method: DeliveryMethod | string,
+  days: number,
+  formattedDueDate: string,
+  lang: NoticeLang,
+): string {
+  if (isPostalDeliveryMethod(method)) {
+    return lang === 'fr'
+      ? `dans un délai de ${days} jours à compter de la réception de la présente mise en demeure`
+      : `within ${days} days from the receipt of this formal notice`;
+  }
+  return lang === 'fr'
+    ? `au plus tard le ${formattedDueDate}`
+    : `no later than ${formattedDueDate}`;
+}
+
 // ─── Helper Functions ────────────────────────────────────────────────────────
 
 /** Normalize a country string to a JurisdictionKey */

@@ -38,6 +38,8 @@ import {
   documentationRiskLabels,
   deliveryStatusLabels,
   deliveryStatusColors,
+  isPostalDeliveryMethod,
+  getDeadlinePhrase,
   type DeliveryMethod,
   type DeliveryStatus,
   type DocumentationRisk,
@@ -331,7 +333,7 @@ Malgré nos rappels précédents, le solde de la facture no. {{invoice_number}},
 
 Cette facture était exigible depuis le {{invoice_due_date}}.
 
-Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme au plus tard le {{formal_notice_due_date}}.
+Par la présente, nous vous mettons formellement en demeure de procéder au paiement complet de cette somme {{deadline_phrase}}.
 
 À défaut de recevoir votre paiement dans ce délai, nous nous verrons dans l'obligation d'entreprendre les recours nécessaires afin de recouvrer la somme due, sans autre avis, incluant notamment toute démarche appropriée auprès des instances compétentes, le tout à vos frais, incluant les intérêts et frais applicables.${invoice.payment_link ? `
 
@@ -350,7 +352,7 @@ Despite our previous reminders, the balance of invoice {{invoice_number}}, regar
 
 This invoice was due on {{invoice_due_date}}.
 
-We hereby formally demand that you proceed with the full payment of the amount owed no later than {{formal_notice_due_date}}.
+We hereby formally demand that you proceed with the full payment of the amount owed {{deadline_phrase}}.
 
 If payment is not received within this timeframe, we will be required to take the necessary steps to recover the amount due, without further notice, including any appropriate actions before the competent authorities, at your expense, including applicable interest and fees.${invoice.payment_link ? `
 
@@ -521,6 +523,7 @@ Sincerely,
       .replace(/\{\{amount_due\}\}/g, `$${(invoice.total + (invoice.late_fee_applied_total || 0)).toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
+      .replace(/\{\{deadline_phrase\}\}/g, getDeadlinePhrase(sendingMethod, delayDays, formatDate(dueAt), noticeLang))
       .replace(/\{\{today_date\}\}/g, formatDate(currentDate))
       .replace(/\{\{company_name\}\}/g, signerDisplayName)
       .replace(/\{\{company_address\}\}/g, companyAddress)
@@ -1008,7 +1011,7 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
                 <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={12} className="font-mono text-sm" />
                 <p className="text-xs text-muted-foreground">
                   {t('Variables disponibles', 'Available variables')}:{' '}
-                  {['client_salutation', 'client_name', 'invoice_number', 'invoice_description', 'amount_due', 'invoice_due_date', 'formal_notice_due_date', 'company_name', 'company_address', 'invoice_payment_link'].map((v) => (
+                  {['client_salutation', 'client_name', 'invoice_number', 'invoice_description', 'amount_due', 'invoice_due_date', 'formal_notice_due_date', 'deadline_phrase', 'company_name', 'company_address', 'invoice_payment_link'].map((v) => (
                     <span key={v}><code className="text-xs">{`{{${v}}}`}</code>{' '}</span>
                   ))}
                 </p>
@@ -1119,6 +1122,19 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
                   <div className="flex items-start gap-2 rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-3">
                     <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
                     <p className="text-sm text-yellow-800 dark:text-yellow-300">{rules.emailWarning[noticeLang]}</p>
+                  </div>
+                )}
+
+                {/* Postal delivery: deadline phrasing notice */}
+                {isPostalDeliveryMethod(sendingMethod) && (
+                  <div className="flex items-start gap-2 rounded-md border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-3">
+                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      {t(
+                        `Mode postal sélectionné : le document mentionnera « ${delayDays} jours à compter de la réception » au lieu d'une date fixe, pour tenir compte du délai postal.`,
+                        `Postal delivery selected: the document will state "${delayDays} days from receipt" instead of a fixed date, to account for transit time.`,
+                      )}
+                    </p>
                   </div>
                 )}
 
