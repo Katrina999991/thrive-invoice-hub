@@ -1011,7 +1011,7 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
                 <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={12} className="font-mono text-sm" />
                 <p className="text-xs text-muted-foreground">
                   {t('Variables disponibles', 'Available variables')}:{' '}
-                  {['client_salutation', 'client_name', 'invoice_number', 'invoice_description', 'amount_due', 'invoice_due_date', 'formal_notice_due_date', 'company_name', 'company_address', 'invoice_payment_link'].map((v) => (
+                  {['client_salutation', 'client_name', 'invoice_number', 'invoice_description', 'amount_due', 'invoice_due_date', 'formal_notice_due_date', 'deadline_phrase', 'company_name', 'company_address', 'invoice_payment_link'].map((v) => (
                     <span key={v}><code className="text-xs">{`{{${v}}}`}</code>{' '}</span>
                   ))}
                 </p>
