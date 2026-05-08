@@ -1125,6 +1125,19 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
                   </div>
                 )}
 
+                {/* Postal delivery: deadline phrasing notice */}
+                {isPostalDeliveryMethod(sendingMethod) && (
+                  <div className="flex items-start gap-2 rounded-md border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-3">
+                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      {t(
+                        `Mode postal sélectionné : le document mentionnera « ${delayDays} jours à compter de la réception » au lieu d'une date fixe, pour tenir compte du délai postal.`,
+                        `Postal delivery selected: the document will state "${delayDays} days from receipt" instead of a fixed date, to account for transit time.`,
+                      )}
+                    </p>
+                  </div>
+                )}
+
                 {/* Proof checkboxes with helper text */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
