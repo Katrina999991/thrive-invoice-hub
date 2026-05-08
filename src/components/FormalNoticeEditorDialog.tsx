@@ -1404,6 +1404,7 @@ Best regards,${senderName ? `\n${senderName}` : ''}`,
                     <p className="text-sm text-muted-foreground">{getDocumentDateDisplay()}</p>
                   </div>
                   <div className="text-sm">
+                    {recipientCompany && <p className="font-semibold">{recipientCompany}</p>}
                     <p className="font-medium">{recipient}</p>
                     <p className="whitespace-pre-line text-muted-foreground">{recipientAddr}</p>
                   </div>
