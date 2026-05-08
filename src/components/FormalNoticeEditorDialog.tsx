@@ -523,6 +523,7 @@ Sincerely,
       .replace(/\{\{amount_due\}\}/g, `$${(invoice.total + (invoice.late_fee_applied_total || 0)).toFixed(2)}`)
       .replace(/\{\{invoice_due_date\}\}/g, invoice.due_date ? formatDate(invoice.due_date) : 'N/A')
       .replace(/\{\{formal_notice_due_date\}\}/g, formatDate(dueAt))
+      .replace(/\{\{deadline_phrase\}\}/g, getDeadlinePhrase(sendingMethod, delayDays, formatDate(dueAt), noticeLang))
       .replace(/\{\{today_date\}\}/g, formatDate(currentDate))
       .replace(/\{\{company_name\}\}/g, signerDisplayName)
       .replace(/\{\{company_address\}\}/g, companyAddress)
