@@ -33,8 +33,8 @@ export const useSEO = ({
       : 'GestionFlow - Logiciel de Gestion d\'Entreprise | Factures, Dépenses & Clients';
     
     const defaultDescription = isEnglish
-      ? 'Complete business management solution. Create invoices, track expenses, manage clients and generate detailed reports. Simple, efficient and intuitive.'
-      : 'Solution complète de gestion d\'entreprise. Créez des factures, suivez vos dépenses, gérez vos clients et générez des rapports détaillés. Simple, efficace et intuitif.';
+      ? 'Complete business management: create invoices, track expenses, manage clients and generate detailed reports. Simple, efficient and intuitive.'
+      : "Gestion d'entreprise complète : factures, suivi des dépenses, clients et rapports détaillés. Simple, efficace et intuitif.";
     
     const defaultKeywords = isEnglish
       ? 'invoice management, expense tracking, client management, business reports, accounting software, invoice generator, expense management, business management software'
