@@ -99,7 +99,7 @@ const Comparison = () => {
     },
     EN: {
       seo: {
-        title: "Compare GestionFlow | Business Management Software Alternatives",
+        title: "Compare GestionFlow | Alternatives for SMBs",
         description: "Compare GestionFlow to leading business management software like QuickBooks, Wave, and FreshBooks. Find the best solution for your SMB.",
         keywords: "management software comparison, QuickBooks alternative, Wave alternative, FreshBooks alternative, SMB software, business management"
       },
