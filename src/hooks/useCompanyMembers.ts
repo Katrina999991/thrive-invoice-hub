@@ -78,10 +78,8 @@ export function useCompanyMembers(companyId: string | null) {
       
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, username")
-          .in("user_id", userIds);
-        
+          .rpc("get_member_display_info", { _user_ids: userIds });
+
         if (profilesData) {
           profilesMap = profilesData.reduce((acc, p) => {
             acc[p.user_id] = { display_name: p.display_name, username: p.username };
