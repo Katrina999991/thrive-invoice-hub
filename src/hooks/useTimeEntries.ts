@@ -152,10 +152,8 @@ export const useTimeEntries = (options: UseTimeEntriesOptions = {}) => {
       
       if (allUserIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select("user_id, display_name, username")
-          .in("user_id", allUserIds);
-        
+          .rpc("get_member_display_info", { _user_ids: allUserIds });
+
         console.log("Fetched profiles for time entries:", profiles, "for userIds:", allUserIds);
         
         if (!profilesError && profiles && profiles.length > 0) {
