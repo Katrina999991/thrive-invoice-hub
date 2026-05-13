@@ -1,5 +1,6 @@
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import AdminApp from './admin/AdminApp.tsx'
 import { isAdminHost } from './lib/adminHost.ts'
@@ -18,4 +19,4 @@ if (savedDarkMode === "dark") {
 
 const root = createRoot(document.getElementById("root")!);
 const RootComponent = isAdminHost() ? AdminApp : App;
-root.render(createElement(RootComponent));
+root.render(createElement(HelmetProvider, null, createElement(RootComponent)));
