@@ -16,8 +16,8 @@ const Comparison = () => {
   const translations = {
     FR: {
       seo: {
-        title: "Comparer GestionFlow | Alternatives aux logiciels de gestion",
-        description: "Comparez GestionFlow aux principaux logiciels de gestion d'entreprise comme QuickBooks, Wave et FreshBooks. Trouvez la meilleure solution pour votre PME.",
+        title: "Comparer GestionFlow | Alternatives pour PME",
+        description: "Comparez GestionFlow à QuickBooks, Wave et FreshBooks. Trouvez le logiciel de gestion idéal pour votre PME ou activité freelance.",
         keywords: "comparaison logiciel gestion, alternative QuickBooks, alternative Wave, alternative FreshBooks, logiciel PME, gestion entreprise"
       },
       header: {

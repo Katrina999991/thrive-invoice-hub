@@ -71,18 +71,15 @@ export const useSEO = ({
     updateMetaTag('og:locale', isEnglish ? 'en_US' : 'fr_FR', true);
     updateMetaTag('og:site_name', 'GestionFlow', true);
     
-    if (ogImage) {
-      updateMetaTag('og:image', ogImage, true);
-      updateMetaTag('og:image:alt', title || defaultTitle, true);
-    }
+    const resolvedOgImage = ogImage || 'https://gestionflow.net/og-image.png';
+    updateMetaTag('og:image', resolvedOgImage, true);
+    updateMetaTag('og:image:alt', title || defaultTitle, true);
 
     // Twitter Card tags
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', title || defaultTitle);
     updateMetaTag('twitter:description', description || defaultDescription);
-    if (ogImage) {
-      updateMetaTag('twitter:image', ogImage);
-    }
+    updateMetaTag('twitter:image', resolvedOgImage);
 
     // Canonical URL
     let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
