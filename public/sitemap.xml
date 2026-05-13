@@ -11,5 +11,4 @@
   <url><loc>https://gestionflow.net/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://gestionflow.net/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://gestionflow.net/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://gestionflow.net/auth</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>
