@@ -628,7 +628,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setShowAccountRecovery(true)}
-                    className="text-xs text-muted-foreground/70 hover:text-primary transition-colors block mx-auto"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors block mx-auto"
                   >
                     {language === 'en' ? '🔒 Lost access to your email?' : '🔒 Accès perdu à votre email ?'}
                   </button>

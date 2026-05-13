@@ -673,7 +673,7 @@ const Pricing = () => {
 
                 {/* No Inventory for Free Plan */}
                 {plan.plan_type === 'free' && 'noInventory' in planData && (
-                  <div className="mt-3 flex items-start gap-2.5 text-muted-foreground/60">
+                  <div className="mt-3 flex items-start gap-2.5 text-muted-foreground">
                     <X className="h-4 w-4 shrink-0 mt-0.5" />
                     <span className="text-sm leading-snug">{(planData as any).noInventory}</span>
                   </div>
