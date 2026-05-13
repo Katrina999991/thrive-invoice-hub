@@ -1,66 +1,78 @@
-## Objectif
+## Diagnostic actuel
 
-Adapter le texte de la mise en demeure pour qu'il dise **« à compter de la réception »** au lieu d'une date butoir fixe **lorsque le mode d'envoi est postal** (courrier recommandé, certifié, LRAR, courrier standard, huissier). Pour les modes instantanés (courriel), on garde la date fixe actuelle.
+- **Search Console** : 12 URLs soumises dans le sitemap, **0 indexée**, 10 erreurs signalées. Seule `/` reçoit du trafic (6 clics, 52 impressions / 90j, position moy. 4,3).
+- **Cause racine** : SPA React sans rendu serveur — Google reçoit la même coquille HTML pour chaque route et considère les pages secondaires comme dupliquées (« Page en double sans canonique sélectionnée par l'utilisateur » ou « Explorée, actuellement non indexée »).
+- **Mots-clés ciblables** (faciles, marché CA-FR) : « logiciel gestion entreprise » (140/mo, KDI 7), « facture en ligne gratuit » (140/mo, KDI 29), « logiciel gestion pme » (90/mo, KDI 20), « logiciel facturation gratuit » (50/mo, KDI 20).
+- **Mot-clé US à fort potentiel** : « quickbooks alternative » (3 600/mo, KDI 35) — déjà ciblé par `/comparison/quickbooks` mais non indexé.
 
-C'est la pratique standard des avocats au Québec/France pour les envois postaux : elle protège juridiquement contre l'argument du débiteur qui aurait reçu la lettre après la date limite.
+## Plan en 3 chantiers
 
-## Comportement attendu
+### 1. Réparer l'indexation (priorité absolue)
 
-Selon le mode d'envoi sélectionné dans l'éditeur de mise en demeure :
+**Problème technique** : chaque route partage le même `<title>`, `<meta description>` et `<link rel=canonical>` injectés par `useSEO` côté client. Googlebot exécute partiellement le JS mais voit d'abord la coquille `index.html` identique → pages classées comme doublons.
 
-| Mode d'envoi | Phrasing dans le PDF / HTML / courriel |
-|---|---|
-| Courriel | *« …avant le **15 mai 2026** »* (date fixe — comportement actuel) |
-| Courrier recommandé / certifié / LRAR / standard / messagerie / huissier | *« …dans un délai de **5 jours** à compter de la réception de la présente mise en demeure »* |
+**Correctifs** :
+- Installer `react-helmet-async` et envelopper `<App>` dans `<HelmetProvider>` (`src/main.tsx`).
+- Retirer la balise `<link rel="canonical">` injectée par `useSEO` au profit d'un `<Helmet>` par page (sinon double canonical).
+- Ajouter un composant `<SEO>` Helmet dédié dans chaque page publique : `Index`, `Software`, `Pricing`, `Comparison`, `ComparisonQuickBooks`, `ComparisonWave`, `ComparisonFreshBooks`, `About`, `Contact`, `Privacy`, `Terms`. Chacune avec : `<title>` unique, `description` unique, `canonical` propre, `og:url`, `og:title`.
+- Vérifier que `/auth` reste autorisé (actuellement dans le sitemap mais peu utile à indexer — le retirer).
+- Garder le JSON-LD `Organization` global dans `index.html`, et ajouter un `Product` ou `SoftwareApplication` JSON-LD via Helmet sur `/software` et `/pricing`.
 
-Le délai en jours utilisé est celui déjà saisi par l'utilisateur (`payment_term_days`, ex. 5, 10, 15, 30).
+### 2. Ajouter du contenu non-marque pour gagner du trafic
 
-## Avertissement dans l'éditeur
+Réécrire le H1 + intro de chaque page publique pour cibler une requête réelle (volume confirmé Semrush) :
 
-Ajouter un petit message d'information (non-bloquant) dans l'éditeur quand l'utilisateur choisit un mode postal :
+| Page | Mot-clé cible (CA-FR) | Volume / KDI |
+|---|---|---|
+| `/` | logiciel gestion entreprise | 140 / 7 |
+| `/software` | logiciel gestion pme | 90 / 20 |
+| `/pricing` | logiciel facturation gratuit | 50 / 20 |
+| `/comparison/quickbooks` | quickbooks alternative (US) | 3 600 / 35 |
+| `/comparison/wave` | wave alternative (US) | 70 / 10 |
 
-> *« Le PDF mentionnera "X jours à compter de la réception" plutôt qu'une date fixe, pour tenir compte du délai postal. »*
+Travail : H1 contient le mot-clé, premier paragraphe répète une variation, FAQ existante enrichie pour capter les requêtes question (« meilleur logiciel facture gratuit », etc.). Pas de bourrage — phrases naturelles.
 
-## Fichiers à modifier
+### 3. Relancer Search Console
 
-### 1. `src/lib/formalNoticeHtml.ts`
-- Ajouter une fonction utilitaire `getDeadlinePhrase(method, days, dueDate, lang)` qui retourne soit la phrase « à compter de la réception » soit la date fixe selon le mode.
-- Remplacer le bloc actuel qui affiche `due_at` formaté par cette phrase contextuelle.
-
-### 2. `src/lib/formalNoticePdf.ts`
-- Même logique : utiliser `getDeadlinePhrase(...)` au lieu de la date butoir formatée.
-
-### 3. `src/components/FormalNoticeEditorDialog.tsx`
-- Ajouter un encart d'information (Alert/composant existant) sous le sélecteur de mode d'envoi qui apparaît uniquement quand `sendingMethod` est postal, expliquant le changement de phrasing.
-- (Optionnel) Griser/désactiver le champ « Date limite (due_at) » avec un libellé « calculée à la réception » pour les modes postaux, car la valeur ne sera pas affichée comme date dans le document final.
-
-### 4. Traductions
-Ajouter les chaînes bilingues (FR/EN) :
-
-- FR : *« dans un délai de {days} jours à compter de la réception de la présente mise en demeure »*
-- EN : *« within {days} days from the receipt of this formal notice »*
-- FR (avertissement éditeur) : *« Mode postal sélectionné : le document mentionnera "{days} jours à compter de la réception" au lieu d'une date fixe. »*
-- EN : *« Postal delivery selected: the document will state "{days} days from receipt" instead of a fixed date. »*
+Une fois les correctifs déployés (publish requis) :
+- Resoumettre `https://gestionflow.net/sitemap.xml` dans Search Console (script via le connecteur).
+- Demander une indexation manuelle (`URL Inspection → Request Indexing`) pour les 5 pages prioritaires : `/`, `/software`, `/pricing`, `/comparison/quickbooks`, `/comparison/wave`.
+- Mettre en place un suivi : revérifier dans 14 jours via `searchAnalytics` pour confirmer que le nombre d'URLs indexées passe de 0 à 5+.
 
 ## Détails techniques
 
-- Modes considérés comme **postaux** (phrasing « à compter de la réception ») :
-  `standard_mail`, `registered_mail`, `certified_mail`, `courier`, `bailiff`, `lrar`
-- Modes considérés comme **instantanés** (date fixe) :
-  `email`
-- La langue (`fr`/`en`) est déjà détectée via `detectNoticeLanguage(...)` dans `formalNoticeConfig.ts` — réutiliser.
-- Aucun changement BD : `payment_term_days` et `due_at` existent déjà.
-- Aucun changement aux courriels transactionnels (le PDF joint reflètera déjà le bon phrasing).
+```text
+src/
+├── main.tsx              + import HelmetProvider, wrap <App>
+├── hooks/useSEO.tsx      ← supprimer la création du <link rel="canonical">
+├── components/SEO.tsx    + nouveau composant Helmet réutilisable (props: title, description, canonical, ogImage?, jsonLd?)
+└── pages/
+    ├── Index.tsx         + <SEO ... /> (FR/EN selon useLanguage)
+    ├── Software.tsx      + <SEO ... />
+    ├── Pricing.tsx       + <SEO ... />
+    ├── Comparison.tsx    + <SEO ... />
+    ├── ComparisonQuickBooks.tsx
+    ├── ComparisonWave.tsx
+    ├── ComparisonFreshBooks.tsx
+    ├── About.tsx
+    ├── Contact.tsx
+    ├── Privacy.tsx
+    └── Terms.tsx
+public/
+└── sitemap.xml           ← retirer /auth
+```
+
+Étape 3 (Search Console) sera exécutée par moi via `curl` sur le connecteur Google après le republish.
+
+## Hypothèses
+
+- Vous publiez l'app après l'implémentation — sans republish, les changements de `<head>` ne seront pas vus par Googlebot.
+- Vous acceptez l'ajout de la dépendance `react-helmet-async` (~3 KB gzip).
+- L'objectif court terme est l'indexation et 50–200 visiteurs organiques/mois, pas un trafic massif (la difficulté faible le permet sur 2-3 mois).
 
 ## Hors scope
 
-- Pas de calcul automatique d'un délai de transit ajouté à `due_at` (ce serait l'Option A — peut être fait dans une itération ultérieure si tu le souhaites).
-- Pas de modification des mises en demeure déjà envoyées par courriel.
-- Pas de changement aux relances de paiement régulières (uniquement les mises en demeure formelles).
-
-## Vérification
-
-1. Créer une mise en demeure avec mode = **Courrier recommandé**, délai = 5 jours → le PDF doit dire *« dans un délai de 5 jours à compter de la réception… »*.
-2. Créer une mise en demeure avec mode = **Courriel**, délai = 5 jours → le PDF garde la date fixe actuelle.
-3. Tester en FR et en EN.
-4. Vérifier l'avertissement dans l'éditeur quand on bascule entre courriel et courrier recommandé.
+- Création d'un blog / contenu long-format (à envisager en phase 2 si l'indexation décolle).
+- SSR/Next.js (changement d'architecture trop lourd, pas justifié à ce stade).
+- Achats de backlinks ou link-building actif.
+- Modification du dashboard ou de logique métier.
