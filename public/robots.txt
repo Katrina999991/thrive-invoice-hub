@@ -12,5 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /accept-invite
+Disallow: /payment-success
+Disallow: /quote/
 
 Sitemap: https://gestionflow.net/sitemap.xml
