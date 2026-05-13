@@ -63,11 +63,16 @@ export const useSEO = ({
     updateMetaTag('author', 'GestionFlow');
     updateMetaTag('robots', 'index, follow');
     
+    // Always normalize to the production canonical domain — preview/lovable.app
+    // hosts must not advertise themselves to crawlers.
+    const CANONICAL_BASE = 'https://gestionflow.net';
+    const canonicalUrl = canonical || CANONICAL_BASE + window.location.pathname;
+
     // Open Graph tags
     updateMetaTag('og:title', title || defaultTitle, true);
     updateMetaTag('og:description', description || defaultDescription, true);
     updateMetaTag('og:type', ogType, true);
-    updateMetaTag('og:url', window.location.href, true);
+    updateMetaTag('og:url', canonicalUrl, true);
     updateMetaTag('og:locale', isEnglish ? 'en_US' : 'fr_FR', true);
     updateMetaTag('og:site_name', 'GestionFlow', true);
     
@@ -88,7 +93,7 @@ export const useSEO = ({
       canonicalLink.rel = 'canonical';
       document.head.appendChild(canonicalLink);
     }
-    canonicalLink.href = canonical || window.location.origin + window.location.pathname;
+    canonicalLink.href = canonicalUrl;
 
     // Structured Data (JSON-LD)
     if (structuredData) {
