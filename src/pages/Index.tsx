@@ -590,11 +590,11 @@ const Index = () => {
   // SEO Configuration with structured data
   useSEO({
     title: currentLang === "EN" 
-      ? "GestionFlow - Multi-Company Business Management Software | Invoices, Expenses, Time Tracking"
-      : "GestionFlow - Logiciel de Gestion Multi-Entreprises | Factures, Dépenses, Suivi du Temps",
+      ? "GestionFlow — Business Management Software for SMBs"
+      : "GestionFlow — Logiciel de gestion d'entreprise simple",
     description: currentLang === "EN"
-      ? "Business management software for freelancers, consultants and SMBs. Manage multiple companies, clients, invoices, expenses, payments and time tracking in one place. Free plan available."
-      : "Logiciel de gestion pour travailleurs autonomes, consultants et PME. Gérez plusieurs entreprises, clients, factures, dépenses, paiements et suivi du temps au même endroit. Plan gratuit disponible.",
+      ? "Manage clients, invoices, expenses and time tracking in one place. Built for freelancers, consultants and SMBs. Free plan available."
+      : "Gérez clients, factures, dépenses et suivi du temps au même endroit. Pour travailleurs autonomes, consultants et PME. Plan gratuit disponible.",
     keywords: currentLang === "EN"
       ? "multi-company management, invoice software, expense tracking, time tracking, freelancer software, small business management, Stripe payments, business reports"
       : "gestion multi-entreprises, logiciel de facturation, suivi des dépenses, suivi du temps, logiciel freelance, gestion PME, paiements Stripe, rapports d'entreprise",
