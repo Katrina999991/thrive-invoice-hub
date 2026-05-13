@@ -1,0 +1,23 @@
+# GestionFlow
+
+> All-in-one business management software for freelancers, consultants, and small businesses: invoicing, expenses, clients, time tracking, and reports.
+
+GestionFlow helps entrepreneurs centralize their daily operations — create professional invoices, track expenses, manage clients and products, accept Stripe payments, and generate detailed financial reports. Available in French and English with multi-company support.
+
+## Pages
+
+- [Home](/): Overview of GestionFlow features and benefits.
+- [Software](/software): Detailed walkthrough of the management software.
+- [Pricing](/pricing): Free, Premium, and Pro plans with feature comparison.
+- [Comparison](/comparison): How GestionFlow compares to other tools.
+- [QuickBooks comparison](/comparison/quickbooks): GestionFlow vs QuickBooks.
+- [Wave comparison](/comparison/wave): GestionFlow vs Wave.
+- [FreshBooks comparison](/comparison/freshbooks): GestionFlow vs FreshBooks.
+- [About](/about): Mission and story behind GestionFlow.
+- [Contact](/contact): Get in touch with the team.
+
+## Optional
+
+- [Privacy Policy](/privacy): How user data is handled.
+- [Terms of Service](/terms): Terms and conditions of use.
+- [Sign in](/auth): Account login and signup.
