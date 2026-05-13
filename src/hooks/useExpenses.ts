@@ -127,10 +127,8 @@ export const useExpenses = (showArchivedOrOptions: boolean | UseExpensesOptions 
         const allUserIds = [...new Set([...userIds, ...approverIds])];
         
         const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, username, display_name")
-          .in("user_id", allUserIds);
-        
+          .rpc("get_member_display_info", { _user_ids: allUserIds });
+
         const profilesMap = new Map(
           (profilesData || []).map(p => [p.user_id, p])
         );
