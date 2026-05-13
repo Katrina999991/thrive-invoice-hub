@@ -1102,6 +1102,8 @@ const Index = () => {
         </div>
       </section>
 
+      </main>
+
 <Footer />
 
       {/* Image Lightbox */}
