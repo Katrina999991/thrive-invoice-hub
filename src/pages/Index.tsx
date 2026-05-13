@@ -677,6 +677,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <PublicNavigation onScrollToSection={scrollToSection} />
 
+      <main>
       {/* Hero Section */}
       <section id="hero" className="container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="max-w-4xl mx-auto text-center">
