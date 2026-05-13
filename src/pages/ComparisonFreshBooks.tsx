@@ -108,7 +108,17 @@ const ComparisonFreshBooks = () => {
   useSEO({
     title: t.seo.title,
     description: t.seo.description,
-    keywords: t.seo.keywords
+    keywords: t.seo.keywords,
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": t.seo.title,
+      "description": t.seo.description,
+      "inLanguage": currentLang === "EN" ? "en" : "fr",
+      "url": "https://gestionflow.net/comparison/freshbooks",
+      "author": { "@type": "Organization", "name": "GestionFlow" },
+      "publisher": { "@type": "Organization", "name": "GestionFlow" },
+    },
   });
 
   const comparisonDataWithStatus = [

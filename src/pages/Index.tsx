@@ -648,6 +648,34 @@ const Index = () => {
     }
   });
 
+  // FAQPage structured data (separate JSON-LD script — useSEO owns only one)
+  useEffect(() => {
+    const id = 'faq-jsonld';
+    let script = document.getElementById(id) as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = id;
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": t.faq.items.map((item) => ({
+        "@type": "Question",
+        "name": item.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.answer,
+        },
+      })),
+    });
+    return () => {
+      const existing = document.getElementById(id);
+      if (existing) existing.remove();
+    };
+  }, [t.faq.items]);
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
