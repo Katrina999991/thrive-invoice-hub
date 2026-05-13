@@ -36,7 +36,9 @@ const About = () => {
 
   useSEO({
     title: t.title + " | GestionFlow",
-    description: t.paragraphs[0]
+    description: language === "fr"
+      ? "GestionFlow simplifie la gestion quotidienne des travailleurs autonomes, consultants et PME : factures, dépenses, clients et rapports."
+      : "GestionFlow simplifies daily operations for freelancers, consultants and SMBs: invoices, expenses, clients and reports in one place.",
   });
 
   return (
