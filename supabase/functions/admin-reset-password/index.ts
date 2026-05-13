@@ -70,14 +70,14 @@ serve(async (req) => {
       // Return all stored test passwords (decrypt on the fly)
       const { data, error } = await supabaseClient
         .from("test_account_passwords")
-        .select("user_id, email, password_plain, updated_at");
+        .select("user_id, email, password_encrypted, updated_at");
 
       if (error) throw error;
 
       const decrypted = await Promise.all(
         (data || []).map(async (row: any) => ({
           ...row,
-          password_plain: await decryptText(row.password_plain || ""),
+          password_plain: await decryptText(row.password_encrypted || ""),
         }))
       );
 
@@ -104,7 +104,7 @@ serve(async (req) => {
     const { error: upsertError } = await supabaseClient
       .from("test_account_passwords")
       .upsert(
-        { user_id: userId, email: email || "", password_plain: encrypted, updated_at: new Date().toISOString() },
+        { user_id: userId, email: email || "", password_encrypted: encrypted, updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
 
