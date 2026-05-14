@@ -1,36 +1,22 @@
-## Problème 1 — Erreur RLS sur l'upload du logo
+## Problème
 
-**Cause :** Les policies du bucket `company-logos` exigent que le chemin du fichier commence par l'ID de la compagnie : `{company_id}/filename.png` (vérifié via `storage.foldername(name)[1] = company_id`). Or le code uploade actuellement avec un simple `${Date.now()}.${ext}` à la racine → aucune correspondance avec `company_members`, donc RLS bloque.
+Le compteur "Dépenses" dans l'admin (`UsersTable`) affiche le nombre de lignes `expenses` où `user_id = <utilisateur>`, peu importe la compagnie. Pour `app@statis.ca`, cela inclut une dépense créée alors qu'il était membre de la compagnie "Christian Mailhot" — il ne la voit donc pas dans sa propre compagnie "Test inc." et croit que le compteur est faux.
 
-**Correctifs dans `src/pages/Companies.tsx` (handleSubmit) :**
+## Solution proposée
 
-- **Mode édition** (`editingCompany` existe) : uploader vers `${editingCompany.id}/${Date.now()}.${ext}`.
-- **Mode création** (pas encore d'ID) : 
-  1. Créer la compagnie d'abord sans logo.
-  2. Récupérer l'ID retourné par `createCompany`.
-  3. Uploader vers `${newId}/${Date.now()}.${ext}`.
-  4. Mettre à jour `logo_url` via `updateCompany(newId, { logo_url })`.
-  
-  → S'assurer que `createCompany` retourne bien la compagnie créée (vérifier le hook ; sinon adapter).
+Clarifier dans l'admin **à quelle compagnie** appartiennent les dépenses (et autres compteurs créés par l'utilisateur) en ajoutant le contexte manquant, sans changer la logique de comptage (qui reste "créé par cet utilisateur").
 
-- Bonus : si l'upload échoue en mode édition après création, ne pas bloquer la sauvegarde des autres champs — on log l'erreur et on continue avec l'ancien `logo_url`. (À confirmer avec toi : préfères-tu bloquer la sauvegarde si le logo échoue ? Comportement actuel = bloque.)
+### Étapes
 
-## Problème 2 — Bouton bloqué sur "Uploading logo..."
+1. **Edge function `get-all-users`** — ajouter, par utilisateur, la liste des compagnies où il a créé des dépenses avec le compte par compagnie (ex: `expenses_by_company: [{ company_id, company_name, count }]`). Idem pour invoices/quotes/clients si pertinent (au minimum dépenses pour cette session).
 
-**Causes identifiées dans `handleSubmit` et le Dialog :**
+2. **`UsersTable.tsx`** — sur le badge/cellule "Dépenses", ajouter un Tooltip qui affiche la répartition par compagnie quand `expenses_count > 0`, par exemple :
+   - `Test inc. — 0`
+   - `Christian Mailhot — 1`
 
-1. `validateInvoiceNumbering` early-return : reset `uploadingLogo` mais **pas** `isSubmitting`.
-2. Erreur `createCompany` autre que `LIMIT_REACHED` : aucun reset des deux flags.
-3. Fermeture du Dialog (Cancel ou clic extérieur) : `onOpenChange` ne réinitialise rien → l'état `uploadingLogo / isSubmitting` reste à `true` si un submit était en cours et reste affiché à la réouverture.
+3. (Optionnel) Ajouter un petit libellé "créées par l'utilisateur (toutes compagnies)" dans le tooltip pour éviter toute future confusion.
 
-**Correctifs :**
+## Hors scope
 
-- Reset `isSubmitting` partout où `uploadingLogo` est reset (validation, erreurs).
-- Wrapper la fin de `handleSubmit` dans `try/finally` pour garantir le reset des deux flags quoi qu'il arrive.
-- Sur `setIsDialogOpen(false)` (Cancel + onOpenChange) : appeler `resetForm()` qui doit aussi remettre `setUploadingLogo(false)` et `setIsSubmitting(false)`.
-
-## Fichiers touchés
-
-- `src/pages/Companies.tsx` — logique d'upload (chemin avec company_id, flux create-then-upload), gestion d'erreurs avec `try/finally`, reset complet dans `resetForm` et à la fermeture du Dialog.
-
-Aucun changement DB ni edge function nécessaire — les policies RLS sont correctes, c'est le client qui n'envoyait pas le bon chemin.
+- Ne pas modifier le calcul des stats globales ni la sémantique des compteurs.
+- Ne pas changer l'écran Dépenses utilisateur.
