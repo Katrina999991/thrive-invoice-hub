@@ -957,47 +957,47 @@ Best regards,
     setIsSubmitting(true);
     setUploadingLogo(true);
 
-    // Validate invoice numbering configuration
-    const isValid = await validateInvoiceNumbering();
-    if (!isValid) {
-      setUploadingLogo(false);
-      return;
-    }
-    
-    let logoUrl = newCompany.logo_url;
-    
-    // Upload logo if a new file is selected
-    if (logoFile) {
-      try {
+    try {
+      // Validate invoice numbering configuration
+      const isValid = await validateInvoiceNumbering();
+      if (!isValid) {
+        return;
+      }
+
+      const uploadLogoForCompany = async (companyId: string): Promise<string | null> => {
+        if (!logoFile) return null;
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
+        const filePath = `${companyId}/${fileName}`;
         const { error: uploadError } = await supabase.storage
           .from('company-logos')
           .upload(filePath, logoFile);
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
+        if (uploadError) throw uploadError;
         const { data: { publicUrl } } = supabase.storage
           .from('company-logos')
           .getPublicUrl(filePath);
+        return publicUrl;
+      };
 
-        logoUrl = publicUrl;
-      } catch (error) {
-        console.error('Error uploading logo:', error);
-        toast({
-          title: t("companies.logoError"),
-          description: t("companies.logoError"),
-          variant: "destructive"
-        });
-        setUploadingLogo(false);
-        return;
+      let logoUrl = newCompany.logo_url;
+
+      // Edit mode: upload right away under the existing company id
+      if (editingCompany && logoFile) {
+        try {
+          const uploaded = await uploadLogoForCompany(editingCompany.id);
+          if (uploaded) logoUrl = uploaded;
+        } catch (error) {
+          console.error('Error uploading logo:', error);
+          toast({
+            title: t("companies.logoError"),
+            description: t("companies.logoError"),
+            variant: "destructive"
+          });
+          return;
+        }
       }
-    }
-    const companyData = {
+
+      const companyData = {
       name: newCompany.name,
       address: newCompany.address || null,
       street_address: newCompany.street_address || null,
@@ -1024,31 +1024,53 @@ Best regards,
       invoice_footer_message_fr: newCompany.invoice_footer_message_fr,
       invoice_body_message: newCompany.invoice_body_message,
       invoice_body_message_fr: newCompany.invoice_body_message_fr
-    };
-    
-    if (editingCompany) {
-      await updateCompany(editingCompany.id, companyData);
-    } else {
-      try {
-        await createCompany(companyData);
-      } catch (error: any) {
-        if (error?.code === 'LIMIT_REACHED') {
-          setShowLimitDialog(true);
-          setUploadingLogo(false);
-          setIsSubmitting(false);
+      };
+
+      if (editingCompany) {
+        await updateCompany(editingCompany.id, companyData);
+      } else {
+        let created: any = null;
+        try {
+          // Create first without logo to get the id
+          created = await createCompany({ ...companyData, logo_url: null });
+        } catch (error: any) {
+          if (error?.code === 'LIMIT_REACHED') {
+            setShowLimitDialog(true);
+          }
           return;
         }
-      }
-    }
+        if (!created?.id) return;
 
-    resetForm();
-    setUploadingLogo(false);
-    setIsSubmitting(false);
+        // Upload logo using the new company id, then update logo_url
+        if (logoFile) {
+          try {
+            const uploaded = await uploadLogoForCompany(created.id);
+            if (uploaded) {
+              await updateCompany(created.id, { logo_url: uploaded });
+            }
+          } catch (error) {
+            console.error('Error uploading logo:', error);
+            toast({
+              title: t("companies.logoError"),
+              description: t("companies.logoError"),
+              variant: "destructive"
+            });
+          }
+        }
+      }
+
+      resetForm();
+    } finally {
+      setUploadingLogo(false);
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
     setLogoFile(null);
     setLogoError(null);
+    setUploadingLogo(false);
+    setIsSubmitting(false);
     setNewCompany({
       name: "",
       address: "",
@@ -1226,7 +1248,13 @@ Best regards,
             {t("companies.subtitle")}
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          if (!open) {
+            resetForm();
+          } else {
+            setIsDialogOpen(true);
+          }
+        }}>
           {/* Company creation is always allowed - plan limits are checked in handleAddCompanyClick */}
           <Button onClick={handleAddCompanyClick} disabled={isSubmitting}>
             <Plus className="h-4 w-4 mr-2" />
