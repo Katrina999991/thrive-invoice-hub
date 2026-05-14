@@ -63,6 +63,7 @@ interface User {
   quotes_count: number;
   expenses_count: number;
   clients_count: number;
+  expenses_by_company?: Array<{ company_id: string | null; company_name: string | null; count: number }>;
   invoices_sent_count?: number;
   invoices_paid_count?: number;
   last_invoice_sent_at?: string | null;
@@ -528,7 +529,27 @@ export function UsersTable() {
                   {renderCount(user.expenses_count)}
                 </span>
               </TooltipTrigger>
-              <TooltipContent>{t.hasExpenses}: {user.expenses_count}</TooltipContent>
+              <TooltipContent>
+                <div className="space-y-1">
+                  <div className="font-medium">{t.hasExpenses}: {user.expenses_count}</div>
+                  <div className="text-[10px] opacity-70">
+                    {language === "fr" ? "créées par l'utilisateur (toutes compagnies)" : "created by user (all companies)"}
+                  </div>
+                  {user.expenses_by_company && user.expenses_by_company.length > 0 && (
+                    <ul className="mt-1 space-y-0.5">
+                      {user.expenses_by_company
+                        .slice()
+                        .sort((a, b) => b.count - a.count)
+                        .map((row, i) => (
+                          <li key={i} className="flex items-center justify-between gap-3 text-xs">
+                            <span>{row.company_name || (language === "fr" ? "Sans compagnie" : "No company")}</span>
+                            <span className="font-mono">{row.count}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+              </TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
