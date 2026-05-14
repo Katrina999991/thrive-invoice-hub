@@ -74,7 +74,7 @@ export function useCompanyMembers(companyId: string | null) {
 
       // Fetch profiles for all member user_ids
       const userIds = (membersData || []).map(m => m.user_id);
-      let profilesMap: Record<string, { display_name?: string; username?: string }> = {};
+      let profilesMap: Record<string, { display_name?: string; username?: string; email?: string }> = {};
       
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -82,19 +82,28 @@ export function useCompanyMembers(companyId: string | null) {
 
         if (profilesData) {
           profilesMap = profilesData.reduce((acc, p) => {
-            acc[p.user_id] = { display_name: p.display_name, username: p.username };
+            acc[p.user_id] = { display_name: p.display_name, username: p.username, email: (p as any).email };
             return acc;
-          }, {} as Record<string, { display_name?: string; username?: string }>);
+          }, {} as Record<string, { display_name?: string; username?: string; email?: string }>);
         }
       }
 
       // Map role names and display names to members
       const membersWithRoles = (membersData || []).map(member => {
         const profile = profilesMap[member.user_id];
+        const looksLikeUuid = (s?: string | null) =>
+          !!s && /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i.test(s);
+        const cleanDisplay =
+          profile?.display_name && !looksLikeUuid(profile.display_name)
+            ? profile.display_name
+            : null;
+        const cleanUsername =
+          profile?.username && !looksLikeUuid(profile.username) ? profile.username : null;
         return {
           ...member,
           role_name: rolesData?.find(r => r.id === member.role_id)?.name || "Unknown",
-          user_display_name: profile?.display_name || profile?.username || null
+          user_email: profile?.email || undefined,
+          user_display_name: cleanDisplay || cleanUsername || profile?.email || null
         };
       });
 

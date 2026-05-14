@@ -2295,6 +2295,7 @@ export type Database = {
         Args: { _user_ids: string[] }
         Returns: {
           display_name: string
+          email: string
           user_id: string
           username: string
         }[]
