@@ -3,6 +3,7 @@ import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.4';
 import { translateTemplate, emailTranslations } from './translations.ts';
 import { generateInvoicePdfForEmail } from './invoicePdf.ts';
+import { renderInvoiceEmailHtml, resolveAccentColor, textBodyToHtml } from './emailTemplate.ts';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { encode as encodeBase64, decode as decodeBase64 } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
@@ -377,50 +378,59 @@ const handler = async (req: Request): Promise<Response> => {
       emailMessage = emailMessage!.replace(new RegExp(placeholder, 'g'), value);
     });
 
-    // Convert line breaks to HTML breaks for email
-    emailMessage = emailMessage.replace(/\n/g, '<br>');
-    
-    // Convert URLs to clickable links
-    const urlPattern = /(https?:\/\/[^\s<]+)/g;
-    emailMessage = emailMessage.replace(urlPattern, '<a href="$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
-    
-    // Add payment link if client has the option enabled and invoice is not paid
+    // Convert plain-text body into clean HTML paragraphs (preserves single/double line breaks)
+    const bodyMessageHtml = textBodyToHtml(emailMessage);
+
+    // Resolve payment link separately (rendered as CTA button inside the template)
+    let paymentLinkUrl: string | null = null;
     console.log('Client include_payment_link:', client?.include_payment_link);
     console.log('Invoice status:', invoice.status);
-    
+
     if (client?.include_payment_link === true && invoice.status !== 'paid') {
       try {
         console.log('Creating payment link for invoice:', invoice.id);
-        
-        // Create payment link
         const { data: paymentLinkData, error: paymentLinkError } = await supabase.functions.invoke(
           'create-invoice-payment-link',
-          {
-            body: { invoiceId: invoice.id }
-          }
+          { body: { invoiceId: invoice.id } }
         );
-        
         if (paymentLinkError) {
           console.error('Error creating payment link:', paymentLinkError);
         } else if (paymentLinkData?.url) {
-          console.log('Payment link created successfully:', paymentLinkData.url);
-          
-          // Add payment link button to email
-          const paymentLinkText = isFrench 
-            ? `<br><br><div style="margin: 20px 0;"><strong>Payer en ligne :</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Payer maintenant</a></div>`
-            : `<br><br><div style="margin: 20px 0;"><strong>Pay online:</strong><br><a href="${paymentLinkData.url}" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Pay Now</a></div>`;
-          
-          emailMessage += paymentLinkText;
-          console.log('Payment link added to email message');
-        } else {
-          console.log('No payment link URL received');
+          paymentLinkUrl = paymentLinkData.url;
+          console.log('Payment link created successfully:', paymentLinkUrl);
         }
       } catch (error) {
         console.error('Exception creating payment link:', error);
       }
-    } else {
-      console.log('Payment link not added - include_payment_link:', client?.include_payment_link, 'status:', invoice.status);
     }
+
+    // Wrap the body in the branded HTML email template
+    const accentColor = resolveAccentColor(invoiceColor);
+    const finalHtml = renderInvoiceEmailHtml({
+      company: {
+        name: company.name,
+        logo_url: (company as any).logo_url,
+        street_address: (company as any).street_address,
+        city: (company as any).city,
+        province_state: (company as any).province_state,
+        postal_code: (company as any).postal_code,
+        email: (company as any).email,
+        phone: (company as any).phone,
+      },
+      client: { name: client.name },
+      invoice: {
+        invoice_number: invoice.invoice_number,
+        issue_date: invoice.issue_date,
+        due_date: invoice.due_date,
+        total: Number(invoice.total) || 0,
+      },
+      bodyMessageHtml,
+      paymentLinkUrl,
+      emailType: emailType as 'new' | 'overdue' | 'payment_confirmation',
+      language: isFrench ? 'fr' : 'en',
+      accentColor,
+      hideBranding: hidePdfBranding,
+    });
 
     // Determine PDF attachment
     let pdfBase64: string;
@@ -552,7 +562,7 @@ const handler = async (req: Request): Promise<Response> => {
       to: emailsToSend,
       cc: ccEmails && ccEmails.length > 0 ? ccEmails : undefined,
       subject: emailSubject,
-      html: emailMessage,
+      html: finalHtml,
       attachments: [
         {
           filename: attachmentFilename,
