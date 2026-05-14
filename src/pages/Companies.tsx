@@ -1248,7 +1248,13 @@ Best regards,
             {t("companies.subtitle")}
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          if (!open) {
+            resetForm();
+          } else {
+            setIsDialogOpen(true);
+          }
+        }}>
           {/* Company creation is always allowed - plan limits are checked in handleAddCompanyClick */}
           <Button onClick={handleAddCompanyClick} disabled={isSubmitting}>
             <Plus className="h-4 w-4 mr-2" />
