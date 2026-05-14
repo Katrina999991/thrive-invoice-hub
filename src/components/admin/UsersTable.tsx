@@ -63,7 +63,7 @@ interface User {
   quotes_count: number;
   expenses_count: number;
   clients_count: number;
-  expenses_by_company?: Array<{ company_id: string | null; company_name: string | null; count: number }>;
+  expenses_by_company?: Array<{ company_id: string | null; company_name: string | null; count: number; orphan?: boolean }>;
   invoices_sent_count?: number;
   invoices_paid_count?: number;
   last_invoice_sent_at?: string | null;
@@ -539,10 +539,19 @@ export function UsersTable() {
                     <ul className="mt-1 space-y-0.5">
                       {user.expenses_by_company
                         .slice()
-                        .sort((a, b) => b.count - a.count)
+                        .sort((a, b) => {
+                          // Orphan row always last
+                          if (a.orphan && !b.orphan) return 1;
+                          if (!a.orphan && b.orphan) return -1;
+                          return b.count - a.count;
+                        })
                         .map((row, i) => (
                           <li key={i} className="flex items-center justify-between gap-3 text-xs">
-                            <span>{row.company_name || (language === "fr" ? "Sans compagnie" : "No company")}</span>
+                            <span>
+                              {row.orphan
+                                ? (language === "fr" ? "Autres compagnies (accès retiré)" : "Other companies (access removed)")
+                                : (row.company_name || (language === "fr" ? "Sans compagnie" : "No company"))}
+                            </span>
                             <span className="font-mono">{row.count}</span>
                           </li>
                         ))}
