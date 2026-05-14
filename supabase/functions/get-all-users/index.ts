@@ -50,16 +50,18 @@ serve(async (req) => {
 
     logStep("Verifying user token via user-context client");
 
-    // Use a user-context client (anon key + caller's Authorization header) so the
-    // new Supabase signing-keys system can validate the JWT correctly.
+    // Use a user-context client (anon key) and pass the JWT explicitly to getUser().
+    // Calling getUser() with no argument relies on a stored session, which doesn't
+    // exist in an edge function context and yields "Auth session missing!".
     const userClient = createClient(
       supabaseUrl ?? "",
       anonKey ?? "",
-      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } }
+      { auth: { persistSession: false } }
     );
 
-    const { data: userData, error: userError } = await userClient.auth.getUser();
-    
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: userData, error: userError } = await userClient.auth.getUser(token);
+
     if (userError || !userData.user) {
       logStep("Auth error", { error: userError?.message });
       throw new Error("Authentication failed");
