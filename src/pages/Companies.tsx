@@ -786,8 +786,8 @@ const Companies = () => {
   const navigate = useNavigate();
 
    // Permission checks - use centralized permission system
-   const canCreateCompany = can("companies:create");
-   const canEditCompany = can("companies:edit");
+   const canCreateCompany = can("companies:create") || isOwner;
+   const canEditCompany = can("companies:edit") || isOwner;
    const canDeleteCompany = can("companies:delete") || isOwner;
    const [isSubmitting, setIsSubmitting] = useState(false);
 
