@@ -9,35 +9,24 @@ export const emailTranslations = {
     // New invoice
     newInvoice: {
       subject: 'Invoice {invoice_number} from {company_name}',
-      body: `Dear {client_name},
+      body: `Hello {client_name},
 
-Please find attached your invoice {invoice_number} dated {issue_date}.
+Here is your new invoice. You will find all the details in the summary above, along with a PDF copy attached to this email.
 
-Amount due: {total}
-Due date: {due_date}
+If you have any questions, simply reply to this email.
 
-Thank you for your business!
-
-Best regards,
+Thank you for your trust,
 {company_name}`
     },
     
     // Overdue
     overdue: {
       subject: 'Payment Overdue - Invoice {invoice_number}',
-      body: `Dear {client_name},
+      body: `Hello {client_name},
 
-This is a friendly reminder that your invoice {invoice_number} dated {issue_date} is now overdue.
+A friendly reminder that invoice {invoice_number} is now {days_overdue} day(s) overdue. The summary above includes all key information.
 
-Original amount: {total}
-Due date: {due_date}
-Days overdue: {days_overdue}
-
-Please remit payment at your earliest convenience to avoid any late fees.
-
-If you have already sent payment, please disregard this notice.
-
-Thank you for your prompt attention to this matter.
+If payment has already been sent, please disregard this message.
 
 Best regards,
 {company_name}`
@@ -46,16 +35,9 @@ Best regards,
     // Payment confirmation
     paymentConfirmation: {
       subject: 'Payment Confirmation - Invoice {invoice_number}',
-      body: `Dear {client_name},
+      body: `Hello {client_name},
 
-We have successfully received your payment for invoice {invoice_number}.
-
-Payment details:
-- Invoice: {invoice_number}
-- Amount: {total}
-- Date paid: {payment_date}
-
-Thank you for your prompt payment and continued business!
+We confirm receipt of your payment. Thank you!
 
 Best regards,
 {company_name}`
@@ -73,35 +55,24 @@ Best regards,
     // New invoice
     newInvoice: {
       subject: 'Facture {invoice_number} de {company_name}',
-      body: `Cher/Chère {client_name},
+      body: `Bonjour {client_name},
 
-Veuillez trouver ci-jointe votre facture {invoice_number} datée du {issue_date}.
+Voici votre nouvelle facture. Vous trouverez tous les détails dans le récapitulatif ci-dessus, ainsi qu'une copie PDF en pièce jointe.
 
-Montant dû : {total}
-Date d'échéance : {due_date}
+Pour toute question, n'hésitez pas à répondre directement à ce courriel.
 
-Merci pour votre confiance !
-
-Cordialement,
+Merci de votre confiance,
 {company_name}`
     },
     
     // Overdue
     overdue: {
       subject: 'Paiement en retard - Facture {invoice_number}',
-      body: `Cher/Chère {client_name},
+      body: `Bonjour {client_name},
 
-Ceci est un rappel amical que votre facture {invoice_number} datée du {issue_date} est maintenant en retard.
+Petit rappel amical : votre facture {invoice_number} est aujourd'hui en retard de {days_overdue} jour(s). Le récapitulatif ci-dessus reprend les informations clés.
 
-Montant original : {total}
-Date d'échéance : {due_date}
-Jours de retard : {days_overdue}
-
-Veuillez effectuer le paiement dans les plus brefs délais pour éviter les frais de retard.
-
-Si vous avez déjà envoyé le paiement, veuillez ignorer cet avis.
-
-Merci de votre attention rapide à cette question.
+Si le paiement a déjà été effectué, merci d'ignorer ce message.
 
 Cordialement,
 {company_name}`
@@ -110,16 +81,9 @@ Cordialement,
     // Payment confirmation
     paymentConfirmation: {
       subject: 'Confirmation de paiement - Facture {invoice_number}',
-      body: `Cher/Chère {client_name},
+      body: `Bonjour {client_name},
 
-Nous avons reçu avec succès votre paiement pour la facture {invoice_number}.
-
-Détails du paiement :
-- Facture : {invoice_number}
-- Montant : {total}
-- Date de paiement : {payment_date}
-
-Merci pour votre paiement rapide et votre fidélité !
+Nous confirmons la bonne réception de votre paiement. Merci !
 
 Cordialement,
 {company_name}`

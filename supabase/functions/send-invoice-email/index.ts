@@ -320,22 +320,34 @@ const handler = async (req: Request): Promise<Response> => {
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     const daysOverdue = Math.max(0, -daysDiff);
 
+    const isFrench = client.language === 'french';
+    const dateLocale = isFrench ? 'fr-CA' : 'en-CA';
+    const fmtDate = (d: string | null | undefined): string => {
+      if (!d) return 'N/A';
+      try {
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) return d;
+        return dt.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch {
+        return d;
+      }
+    };
+
     // Prepare template variables
     const templateVars = {
       '{client_name}': client.name,
       '{invoice_number}': invoice.invoice_number,
-      '{issue_date}': invoice.issue_date,
-      '{due_date}': invoice.due_date || 'N/A',
+      '{issue_date}': fmtDate(invoice.issue_date),
+      '{due_date}': fmtDate(invoice.due_date),
       '{total}': invoice.total.toFixed(2),
       '{subtotal}': invoice.subtotal.toFixed(2),
       '{tax_amount}': invoice.tax_amount.toFixed(2),
       '{company_name}': company.name,
       '{days_until_due}': daysDiff.toString(),
       '{days_overdue}': daysOverdue.toString(),
-      '{payment_date}': today.toLocaleDateString(),
+      '{payment_date}': fmtDate(today.toISOString()),
     };
 
-    const isFrench = client.language === 'french';
     console.log('Client language:', client.language, 'Is French:', isFrench);
 
     // Email subject and message selection based on client language

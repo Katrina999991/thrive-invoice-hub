@@ -240,10 +240,9 @@ export function renderInvoiceEmailHtml(args: RenderArgs): string {
         <!-- Footer -->
         <tr>
           <td style="background:#0f172a;padding:24px 32px;color:#cbd5e1;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;">
-            <div style="color:#ffffff;font-weight:600;font-size:14px;margin-bottom:4px;">${escapeHtml(company.name)}</div>
             ${addressParts ? `<div>${escapeHtml(addressParts)}</div>` : ''}
             ${contactParts ? `<div style="margin-top:2px;">${escapeHtml(contactParts)}</div>` : ''}
-            ${hideBranding ? '' : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #1e293b;color:#64748b;font-size:11px;">${t.poweredBy} · <a href="https://gestionflow.net" style="color:#94a3b8;text-decoration:none;">gestionflow.net</a></div>`}
+            ${hideBranding ? '' : `<div style="${addressParts || contactParts ? 'margin-top:14px;padding-top:12px;border-top:1px solid #1e293b;' : ''}color:#94a3b8;font-size:11px;">${t.poweredBy} · <a href="https://gestionflow.net" style="color:#cbd5e1;text-decoration:none;">gestionflow.net</a></div>`}
           </td>
         </tr>
       </table>
