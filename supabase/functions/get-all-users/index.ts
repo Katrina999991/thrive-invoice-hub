@@ -26,10 +26,12 @@ serve(async (req) => {
     logStep("Creating Supabase client");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     
     logStep("Environment check", { 
       hasUrl: !!supabaseUrl, 
-      hasServiceKey: !!serviceRoleKey 
+      hasServiceKey: !!serviceRoleKey,
+      hasAnonKey: !!anonKey
     });
 
     const supabaseClient = createClient(
@@ -46,10 +48,17 @@ serve(async (req) => {
       throw new Error("No authorization header provided");
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    logStep("Verifying user token");
-    
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    logStep("Verifying user token via user-context client");
+
+    // Use a user-context client (anon key + caller's Authorization header) so the
+    // new Supabase signing-keys system can validate the JWT correctly.
+    const userClient = createClient(
+      supabaseUrl ?? "",
+      anonKey ?? "",
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } }
+    );
+
+    const { data: userData, error: userError } = await userClient.auth.getUser();
     
     if (userError || !userData.user) {
       logStep("Auth error", { error: userError?.message });
