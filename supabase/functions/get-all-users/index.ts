@@ -130,7 +130,7 @@ serve(async (req) => {
     // Fetch companies count per user
     const { data: companies, error: companiesError } = await supabaseClient
       .from("companies")
-      .select("user_id");
+      .select("id, name, user_id");
 
     if (companiesError) {
       logStep("Error fetching companies", { error: companiesError.message });
@@ -171,7 +171,7 @@ serve(async (req) => {
     // Fetch expenses existence per user
     const { data: expenses, error: expensesError } = await supabaseClient
       .from("expenses")
-      .select("user_id, created_at");
+      .select("user_id, created_at, company_id");
 
     if (expensesError) {
       logStep("Error fetching expenses", { error: expensesError.message });
@@ -240,9 +240,21 @@ serve(async (req) => {
 
     const expensesCountMap = new Map<string, number>();
     const lastExpenseMap = new Map<string, string>();
+    // user_id -> (company_id|"none") -> count
+    const expensesByCompanyMap = new Map<string, Map<string, number>>();
     expenses?.forEach((e: any) => {
       expensesCountMap.set(e.user_id, (expensesCountMap.get(e.user_id) || 0) + 1);
       if (e.created_at) lastExpenseMap.set(e.user_id, maxStr(lastExpenseMap.get(e.user_id), e.created_at)!);
+      const key = e.company_id || "none";
+      const inner = expensesByCompanyMap.get(e.user_id) || new Map<string, number>();
+      inner.set(key, (inner.get(key) || 0) + 1);
+      expensesByCompanyMap.set(e.user_id, inner);
+    });
+
+    // company_id -> name lookup
+    const companyNameMap = new Map<string, string>();
+    companies?.forEach((c: any) => {
+      if (c.id) companyNameMap.set(c.id, c.name || "—");
     });
 
     const clientsCountMap = new Map<string, number>();
@@ -297,6 +309,13 @@ serve(async (req) => {
         quotes_count: quotesCountMap.get(user.id) || 0,
         expenses_count: expensesCountMap.get(user.id) || 0,
         clients_count: clientsCountMap.get(user.id) || 0,
+        expenses_by_company: Array.from(
+          (expensesByCompanyMap.get(user.id) || new Map<string, number>()).entries()
+        ).map(([cid, count]) => ({
+          company_id: cid === "none" ? null : cid,
+          company_name: cid === "none" ? null : (companyNameMap.get(cid) || "—"),
+          count,
+        })),
         last_invoice_sent_at: lastInvoiceSent,
         last_invoice_paid_at: lastInvoicePaid,
         last_activity_at: lastActivityAt,
