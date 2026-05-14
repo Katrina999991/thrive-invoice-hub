@@ -188,6 +188,17 @@ serve(async (req) => {
       throw new Error(`Failed to fetch clients: ${clientsError.message}`);
     }
 
+    // Fetch active company memberships (to filter expenses tooltip to current accesses)
+    const { data: activeMembers, error: membersError } = await supabaseClient
+      .from("company_members")
+      .select("user_id, company_id")
+      .eq("status", "active");
+
+    if (membersError) {
+      logStep("Error fetching memberships", { error: membersError.message });
+      throw new Error(`Failed to fetch memberships: ${membersError.message}`);
+    }
+
     logStep("All data fetched, processing");
 
     // Group counts by user_id
@@ -257,6 +268,21 @@ serve(async (req) => {
       if (c.id) companyNameMap.set(c.id, c.name || "—");
     });
 
+    // user_id -> Set<company_id> of currently accessible companies (owner OR active member)
+    const accessibleCompaniesByUser = new Map<string, Set<string>>();
+    companies?.forEach((c: any) => {
+      if (!c.user_id || !c.id) return;
+      const set = accessibleCompaniesByUser.get(c.user_id) || new Set<string>();
+      set.add(c.id);
+      accessibleCompaniesByUser.set(c.user_id, set);
+    });
+    activeMembers?.forEach((m: any) => {
+      if (!m.user_id || !m.company_id) return;
+      const set = accessibleCompaniesByUser.get(m.user_id) || new Set<string>();
+      set.add(m.company_id);
+      accessibleCompaniesByUser.set(m.user_id, set);
+    });
+
     const clientsCountMap = new Map<string, number>();
     const lastClientMap = new Map<string, string>();
     clients?.forEach((c: any) => {
@@ -309,13 +335,23 @@ serve(async (req) => {
         quotes_count: quotesCountMap.get(user.id) || 0,
         expenses_count: expensesCountMap.get(user.id) || 0,
         clients_count: clientsCountMap.get(user.id) || 0,
-        expenses_by_company: Array.from(
-          (expensesByCompanyMap.get(user.id) || new Map<string, number>()).entries()
-        ).map(([cid, count]) => ({
-          company_id: cid === "none" ? null : cid,
-          company_name: cid === "none" ? null : (companyNameMap.get(cid) || "—"),
-          count,
-        })),
+        expenses_by_company: (() => {
+          const accessible = accessibleCompaniesByUser.get(user.id) || new Set<string>();
+          const inner = expensesByCompanyMap.get(user.id) || new Map<string, number>();
+          const visible: Array<{ company_id: string | null; company_name: string | null; count: number; orphan?: boolean }> = [];
+          let orphanCount = 0;
+          for (const [cid, count] of inner.entries()) {
+            if (cid !== "none" && accessible.has(cid)) {
+              visible.push({ company_id: cid, company_name: companyNameMap.get(cid) || "—", count });
+            } else {
+              orphanCount += count;
+            }
+          }
+          if (orphanCount > 0) {
+            visible.push({ company_id: null, company_name: null, count: orphanCount, orphan: true });
+          }
+          return visible;
+        })(),
         last_invoice_sent_at: lastInvoiceSent,
         last_invoice_paid_at: lastInvoicePaid,
         last_activity_at: lastActivityAt,
