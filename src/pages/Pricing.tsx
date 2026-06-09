@@ -250,7 +250,7 @@ const Pricing = () => {
       stripeFeesDesc2: "Standard Stripe fees (~2.9% + $0.30) apply to all plans.",
       stripeFeesDesc3: "GestionFlow fees by plan:",
       stripeFeesFree: "Free: +2% GestionFlow fee",
-      stripeFeesPremium: "Premium: 0% GestionFlow fees 🎉",
+      stripeFeesPremium: "Premium: 0% GestionFlow fees",
       stripeFeesPro: "Pro: 0% GestionFlow fees",
       switchToFreeWarning: "Switching to the Free plan will disable paid features at the end of your billing cycle."
     },
@@ -360,7 +360,7 @@ const Pricing = () => {
       stripeFeesDesc2: "Les frais standard de Stripe (~2,9 % + 0,30 $) s'appliquent à tous les plans.",
       stripeFeesDesc3: "Frais GestionFlow selon votre plan :",
       stripeFeesFree: "Gratuit : +2 % frais GestionFlow",
-      stripeFeesPremium: "Premium : 0 % frais GestionFlow 🎉",
+      stripeFeesPremium: "Premium : 0 % frais GestionFlow",
       stripeFeesPro: "Pro : 0 % frais GestionFlow",
       switchToFreeWarning: "Passer au plan Gratuit désactivera les fonctionnalités payantes à la fin de votre cycle de facturation."
     }
