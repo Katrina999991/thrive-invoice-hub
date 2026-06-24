@@ -186,7 +186,7 @@ const Products = () => {
       category: product.category || "",
       quantity: product.quantity?.toString() || "",
       unit: product.unit || "piece",
-      company_id: product.company_id || "",
+      company_id: product.company_id || (companies.length === 1 ? companies[0].id : ""),
       client_id: product.client_id || "",
       sku: product.sku || ""
     });
