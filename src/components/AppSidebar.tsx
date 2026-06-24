@@ -159,7 +159,9 @@ export function AppSidebar() {
   };
 
   const getNavCls = (path: string, isLocked: boolean) => {
-    const base = isActive(path) ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
+    const base = isActive(path)
+      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-gradient-gold before:rounded-r"
+      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
     return isLocked ? `${base} opacity-60` : base;
   };
 
@@ -209,7 +211,7 @@ export function AppSidebar() {
           <div className="flex flex-col items-center gap-0.5">
             <img src={logo} alt="GestionFlow" className={`${isCollapsed ? "w-12 h-12" : "w-24 h-24"} object-contain`} />
             {!isCollapsed && (
-              <h2 className="font-bold text-base text-center text-primary -mt-1">
+              <h2 className="font-display text-base text-center text-sidebar-accent-foreground -mt-1">
                 {username || t("nav.title")}
               </h2>
             )}

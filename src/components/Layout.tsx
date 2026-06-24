@@ -33,10 +33,10 @@ export default function Layout() {
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b bg-background px-4">
+          <header className="h-14 flex items-center border-b border-accent/20 bg-background/80 backdrop-blur-sm px-4">
             <SidebarTrigger />
             <div className="ml-4 flex-1">
-              <h1 className="font-semibold hidden md:block">{t("app.title")}</h1>
+              <h1 className="font-display text-lg hidden md:block tracking-tight">{t("app.title")}</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button
