@@ -18,6 +18,18 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['"Inter Tight Variable"', 'system-ui', 'sans-serif'],
+				display: ['"Fraunces"', 'Georgia', 'serif'],
+			},
+			backgroundImage: {
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-gold': 'var(--gradient-gold)',
+			},
+			boxShadow: {
+				'elegant': 'var(--shadow-elegant)',
+				'gold': 'var(--shadow-gold)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

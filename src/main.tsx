@@ -5,6 +5,12 @@ import App from './App.tsx'
 import AdminApp from './admin/AdminApp.tsx'
 import { isAdminHost } from './lib/adminHost.ts'
 import './index.css'
+import '@fontsource/fraunces/400.css'
+import '@fontsource/fraunces/400-italic.css'
+import '@fontsource/fraunces/600.css'
+import '@fontsource/fraunces/600-italic.css'
+import '@fontsource/fraunces/700.css'
+import '@fontsource-variable/inter-tight'
 
 // Load saved theme preferences before rendering
 const savedTheme = localStorage.getItem("app-theme") || "default";
