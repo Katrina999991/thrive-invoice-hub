@@ -10,7 +10,7 @@ import '@fontsource/fraunces/400-italic.css'
 import '@fontsource/fraunces/600.css'
 import '@fontsource/fraunces/600-italic.css'
 import '@fontsource/fraunces/700.css'
-import '@fontsource-variable/inter-tight'
+import '@fontsource-variable/inter-tight/index.css'
 
 // Load saved theme preferences before rendering
 const savedTheme = localStorage.getItem("app-theme") || "default";
