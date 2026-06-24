@@ -34,7 +34,7 @@ function getFeatureAccessList(planType: string): FeatureDisplay[] {
     {
       labelEn: "Categories",
       labelFr: "Catégories",
-      access: planType === "free" ? "none" : "full",
+      access: "full", // Included in ALL plans
     },
     {
       labelEn: "Quotes",
