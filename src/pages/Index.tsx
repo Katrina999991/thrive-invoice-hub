@@ -707,65 +707,72 @@ const Index = () => {
 
       <main>
       {/* Hero Section */}
-      <section id="hero" className="container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-24">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Zap className="h-4 w-4" />
-            {t.hero.badge}
+      <section id="hero" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-hero-radial pointer-events-none" aria-hidden="true" />
+        <div className="container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-24 relative">
+          <div className="max-w-4xl mx-auto text-center animate-fade-in">
+            {/* Eyebrow */}
+            <div className="inline-flex items-center gap-2 mb-8">
+              <span className="h-px w-8 bg-gradient-gold" aria-hidden="true" />
+              <span className="text-xs uppercase tracking-[0.2em] font-medium text-gradient-gold">
+                {t.hero.badge}
+              </span>
+              <span className="h-px w-8 bg-gradient-gold" aria-hidden="true" />
+            </div>
+
+            {/* Main Title */}
+            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold text-foreground mb-8 leading-[1.05] tracking-tight">
+              {t.hero.title}{" "}
+              <span className="italic font-normal text-gradient-gold">{t.hero.titleHighlight}</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+              {t.hero.subtitle}
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-5">
+              <Button
+                onClick={() => navigate("/auth")}
+                variant="premium"
+                size="lg"
+                className="text-base px-8 h-14 gap-2"
+              >
+                {t.hero.cta}
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+              <Button
+                onClick={() => navigate('/pricing')}
+                variant="outline"
+                size="lg"
+                className="text-base px-8 h-14 border-accent/40 hover:bg-accent/10 hover:text-accent-foreground"
+              >
+                {t.hero.ctaSecondary}
+              </Button>
+            </div>
+
+            <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+              {t.hero.noCard}
+            </p>
           </div>
-          
-          {/* Main Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            {t.hero.title}{" "}
-            <span className="text-primary">{t.hero.titleHighlight}</span>
-          </h1>
-          
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            {t.hero.subtitle}
-          </p>
-          
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-            <Button
-              onClick={() => navigate("/auth")}
-              size="lg"
-              className="text-lg px-8 py-6 gap-2"
-            >
-              {t.hero.cta}
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => navigate('/pricing')}
-              variant="outline"
-              size="lg"
-              className="text-lg px-8 py-6"
-            >
-              {t.hero.ctaSecondary}
-            </Button>
-          </div>
-          
-          {/* No card required */}
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-primary" />
-            {t.hero.noCard}
-          </p>
-        </div>
-        
-        {/* Hero Image */}
-        <div className="mt-12 md:mt-16 max-w-5xl mx-auto">
-          <div className="rounded-xl overflow-hidden shadow-2xl border border-border bg-muted/50 p-2">
-            <img 
-              src={currentDashboardPreview} 
-              alt={currentLang === "EN" 
-                ? "GestionFlow dashboard - Multi-company business management software" 
-                : "Tableau de bord GestionFlow - Logiciel de gestion multi-entreprises"} 
-              className="w-full h-auto rounded-lg"
-              loading="eager"
-              width="1200"
-              height="800"
-            />
+
+          {/* Hero Image */}
+          <div className="mt-16 md:mt-20 max-w-5xl mx-auto">
+            <div className="relative rounded-2xl overflow-hidden shadow-elegant ring-gold bg-card p-2 transition-transform duration-500 hover:-translate-y-1">
+              <div className="absolute -inset-px rounded-2xl bg-gradient-gold opacity-30 -z-10 blur-xl" aria-hidden="true" />
+              <img
+                src={currentDashboardPreview}
+                alt={currentLang === "EN"
+                  ? "GestionFlow dashboard - Multi-company business management software"
+                  : "Tableau de bord GestionFlow - Logiciel de gestion multi-entreprises"}
+                className="w-full h-auto rounded-xl"
+                loading="eager"
+                width="1200"
+                height="800"
+              />
+            </div>
           </div>
         </div>
       </section>
