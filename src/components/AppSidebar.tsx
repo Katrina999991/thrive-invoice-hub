@@ -113,7 +113,9 @@ export function AppSidebar() {
     };
   }, []);
   
-  const logo = darkMode === "dark" ? gestionflowLogoDark : gestionflowLogo;
+  // Sidebar background is always dark (emerald night) in both light and dark mode,
+  // so always use the light/white-text logo variant.
+  const logo = gestionflowLogoDark;
 
   // Define main menu items with their required permissions and plan features
   const mainItems: MenuItem[] = useMemo(() => [
