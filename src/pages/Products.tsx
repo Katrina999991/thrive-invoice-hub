@@ -516,8 +516,7 @@ const Products = () => {
                   />
                 </div>
               </div>
-              {newItem.type === "product" && (
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <Label htmlFor="company">
                     {language === "fr" ? "Compagnie" : "Company"}
                   </Label>
@@ -543,8 +542,7 @@ const Products = () => {
                       )}
                     </SelectContent>
                   </Select>
-                </div>
-              )}
+              </div>
 
               {newItem.type === "service" && (
                 <div className="space-y-2">
