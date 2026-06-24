@@ -18,7 +18,7 @@ const translations = {
       privacy: "Confidentialité",
       terms: "Conditions"
     },
-    copyright: `© ${new Date().getFullYear()} GestionFlow. Tous droits réservés.`
+    copyright: `© 2025 GestionFlow. Tous droits réservés.`
   },
   en: {
     description: "GestionFlow is a business management software designed to simplify your daily operations.",
@@ -33,7 +33,7 @@ const translations = {
       privacy: "Privacy",
       terms: "Terms"
     },
-    copyright: `© ${new Date().getFullYear()} GestionFlow. All rights reserved.`
+    copyright: `© 2025 GestionFlow. All rights reserved.`
   }
 };
 
