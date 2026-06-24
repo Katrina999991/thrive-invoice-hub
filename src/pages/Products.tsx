@@ -166,7 +166,7 @@ const Products = () => {
       category: "",
       quantity: "",
       unit: "piece",
-      company_id: "",
+      company_id: companies.length === 1 ? companies[0].id : "",
       client_id: "",
       sku: ""
     });
@@ -403,7 +403,7 @@ const Products = () => {
                   category: "",
                   quantity: "",
                   unit: "piece",
-                  company_id: "",
+                  company_id: companies.length === 1 ? companies[0].id : "",
                   client_id: "",
                   sku: ""
                 });
