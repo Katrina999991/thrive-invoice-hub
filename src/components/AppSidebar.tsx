@@ -159,7 +159,9 @@ export function AppSidebar() {
   };
 
   const getNavCls = (path: string, isLocked: boolean) => {
-    const base = isActive(path) ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
+    const base = isActive(path)
+      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-gradient-gold before:rounded-r"
+      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
     return isLocked ? `${base} opacity-60` : base;
   };
 
