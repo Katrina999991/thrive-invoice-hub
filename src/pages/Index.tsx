@@ -238,12 +238,12 @@ const Index = () => {
         },
         premium: {
           name: "Premium",
-          price: "19,99$ CAD",
+          price: "9,99$ CAD",
           period: "/mois",
           description: "Le choix idéal pour petites entreprises",
           popular: "Recommandé",
           features: [
-            "1% de frais Stripe (au lieu de 2%)",
+            "0 % frais GestionFlow",
             "Téléchargement PDF des factures",
             "Rapports : Revenus + Taxes",
             "Gestion des catégories",
@@ -252,7 +252,7 @@ const Index = () => {
         },
         pro: {
           name: "Pro",
-          price: "34,99$ CAD",
+          price: "14,99$ CAD",
           period: "/mois",
           description: "Pour agences et multi-entreprises",
           features: [
@@ -260,7 +260,7 @@ const Index = () => {
             "Tous les rapports",
             "Tous les modèles de factures",
             "Personnalisation des courriels",
-            "0,5% de frais Stripe"
+            "0 % frais GestionFlow"
           ]
         },
         cta: "Voir tous les forfaits"
