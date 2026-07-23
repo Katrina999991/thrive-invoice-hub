@@ -3,24 +3,24 @@ export const STRIPE_CONFIG = {
   premium: {
     monthly: {
       productId: "prod_TMfovYgDRDg1To",
-      priceId: "price_1SPwT0LH2WFAQEA69qD8QvbK",
+      priceId: "price_1TwTQkLH2WFAQEA6zVV33Udq",
       amount: 9.99,
     },
     yearly: {
       productId: "prod_TMfpBvWHzZG8d9",
-      priceId: "price_1SPwUHLH2WFAQEA67w96dR4k",
+      priceId: "price_1TwTR7LH2WFAQEA6zYpPOvu9",
       amount: 99.90,
     },
   },
   pro: {
     monthly: {
       productId: "prod_TMfqkVpmz307cM",
-      priceId: "price_1SPwUnLH2WFAQEA6Ec9bPKok",
+      priceId: "price_1TwTROLH2WFAQEA6DFhQhL64",
       amount: 14.99,
     },
     yearly: {
       productId: "prod_TMfrCqT8V9f97H",
-      priceId: "price_1SPwVYLH2WFAQEA6s2kfAyzS",
+      priceId: "price_1TwTReLH2WFAQEA60pGhKGw6",
       amount: 149.90,
     },
   },
