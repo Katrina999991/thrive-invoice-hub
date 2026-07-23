@@ -485,12 +485,12 @@ const Index = () => {
         },
         premium: {
           name: "Premium",
-          price: "$19.99 CAD",
+          price: "$9.99 CAD",
           period: "/month",
           popular: "Recommended",
           description: "The smart choice for small businesses",
           features: [
-            "1% Stripe fee (instead of 2%)",
+            "0% GestionFlow fees",
             "Invoice PDF download",
             "Reports: Revenue + Tax",
             "Category management",
@@ -499,7 +499,7 @@ const Index = () => {
         },
         pro: {
           name: "Pro",
-          price: "$29.99 CAD",
+          price: "$14.99 CAD",
           period: "/month",
           description: "For agencies and multi-company",
           features: [
