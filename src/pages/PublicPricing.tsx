@@ -104,8 +104,8 @@ const PublicPricing = () => {
         },
         premium: {
           name: "Premium",
-          price: "19,99 $ CAD",
-          yearlyPrice: "199 $ CAD",
+          price: "9,99 $ CAD",
+          yearlyPrice: "99,90 $ CAD",
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Le meilleur équilibre pour freelances et petites entreprises",
@@ -113,7 +113,7 @@ const PublicPricing = () => {
           yearlySavings: "Économisez environ 2 mois avec l'abonnement annuel",
           popularText: "Choisi par la majorité de nos utilisateurs",
           cta: "Passer à Premium",
-          stripeInfo: "💳 0 % frais GestionFlow 🎉",
+          stripeInfo: "💳 0 % frais GestionFlow",
           stripeNote: "Les frais Stripe s'appliquent",
           stripeBadge: "Arrêtez de payer des frais sur chaque facture",
           features: [
@@ -137,8 +137,8 @@ const PublicPricing = () => {
         },
         pro: {
           name: "Pro",
-          price: "29,99 $ CAD",
-          yearlyPrice: "299 $ CAD",
+          price: "14,99 $ CAD",
+          yearlyPrice: "149,90 $ CAD",
           period: "/mois",
           yearlyPeriod: "/an",
           description: "Pensé pour les entreprises en croissance et la gestion multi-entreprises",
