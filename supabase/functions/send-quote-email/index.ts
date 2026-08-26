@@ -30,6 +30,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function requireAuthorizedUser(req: Request, supabase: ReturnType<typeof createClient>) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new Error('Unauthorized');
+  }
+
+  const token = authHeader.slice('Bearer '.length);
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    throw new Error('Unauthorized');
+  }
+
+  return data.user;
+}
+
 // ========== DECRYPTION FUNCTIONS ==========
 // Convert string key to proper AES-256 key (32 bytes)
 async function deriveKey(keyString: string): Promise<CryptoKey> {
@@ -214,6 +229,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const user = await requireAuthorizedUser(req, supabase);
     
     // Get user info for Reply-To and display name
     let userEmail: string | null = null;
@@ -292,6 +309,21 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ error: "Quote not found" }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    }
+
+    const companyId = quote.clients?.company_id;
+    if (!companyId) {
+      throw new Error('Forbidden');
+    }
+
+    const { data: authorization, error: authorizationError } = await supabase.rpc('authorize_action', {
+      _company_id: companyId,
+      _user_id: user.id,
+      _permission: 'quotes:send',
+    });
+
+    if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+      throw new Error('Forbidden');
     }
 
     // Decrypt client data (email, phone may be encrypted)
@@ -634,9 +666,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("Error sending quote email:", error);
+    const status = error?.message === "Unauthorized" ? 401 : error?.message === "Forbidden" ? 403 : 500;
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

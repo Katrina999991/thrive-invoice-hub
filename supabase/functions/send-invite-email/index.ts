@@ -10,6 +10,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function requireAuthorizedUser(req: Request, supabase: ReturnType<typeof createClient>) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new Error("Unauthorized");
+  }
+
+  const token = authHeader.slice("Bearer ".length);
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    throw new Error("Unauthorized");
+  }
+
+  return data.user;
+}
+
 interface InviteEmailRequest {
   inviteId: string;
 }
@@ -37,6 +52,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    const user = await requireAuthorizedUser(req, supabase);
+
     // Fetch invite with company and role info
     const { data: invite, error: inviteError } = await supabase
       .from('company_invites')
@@ -53,6 +70,19 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(
         JSON.stringify({ error: "Invite not found" }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { data: authorization, error: authorizationError } = await supabase.rpc('authorize_action', {
+      _company_id: invite.company_id,
+      _user_id: user.id,
+      _permission: 'access:invite',
+    });
+
+    if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
@@ -179,9 +209,10 @@ GestionFlow - Simplified management for your business
 
   } catch (error: any) {
     console.error("Error in send-invite-email function:", error);
+    const status = error?.message === "Unauthorized" ? 401 : error?.message === "Forbidden" ? 403 : 500;
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

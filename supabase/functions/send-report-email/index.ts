@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -16,6 +17,17 @@ interface SendReportEmailRequest {
   senderName?: string;
   companyName?: string;
   companyEmail?: string;
+  companyId: string;
+}
+
+async function requireAuthorizedUser(req: Request, supabase: ReturnType<typeof createClient>) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized");
+
+  const token = authHeader.slice("Bearer ".length);
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) throw new Error("Unauthorized");
+  return data.user;
 }
 
 const logStep = (step: string, details?: any) => {
@@ -30,6 +42,13 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
+    );
+    const user = await requireAuthorizedUser(req, supabase);
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const fromEmail = Deno.env.get("RESEND_FROM") || "GestionFlow <noreply@gestionflow.net>";
@@ -48,18 +67,29 @@ serve(async (req) => {
       senderEmail,
       senderName,
       companyName,
-      companyEmail
+      companyEmail,
+      companyId,
     } = await req.json() as SendReportEmailRequest;
 
     logStep("Request data", { recipientEmail, reportTitle, reportType, language, senderName, senderEmail });
 
     // Validate inputs
-    if (!recipientEmail || !reportTitle || !pdfBase64) {
+    if (!recipientEmail || !reportTitle || !pdfBase64 || !companyId) {
       throw new Error("Missing required fields");
     }
 
+    const { data: authorization, error: authorizationError } = await supabase.rpc('authorize_action', {
+      _company_id: companyId,
+      _user_id: user.id,
+      _permission: 'reports:export',
+    });
+
+    if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+      throw new Error("Forbidden");
+    }
+
     // For reports: use user email as reply-to
-    const replyToEmail = senderEmail;
+    const replyToEmail = user.email;
     if (!replyToEmail) {
       throw new Error(language === 'fr' 
         ? "Impossible d'envoyer le courriel : aucune adresse courriel utilisateur trouvée."
@@ -83,7 +113,7 @@ serve(async (req) => {
       ? `${senderName} via GestionFlow <${defaultDomain}>`
       : `GestionFlow <${defaultDomain}>`;
     
-    logStep('Report email sender config', { fromAddress, replyToEmail });
+    logStep('Report email sender config', { fromAddress, hasReplyTo: !!replyToEmail });
 
     // Generate filename
     const date = new Date().toISOString().split('T')[0];
@@ -211,9 +241,10 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
+    const status = errorMessage === 'Unauthorized' ? 401 : errorMessage === 'Forbidden' ? 403 : 500;
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status }
     );
   }
 });

@@ -15,6 +15,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function authenticateRequest(
+  req: Request,
+  supabase: ReturnType<typeof createClient>,
+  serviceRoleKey: string,
+): Promise<{ userId: string | null; internal: boolean }> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new Error('Unauthorized');
+  }
+
+  const token = authHeader.slice('Bearer '.length);
+  if (serviceRoleKey && token === serviceRoleKey) {
+    return { userId: null, internal: true };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    throw new Error('Unauthorized');
+  }
+
+  return { userId: data.user.id, internal: false };
+}
+
 // ========== DECRYPTION FUNCTIONS ==========
 // Convert string key to proper AES-256 key (32 bytes)
 async function deriveKey(keyString: string): Promise<CryptoKey> {
@@ -177,6 +200,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const auth = await authenticateRequest(req, supabase, supabaseServiceKey);
     
     // Get user info for Reply-To and display name
     let userEmail: string | null = null;
@@ -267,6 +292,23 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
+    }
+
+    if (!auth.internal) {
+      const companyId = invoice.clients?.company_id;
+      if (!companyId || !auth.userId) {
+        throw new Error('Forbidden');
+      }
+
+      const { data: authorization, error: authorizationError } = await supabase.rpc('authorize_action', {
+        _company_id: companyId,
+        _user_id: auth.userId,
+        _permission: 'invoices:send',
+      });
+
+      if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+        throw new Error('Forbidden');
+      }
     }
 
     // Decrypt client data (email, phone may be encrypted)
@@ -643,10 +685,12 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error) {
     console.error('Error in send-invoice-email function:', error);
+    const message = error instanceof Error ? error.message : '';
+    const status = message === 'Unauthorized' ? 401 : message === 'Forbidden' ? 403 : 500;
     return new Response(
       JSON.stringify({ error: 'Internal server error occurred while sending email.' }),
       {
-        status: 500,
+        status,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );

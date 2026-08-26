@@ -153,6 +153,7 @@ export const EmailReportDialog = ({
           senderName: username || user?.email?.split('@')[0] || undefined,
           companyName: companyName || undefined,
           companyEmail: companyEmail || undefined,
+          companyId: companyId || undefined,
         },
       });
 
