@@ -192,6 +192,13 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate before validating the request body so unauthenticated callers
+    // never receive input-specific responses from this protected endpoint.
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const user = await requireAuthorizedUser(req, supabase);
+
     const { imageBase64, language = "fr", companyId } = await req.json();
     
     if (!imageBase64) {
@@ -212,12 +219,6 @@ serve(async (req) => {
     if (!OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY is not configured");
     }
-
-    // Initialize Supabase client for fetching learned mappings
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const user = await requireAuthorizedUser(req, supabase);
 
     if (!companyId) throw new Error('Forbidden');
 
