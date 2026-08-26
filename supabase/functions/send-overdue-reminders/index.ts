@@ -85,6 +85,30 @@ async function decryptClientData(client: any): Promise<any> {
   return decryptedClient;
 }
 
+async function authenticateRequest(
+  req: Request,
+  supabase: ReturnType<typeof createClient>,
+  serviceRoleKey: string,
+  cronSecret: string,
+): Promise<{ userId: string | null; internal: boolean }> {
+  const providedCronSecret = req.headers.get('X-Cron-Secret');
+  if (cronSecret && providedCronSecret === cronSecret) {
+    return { userId: null, internal: true };
+  }
+
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized');
+
+  const token = authHeader.slice('Bearer '.length);
+  if (serviceRoleKey && token === serviceRoleKey) {
+    return { userId: null, internal: true };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) throw new Error('Unauthorized');
+  return { userId: data.user.id, internal: false };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -98,6 +122,12 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const resend = new Resend(resendApiKey);
+    const auth = await authenticateRequest(
+      req,
+      supabase,
+      supabaseServiceKey,
+      Deno.env.get('CRON_SECRET') || '',
+    );
     
     console.log("Starting overdue reminders check for all users...");
 
@@ -181,6 +211,21 @@ serve(async (req) => {
         console.log(`Skipping invoice ${invoice.invoice_number}: no company found`);
         emailsSkipped++;
         continue;
+      }
+
+      // Manual executions must respect the member's company permissions.
+      // Scheduled executions are authenticated with the dedicated Cron secret.
+      if (!auth.internal) {
+        const { data: authorization, error: authorizationError } = await supabase.rpc('authorize_action', {
+          _company_id: company.id,
+          _user_id: auth.userId,
+          _permission: 'invoices:send',
+        });
+
+        if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+          emailsSkipped++;
+          continue;
+        }
       }
 
       // Add delay to avoid rate limiting (500ms between emails)
@@ -416,11 +461,12 @@ Best regards,
     );
   } catch (error) {
     console.error("Error in send-overdue-reminders function:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: message === 'Unauthorized' ? 401 : 500,
       }
     );
   }
