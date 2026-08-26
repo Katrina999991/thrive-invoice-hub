@@ -176,18 +176,35 @@ function suggestCategory(
   };
 }
 
+async function requireAuthorizedUser(req: Request, supabase: ReturnType<typeof createClient>) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized');
+
+  const token = authHeader.slice('Bearer '.length);
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) throw new Error('Unauthorized');
+  return data.user;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { imageBase64, language = "fr", companyId, userId } = await req.json();
+    const { imageBase64, language = "fr", companyId } = await req.json();
     
     if (!imageBase64) {
       return new Response(
         JSON.stringify({ error: "No image provided" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (typeof imageBase64 !== 'string' || imageBase64.length > 12 * 1024 * 1024) {
+      return new Response(
+        JSON.stringify({ error: "Image is invalid or too large" }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -200,12 +217,26 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const user = await requireAuthorizedUser(req, supabase);
+
+    if (!companyId) throw new Error('Forbidden');
+
+    const { data: authorization, error: authorizationError } = await supabase.rpc('authorize_action', {
+      _company_id: companyId,
+      _user_id: user.id,
+      _permission: 'expenses:create',
+    });
+
+    if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+      throw new Error('Forbidden');
+    }
 
     // Fetch learned category mappings for the user (not company-specific)
     let learnedMappings: { key: string; category_id: string; mapping_type: string }[] = [];
     let categories: { id: string; name: string; name_en?: string; name_fr?: string }[] = [];
     
-    console.log("User ID received:", userId);
+    const userId = user.id;
+    console.log("Fetching mappings for authenticated user:", userId);
     
     if (userId) {
       console.log("Fetching mappings for user:", userId);
@@ -481,9 +512,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error in scan-receipt function:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: errorMessage }),
+      { status: errorMessage === 'Unauthorized' ? 401 : errorMessage === 'Forbidden' ? 403 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
