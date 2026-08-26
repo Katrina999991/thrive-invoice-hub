@@ -8,6 +8,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function authenticateRequest(req: Request, supabase: ReturnType<typeof createClient>, serviceRoleKey: string) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized');
+  const token = authHeader.slice('Bearer '.length);
+  if (serviceRoleKey && token === serviceRoleKey) return { userId: null, internal: true };
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) throw new Error('Unauthorized');
+  return { userId: data.user.id, internal: false };
+}
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-QUOTE-PAYMENT-LINK] ${step}${detailsStr}`);
@@ -72,6 +82,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
+    const auth = await authenticateRequest(req, supabaseClient, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
     // Fetch quote with client info
     const { data: quote, error: quoteError } = await supabaseClient
@@ -91,6 +102,18 @@ serve(async (req) => {
     logStep("Quote fetched", { quoteNumber: quote.quote_number, total: quote.total });
 
     const userId = quote.user_id;
+    if (!auth.internal) {
+      const companyId = quote.clients?.company_id;
+      if (!companyId || !auth.userId) throw new Error('Forbidden');
+      const { data: authorization, error: authorizationError } = await supabaseClient.rpc('authorize_action', {
+        _company_id: companyId,
+        _user_id: auth.userId,
+        _permission: 'quotes:send',
+      });
+      if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+        throw new Error('Forbidden');
+      }
+    }
 
     // Get user's Stripe account
     const { data: profile } = await supabaseClient
@@ -203,7 +226,7 @@ serve(async (req) => {
     logStep("ERROR", { message: msg });
     return new Response(JSON.stringify({ error: msg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: msg === 'Unauthorized' ? 401 : msg === 'Forbidden' ? 403 : 500,
     });
   }
 });

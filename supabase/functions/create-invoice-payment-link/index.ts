@@ -8,6 +8,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function authenticateRequest(req: Request, supabase: ReturnType<typeof createClient>, serviceRoleKey: string) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized');
+  const token = authHeader.slice('Bearer '.length);
+  if (serviceRoleKey && token === serviceRoleKey) return { userId: null, internal: true };
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) throw new Error('Unauthorized');
+  return { userId: data.user.id, internal: false };
+}
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-INVOICE-PAYMENT-LINK] ${step}${detailsStr}`);
@@ -95,12 +105,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
+    const auth = await authenticateRequest(req, supabaseClient, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
     // Get user_id from invoice since this can be called internally
     // First fetch the invoice to get the user_id
     const { data: invoiceData, error: invoiceCheckError } = await supabaseClient
       .from("invoices")
-      .select("user_id")
+      .select("user_id, clients(company_id)")
       .eq("id", invoiceId)
       .single();
     
@@ -109,6 +120,18 @@ serve(async (req) => {
     }
     
     const userId = invoiceData.user_id;
+    if (!auth.internal) {
+      const companyId = invoiceData.clients?.company_id;
+      if (!companyId || !auth.userId) throw new Error('Forbidden');
+      const { data: authorization, error: authorizationError } = await supabaseClient.rpc('authorize_action', {
+        _company_id: companyId,
+        _user_id: auth.userId,
+        _permission: 'invoices:send',
+      });
+      if (authorizationError || !(authorization as { allowed?: boolean } | null)?.allowed) {
+        throw new Error('Forbidden');
+      }
+    }
     logStep("Processing for user", { userId });
 
     // Get user's Stripe account
@@ -235,7 +258,7 @@ serve(async (req) => {
     logStep("ERROR", { message: msg });
     return new Response(JSON.stringify({ error: msg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: msg === 'Unauthorized' ? 401 : msg === 'Forbidden' ? 403 : 500,
     });
   }
 });
