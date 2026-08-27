@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Search, Plus, Eye, Edit, Download, Send, Trash2, Loader2, Copy, FileText, Lock, ArrowRight, Mail, LayoutList } from "lucide-react";
 import { QuoteSectionsEditor, QuoteSection } from "@/components/quotes/QuoteSectionsEditor";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +29,13 @@ import {
   computeQuoteTotals, dbItemToLocal, localItemToDb, formatLineDisplay, formatDeposit 
 } from "@/lib/quoteLineCalculations";
 import { appendChargebackClause } from "@/lib/chargebackClause";
+
+const QuoteActionTooltip = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipContent>{label}</TooltipContent>
+  </Tooltip>
+);
 
 // View Quote Dialog with sections support
 const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getStatusColor, getStatusLabel, loadSections, clients }: {
@@ -886,32 +894,33 @@ const Quotes = () => {
                         )}
                       </div>
                       
+                      <TooltipProvider delayDuration={300}>
                       <div className="flex flex-wrap gap-1 pt-2 border-t">
-                        <Button variant="ghost" size="sm" title={language === 'fr' ? 'Voir le devis' : 'View quote'} onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
+                        <QuoteActionTooltip label={language === 'fr' ? 'Voir le devis' : 'View quote'}><Button variant="ghost" size="sm" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                           <Eye className="h-4 w-4" />
-                        </Button>
+                        </Button></QuoteActionTooltip>
                         {canEditQuotes && (
-                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Modifier le devis' : 'Edit quote'} onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                          <QuoteActionTooltip label={language === 'fr' ? 'Modifier le devis' : 'Edit quote'}><Button variant="ghost" size="sm" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
                             <Edit className="h-4 w-4" />
-                          </Button>
+                          </Button></QuoteActionTooltip>
                         )}
-                        <Button variant="ghost" size="sm" title={language === 'fr' ? 'Télécharger le devis' : 'Download quote'} onClick={() => generatePDF(quote)}>
+                        <QuoteActionTooltip label={language === 'fr' ? 'Télécharger le devis' : 'Download quote'}><Button variant="ghost" size="sm" onClick={() => generatePDF(quote)}>
                           <Download className="h-4 w-4" />
-                        </Button>
+                        </Button></QuoteActionTooltip>
                         {canSendQuotes && (
-                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Envoyer le devis' : 'Send quote'} onClick={() => openEmailDialog(quote)}>
+                          <QuoteActionTooltip label={language === 'fr' ? 'Envoyer le devis' : 'Send quote'}><Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
                             <Mail className="h-4 w-4" />
-                          </Button>
+                          </Button></QuoteActionTooltip>
                         )}
                         {canCreateQuotes && (
-                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Copier le lien de paiement' : 'Copy payment link'} onClick={() => duplicateQuote(quote)}>
+                          <QuoteActionTooltip label={language === 'fr' ? 'Copier le lien de paiement' : 'Copy payment link'}><Button variant="ghost" size="sm" onClick={() => duplicateQuote(quote)}>
                             <Copy className="h-4 w-4" />
-                          </Button>
+                          </Button></QuoteActionTooltip>
                         )}
                         {canEditQuotes && quote.status === 'accepted' && !quote.converted_to_invoice_id && (
-                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Convertir en facture' : 'Convert to invoice'} onClick={() => handleConvertToInvoice(quote)}>
+                          <QuoteActionTooltip label={language === 'fr' ? 'Convertir en facture' : 'Convert to invoice'}><Button variant="ghost" size="sm" onClick={() => handleConvertToInvoice(quote)}>
                             <ArrowRight className="h-4 w-4" />
-                          </Button>
+                          </Button></QuoteActionTooltip>
                         )}
                         {canDeleteQuotes && (
                           <AlertDialog>
@@ -935,6 +944,7 @@ const Quotes = () => {
                           </AlertDialog>
                         )}
                       </div>
+                      </TooltipProvider>
                     </CardContent>
                   </Card>
                 ))}
@@ -983,32 +993,33 @@ const Quotes = () => {
                         </TableCell>
                         <TableCell>{quote.issue_date}</TableCell>
                         <TableCell>
+                          <TooltipProvider delayDuration={300}>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" title={language === 'fr' ? 'Voir le devis' : 'View quote'} onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
+                            <QuoteActionTooltip label={language === 'fr' ? 'Voir le devis' : 'View quote'}><Button variant="ghost" size="icon" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                               <Eye className="h-4 w-4" />
-                            </Button>
+                            </Button></QuoteActionTooltip>
                             {canEditQuotes && (
-                                <Button variant="ghost" size="icon" title={language === 'fr' ? 'Modifier le devis' : 'Edit quote'} onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                                <QuoteActionTooltip label={language === 'fr' ? 'Modifier le devis' : 'Edit quote'}><Button variant="ghost" size="icon" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
                                 <Edit className="h-4 w-4" />
-                              </Button>
+                              </Button></QuoteActionTooltip>
                             )}
-                            <Button variant="ghost" size="icon" title={language === 'fr' ? 'Télécharger le devis' : 'Download quote'} onClick={() => generatePDF(quote)}>
+                            <QuoteActionTooltip label={language === 'fr' ? 'Télécharger le devis' : 'Download quote'}><Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
                               <Download className="h-4 w-4" />
-                            </Button>
+                            </Button></QuoteActionTooltip>
                             {canSendQuotes && (
-                              <Button variant="ghost" size="icon" title={language === 'fr' ? 'Envoyer le devis' : 'Send quote'} onClick={() => openEmailDialog(quote)}>
+                              <QuoteActionTooltip label={language === 'fr' ? 'Envoyer le devis' : 'Send quote'}><Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
                                 <Mail className="h-4 w-4" />
-                              </Button>
+                              </Button></QuoteActionTooltip>
                             )}
                             {canCreateQuotes && (
-                              <Button variant="ghost" size="icon" title={language === 'fr' ? 'Copier le lien de paiement' : 'Copy payment link'} onClick={() => duplicateQuote(quote)}>
+                              <QuoteActionTooltip label={language === 'fr' ? 'Copier le lien de paiement' : 'Copy payment link'}><Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
                                 <Copy className="h-4 w-4" />
-                              </Button>
+                              </Button></QuoteActionTooltip>
                             )}
                             {canEditQuotes && quote.status === 'accepted' && !quote.converted_to_invoice_id && (
-                              <Button variant="ghost" size="icon" title={language === 'fr' ? 'Convertir en facture' : 'Convert to invoice'} onClick={() => handleConvertToInvoice(quote)}>
+                              <QuoteActionTooltip label={language === 'fr' ? 'Convertir en facture' : 'Convert to invoice'}><Button variant="ghost" size="icon" onClick={() => handleConvertToInvoice(quote)}>
                                 <ArrowRight className="h-4 w-4" />
-                              </Button>
+                              </Button></QuoteActionTooltip>
                             )}
                             {canDeleteQuotes && (
                               <AlertDialog>
@@ -1032,6 +1043,7 @@ const Quotes = () => {
                               </AlertDialog>
                             )}
                           </div>
+                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     ))}
