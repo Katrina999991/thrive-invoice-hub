@@ -552,6 +552,7 @@ const handler = async (req: Request): Promise<Response> => {
     const depositType = quote.deposit_type || 'none';
     const hasDeposit = depositType !== 'none' && depositAmount > 0;
     const onlinePaymentEnabled = quote.online_payment_enabled || false;
+    const isDepositRequested = quote.status === 'deposit_requested';
 
     console.log('[QUOTE-EMAIL-PAYMENT-DEBUG]', {
       quoteId,
@@ -564,7 +565,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     let depositSummaryHtml = '';
     if (hasDeposit) {
-      const depositLabel = isFrench ? 'Acompte demandé après acceptation' : 'Deposit requested after acceptance';
+      const depositLabel = isDepositRequested
+        ? (isFrench ? 'Acompte à payer' : 'Deposit to pay')
+        : (isFrench ? 'Acompte demandé après acceptation' : 'Deposit requested after acceptance');
       const depositDisplay = depositType === 'percentage'
         ? `$${depositAmount.toFixed(2)} (${quote.deposit_value}%)`
         : `$${depositAmount.toFixed(2)}`;
@@ -575,11 +578,24 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
+    // A payment button is only included in the follow-up email after acceptance.
+    let paymentButtonHtml = '';
+    if (isDepositRequested && quote.payment_link) {
+      paymentButtonHtml = `
+        <div style="margin-top: 15px; text-align: center;">
+          <a href="${quote.payment_link}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            ${isFrench ? 'Payer l\'acompte' : 'Pay Deposit'}
+          </a>
+        </div>
+      `;
+    }
+
     // Always add a response button at the end of the email
     const responseButtonText = isFrench ? 'Répondre au devis' : 'Respond to Quote';
     const responseButtonHtml = `
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
         ${depositSummaryHtml}
+        ${paymentButtonHtml}
         <div style="margin-top: 15px;">
           <a href="${responseLink}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
             ${responseButtonText}

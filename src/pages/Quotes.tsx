@@ -917,7 +917,7 @@ const Quotes = () => {
                           <Download className="h-4 w-4" />
                         </Button></QuoteActionTooltip>
                         {canSendQuotes && (
-                          <QuoteActionTooltip label={language === 'fr' ? 'Envoyer le devis' : 'Send quote'}><Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
+                          <QuoteActionTooltip label={quote.status === 'deposit_requested' ? (language === 'fr' ? 'Envoyer le lien de paiement' : 'Send payment link') : (language === 'fr' ? 'Envoyer le devis' : 'Send quote')}><Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
                             <Mail className="h-4 w-4" />
                           </Button></QuoteActionTooltip>
                         )}
@@ -1016,7 +1016,7 @@ const Quotes = () => {
                               <Download className="h-4 w-4" />
                             </Button></QuoteActionTooltip>
                             {canSendQuotes && (
-                              <QuoteActionTooltip label={language === 'fr' ? 'Envoyer le devis' : 'Send quote'}><Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
+                              <QuoteActionTooltip label={quote.status === 'deposit_requested' ? (language === 'fr' ? 'Envoyer le lien de paiement' : 'Send payment link') : (language === 'fr' ? 'Envoyer le devis' : 'Send quote')}><Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
                                 <Mail className="h-4 w-4" />
                               </Button></QuoteActionTooltip>
                             )}
