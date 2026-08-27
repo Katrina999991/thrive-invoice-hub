@@ -1382,7 +1382,12 @@ const Quotes = () => {
                     type="button"
                     variant={newQuote.depositType === type ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setNewQuote({ ...newQuote, depositType: type })}
+                    onClick={() => setNewQuote({
+                      ...newQuote,
+                      depositType: type,
+                      // An online payment is the natural default when a deposit is required.
+                      onlinePaymentEnabled: type === 'none' ? newQuote.onlinePaymentEnabled : true,
+                    })}
                   >
                     {type === 'none' 
                       ? (language === 'fr' ? 'Aucun' : 'None')
