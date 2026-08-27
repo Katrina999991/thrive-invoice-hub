@@ -6,7 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { SubscriptionLimitsCard } from "@/components/SubscriptionLimitsCard";
 import { GestionFlowFeeBanner } from "@/components/GestionFlowFeeBanner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, PieChart, Pie, Cell, Legend } from "recharts";
 
 const STATUS_COLORS = ["#94a3b8", "#3b82f6", "#22c55e", "#f97316"];
 
@@ -82,16 +82,14 @@ const Dashboard = () => {
             <CardDescription>{t("dashboard.revenueByMonth.desc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="w-full min-w-0" style={{ height: 260 }}>
-              <ResponsiveContainer width="100%" height={260} minWidth={0} minHeight={260}>
-                <BarChart data={dashboardData?.monthlyRevenue || []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <div className="w-full overflow-x-auto" style={{ height: 260 }}>
+                <BarChart width={480} height={240} data={dashboardData?.monthlyRevenue || []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => "$" + value} />
                   <ChartTooltip formatter={(value) => ["$" + Number(value).toLocaleString(), t("dashboard.revenue")]} />
                   <Bar dataKey="revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
                 </BarChart>
-              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
@@ -102,9 +100,8 @@ const Dashboard = () => {
             <CardDescription>{t("dashboard.invoiceStatus.desc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="w-full min-w-0" style={{ height: 260 }}>
-              <ResponsiveContainer width="100%" height={260} minWidth={0} minHeight={260}>
-                <PieChart>
+            <div className="w-full overflow-x-auto" style={{ height: 260 }}>
+                <PieChart width={480} height={240}>
                   <Pie
                     data={dashboardData?.invoiceStatusCounts || []}
                     dataKey="count"
@@ -122,7 +119,6 @@ const Dashboard = () => {
                   <ChartTooltip formatter={(value, name) => [value, t("dashboard.status." + name)]} />
                   <Legend formatter={(value) => t("dashboard.status." + value)} />
                 </PieChart>
-              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
