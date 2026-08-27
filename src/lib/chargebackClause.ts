@@ -14,7 +14,12 @@ Any dispute or chargeback request must be preceded by a reasonable attempt at re
 
 In the event of an abusive or fraudulent dispute, we reserve the right to provide all necessary evidence to financial institutions to contest the claim.`;
 
-export function getDefaultClauseText(language: 'fr' | 'en'): string {
+export function getDefaultClauseText(language: 'fr' | 'en', documentType: 'invoice' | 'quote' = 'invoice'): string {
+  if (documentType === 'quote') {
+    return language === 'fr'
+      ? DEFAULT_CHARGEBACK_CLAUSE_FR.replace('cette facture', 'ce devis')
+      : DEFAULT_CHARGEBACK_CLAUSE_EN.replace('this invoice', 'this quote');
+  }
   return language === 'fr' ? DEFAULT_CHARGEBACK_CLAUSE_FR : DEFAULT_CHARGEBACK_CLAUSE_EN;
 }
 
@@ -25,13 +30,14 @@ export function getDefaultClauseText(language: 'fr' | 'en'): string {
 export function appendChargebackClause(
   existingTerms: string | null | undefined,
   client: { chargeback_clause_enabled?: boolean; chargeback_clause_text?: string | null } | null | undefined,
-  language: 'fr' | 'en'
+  language: 'fr' | 'en',
+  documentType: 'invoice' | 'quote' = 'invoice'
 ): string | null {
   if (!client?.chargeback_clause_enabled) {
     return existingTerms || null;
   }
 
-  const clauseText = client.chargeback_clause_text || getDefaultClauseText(language);
+  const clauseText = client.chargeback_clause_text || getDefaultClauseText(language, documentType);
   const separator = '\n\n───────────────────────────\n\n';
   const clauseHeader = language === 'fr' 
     ? 'Clause de reconnaissance de reception' 

@@ -141,7 +141,7 @@ const ViewQuoteDialog = ({ viewingQuote, isOpen, onOpenChange, t, language, getS
 
             {(() => {
               const client = clients.find((c: any) => c.id === viewingQuote.client_id);
-              const displayTerms = appendChargebackClause(viewingQuote.terms, client, language as 'fr' | 'en');
+              const displayTerms = appendChargebackClause(viewingQuote.terms, client, language as 'fr' | 'en', 'quote');
               return displayTerms ? (
                 <div className="border-t pt-3">
                   <p className="text-sm font-medium mb-1">{language === 'fr' ? 'Conditions générales' : 'Terms & Conditions'}</p>
@@ -657,7 +657,7 @@ const Quotes = () => {
     const pdfSections = await loadSections(quote.id);
 
     // Append chargeback clause if enabled for this client
-    const termsWithClause = appendChargebackClause(quote.terms, client as any, language as 'fr' | 'en');
+    const termsWithClause = appendChargebackClause(quote.terms, client as any, language as 'fr' | 'en', 'quote');
 
     await generateQuotePdf({
       quote: {
