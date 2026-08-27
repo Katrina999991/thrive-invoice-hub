@@ -75,11 +75,6 @@ export default function Auth() {
   
   const currentLogo = isDark ? gestionflowLogoDark : gestionflowLogo;
 
-  console.log("Auth component render - searchParams:", Object.fromEntries(searchParams));
-  console.log("Auth component render - user:", user);
-  console.log("Auth component render - showUpdatePassword:", showUpdatePassword);
-  console.log("Auth component render - isPasswordRecoveryMode:", isPasswordRecoveryMode);
-
   // Helper function to handle redirect after auth
   const handlePostAuthRedirect = () => {
     const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
@@ -102,23 +97,18 @@ export default function Auth() {
   useEffect(() => {
     // Don't redirect if we're checking MFA or showing MFA verification
     if (user && !isPasswordRecoveryMode && !showUpdatePassword && !pendingMFACheck && !showMFAVerification) {
-      console.log("Redirecting because user exists and not in recovery mode");
       handlePostAuthRedirect();
     }
   }, [user, isPasswordRecoveryMode, showUpdatePassword, pendingMFACheck, showMFAVerification, navigate]);
 
   // Check for password recovery from email link
   useEffect(() => {
-    console.log("useEffect running - checking for recovery");
-    
     const checkForRecovery = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("Session check:", session);
       
       // Only treat as recovery if explicitly from a recovery link
       const isRecovery = searchParams.get('type') === 'recovery';
       if (session?.user && isRecovery) {
-        console.log("Recovery detected from URL parameter");
         setIsPasswordRecoveryMode(true);
         setShowUpdatePassword(true);
       }
@@ -128,16 +118,12 @@ export default function Auth() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth event:", event, "Session exists:", !!session);
-      
       // Ignore events if password was just updated (prevents dialog from reopening)
       if (event === 'USER_UPDATED') {
-        console.log("USER_UPDATED event - ignoring to prevent dialog reopen");
         return;
       }
       
       if (event === 'PASSWORD_RECOVERY') {
-        console.log("PASSWORD_RECOVERY event detected");
         setIsPasswordRecoveryMode(true);
         setShowUpdatePassword(true);
       } else if (event === 'SIGNED_IN' && session?.user) {
@@ -145,7 +131,6 @@ export default function Auth() {
         const isRecovery = searchParams.get('type') === 'recovery';
         
         if (isRecovery) {
-          console.log("Recovery sign-in detected");
           setIsPasswordRecoveryMode(true);
           setShowUpdatePassword(true);
         }
