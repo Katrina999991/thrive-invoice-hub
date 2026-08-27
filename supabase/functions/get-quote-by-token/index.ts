@@ -77,6 +77,29 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Recover gracefully if the deposit was requested but link creation failed
+    // during acceptance. The public quote page can safely retry this operation.
+    if (quote.status === 'deposit_requested' && !quote.payment_link) {
+      try {
+        const paymentResponse = await fetch(`${supabaseUrl}/functions/v1/create-quote-payment-link`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({ quoteId: quote.id, paymentType: 'deposit' }),
+        });
+        const paymentResult = await paymentResponse.json();
+        if (paymentResponse.ok && paymentResult.url) {
+          quote.payment_link = paymentResult.url;
+        } else {
+          console.error('Deposit payment link retry failed:', paymentResult.error || paymentResult);
+        }
+      } catch (paymentError) {
+        console.error('Deposit payment link retry error:', paymentError);
+      }
+    }
+
     // Get company info for branding
     const { data: companyData } = await supabase
       .from("quotes")

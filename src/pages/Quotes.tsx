@@ -502,6 +502,22 @@ const Quotes = () => {
   const calculateTaxes = () => getQuoteTotals().taxAmount;
   const calculateTotal = () => getQuoteTotals().total;
 
+  const createDepositPaymentLink = async (quoteId: string) => {
+    const { error } = await supabase.functions.invoke('create-quote-payment-link', {
+      body: { quoteId, paymentType: 'deposit' },
+    });
+
+    if (error) {
+      toast({
+        title: language === 'fr' ? 'Lien de paiement non créé' : 'Payment link not created',
+        description: language === 'fr'
+          ? 'Vérifiez que Stripe est bien connecté. Vous pourrez réessayer plus tard.'
+          : 'Please verify that Stripe is connected. You can retry later.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -525,6 +541,7 @@ const Quotes = () => {
       await saveSections(editingQuote.id, newQuote.sections);
       
       const totals = getQuoteTotals();
+      const hasDeposit = newQuote.depositType !== 'none' && totals.depositMinAmount > 0;
       await updateQuote(editingQuote.id, {
         client_id: newQuote.client_id,
         issue_date: newQuote.issue_date,
@@ -537,8 +554,9 @@ const Quotes = () => {
         deposit_type: newQuote.depositType,
         deposit_value: newQuote.depositValue,
         deposit_amount: totals.depositMinAmount,
-        online_payment_enabled: newQuote.onlinePaymentEnabled,
+        online_payment_enabled: newQuote.onlinePaymentEnabled || hasDeposit,
       });
+      if (hasDeposit) await createDepositPaymentLink(editingQuote.id);
     } else {
       const quoteNumber = `DEV-${String(quotes.length + 1).padStart(3, '0')}`;
       const totals = getQuoteTotals();
@@ -562,6 +580,9 @@ const Quotes = () => {
       if (createdQuote) {
         if (newQuote.sections.length > 0) {
           await saveSections(createdQuote.id, newQuote.sections);
+        }
+        if (newQuote.depositType !== 'none' && totals.depositMinAmount > 0) {
+          await createDepositPaymentLink(createdQuote.id);
         }
       }
     }
