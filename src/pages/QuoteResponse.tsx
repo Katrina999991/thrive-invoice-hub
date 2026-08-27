@@ -275,6 +275,12 @@ const QuoteResponse = () => {
       );
 
       const result = await res.json();
+      console.log('[QUOTE-DEPOSIT-DEBUG] Acceptance response', {
+        response,
+        ok: res.ok,
+        status: result.status,
+        paymentLinkPresent: !!result.paymentLink,
+      });
 
       if (!res.ok) {
         throw new Error(result.error || "Failed to submit response");
@@ -289,6 +295,11 @@ const QuoteResponse = () => {
         );
         if (refreshedResponse.ok) {
           const refreshedResult = await refreshedResponse.json();
+          console.log('[QUOTE-DEPOSIT-DEBUG] Refreshed public quote', {
+            status: refreshedResult.quote?.status,
+            paymentLinkPresent: !!refreshedResult.quote?.payment_link,
+            onlinePaymentEnabled: refreshedResult.quote?.online_payment_enabled,
+          });
           setQuote(refreshedResult.quote);
           setCompany(refreshedResult.company);
         } else {

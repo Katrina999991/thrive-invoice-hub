@@ -139,6 +139,13 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const canPay = ['accepted', 'deposit_requested', 'deposit_paid'].includes(quote.status);
+    console.log('[QUOTE-DEPOSIT-DEBUG] Public quote response', {
+      quoteId: quote.id,
+      status: quote.status,
+      canPay,
+      paymentLinkPresent: !!quote.payment_link,
+      onlinePaymentEnabled: quote.online_payment_enabled,
+    });
 
     return new Response(
       JSON.stringify({ 
@@ -146,6 +153,11 @@ const handler = async (req: Request): Promise<Response> => {
           ...quote,
           // Never expose a payment link before the client accepts the quote.
           payment_link: canPay ? quote.payment_link : null,
+          // Deposit-requested quotes must remain payable even if created before
+          // the online-payment default was introduced.
+          online_payment_enabled: quote.status === 'deposit_requested'
+            ? true
+            : quote.online_payment_enabled,
           isExpired,
           canRespond: !isExpired && !["accepted", "refused", "rejected", "deposit_requested", "deposit_paid"].includes(quote.status),
           depositInfo,

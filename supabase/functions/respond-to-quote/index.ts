@@ -188,6 +188,14 @@ const handler = async (req: Request): Promise<Response> => {
       : hasDeposit
         ? 'deposit_requested'
         : 'accepted';
+    console.log('[QUOTE-DEPOSIT-DEBUG] Acceptance status decision', {
+      quoteId: quote.id,
+      response,
+      currentStatus: quote.status,
+      hasDeposit,
+      onlinePaymentEnabled: quote.online_payment_enabled,
+      nextStatus: dbStatus,
+    });
     
     // Update the quote status
     const respondedAt = new Date().toISOString();
@@ -223,6 +231,7 @@ const handler = async (req: Request): Promise<Response> => {
         const paymentResult = await paymentResponse.json();
         if (paymentResponse.ok && paymentResult.url) {
           paymentLink = paymentResult.url;
+          console.log('[QUOTE-DEPOSIT-DEBUG] Payment link created', { quoteId: quote.id });
         } else {
           console.error('Failed to create deposit payment link:', paymentResult.error || paymentResult);
         }
@@ -230,6 +239,11 @@ const handler = async (req: Request): Promise<Response> => {
         console.error('Error creating deposit payment link:', paymentError);
       }
     }
+    console.log('[QUOTE-DEPOSIT-DEBUG] Response completed', {
+      quoteId: quote.id,
+      status: dbStatus,
+      paymentLinkCreated: !!paymentLink,
+    });
 
     console.log(`Quote ${quote.quote_number} ${response} by client`);
 
