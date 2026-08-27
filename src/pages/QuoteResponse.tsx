@@ -297,7 +297,10 @@ const QuoteResponse = () => {
           );
           if (refreshedResponse.ok) {
             refreshedResult = await refreshedResponse.json();
-            if (refreshedResult.quote?.payment_link || refreshedResult.quote?.status !== 'deposit_requested') break;
+            const refreshedQuote = refreshedResult.quote;
+            const depositReady = refreshedQuote?.status === 'deposit_requested' && !!refreshedQuote.payment_link;
+            const paymentNotRequired = refreshedQuote?.status === 'accepted' && !refreshedQuote.depositInfo;
+            if (depositReady || paymentNotRequired) break;
           }
           await new Promise((resolve) => setTimeout(resolve, 700));
         }
