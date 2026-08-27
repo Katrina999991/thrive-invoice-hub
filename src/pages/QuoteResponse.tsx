@@ -281,12 +281,24 @@ const QuoteResponse = () => {
       }
 
       if (response === "accepted") {
-        setQuote((currentQuote) => currentQuote ? {
-          ...currentQuote,
-          status: result.status || "accepted",
-          payment_link: result.paymentLink || currentQuote.payment_link,
-          canRespond: false,
-        } : currentQuote);
+        // Reload the public quote so the status and freshly-created payment
+        // link are displayed immediately after acceptance.
+        const refreshedResponse = await fetch(
+          `https://dkinzkawntfzkabroeib.supabase.co/functions/v1/get-quote-by-token?token=${token}`,
+          { headers: { "Content-Type": "application/json" } }
+        );
+        if (refreshedResponse.ok) {
+          const refreshedResult = await refreshedResponse.json();
+          setQuote(refreshedResult.quote);
+          setCompany(refreshedResult.company);
+        } else {
+          setQuote((currentQuote) => currentQuote ? {
+            ...currentQuote,
+            status: result.status || "accepted",
+            payment_link: result.paymentLink || currentQuote.payment_link,
+            canRespond: false,
+          } : currentQuote);
+        }
       }
       setResponseSubmitted(response === "refused");
       setSubmittedResponse(response);

@@ -138,10 +138,14 @@ const handler = async (req: Request): Promise<Response> => {
       };
     }
 
+    const canPay = ['accepted', 'deposit_requested', 'deposit_paid'].includes(quote.status);
+
     return new Response(
       JSON.stringify({ 
         quote: {
           ...quote,
+          // Never expose a payment link before the client accepts the quote.
+          payment_link: canPay ? quote.payment_link : null,
           isExpired,
           canRespond: !isExpired && !["accepted", "refused", "rejected", "deposit_requested", "deposit_paid"].includes(quote.status),
           depositInfo,
