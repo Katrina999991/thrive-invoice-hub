@@ -1454,16 +1454,45 @@ Best regards,
     }
   };
 
-  const copyPaymentLink = (link: string, invoiceNumber: string) => {
-    navigator.clipboard.writeText(link);
-    setCopiedLink(invoiceNumber);
-    toast({
-      title: language === "fr" ? "Lien copié" : "Link copied",
-      description: language === "fr" 
-        ? "Le lien de paiement a été copié dans le presse-papiers" 
-        : "Payment link has been copied to clipboard",
-    });
-    setTimeout(() => setCopiedLink(null), 2000);
+  const copyPaymentLink = async (link: string, invoiceNumber: string) => {
+    const paymentLabel = language === "fr"
+      ? `Payer la facture ${invoiceNumber}`
+      : `Pay invoice ${invoiceNumber}`;
+    const escapedLink = link.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+    const escapedLabel = paymentLabel.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    try {
+      if (navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
+        const clipboardItem = new ClipboardItem({
+          "text/plain": new Blob([link], { type: "text/plain" }),
+          "text/html": new Blob(
+            [`<a href="${escapedLink}">${escapedLabel}</a>`],
+            { type: "text/html" }
+          ),
+        });
+        await navigator.clipboard.write([clipboardItem]);
+      } else {
+        await navigator.clipboard.writeText(link);
+      }
+
+      setCopiedLink(invoiceNumber);
+      toast({
+        title: language === "fr" ? "Lien copié" : "Link copied",
+        description: language === "fr"
+          ? "Collez-le dans votre courriel : le texte sera cliquable"
+          : "Paste it into your email: the text will be clickable",
+      });
+      setTimeout(() => setCopiedLink(null), 2000);
+    } catch (error) {
+      console.error("Error copying payment link:", error);
+      toast({
+        title: language === "fr" ? "Erreur" : "Error",
+        description: language === "fr"
+          ? "Impossible de copier le lien de paiement"
+          : "Unable to copy the payment link",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCreateInvoiceClick = () => {
