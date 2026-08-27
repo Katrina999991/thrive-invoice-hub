@@ -113,7 +113,7 @@ export const SubscriptionLimitsCard = () => {
       unlimited: "Unlimited",
       upgradeToPremium: "Upgrade to Premium",
       upgradeToPro: "Upgrade to Pro",
-      bestPlan: "You're on the best plan 🎉",
+    bestPlan: "You're on the best plan",
       features: "Features",
       limited: "Limited",
     },
@@ -125,7 +125,7 @@ export const SubscriptionLimitsCard = () => {
       unlimited: "Illimité",
       upgradeToPremium: "Passer à Premium",
       upgradeToPro: "Passer à Pro",
-      bestPlan: "Vous êtes sur le meilleur plan 🎉",
+    bestPlan: "Vous êtes sur le meilleur plan",
       features: "Fonctionnalités",
       limited: "Limité",
     }
