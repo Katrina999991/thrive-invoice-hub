@@ -163,7 +163,7 @@ const Quotes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   
-  const { quotes, loading, createQuote, updateQuote, deleteQuote, duplicateQuote, convertToInvoice } = useQuotes();
+  const { quotes, loading, createQuote, updateQuote, deleteQuote, duplicateQuote, convertToInvoice, refetch: refetchQuotes } = useQuotes();
   const { clients } = useClients();
   const { companies } = useCompanies();
   const { products } = useProducts();
@@ -765,6 +765,9 @@ const Quotes = () => {
         title: language === 'fr' ? "Succès" : "Success",
         description: t("quotes.emailSent")
       });
+
+      // Refresh the list so a draft immediately displays the "Sent" status.
+      await refetchQuotes();
       
       setIsEmailDialogOpen(false);
       setEmailQuote(null);
