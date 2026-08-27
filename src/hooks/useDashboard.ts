@@ -96,6 +96,33 @@ export const useDashboard = (t?: TranslationFunction) => {
       const openInvoices = invoices.filter(inv => inv.status === "sent" || inv.status === "overdue");
       const openInvoicesTotal = openInvoices.reduce((sum, inv) => sum + Number(inv.total), 0);
 
+      const monthFormatter = new Intl.DateTimeFormat("fr-CA", { month: "short" });
+      const monthlyRevenue = Array.from({ length: 6 }, (_, index) => {
+        const date = new Date();
+        date.setDate(1);
+        date.setMonth(date.getMonth() - (5 - index));
+        return {
+          key: date.getFullYear() + "-" + date.getMonth(),
+          month: monthFormatter.format(date).replace(".", ""),
+          revenue: 0,
+        };
+      });
+
+      invoices
+        .filter(invoice => invoice.status === "paid")
+        .forEach(invoice => {
+          const paidDate = new Date(invoice.updated_at);
+          const month = monthlyRevenue.find(item =>
+            item.key === paidDate.getFullYear() + "-" + paidDate.getMonth()
+          );
+          if (month) month.revenue += Number(invoice.total);
+        });
+
+      const invoiceStatusCounts = ["draft", "sent", "paid", "overdue"].map(status => ({
+        status,
+        count: invoices.filter(invoice => invoice.status === status).length,
+      }));
+
       // Calculate new clients this month
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
@@ -178,6 +205,8 @@ export const useDashboard = (t?: TranslationFunction) => {
         openInvoicesCount: openInvoices.length,
         openInvoicesTotal,
         activeProducts: products.length,
+        monthlyRevenue,
+        invoiceStatusCounts,
         recentActivity: recentActivity.slice(0, 5),
       };
     },

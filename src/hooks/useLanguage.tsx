@@ -57,6 +57,15 @@ const translations = {
     "dashboard.addClient": "Add New Client",
     "dashboard.addProduct": "Add Product/Service",
     "dashboard.viewReports": "View Reports",
+    "dashboard.revenueByMonth": "Revenue by month",
+    "dashboard.revenueByMonth.desc": "Paid invoices over the last six months",
+    "dashboard.revenue": "Revenue",
+    "dashboard.invoiceStatus": "Invoices by status",
+    "dashboard.invoiceStatus.desc": "Current distribution of your invoices",
+    "dashboard.status.draft": "Draft",
+    "dashboard.status.sent": "Sent",
+    "dashboard.status.paid": "Paid",
+    "dashboard.status.overdue": "Overdue",
     
     // Companies
     "companies.title": "Companies",
@@ -920,6 +929,15 @@ const translations = {
     "dashboard.addClient": "Ajouter un nouveau client",
     "dashboard.addProduct": "Ajouter un produit/service",
     "dashboard.viewReports": "Voir les rapports",
+    "dashboard.revenueByMonth": "Revenus par mois",
+    "dashboard.revenueByMonth.desc": "Factures payées au cours des six derniers mois",
+    "dashboard.revenue": "Revenus",
+    "dashboard.invoiceStatus": "Factures par statut",
+    "dashboard.invoiceStatus.desc": "Répartition actuelle de vos factures",
+    "dashboard.status.draft": "Brouillons",
+    "dashboard.status.sent": "Envoyées",
+    "dashboard.status.paid": "Payées",
+    "dashboard.status.overdue": "En retard",
     
     // Companies
     "companies.title": "Entreprises",

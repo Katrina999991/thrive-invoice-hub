@@ -6,6 +6,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { SubscriptionLimitsCard } from "@/components/SubscriptionLimitsCard";
 import { GestionFlowFeeBanner } from "@/components/GestionFlowFeeBanner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+
+const STATUS_COLORS = ["#94a3b8", "#3b82f6", "#22c55e", "#f97316"];
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -70,6 +73,59 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("dashboard.revenueByMonth")}</CardTitle>
+            <CardDescription>{t("dashboard.revenueByMonth.desc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dashboardData?.monthlyRevenue || []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => "$" + value} />
+                  <ChartTooltip formatter={(value) => ["$" + Number(value).toLocaleString(), t("dashboard.revenue")]} />
+                  <Bar dataKey="revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("dashboard.invoiceStatus")}</CardTitle>
+            <CardDescription>{t("dashboard.invoiceStatus.desc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={dashboardData?.invoiceStatusCounts || []}
+                    dataKey="count"
+                    nameKey="status"
+                    cx="50%"
+                    cy="48%"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={3}
+                  >
+                    {(dashboardData?.invoiceStatusCounts || []).map((entry, index) => (
+                      <Cell key={entry.status} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip formatter={(value, name) => [value, t("dashboard.status." + name)]} />
+                  <Legend formatter={(value) => t("dashboard.status." + value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
