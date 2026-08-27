@@ -137,7 +137,11 @@ function appendChargebackClauseServer(terms: string | null, client: any): string
   const defaultClause = isFrench
     ? `Le paiement complet de ce devis constitue une confirmation que les services ou produits seront livrés et acceptés par le client.\n\nToute contestation ou demande de rétrofacturation (chargeback) devra être précédée d'une tentative raisonnable de résolution directement avec nous.\n\nEn cas de contestation abusive ou frauduleuse, nous nous réservons le droit de fournir toutes preuves nécessaires aux institutions financières afin de contester la réclamation.`
     : `Full payment of this quote constitutes confirmation that the services or products will be delivered and accepted by the client.\n\nAny dispute or chargeback request must be preceded by a reasonable attempt at resolution directly with us.\n\nIn the event of an abusive or fraudulent dispute, we reserve the right to provide all necessary evidence to financial institutions to contest the claim.`;
-  const clauseText = client.chargeback_clause_text || defaultClause;
+  const clauseText = (client.chargeback_clause_text || defaultClause)
+    .replace(/cette facture/gi, 'ce devis')
+    .replace(/facture/gi, 'devis')
+    .replace(/this invoice/gi, 'this quote')
+    .replace(/invoice/gi, 'quote');
   const header = isFrench ? 'Clause de reconnaissance de réception' : 'Receipt Acknowledgment Clause';
   const formatted = `${header}\n\n${clauseText}`;
   if (terms && terms.trim()) return `${terms}\n\n───────────────────────────\n\n${formatted}`;

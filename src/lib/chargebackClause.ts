@@ -37,7 +37,14 @@ export function appendChargebackClause(
     return existingTerms || null;
   }
 
-  const clauseText = client.chargeback_clause_text || getDefaultClauseText(language, documentType);
+  const rawClauseText = client.chargeback_clause_text || getDefaultClauseText(language, documentType);
+  const clauseText = documentType === 'quote'
+    ? rawClauseText
+        .replace(/cette facture/gi, 'ce devis')
+        .replace(/facture/gi, 'devis')
+        .replace(/this invoice/gi, 'this quote')
+        .replace(/invoice/gi, 'quote')
+    : rawClauseText;
   const separator = '\n\n───────────────────────────\n\n';
   const clauseHeader = language === 'fr' 
     ? 'Clause de reconnaissance de reception' 
