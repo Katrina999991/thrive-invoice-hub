@@ -289,16 +289,24 @@ const QuoteResponse = () => {
       if (response === "accepted") {
         // Reload the public quote so the status and freshly-created payment
         // link are displayed immediately after acceptance.
-        const refreshedResponse = await fetch(
-          `https://dkinzkawntfzkabroeib.supabase.co/functions/v1/get-quote-by-token?token=${token}`,
-          { headers: { "Content-Type": "application/json" } }
-        );
-        if (refreshedResponse.ok) {
-          const refreshedResult = await refreshedResponse.json();
+        let refreshedResult: any = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const refreshedResponse = await fetch(
+            `https://dkinzkawntfzkabroeib.supabase.co/functions/v1/get-quote-by-token?token=${token}`,
+            { headers: { "Content-Type": "application/json" } }
+          );
+          if (refreshedResponse.ok) {
+            refreshedResult = await refreshedResponse.json();
+            if (refreshedResult.quote?.payment_link || refreshedResult.quote?.status !== 'deposit_requested') break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 700));
+        }
+
+        if (refreshedResult?.quote) {
           console.log('[QUOTE-DEPOSIT-DEBUG] Refreshed public quote', {
-            status: refreshedResult.quote?.status,
-            paymentLinkPresent: !!refreshedResult.quote?.payment_link,
-            onlinePaymentEnabled: refreshedResult.quote?.online_payment_enabled,
+            status: refreshedResult.quote.status,
+            paymentLinkPresent: !!refreshedResult.quote.payment_link,
+            onlinePaymentEnabled: refreshedResult.quote.online_payment_enabled,
           });
           setQuote(refreshedResult.quote);
           setCompany(refreshedResult.company);
