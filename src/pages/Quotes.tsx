@@ -887,36 +887,36 @@ const Quotes = () => {
                       </div>
                       
                       <div className="flex flex-wrap gap-1 pt-2 border-t">
-                        <Button variant="ghost" size="sm" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
+                        <Button variant="ghost" size="sm" title={language === 'fr' ? 'Voir le devis' : 'View quote'} onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         {canEditQuotes && (
-                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Modifier le devis' : 'Edit quote'} onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
                             <Edit className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm" onClick={() => generatePDF(quote)}>
+                        <Button variant="ghost" size="sm" title={language === 'fr' ? 'Télécharger le devis' : 'Download quote'} onClick={() => generatePDF(quote)}>
                           <Download className="h-4 w-4" />
                         </Button>
                         {canSendQuotes && (
-                          <Button variant="ghost" size="sm" onClick={() => openEmailDialog(quote)}>
+                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Envoyer le devis' : 'Send quote'} onClick={() => openEmailDialog(quote)}>
                             <Mail className="h-4 w-4" />
                           </Button>
                         )}
                         {canCreateQuotes && (
-                          <Button variant="ghost" size="sm" onClick={() => duplicateQuote(quote)}>
+                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Copier le lien de paiement' : 'Copy payment link'} onClick={() => duplicateQuote(quote)}>
                             <Copy className="h-4 w-4" />
                           </Button>
                         )}
                         {canEditQuotes && quote.status === 'accepted' && !quote.converted_to_invoice_id && (
-                          <Button variant="ghost" size="sm" onClick={() => handleConvertToInvoice(quote)}>
+                          <Button variant="ghost" size="sm" title={language === 'fr' ? 'Convertir en facture' : 'Convert to invoice'} onClick={() => handleConvertToInvoice(quote)}>
                             <ArrowRight className="h-4 w-4" />
                           </Button>
                         )}
                         {canDeleteQuotes && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-destructive" disabled={!!quote.converted_to_invoice_id}>
+                              <Button variant="ghost" size="sm" className="text-destructive" title={language === 'fr' ? 'Supprimer le devis' : 'Delete quote'} disabled={!!quote.converted_to_invoice_id}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
@@ -984,36 +984,36 @@ const Quotes = () => {
                         <TableCell>{quote.issue_date}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
+                            <Button variant="ghost" size="icon" title={language === 'fr' ? 'Voir le devis' : 'View quote'} onClick={() => { setViewingQuote(quote); setIsViewDialogOpen(true); }}>
                               <Eye className="h-4 w-4" />
                             </Button>
                             {canEditQuotes && (
-                              <Button variant="ghost" size="icon" onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
+                                <Button variant="ghost" size="icon" title={language === 'fr' ? 'Modifier le devis' : 'Edit quote'} onClick={() => openEditDialog(quote)} disabled={!!quote.converted_to_invoice_id}>
                                 <Edit className="h-4 w-4" />
                               </Button>
                             )}
-                            <Button variant="ghost" size="icon" onClick={() => generatePDF(quote)}>
+                            <Button variant="ghost" size="icon" title={language === 'fr' ? 'Télécharger le devis' : 'Download quote'} onClick={() => generatePDF(quote)}>
                               <Download className="h-4 w-4" />
                             </Button>
                             {canSendQuotes && (
-                              <Button variant="ghost" size="icon" onClick={() => openEmailDialog(quote)}>
+                              <Button variant="ghost" size="icon" title={language === 'fr' ? 'Envoyer le devis' : 'Send quote'} onClick={() => openEmailDialog(quote)}>
                                 <Mail className="h-4 w-4" />
                               </Button>
                             )}
                             {canCreateQuotes && (
-                              <Button variant="ghost" size="icon" onClick={() => duplicateQuote(quote)}>
+                              <Button variant="ghost" size="icon" title={language === 'fr' ? 'Copier le lien de paiement' : 'Copy payment link'} onClick={() => duplicateQuote(quote)}>
                                 <Copy className="h-4 w-4" />
                               </Button>
                             )}
                             {canEditQuotes && quote.status === 'accepted' && !quote.converted_to_invoice_id && (
-                              <Button variant="ghost" size="icon" onClick={() => handleConvertToInvoice(quote)}>
+                              <Button variant="ghost" size="icon" title={language === 'fr' ? 'Convertir en facture' : 'Convert to invoice'} onClick={() => handleConvertToInvoice(quote)}>
                                 <ArrowRight className="h-4 w-4" />
                               </Button>
                             )}
                             {canDeleteQuotes && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" disabled={!!quote.converted_to_invoice_id}>
+                                  <Button variant="ghost" size="icon" title={language === 'fr' ? 'Supprimer le devis' : 'Delete quote'} disabled={!!quote.converted_to_invoice_id}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
