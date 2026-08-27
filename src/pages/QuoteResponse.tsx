@@ -406,7 +406,7 @@ const QuoteResponse = () => {
       : `${formatCurrency(depositInfo.amount)}${depositInfo.type === 'percentage' ? ` (${depositInfo.value}%)` : ''}`
     : null;
   const canShowPaymentSection =
-    quote.online_payment_enabled &&
+    (quote.online_payment_enabled || quote.status === 'deposit_requested') &&
     !!quote.payment_link &&
     (quote.status === 'deposit_requested' || quote.status === 'accepted') &&
     quote.status !== 'refused' &&

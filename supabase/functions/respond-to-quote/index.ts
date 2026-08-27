@@ -185,7 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
     const hasDeposit = quote.deposit_type && quote.deposit_type !== 'none' && Number(quote.deposit_amount) > 0;
     const dbStatus = response === 'refused'
       ? 'rejected'
-      : hasDeposit && quote.online_payment_enabled
+      : hasDeposit
         ? 'deposit_requested'
         : 'accepted';
     
@@ -210,7 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Create the deposit link only after the client accepts the quote.
     let paymentLink: string | null = null;
-    if (response === 'accepted' && quote.online_payment_enabled) {
+    if (response === 'accepted' && (hasDeposit || quote.online_payment_enabled)) {
       try {
         const paymentResponse = await fetch(`${supabaseUrl}/functions/v1/create-quote-payment-link`, {
           method: 'POST',
