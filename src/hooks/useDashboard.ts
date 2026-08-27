@@ -123,12 +123,6 @@ export const useDashboard = (t?: TranslationFunction) => {
         count: invoices.filter(invoice => invoice.status === status).length,
       }));
 
-      console.log("[Dashboard charts] data prepared", {
-        invoiceCount: invoices.length,
-        monthlyRevenue,
-        invoiceStatusCounts,
-      });
-
       // Calculate new clients this month
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
