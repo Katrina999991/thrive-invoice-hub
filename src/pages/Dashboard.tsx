@@ -82,8 +82,8 @@ const Dashboard = () => {
             <CardDescription>{t("dashboard.revenueByMonth.desc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full min-w-0" style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height={260} minWidth={0} minHeight={260}>
                 <BarChart data={dashboardData?.monthlyRevenue || []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} />
@@ -102,8 +102,8 @@ const Dashboard = () => {
             <CardDescription>{t("dashboard.invoiceStatus.desc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full min-w-0" style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height={260} minWidth={0} minHeight={260}>
                 <PieChart>
                   <Pie
                     data={dashboardData?.invoiceStatusCounts || []}
