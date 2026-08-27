@@ -429,6 +429,7 @@ const Quotes = () => {
       case 'deposit_requested': return t("quotes.statusDepositRequested");
       case 'deposit_paid': return t("quotes.statusDepositPaid");
       case 'refused': return t("quotes.statusRejected");
+      case 'rejected': return t("quotes.statusRejected");
       default: return status;
     }
   };
@@ -986,8 +987,8 @@ const Quotes = () => {
                             </>
                           ) : canEditQuotes ? (
                             <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'deposit_requested' | 'deposit_paid' | 'refused' | 'rejected') => updateQuote(quote.id, { status: value })}>
-                              <SelectTrigger className="w-[130px] h-8">
-                                <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
+                              <SelectTrigger className="w-[172px] h-8 px-2">
+                                <Badge className={`${getStatusColor(quote.status)} whitespace-nowrap`}>{getStatusLabel(quote.status)}</Badge>
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="draft">{t("quotes.statusDraft")}</SelectItem>
