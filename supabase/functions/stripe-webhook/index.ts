@@ -169,11 +169,11 @@ serve(async (req) => {
           logStep("Quote payment received", { quoteId, paymentType });
 
           if (paymentType === 'deposit') {
-            // Mark deposit as paid, set quote to accepted
+            // Mark the deposit as paid after the quote was accepted.
             await supabaseClient.from("quotes").update({
               deposit_paid_at: new Date().toISOString(),
               deposit_payment_intent_id: session.payment_intent as string,
-              status: 'accepted',
+              status: 'deposit_paid',
             }).eq("id", quoteId);
 
             // Auto-create invoice from quote

@@ -97,6 +97,8 @@ const QuoteResponse = () => {
       draft: "Brouillon",
       sent: "Envoyé",
       accepted: "Accepté",
+      depositRequested: "Dépôt demandé",
+      depositPaidStatus: "Dépôt payé",
       refused: "Refusé",
       items: "Articles",
       description: "Description",
@@ -144,6 +146,8 @@ const QuoteResponse = () => {
       draft: "Draft",
       sent: "Sent",
       accepted: "Accepted",
+      depositRequested: "Deposit requested",
+      depositPaidStatus: "Deposit paid",
       refused: "Refused",
       items: "Items",
       description: "Description",
@@ -276,7 +280,15 @@ const QuoteResponse = () => {
         throw new Error(result.error || "Failed to submit response");
       }
 
-      setResponseSubmitted(true);
+      if (response === "accepted") {
+        setQuote((currentQuote) => currentQuote ? {
+          ...currentQuote,
+          status: result.status || "accepted",
+          payment_link: result.paymentLink || currentQuote.payment_link,
+          canRespond: false,
+        } : currentQuote);
+      }
+      setResponseSubmitted(response === "refused");
       setSubmittedResponse(response);
     } catch (err: any) {
       toast({
@@ -315,6 +327,8 @@ const QuoteResponse = () => {
       draft: text.draft,
       sent: text.sent,
       accepted: text.accepted,
+      deposit_requested: text.depositRequested,
+      deposit_paid: text.depositPaidStatus,
       refused: text.refused,
     };
     return statusMap[status] || status;
@@ -394,6 +408,7 @@ const QuoteResponse = () => {
   const canShowPaymentSection =
     quote.online_payment_enabled &&
     !!quote.payment_link &&
+    (quote.status === 'deposit_requested' || quote.status === 'accepted') &&
     quote.status !== 'refused' &&
     (!depositInfo || !depositInfo.isPaid);
 
@@ -606,11 +621,11 @@ const QuoteResponse = () => {
         )}
 
         {/* Already Responded */}
-        {!quote.canRespond && (quote.status === "accepted" || quote.status === "refused") && (
+        {!quote.canRespond && ["accepted", "refused", "rejected", "deposit_requested", "deposit_paid"].includes(quote.status) && (
           <Card className="border-muted">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-4">
-                {quote.status === "accepted" ? (
+                {quote.status !== "refused" && quote.status !== "rejected" ? (
                   <Check className="h-5 w-5 text-green-600" />
                 ) : (
                   <X className="h-5 w-5 text-red-600" />

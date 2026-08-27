@@ -157,7 +157,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Check if already responded (DB uses 'rejected', not 'refused')
-    if (quote.status === "accepted" || quote.status === "rejected") {
+    if (["accepted", "rejected", "deposit_requested", "deposit_paid"].includes(quote.status)) {
       return new Response(
         JSON.stringify({ 
           error: "This quote has already been responded to",
@@ -182,7 +182,12 @@ const handler = async (req: Request): Promise<Response> => {
     const sanitizedNote = sanitizeNote(note);
     
     // Map response to database status (DB uses 'rejected', API uses 'refused')
-    const dbStatus = response === 'refused' ? 'rejected' : response;
+    const hasDeposit = quote.deposit_type && quote.deposit_type !== 'none' && Number(quote.deposit_amount) > 0;
+    const dbStatus = response === 'refused'
+      ? 'rejected'
+      : hasDeposit && quote.online_payment_enabled
+        ? 'deposit_requested'
+        : 'accepted';
     
     // Update the quote status
     const respondedAt = new Date().toISOString();
@@ -201,6 +206,29 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ error: "Failed to update quote status" }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    }
+
+    // Create the deposit link only after the client accepts the quote.
+    let paymentLink: string | null = null;
+    if (response === 'accepted' && quote.online_payment_enabled) {
+      try {
+        const paymentResponse = await fetch(`${supabaseUrl}/functions/v1/create-quote-payment-link`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({ quoteId: quote.id, paymentType: hasDeposit ? 'deposit' : 'full' }),
+        });
+        const paymentResult = await paymentResponse.json();
+        if (paymentResponse.ok && paymentResult.url) {
+          paymentLink = paymentResult.url;
+        } else {
+          console.error('Failed to create deposit payment link:', paymentResult.error || paymentResult);
+        }
+      } catch (paymentError) {
+        console.error('Error creating deposit payment link:', paymentError);
+      }
     }
 
     console.log(`Quote ${quote.quote_number} ${response} by client`);
@@ -283,8 +311,9 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        status: response,
-        quoteNumber: quote.quote_number 
+        status: dbStatus,
+        quoteNumber: quote.quote_number,
+        paymentLink,
       }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );

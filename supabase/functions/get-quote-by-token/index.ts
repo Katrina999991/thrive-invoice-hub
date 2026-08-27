@@ -120,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
         quote: {
           ...quote,
           isExpired,
-          canRespond: !isExpired && quote.status !== "accepted" && quote.status !== "refused",
+          canRespond: !isExpired && !["accepted", "refused", "rejected", "deposit_requested", "deposit_paid"].includes(quote.status),
           depositInfo,
         },
         company 

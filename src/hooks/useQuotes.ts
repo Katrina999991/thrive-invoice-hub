@@ -12,7 +12,7 @@ export interface Quote {
   quote_number: string;
   issue_date: string;
   expiry_date: string | null;
-  status: 'draft' | 'sent' | 'accepted' | 'refused';
+  status: 'draft' | 'sent' | 'accepted' | 'deposit_requested' | 'deposit_paid' | 'refused' | 'rejected';
   subtotal: number;
   tax_amount: number;
   tax_rate: number;
@@ -65,7 +65,7 @@ export interface QuoteInsert {
   quote_number: string;
   issue_date?: string;
   expiry_date?: string | null;
-  status?: 'draft' | 'sent' | 'accepted' | 'refused';
+  status?: 'draft' | 'sent' | 'accepted' | 'deposit_requested' | 'deposit_paid' | 'refused' | 'rejected';
   subtotal?: number;
   tax_amount?: number;
   tax_rate?: number;

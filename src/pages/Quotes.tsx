@@ -253,6 +253,8 @@ const Quotes = () => {
         "quotes.statusDraft": "Brouillon",
         "quotes.statusSent": "Envoyé",
         "quotes.statusAccepted": "Accepté",
+        "quotes.statusDepositRequested": "Dépôt demandé",
+        "quotes.statusDepositPaid": "Dépôt payé",
         "quotes.statusRejected": "Refusé",
         "quotes.listTitle": "Liste des devis",
         "quotes.listDesc": "Gérez tous vos devis en un seul endroit",
@@ -324,6 +326,8 @@ const Quotes = () => {
         "quotes.statusDraft": "Draft",
         "quotes.statusSent": "Sent",
         "quotes.statusAccepted": "Accepted",
+        "quotes.statusDepositRequested": "Deposit requested",
+        "quotes.statusDepositPaid": "Deposit paid",
         "quotes.statusRejected": "Rejected",
         "quotes.listTitle": "Quote List",
         "quotes.listDesc": "Manage all your quotes in one place",
@@ -409,7 +413,10 @@ const Quotes = () => {
       case 'draft': return 'bg-gray-100 text-gray-800';
       case 'sent': return 'bg-blue-100 text-blue-800';
       case 'accepted': return 'bg-green-100 text-green-800';
+      case 'deposit_requested': return 'bg-amber-100 text-amber-800';
+      case 'deposit_paid': return 'bg-emerald-100 text-emerald-800';
       case 'refused': return 'bg-red-100 text-red-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -419,6 +426,8 @@ const Quotes = () => {
       case 'draft': return t("quotes.statusDraft");
       case 'sent': return t("quotes.statusSent");
       case 'accepted': return t("quotes.statusAccepted");
+      case 'deposit_requested': return t("quotes.statusDepositRequested");
+      case 'deposit_paid': return t("quotes.statusDepositPaid");
       case 'refused': return t("quotes.statusRejected");
       default: return status;
     }
@@ -976,7 +985,7 @@ const Quotes = () => {
                               <Badge variant="outline" className="ml-2">{t("quotes.converted")}</Badge>
                             </>
                           ) : canEditQuotes ? (
-                            <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'refused') => updateQuote(quote.id, { status: value })}>
+                            <Select value={quote.status} onValueChange={(value: 'draft' | 'sent' | 'accepted' | 'deposit_requested' | 'deposit_paid' | 'refused' | 'rejected') => updateQuote(quote.id, { status: value })}>
                               <SelectTrigger className="w-[130px] h-8">
                                 <Badge className={getStatusColor(quote.status)}>{getStatusLabel(quote.status)}</Badge>
                               </SelectTrigger>
