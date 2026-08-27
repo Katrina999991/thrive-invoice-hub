@@ -356,6 +356,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Send a copy to the authenticated user who sent the quote.
+    // Avoid duplicating the address when the user is also a client recipient.
+    const userCopyEmail = userEmail && !emailsToSend.includes(userEmail)
+      ? userEmail
+      : null;
+
     if (!company) {
       return new Response(
         JSON.stringify({ error: "Company information not found" }),
@@ -646,8 +652,13 @@ const handler = async (req: Request): Promise<Response> => {
       }]
     };
 
-    if (ccEmails && ccEmails.length > 0) {
-      emailPayload.cc = ccEmails;
+    const ccRecipients = [...new Set([
+      ...(ccEmails || []),
+      ...(userCopyEmail ? [userCopyEmail] : []),
+    ])];
+
+    if (ccRecipients.length > 0) {
+      emailPayload.cc = ccRecipients;
     }
 
     console.log('Sending quote email to:', emailsToSend);
