@@ -257,6 +257,7 @@ const QuoteResponse = () => {
   const handleResponse = async (response: "accepted" | "refused") => {
     if (!token) return;
 
+    console.log('[QUOTE-DEPOSIT-DEBUG] Response button clicked', { response });
     setSubmitting(true);
     try {
       const res = await fetch(
