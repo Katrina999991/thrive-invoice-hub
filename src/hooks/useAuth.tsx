@@ -18,6 +18,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Desktop builds run on Tauri's internal origin (tauri.localhost), which is
+// not a valid Supabase redirect URL. Complete email confirmation and password
+// recovery on the public web application instead.
+const getAuthRedirectUrl = () => {
+  const origin = window.location.origin;
+  const isDesktopOrLocal =
+    origin.includes("tauri.localhost") ||
+    origin.includes("localhost") ||
+    origin.includes("127.0.0.1");
+
+  return isDesktopOrLocal ? "https://gestionflow.net/auth" : `${origin}/auth`;
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -98,8 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, displayName?: string, language?: string) => {
-    // Use the current window location origin for redirect
-    const redirectUrl = `${window.location.origin}/auth`;
+    const redirectUrl = getAuthRedirectUrl();
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -120,8 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const resetPassword = async (email: string) => {
-    // Use the current window location origin for redirect
-    const redirectUrl = `${window.location.origin}/auth`;
+    const redirectUrl = getAuthRedirectUrl();
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
