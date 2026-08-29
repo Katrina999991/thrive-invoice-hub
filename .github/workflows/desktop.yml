@@ -53,6 +53,10 @@ jobs:
       - name: Build desktop application
         run: npm run tauri:build
 
+      - name: Add Apache SPA fallback for WHC
+        shell: bash
+        run: node -e "require('fs').copyFileSync('public/.htaccess', 'dist/.htaccess')"
+
       - name: Upload installers
         uses: actions/upload-artifact@v5
         with:
