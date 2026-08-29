@@ -60,3 +60,12 @@ jobs:
           path: ${{ matrix.path }}
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload web files for WHC
+        if: matrix.os == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v5
+        with:
+          name: gestionflow-web-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 14
