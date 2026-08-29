@@ -21,7 +21,10 @@ import {
   ArrowRight,
   Zap,
   CheckCircle2,
-  ZoomIn
+  ZoomIn,
+  Download,
+  Monitor,
+  Laptop
 } from "lucide-react";
 import logo from "@/assets/gestionflow-logo.png";
 import logoDark from "@/assets/gestionflow-logo-dark.png";
@@ -1043,6 +1046,46 @@ const Index = () => {
                 </Button>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Desktop App */}
+      <section className="py-16 md:py-24 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto rounded-2xl border border-border bg-card p-8 md:p-12 text-center">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Monitor className="h-7 w-7" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              {currentLang === "FR" ? "GestionFlow sur ordinateur" : "GestionFlow for desktop"}
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground mb-8">
+              {currentLang === "FR"
+                ? "Travaillez avec GestionFlow directement depuis votre ordinateur, avec une application rapide et pratique."
+                : "Use GestionFlow directly from your computer with a fast and convenient desktop application."}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
+                <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "Linux disponible" : "Linux available"}
+              </span>
+              <span className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground">
+                {currentLang === "FR" ? "Windows — bientôt" : "Windows — coming soon"}
+              </span>
+              <span className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground">
+                {currentLang === "FR" ? "macOS — bientôt" : "macOS — coming soon"}
+              </span>
+            </div>
+            <Button asChild size="lg" className="gap-2">
+              <a
+                href="https://github.com/Katrina999991/thrive-invoice-hub/releases/tag/v0.1.0"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Download className="h-5 w-5" />
+                {currentLang === "FR" ? "Télécharger pour Linux" : "Download for Linux"}
+              </a>
+            </Button>
           </div>
         </div>
       </section>
