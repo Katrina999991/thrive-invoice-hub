@@ -18,6 +18,7 @@ jobs:
             path: |
               src-tauri/target/release/bundle/appimage/*.AppImage
               src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/rpm/*.rpm
           - os: windows-latest
             artifact: gestionflow-windows
             path: |
@@ -45,7 +46,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev \
-            libappindicator3-dev librsvg2-dev patchelf
+            libappindicator3-dev librsvg2-dev patchelf rpm
 
       - name: Install dependencies
         run: npm ci
