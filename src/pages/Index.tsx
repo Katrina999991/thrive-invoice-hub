@@ -1078,7 +1078,7 @@ const Index = () => {
             </div>
             <div className="flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" className="gap-2">
-                <a href="https://github.com/Katrina999991/thrive-invoice-hub/releases/download/v0.1.0/GestionFlow_0.1.0_amd64.AppImage" target="_blank" rel="noreferrer">
+                <a href="https://github.com/Katrina999991/thrive-invoice-hub/releases/download/v0.1.1/GestionFlow_0.1.1_amd64.AppImage" target="_blank" rel="noreferrer">
                   <Download className="h-5 w-5" />
                   {currentLang === "FR" ? "Linux" : "Linux"}
                 </a>
