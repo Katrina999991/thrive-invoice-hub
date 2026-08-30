@@ -14,6 +14,10 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const { data: dashboardData, isLoading } = useDashboard(t);
   const navigate = useNavigate();
+  const invoiceStatusChartData = (dashboardData?.invoiceStatusCounts || []).map((entry) => ({
+    ...entry,
+    name: entry.status,
+  }));
 
   const stats = [
     {
@@ -103,16 +107,16 @@ const Dashboard = () => {
             <div className="w-full overflow-x-auto" style={{ height: 260 }}>
                 <PieChart width={480} height={240}>
                   <Pie
-                    data={dashboardData?.invoiceStatusCounts || []}
+                    data={invoiceStatusChartData}
                     dataKey="count"
-                    nameKey="status"
+                    nameKey="name"
                     cx="50%"
                     cy="48%"
                     innerRadius={55}
                     outerRadius={85}
                     paddingAngle={3}
                   >
-                    {(dashboardData?.invoiceStatusCounts || []).map((entry, index) => (
+                    {invoiceStatusChartData.map((entry, index) => (
                       <Cell key={entry.status} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
                     ))}
                   </Pie>
