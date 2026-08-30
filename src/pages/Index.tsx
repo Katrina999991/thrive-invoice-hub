@@ -1069,23 +1069,27 @@ const Index = () => {
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
                 <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "Linux disponible" : "Linux available"}
               </span>
-              <span className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground">
-                {currentLang === "FR" ? "Windows — bientôt" : "Windows — coming soon"}
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
+                <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "Windows disponible" : "Windows available"}
               </span>
-              <span className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground">
-                {currentLang === "FR" ? "macOS — bientôt" : "macOS — coming soon"}
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
+                <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "macOS bientôt disponible" : "macOS coming soon"}
               </span>
             </div>
-            <Button asChild size="lg" className="gap-2">
-              <a
-                href="https://github.com/Katrina999991/thrive-invoice-hub/releases/tag/v0.1.0"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Download className="h-5 w-5" />
-                {currentLang === "FR" ? "Télécharger pour Linux" : "Download for Linux"}
-              </a>
-            </Button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button asChild size="lg" className="gap-2">
+                <a href="https://github.com/Katrina999991/thrive-invoice-hub/releases/download/v0.1.0/GestionFlow_0.1.0_amd64.AppImage" target="_blank" rel="noreferrer">
+                  <Download className="h-5 w-5" />
+                  {currentLang === "FR" ? "Linux" : "Linux"}
+                </a>
+              </Button>
+              <Button asChild size="lg" className="gap-2">
+                <a href="https://github.com/Katrina999991/thrive-invoice-hub/releases/download/v0.1.1/GestionFlow_0.1.1_x64-setup.exe" target="_blank" rel="noreferrer">
+                  <Download className="h-5 w-5" />
+                  {currentLang === "FR" ? "Windows" : "Windows"}
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
