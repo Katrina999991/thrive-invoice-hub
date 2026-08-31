@@ -37,6 +37,7 @@ import invoicesPreviewEn from "@/assets/invoices-preview-en.jpg";
 import timeTrackingPreview from "@/assets/dashboard-preview-time-tracking.jpg";
 import reportsPreview from "@/assets/dashboard-preview-reports.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
+import { DESKTOP_DOWNLOADS } from "@/lib/desktopDownloads";
 import { useState, useEffect } from "react";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
@@ -1076,19 +1077,68 @@ const Index = () => {
                 <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "macOS bientôt disponible" : "macOS coming soon"}
               </span>
             </div>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
               <Button asChild size="lg" className="gap-2">
-                <a href="https://github.com/Katrina999991/thrive-invoice-hub/releases/download/v0.1.1/GestionFlow_0.1.1_amd64.AppImage" target="_blank" rel="noreferrer">
+                <a href={DESKTOP_DOWNLOADS.windowsSetup} target="_blank" rel="noreferrer">
                   <Download className="h-5 w-5" />
-                  {currentLang === "FR" ? "Linux" : "Linux"}
+                  Windows
                 </a>
               </Button>
-              <Button asChild size="lg" className="gap-2">
-                <a href="https://github.com/Katrina999991/thrive-invoice-hub/releases/download/v0.1.1/GestionFlow_0.1.1_x64-setup.exe" target="_blank" rel="noreferrer">
-                  <Download className="h-5 w-5" />
-                  {currentLang === "FR" ? "Windows" : "Windows"}
+            </div>
+            <div className="text-left max-w-3xl mx-auto">
+              <p className="text-sm font-semibold tracking-wide uppercase text-muted-foreground mb-3 text-center">
+                Linux
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <a
+                  href={DESKTOP_DOWNLOADS.linuxAppImage}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                >
+                  <div className="flex items-center gap-2 font-semibold text-foreground">
+                    <Download className="h-4 w-4 text-primary" />
+                    AppImage
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {currentLang === "FR"
+                      ? "Toutes les distributions. Fichier portable : rendez-le exécutable, puis lancez-le."
+                      : "Any Linux distro. Portable file: make it executable, then run it."}
+                  </p>
                 </a>
-              </Button>
+                <a
+                  href={DESKTOP_DOWNLOADS.linuxDeb}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                >
+                  <div className="flex items-center gap-2 font-semibold text-foreground">
+                    <Download className="h-4 w-4 text-primary" />
+                    {currentLang === "FR" ? ".deb — Ubuntu / Debian" : ".deb — Ubuntu / Debian"}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {currentLang === "FR"
+                      ? "Ubuntu, Debian, Linux Mint, Pop!_OS. Ouvrez le fichier ou installez-le avec apt."
+                      : "Ubuntu, Debian, Linux Mint, Pop!_OS. Open the file or install it with apt."}
+                  </p>
+                </a>
+                <a
+                  href={DESKTOP_DOWNLOADS.linuxRpm}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                >
+                  <div className="flex items-center gap-2 font-semibold text-foreground">
+                    <Download className="h-4 w-4 text-primary" />
+                    {currentLang === "FR" ? ".rpm — Fedora / RHEL" : ".rpm — Fedora / RHEL"}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {currentLang === "FR"
+                      ? "Fedora, RHEL, Rocky Linux, AlmaLinux. Installez-le avec dnf ou rpm."
+                      : "Fedora, RHEL, Rocky Linux, AlmaLinux. Install it with dnf or rpm."}
+                  </p>
+                </a>
+              </div>
             </div>
           </div>
         </div>
