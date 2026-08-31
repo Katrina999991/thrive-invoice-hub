@@ -35,14 +35,15 @@ if [[ -n "${RPM_GPG_PRIVATE_KEY:-}" ]]; then
 %__gpg /usr/bin/gpg
 %__gpg_sign_cmd %{__gpg} \\
   gpg --batch --yes --pinentry-mode loopback --passphrase-file $PASS_FILE \\
-  --local-user %{_gpg_name} --detach-sign --armor \\
+  --local-user %{_gpg_name} --detach-sign --no-armor \\
   --output %{__signature_filename} %{__plaintext_filename}
 EOF
 
   for rpm in "$OUT/x86_64"/*.rpm; do
     echo "Signing $rpm"
+    rpm --delsign "$rpm" >/dev/null 2>&1 || true
     rpm --addsign "$rpm"
-    rpm --checksig "$rpm" || true
+    rpm --checksig "$rpm"
   done
 else
   echo "RPM_GPG_PRIVATE_KEY is not set; publishing unsigned packages" >&2

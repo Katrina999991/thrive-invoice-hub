@@ -53,9 +53,6 @@ jobs:
         run: npm ci
 
       - name: Build desktop application
-        env:
-          TAURI_SIGNING_RPM_KEY: ${{ secrets.RPM_GPG_PRIVATE_KEY }}
-          TAURI_SIGNING_RPM_KEY_PASSPHRASE: ${{ secrets.RPM_GPG_PASSPHRASE }}
         run: npm run tauri:build
 
       - name: Add Apache SPA fallback for WHC
