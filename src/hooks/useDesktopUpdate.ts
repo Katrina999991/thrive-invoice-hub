@@ -345,12 +345,12 @@ export function getUpdateInstructions(
       return {
         title: "Comment mettre à jour sur Linux",
         steps: [
-          `Téléchargez le nouvel AppImage${fileHint}.`,
+          `Téléchargez le nouvel AppImage${fileHint} depuis gestionflow.net.`,
           "Fermez GestionFlow complètement.",
-          "Rendez le fichier exécutable : clic droit → Propriétés → autoriser l'exécution, ou chmod +x sur le fichier.",
-          "Remplacez l'ancien AppImage par le nouveau, puis lancez-le.",
+          "Clic droit sur le nouveau fichier → Propriétés → onglet Permissions : cochez « Est exécutable ».",
+          "Double-cliquez le nouveau fichier (s'il demande « Exécuter », confirmez). Vous pouvez supprimer l'ancien AppImage.",
         ],
-        note: "Si vous aviez installé le .deb, téléchargez plutôt le nouveau .deb depuis GitHub et installez-le par-dessus.",
+        note: "Pas de mot de passe administrateur. Si vous aviez installé le .deb, téléchargez le nouveau .deb et installez-le par-dessus.",
       };
     }
 
@@ -397,12 +397,12 @@ export function getUpdateInstructions(
     return {
       title: "How to update on Linux",
       steps: [
-        `Download the new AppImage${fileHint}.`,
+        `Download the new AppImage${fileHint} from gestionflow.net.`,
         "Quit GestionFlow completely.",
-        "Make the file executable: right-click → Properties → allow executing, or chmod +x the file.",
-        "Replace the old AppImage with the new one, then launch it.",
+        "Right-click the new file → Properties → Permissions: check “Is executable”.",
+        "Double-click the new file (if it asks to Run, confirm). You can delete the old AppImage.",
       ],
-      note: "If you installed the .deb package, download the new .deb from GitHub and install it over the current one.",
+      note: "No administrator password. If you installed the .deb package, download the new .deb and install it over the current one.",
     };
   }
 

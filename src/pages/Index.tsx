@@ -1089,22 +1089,47 @@ const Index = () => {
               <p className="text-sm font-semibold tracking-wide uppercase text-muted-foreground mb-3 text-center">
                 Linux
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <a
-                  href={DESKTOP_DOWNLOADS.linuxAppImage}
-                  download={DESKTOP_DOWNLOAD_FILES.linuxAppImage}
-                  className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
-                >
-                  <div className="flex items-center gap-2 font-semibold text-foreground">
-                    <Download className="h-4 w-4 text-primary" />
-                    AppImage
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {currentLang === "FR"
-                      ? "Toutes les distributions. Fichier portable : rendez-le exécutable, puis lancez-le."
-                      : "Any Linux distro. Portable file: make it executable, then run it."}
-                  </p>
-                </a>
+              <div className="rounded-xl border border-primary/30 bg-background p-5 mb-3">
+                <div className="flex items-center gap-2 font-semibold text-foreground">
+                  <Download className="h-4 w-4 text-primary" />
+                  {currentLang === "FR" ? "AppImage — recommandé" : "AppImage — recommended"}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {currentLang === "FR"
+                    ? "Fonctionne sur Fedora, Ubuntu, et les autres distributions. Pas de mot de passe administrateur."
+                    : "Works on Fedora, Ubuntu, and other distributions. No administrator password."}
+                </p>
+                <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  {(currentLang === "FR"
+                    ? [
+                        "Cliquez sur Télécharger l'AppImage, puis ouvrez le dossier Téléchargements.",
+                        "Clic droit sur le fichier GestionFlow_….AppImage → Propriétés.",
+                        "Onglet Permissions (ou Droits) : cochez « Est exécutable » ou « Autoriser l'exécution du fichier comme un programme ».",
+                        "Fermez la fenêtre, puis double-cliquez sur le fichier. S'il demande « Exécuter » ou « Lancer », confirmez.",
+                      ]
+                    : [
+                        "Click Download AppImage, then open your Downloads folder.",
+                        "Right-click the GestionFlow_….AppImage file → Properties.",
+                        "Permissions tab: check “Is executable” or “Allow executing file as program”.",
+                        "Close the window, then double-click the file. If it asks to Run or Execute, confirm.",
+                      ]
+                  ).map((step, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+                <Button asChild className="mt-4 gap-2">
+                  <a href={DESKTOP_DOWNLOADS.linuxAppImage} download={DESKTOP_DOWNLOAD_FILES.linuxAppImage}>
+                    <Download className="h-4 w-4" />
+                    {currentLang === "FR" ? "Télécharger l'AppImage" : "Download AppImage"}
+                  </a>
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <a
                   href={DESKTOP_DOWNLOADS.linuxDeb}
                   download={DESKTOP_DOWNLOAD_FILES.linuxDeb}
@@ -1131,8 +1156,8 @@ const Index = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
                     {currentLang === "FR"
-                      ? "Téléchargez le fichier, puis ouvrez-le. Entrez le mot de passe administrateur pour installer. Les mises à jour se feront ensuite dans Discover."
-                      : "Download the file, then open it. Enter your administrator password to install. Updates then come through Discover."}
+                      ? "Si Discover n'offre pas d'installation, utilisez plutôt l'AppImage ci-dessus."
+                      : "If Discover does not offer an install button, use the AppImage above instead."}
                   </p>
                 </a>
               </div>
