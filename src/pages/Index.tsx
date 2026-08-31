@@ -37,7 +37,7 @@ import invoicesPreviewEn from "@/assets/invoices-preview-en.jpg";
 import timeTrackingPreview from "@/assets/dashboard-preview-time-tracking.jpg";
 import reportsPreview from "@/assets/dashboard-preview-reports.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
-import { DESKTOP_DOWNLOADS } from "@/lib/desktopDownloads";
+import { DESKTOP_DOWNLOAD_FILES, DESKTOP_DOWNLOADS } from "@/lib/desktopDownloads";
 import { useState, useEffect } from "react";
 import { useSEO } from "@/hooks/useSEO";
 import PublicNavigation from "@/components/PublicNavigation";
@@ -1092,8 +1092,7 @@ const Index = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <a
                   href={DESKTOP_DOWNLOADS.linuxAppImage}
-                  target="_blank"
-                  rel="noreferrer"
+                  download={DESKTOP_DOWNLOAD_FILES.linuxAppImage}
                   className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 >
                   <div className="flex items-center gap-2 font-semibold text-foreground">
@@ -1108,8 +1107,7 @@ const Index = () => {
                 </a>
                 <a
                   href={DESKTOP_DOWNLOADS.linuxDeb}
-                  target="_blank"
-                  rel="noreferrer"
+                  download={DESKTOP_DOWNLOAD_FILES.linuxDeb}
                   className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 >
                   <div className="flex items-center gap-2 font-semibold text-foreground">
@@ -1118,14 +1116,13 @@ const Index = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
                     {currentLang === "FR"
-                      ? "Ubuntu, Debian, Linux Mint, Pop!_OS. Ouvrez le fichier ou installez-le avec apt."
-                      : "Ubuntu, Debian, Linux Mint, Pop!_OS. Open the file or install it with apt."}
+                      ? "Ubuntu, Debian, Linux Mint, Pop!_OS. Téléchargez le fichier, puis : sudo apt install ./GestionFlow_*.deb"
+                      : "Ubuntu, Debian, Linux Mint, Pop!_OS. Download the file, then: sudo apt install ./GestionFlow_*.deb"}
                   </p>
                 </a>
                 <a
                   href={DESKTOP_DOWNLOADS.linuxRpm}
-                  target="_blank"
-                  rel="noreferrer"
+                  download={DESKTOP_DOWNLOAD_FILES.linuxRpm}
                   className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 >
                   <div className="flex items-center gap-2 font-semibold text-foreground">
@@ -1134,8 +1131,8 @@ const Index = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
                     {currentLang === "FR"
-                      ? "Fedora, RHEL, Rocky Linux, AlmaLinux. Installez-le avec dnf ou rpm."
-                      : "Fedora, RHEL, Rocky Linux, AlmaLinux. Install it with dnf or rpm."}
+                      ? "Fedora, RHEL, Rocky Linux, AlmaLinux. Téléchargez le fichier, puis : sudo dnf install ./GestionFlow-*.rpm"
+                      : "Fedora, RHEL, Rocky Linux, AlmaLinux. Download the file, then: sudo dnf install ./GestionFlow-*.rpm"}
                   </p>
                 </a>
               </div>

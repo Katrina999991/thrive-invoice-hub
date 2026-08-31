@@ -58,6 +58,15 @@ jobs:
         shell: bash
         run: node -e "require('fs').copyFileSync('public/.htaccess', 'dist/.htaccess')"
 
+      - name: Add Linux packages to website downloads
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p dist/downloads
+          cp src-tauri/target/release/bundle/deb/*.deb dist/downloads/
+          cp src-tauri/target/release/bundle/rpm/*.rpm dist/downloads/
+          ls -la dist/downloads
+
       - name: Upload installers
         uses: actions/upload-artifact@v5
         with:

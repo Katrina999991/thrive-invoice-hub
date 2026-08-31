@@ -1,6 +1,17 @@
 RewriteEngine On
 RewriteBase /
 
+# Force .rpm/.deb to download as a file. KDE Discover intercepts
+# application/x-rpm URLs and shows no install button.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(rpm|deb)$">
+    ForceType application/octet-stream
+    Header set Content-Type "application/octet-stream"
+    Header set Content-Disposition "attachment"
+  </FilesMatch>
+</IfModule>
+AddType application/octet-stream .rpm .deb
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
