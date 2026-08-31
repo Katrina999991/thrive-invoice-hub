@@ -27,17 +27,16 @@ if [[ -n "${RPM_GPG_PRIVATE_KEY:-}" ]]; then
   printf '%s' "${RPM_GPG_PASSPHRASE:-}" > "$PASS_FILE"
   chmod 600 "$PASS_FILE"
 
+  export GPG_TTY=/dev/null
   cat > "$HOME/.rpmmacros" <<EOF
 %_signature gpg
-%_gpg_path $GNUPGHOME
 %_gpg_name $KEY_ID
 %_gpgbin /usr/bin/gpg
 %__gpg /usr/bin/gpg
-%__gpg_sign_cmd %{__gpg} \\
-  gpg --batch --yes --pinentry-mode loopback --passphrase-file $PASS_FILE \\
-  --local-user %{_gpg_name} --detach-sign --no-armor \\
-  --output %{__signature_filename} %{__plaintext_filename}
+%__gpg_sign_cmd %{__gpg} --batch --yes --pinentry-mode loopback --passphrase-file $PASS_FILE --local-user %{_gpg_name} --detach-sign --no-armor --output %{__signature_filename} %{__plaintext_filename}
 EOF
+
+  rpm --import "$OUT/RPM-GPG-KEY-gestionflow"
 
   for rpm in "$OUT/x86_64"/*.rpm; do
     echo "Signing $rpm"
