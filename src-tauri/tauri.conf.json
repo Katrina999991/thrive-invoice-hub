@@ -44,9 +44,12 @@
       },
       "rpm": {
         "desktopTemplate": "linux/GestionFlow.desktop",
+        "postInstallScript": "linux/rpm-postinstall.sh",
         "provides": ["gestionflow"],
         "files": {
-          "/usr/share/metainfo/ca.statis.GestionFlow.metainfo.xml": "linux/ca.statis.GestionFlow.metainfo.xml"
+          "/usr/share/metainfo/ca.statis.GestionFlow.metainfo.xml": "linux/ca.statis.GestionFlow.metainfo.xml",
+          "/etc/yum.repos.d/gestionflow.repo": "../public/rpm/gestionflow.repo",
+          "/etc/pki/rpm-gpg/RPM-GPG-KEY-gestionflow": "../public/rpm/RPM-GPG-KEY-gestionflow"
         }
       }
     },

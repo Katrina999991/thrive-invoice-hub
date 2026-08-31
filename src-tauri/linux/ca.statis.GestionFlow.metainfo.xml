@@ -10,7 +10,7 @@
   </developer>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>LicenseRef-proprietary</project_license>
-  <launchable type="desktop-id">ca.statis.GestionFlow.desktop</launchable>
+  <launchable type="desktop-id">GestionFlow.desktop</launchable>
   <url type="homepage">https://gestionflow.net</url>
   <url type="help">https://gestionflow.net/contact</url>
   <url type="vcs-browser">https://github.com/Katrina999991/thrive-invoice-hub</url>
