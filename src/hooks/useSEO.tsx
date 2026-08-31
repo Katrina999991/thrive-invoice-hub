@@ -76,7 +76,7 @@ export const useSEO = ({
     updateMetaTag('og:locale', isEnglish ? 'en_US' : 'fr_FR', true);
     updateMetaTag('og:site_name', 'GestionFlow', true);
     
-    const resolvedOgImage = ogImage || 'https://gestionflow.net/og-image.png?v=4';
+    const resolvedOgImage = ogImage || 'https://gestionflow.net/og-image.png?v=5';
     updateMetaTag('og:image', resolvedOgImage, true);
     updateMetaTag('og:image:alt', title || defaultTitle, true);
     updateMetaTag('og:image:width', '1200', true);
