@@ -7,10 +7,12 @@
   ],
   "permissions": [
     "core:default",
+    "open-download-url",
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://dkinzkawntfzkabroeib.supabase.co/**" }
+        { "url": "https://dkinzkawntfzkabroeib.supabase.co/**" },
+        { "url": "https://api.github.com/**" }
       ]
     }
   ]

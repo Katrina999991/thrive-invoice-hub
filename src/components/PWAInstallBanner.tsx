@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { X, Download, Sparkles, Share, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
+import { isTauriRuntime } from "@/lib/desktopRuntime";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -198,7 +199,7 @@ export function PWAInstallBanner() {
     localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
   };
 
-  if (!showBanner) return null;
+  if (!showBanner || isTauriRuntime()) return null;
 
   // Device-specific copy
   const getDeviceSpecificCopy = () => {

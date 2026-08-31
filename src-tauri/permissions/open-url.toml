@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "open-download-url"
+description = "Opens an allowed HTTPS download or website URL in the system browser"
+commands.allow = ["open_external_url"]

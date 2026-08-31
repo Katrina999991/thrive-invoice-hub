@@ -54,7 +54,9 @@ import { ContactForm } from "@/components/ContactForm";
 import { useEncryption } from "@/hooks/useEncryption";
 import { useEmailPreferences } from "@/hooks/useEmailPreferences";
 import { PWAInstallSection } from "@/components/PWAInstallSection";
+import { DesktopUpdateSection } from "@/components/DesktopUpdateSection";
 import { LateFeeSettings } from "@/components/LateFeeSettings";
+import { isTauriRuntime } from "@/lib/desktopRuntime";
 
 
 export default function Settings() {
@@ -2056,7 +2058,7 @@ Cordialement,
           </CardContent>
         </Card>
 
-        <PWAInstallSection />
+        {isTauriRuntime() ? <DesktopUpdateSection /> : <PWAInstallSection />}
 
         <MFASecuritySection />
 
