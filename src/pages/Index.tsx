@@ -1104,13 +1104,13 @@ const Index = () => {
                     ? [
                         "Cliquez sur Télécharger l'AppImage, puis ouvrez le dossier Téléchargements.",
                         "Clic droit sur le fichier GestionFlow_….AppImage → Propriétés.",
-                        "Onglet Permissions (ou Droits) : cochez « Est exécutable » ou « Autoriser l'exécution du fichier comme un programme ».",
+                        "Onglet Permissions : cochez « Allow executing file as program » (parfois affiché « Autoriser l'exécution du fichier comme un programme »).",
                         "Fermez la fenêtre, puis double-cliquez sur le fichier. S'il demande « Exécuter » ou « Lancer », confirmez.",
                       ]
                     : [
                         "Click Download AppImage, then open your Downloads folder.",
                         "Right-click the GestionFlow_….AppImage file → Properties.",
-                        "Permissions tab: check “Is executable” or “Allow executing file as program”.",
+                        "Permissions tab: check “Allow executing file as program”.",
                         "Close the window, then double-click the file. If it asks to Run or Execute, confirm.",
                       ]
                   ).map((step, index) => (

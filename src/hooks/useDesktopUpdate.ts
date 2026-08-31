@@ -347,7 +347,7 @@ export function getUpdateInstructions(
         steps: [
           `Téléchargez le nouvel AppImage${fileHint} depuis gestionflow.net.`,
           "Fermez GestionFlow complètement.",
-          "Clic droit sur le nouveau fichier → Propriétés → onglet Permissions : cochez « Est exécutable ».",
+          "Clic droit sur le nouveau fichier → Propriétés → Permissions : cochez « Allow executing file as program ».",
           "Double-cliquez le nouveau fichier (s'il demande « Exécuter », confirmez). Vous pouvez supprimer l'ancien AppImage.",
         ],
         note: "Pas de mot de passe administrateur. Si vous aviez installé le .deb, téléchargez le nouveau .deb et installez-le par-dessus.",
@@ -399,7 +399,7 @@ export function getUpdateInstructions(
       steps: [
         `Download the new AppImage${fileHint} from gestionflow.net.`,
         "Quit GestionFlow completely.",
-        "Right-click the new file → Properties → Permissions: check “Is executable”.",
+        "Right-click the new file → Properties → Permissions: check “Allow executing file as program”.",
         "Double-click the new file (if it asks to Run, confirm). You can delete the old AppImage.",
       ],
       note: "No administrator password. If you installed the .deb package, download the new .deb and install it over the current one.",
