@@ -76,9 +76,11 @@ export const useSEO = ({
     updateMetaTag('og:locale', isEnglish ? 'en_US' : 'fr_FR', true);
     updateMetaTag('og:site_name', 'GestionFlow', true);
     
-    const resolvedOgImage = ogImage || 'https://gestionflow.net/og-image.png';
+    const resolvedOgImage = ogImage || 'https://gestionflow.net/og-image.png?v=4';
     updateMetaTag('og:image', resolvedOgImage, true);
     updateMetaTag('og:image:alt', title || defaultTitle, true);
+    updateMetaTag('og:image:width', '1200', true);
+    updateMetaTag('og:image:height', '630', true);
 
     // Twitter Card tags
     updateMetaTag('twitter:card', 'summary_large_image');
