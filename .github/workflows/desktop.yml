@@ -46,17 +46,24 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev \
-            libappindicator3-dev librsvg2-dev patchelf rpm
+            libappindicator3-dev librsvg2-dev patchelf rpm \
+            createrepo-c gnupg
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build desktop application
+        env:
+          TAURI_SIGNING_RPM_KEY: ${{ secrets.RPM_GPG_PRIVATE_KEY }}
+          TAURI_SIGNING_RPM_KEY_PASSPHRASE: ${{ secrets.RPM_GPG_PASSPHRASE }}
         run: npm run tauri:build
 
       - name: Add Apache SPA fallback for WHC
         shell: bash
-        run: node -e "require('fs').copyFileSync('public/.htaccess', 'dist/.htaccess')"
+        run: |
+          node -e "require('fs').copyFileSync('public/.htaccess', 'dist/.htaccess')"
+          mkdir -p dist/rpm
+          node -e "require('fs').copyFileSync('public/rpm/.htaccess', 'dist/rpm/.htaccess')"
 
       - name: Add Linux packages to website downloads
         if: runner.os == 'Linux'
@@ -66,6 +73,24 @@ jobs:
           cp src-tauri/target/release/bundle/deb/*.deb dist/downloads/
           cp src-tauri/target/release/bundle/rpm/*.rpm dist/downloads/
           ls -la dist/downloads
+
+      - name: Build signed RPM repository
+        if: runner.os == 'Linux'
+        env:
+          RPM_GPG_PRIVATE_KEY: ${{ secrets.RPM_GPG_PRIVATE_KEY }}
+          RPM_GPG_PASSPHRASE: ${{ secrets.RPM_GPG_PASSPHRASE }}
+          RPM_GPG_KEY_ID: ${{ secrets.RPM_GPG_KEY_ID }}
+        run: bash scripts/build-rpm-repo.sh
+
+      - name: Upload RPM repository for WHC
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v5
+        with:
+          name: gestionflow-rpm-repo
+          path: rpm-repo
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload installers
         uses: actions/upload-artifact@v5

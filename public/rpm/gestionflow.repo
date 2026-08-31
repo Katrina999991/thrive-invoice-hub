@@ -1,0 +1,7 @@
+[gestionflow]
+name=GestionFlow
+baseurl=https://gestionflow.net/rpm/x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://gestionflow.net/rpm/RPM-GPG-KEY-gestionflow

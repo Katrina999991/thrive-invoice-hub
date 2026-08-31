@@ -14,6 +14,8 @@ const siteUrl = (file: string) => `/downloads/${file}`;
 export const DESKTOP_DOWNLOADS = {
   windowsSetup: githubUrl(DESKTOP_DOWNLOAD_FILES.windowsSetup),
   linuxAppImage: githubUrl(DESKTOP_DOWNLOAD_FILES.linuxAppImage),
+  linuxRepo: "https://gestionflow.net/rpm/gestionflow.repo",
+  linuxGpgKey: "https://gestionflow.net/rpm/RPM-GPG-KEY-gestionflow",
   // Same-origin package files so Fedora/KDE does not open Discover
   // on application/x-rpm instead of downloading the file.
   linuxDeb: import.meta.env.PROD

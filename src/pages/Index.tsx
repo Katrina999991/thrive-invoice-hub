@@ -1120,21 +1120,29 @@ const Index = () => {
                       : "Ubuntu, Debian, Linux Mint, Pop!_OS. Download the file, then: sudo apt install ./GestionFlow_*.deb"}
                   </p>
                 </a>
-                <a
-                  href={DESKTOP_DOWNLOADS.linuxRpm}
-                  download={DESKTOP_DOWNLOAD_FILES.linuxRpm}
-                  className="h-full rounded-xl border border-border bg-background p-4 hover:border-primary/50 hover:bg-primary/5 transition-colors"
-                >
+                <div className="h-full rounded-xl border border-border bg-background p-4">
                   <div className="flex items-center gap-2 font-semibold text-foreground">
                     <Download className="h-4 w-4 text-primary" />
-                    {currentLang === "FR" ? ".rpm — Fedora / RHEL" : ".rpm — Fedora / RHEL"}
+                    {currentLang === "FR" ? "Fedora / RHEL" : "Fedora / RHEL"}
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
                     {currentLang === "FR"
-                      ? "Fedora, RHEL, Rocky Linux, AlmaLinux. Téléchargez le fichier, puis : sudo dnf install ./GestionFlow-*.rpm"
-                      : "Fedora, RHEL, Rocky Linux, AlmaLinux. Download the file, then: sudo dnf install ./GestionFlow-*.rpm"}
+                      ? "Dépôt (recommandé). Ensuite Discover ou :"
+                      : "Package repo (recommended). Then Discover or:"}
                   </p>
-                </a>
+                  <pre className="mt-2 text-xs bg-muted/60 rounded-md p-2 overflow-x-auto whitespace-pre-wrap">
+{`sudo curl -fsSL -o /etc/yum.repos.d/gestionflow.repo ${DESKTOP_DOWNLOADS.linuxRepo}
+sudo rpm --import ${DESKTOP_DOWNLOADS.linuxGpgKey}
+sudo dnf install GestionFlow`}
+                  </pre>
+                  <a
+                    href={DESKTOP_DOWNLOADS.linuxRpm}
+                    download={DESKTOP_DOWNLOAD_FILES.linuxRpm}
+                    className="inline-flex items-center gap-1 text-sm text-primary mt-3 hover:underline"
+                  >
+                    {currentLang === "FR" ? "Ou télécharger le .rpm" : "Or download the .rpm"}
+                  </a>
+                </div>
               </div>
             </div>
           </div>

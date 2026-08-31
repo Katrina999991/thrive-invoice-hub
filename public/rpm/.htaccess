@@ -1,0 +1,10 @@
+Options +Indexes
+AddType text/plain .repo
+<Files "RPM-GPG-KEY-gestionflow">
+  ForceType application/pgp-keys
+  Header unset Content-Disposition
+</Files>
+# dnf must fetch packages as a repo, not as a browser download
+<FilesMatch "\.(rpm|xml|gz|asc|sqlite)$">
+  Header unset Content-Disposition
+</FilesMatch>

@@ -44,6 +44,7 @@
       },
       "rpm": {
         "desktopTemplate": "linux/GestionFlow.desktop",
+        "provides": ["gestionflow"],
         "files": {
           "/usr/share/metainfo/ca.statis.GestionFlow.metainfo.xml": "linux/ca.statis.GestionFlow.metainfo.xml"
         }
