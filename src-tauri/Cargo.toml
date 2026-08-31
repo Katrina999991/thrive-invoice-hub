@@ -3,8 +3,8 @@ name = "gestionflow"
 version = "0.1.0"
 description = "GestionFlow - Gestion d'entreprise"
 authors = ["Statis"]
-license = ""
-repository = ""
+license = "LicenseRef-proprietary"
+repository = "https://github.com/Katrina999991/thrive-invoice-hub"
 edition = "2021"
 rust-version = "1.77.2"
 
