@@ -996,13 +996,6 @@ Cordialement,
                       ? "Votre compte Stripe est configuré et prêt à recevoir des paiements. Vous pouvez maintenant générer des liens de paiement pour vos factures." 
                       : "Your Stripe account is set up and ready to receive payments. You can now generate payment links for your invoices."}
                   </p>
-                  {/* Account ID only visible to Owner */}
-                  {isOwner && stripeAccountId && (
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {language === "fr" ? "ID du compte: " : "Account ID: "}
-                      {stripeAccountId}
-                    </p>
-                  )}
                   {/* Action buttons only visible to Owner */}
                   {isOwner && (
                     <div className="flex gap-2">
@@ -1061,12 +1054,6 @@ Cordialement,
                           ? "Vous avez commencé la configuration de votre compte Stripe mais ne l'avez pas terminée. Vous pouvez continuer ou annuler pour changer de compte." 
                           : "You started setting up your Stripe account but didn't complete it. You can continue or cancel to change accounts."}
                       </p>
-                      {stripeAccountId && (
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {language === "fr" ? "ID du compte: " : "Account ID: "}
-                          {stripeAccountId}
-                        </p>
-                      )}
                       <div className="flex gap-2">
                         <Button 
                           onClick={startOnboarding}
