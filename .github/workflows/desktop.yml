@@ -89,6 +89,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Include complete RPM repository in WHC web files
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          rm -rf dist/rpm
+          mkdir -p dist/rpm
+          cp -R rpm-repo/. dist/rpm/
+          find dist/rpm -type f | sort
+
       - name: Upload installers
         uses: actions/upload-artifact@v5
         with:
