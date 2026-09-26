@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Clock, FileText, Trash2, Pencil, Filter, X, Play, Square, Pause, Lock, AlertCircle, Check, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Archive, ArchiveRestore, RotateCcw } from "lucide-react";
@@ -134,6 +134,7 @@ export default function TimeTracking() {
   const [isStartTimerDialogOpen, setIsStartTimerDialogOpen] = useState(false);
   const [timerClientId, setTimerClientId] = useState<string>("");
   const [timerServiceId, setTimerServiceId] = useState<string>("");
+  const preserveStoppedTimerDuration = useRef(false);
   
   // Timer entry data for rounding - stored when timer is stopped
   const [timerEntryData, setTimerEntryData] = useState<{
@@ -292,6 +293,12 @@ export default function TimeTracking() {
     if (activeTimer.totalPausedMs) {
       rawDurationMs -= activeTimer.totalPausedMs;
     }
+
+    // If the timer is stopped while paused, the current pause has not been
+    // added to totalPausedMs yet (it is normally added when resuming).
+    if (activeTimer.isPaused && activeTimer.pausedAt) {
+      rawDurationMs -= now.getTime() - new Date(activeTimer.pausedAt).getTime();
+    }
     
     const rawMinutes = Math.max(0, Math.round(rawDurationMs / (1000 * 60)));
     
@@ -318,6 +325,9 @@ export default function TimeTracking() {
       durationRawMinutes: rawMinutes,
       durationBilledMinutes: billedMinutes
     });
+    // The displayed range covers the whole wall-clock interval, including
+    // pauses. Keep the duration computed above when the range effect runs.
+    preserveStoppedTimerDuration.current = true;
     
     // Reset form and populate with timer data
     form.reset({
@@ -482,6 +492,11 @@ export default function TimeTracking() {
       
       // Recalculate billed minutes when time ranges change for a timer entry
       if (timerEntryData?.isFromTimer) {
+        if (preserveStoppedTimerDuration.current) {
+          preserveStoppedTimerDuration.current = false;
+          return;
+        }
+
         const totalMinutesFromRanges = timeRanges.reduce((acc, range) => {
           if (!range.start_time || !range.end_time) return acc;
           const [sh, sm] = range.start_time.split(':').map(Number);
@@ -587,11 +602,30 @@ export default function TimeTracking() {
         date: data.date,
         notes: data.notes || null,
       };
+
+      const editingTimerEntry = timeEntries.find(entry => entry.id === editingEntry);
+
+      // Once an existing timer entry is switched to manual mode, its stored
+      // timer metadata must no longer override the manually entered hours.
+      if (editingTimerEntry?.source === "timer" && !useTimeRange) {
+        updateData.duration_raw_minutes = null;
+        updateData.duration_billed_minutes = null;
+        updateData.source = "manual";
+      }
       
       // Include updated rounding data for timer entries
       if (timerEntryData?.isFromTimer) {
-        updateData.duration_raw_minutes = timerEntryData.durationRawMinutes;
-        updateData.duration_billed_minutes = timerEntryData.durationBilledMinutes;
+        if (useTimeRange) {
+          updateData.duration_raw_minutes = timerEntryData.durationRawMinutes;
+          updateData.duration_billed_minutes = timerEntryData.durationBilledMinutes;
+        } else {
+          // Switching a timer entry to manual hours must discard the old
+          // timer duration, otherwise the list keeps displaying the old
+          // billed value instead of the manually entered hours.
+          updateData.duration_raw_minutes = null;
+          updateData.duration_billed_minutes = null;
+          updateData.source = "manual";
+        }
       }
       
       await updateTimeEntry(editingEntry, updateData, ranges);
@@ -646,6 +680,7 @@ export default function TimeTracking() {
   };
 
   const handleEdit = (entry: typeof timeEntries[0]) => {
+    preserveStoppedTimerDuration.current = false;
     setEditingEntry(entry.id);
     
     // Restore timerEntryData if this was a timer-sourced entry
@@ -2191,6 +2226,10 @@ export default function TimeTracking() {
                       setBaseHours(0);
                       form.setValue("start_time", "");
                       form.setValue("end_time", "");
+                      // Manual hours are authoritative; do not retain the
+                      // timer's old rounded duration after switching modes.
+                      preserveStoppedTimerDuration.current = false;
+                      setTimerEntryData(null);
                     }
                   }}
                 />
