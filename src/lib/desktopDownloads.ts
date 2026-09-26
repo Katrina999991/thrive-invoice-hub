@@ -6,22 +6,28 @@ export const DESKTOP_DOWNLOAD_FILES = {
   linuxAppImage: "GestionFlow_0.1.1_amd64.AppImage",
   linuxDeb: "GestionFlow_0.1.1_amd64.deb",
   linuxRpm: "GestionFlow-0.1.1-1.x86_64.rpm",
+  macosDmg: "GestionFlow_0.1.1_aarch64.dmg",
 } as const;
 
 const githubUrl = (file: string) => `${DESKTOP_RELEASE_BASE}/${file}`;
 const siteUrl = (file: string) => `/downloads/${file}`;
 
 export const DESKTOP_DOWNLOADS = {
-  windowsSetup: githubUrl(DESKTOP_DOWNLOAD_FILES.windowsSetup),
-  linuxAppImage: githubUrl(DESKTOP_DOWNLOAD_FILES.linuxAppImage),
-  linuxRepo: "https://gestionflow.net/rpm/gestionflow.repo",
-  linuxGpgKey: "https://gestionflow.net/rpm/RPM-GPG-KEY-gestionflow",
-  // Same-origin package files so Fedora/KDE does not open Discover
-  // on application/x-rpm instead of downloading the file.
+  windowsSetup: import.meta.env.PROD
+    ? siteUrl(DESKTOP_DOWNLOAD_FILES.windowsSetup)
+    : githubUrl(DESKTOP_DOWNLOAD_FILES.windowsSetup),
+  linuxAppImage: import.meta.env.PROD
+    ? siteUrl(DESKTOP_DOWNLOAD_FILES.linuxAppImage)
+    : githubUrl(DESKTOP_DOWNLOAD_FILES.linuxAppImage),
+  linuxRepo: "/rpm/gestionflow.repo",
+  linuxGpgKey: "/rpm/RPM-GPG-KEY-gestionflow",
   linuxDeb: import.meta.env.PROD
     ? siteUrl(DESKTOP_DOWNLOAD_FILES.linuxDeb)
     : githubUrl(DESKTOP_DOWNLOAD_FILES.linuxDeb),
   linuxRpm: import.meta.env.PROD
     ? siteUrl(DESKTOP_DOWNLOAD_FILES.linuxRpm)
     : githubUrl(DESKTOP_DOWNLOAD_FILES.linuxRpm),
+  macosDmg: import.meta.env.PROD
+    ? siteUrl(DESKTOP_DOWNLOAD_FILES.macosDmg)
+    : githubUrl(DESKTOP_DOWNLOAD_FILES.macosDmg),
 } as const;

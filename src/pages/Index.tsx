@@ -1074,7 +1074,7 @@ const Index = () => {
                 <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "Windows disponible" : "Windows available"}
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
-                <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "macOS bientôt disponible" : "macOS coming soon"}
+                <Laptop className="h-4 w-4 text-primary" /> {currentLang === "FR" ? "macOS disponible" : "macOS available"}
               </span>
             </div>
             <div className="flex flex-wrap justify-center gap-3 mb-10">
@@ -1082,6 +1082,12 @@ const Index = () => {
                 <a href={DESKTOP_DOWNLOADS.windowsSetup} target="_blank" rel="noreferrer">
                   <Download className="h-5 w-5" />
                   Windows
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="gap-2">
+                <a href={DESKTOP_DOWNLOADS.macosDmg} download={DESKTOP_DOWNLOAD_FILES.macosDmg}>
+                  <Download className="h-5 w-5" />
+                  macOS
                 </a>
               </Button>
             </div>
