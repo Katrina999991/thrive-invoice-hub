@@ -34,6 +34,7 @@ const translations = {
     "nav.reports": "Reports",
     "nav.pricing": "Pricing",
     "nav.settings": "Settings",
+    "nav.downloads": "Download app",
     "nav.admin": "Admin",
     
     // Dashboard
@@ -906,6 +907,7 @@ const translations = {
     "nav.reports": "Rapports",
     "nav.pricing": "Tarification",
     "nav.settings": "Paramètres",
+    "nav.downloads": "Télécharger l'application",
     "nav.admin": "Admin",
     
     // Dashboard

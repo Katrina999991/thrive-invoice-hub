@@ -12,6 +12,7 @@ import {
   Receipt,
   BarChart3,
   Settings,
+  Download,
   ChevronDown,
   Crown,
   Lock
@@ -145,6 +146,7 @@ export function AppSidebar() {
   const settingsItems = [
     { titleKey: "nav.pricing", url: "/dashboard/pricing", icon: Crown, requiresFeature: null, adminOnly: false, requiredPermission: "settings:view" },
     { titleKey: "nav.settings", url: "/dashboard/settings", icon: Settings, requiresFeature: null, adminOnly: false, requiredPermission: "settings:view" },
+    { titleKey: "nav.downloads", url: "/dashboard/downloads", icon: Download, requiresFeature: null, adminOnly: false, requiredPermission: null },
   ];
 
   const visibleSettingsItems = settingsItems.filter(item => {

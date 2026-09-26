@@ -24,6 +24,7 @@ import Invoices from "./pages/Invoices";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import DesktopDownloads from "./pages/DesktopDownloads";
 import AuditLogs from "./pages/AuditLogs";
 import TimeTracking from "./pages/TimeTracking";
 import Pricing from "./pages/Pricing";
@@ -100,6 +101,7 @@ const App = () => {
                   <Route path="reports" element={<Reports />} />
                   <Route path="pricing" element={<Pricing />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="downloads" element={<DesktopDownloads />} />
                   <Route path="audit-logs" element={<AuditLogs />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
