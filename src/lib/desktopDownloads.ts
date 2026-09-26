@@ -2,7 +2,7 @@ const DESKTOP_RELEASE_TAG = "v0.1.1";
 const DESKTOP_RELEASE_BASE = `https://github.com/Katrina999991/thrive-invoice-hub/releases/download/${DESKTOP_RELEASE_TAG}`;
 
 export const DESKTOP_DOWNLOAD_FILES = {
-  windowsSetup: "GestionFlow_0.1.1_x64-setup.exe",
+  windowsSetup: "GestionFlow_0.1.1_windows.zip",
   linuxAppImage: "GestionFlow_0.1.1_amd64.AppImage",
   linuxDeb: "GestionFlow_0.1.1_amd64.deb",
   linuxRpm: "GestionFlow-0.1.1-1.x86_64.rpm",

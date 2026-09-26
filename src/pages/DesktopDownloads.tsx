@@ -6,7 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { DESKTOP_DOWNLOAD_FILES, DESKTOP_DOWNLOADS } from "@/lib/desktopDownloads";
 
 const downloadItems = [
-  { key: "windows", icon: Monitor, file: "windowsSetup" as const, label: "Windows", descriptionFr: "Installateur Windows (.exe)", descriptionEn: "Windows installer (.exe)" },
+  { key: "windows", icon: Monitor, file: "windowsSetup" as const, label: "Windows", descriptionFr: "Archive ZIP contenant l'installateur Windows", descriptionEn: "ZIP archive containing the Windows installer" },
   { key: "macos", icon: Laptop, file: "macosDmg" as const, label: "macOS", descriptionFr: "Application macOS (.dmg)", descriptionEn: "macOS application (.dmg)" },
   { key: "appimage", icon: Laptop, file: "linuxAppImage" as const, label: "Linux AppImage", descriptionFr: "Recommandé pour Linux", descriptionEn: "Recommended for Linux" },
   { key: "deb", icon: Laptop, file: "linuxDeb" as const, label: "Ubuntu / Debian", descriptionFr: "Paquet .deb", descriptionEn: ".deb package" },

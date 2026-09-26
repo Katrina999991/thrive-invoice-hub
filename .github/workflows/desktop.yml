@@ -140,6 +140,20 @@ jobs:
           find native-artifacts/gestionflow-macos -type f -name '*.dmg' \
             -exec cp {} dist/downloads/ \;
           cp -R native-artifacts/gestionflow-rpm-repo/. dist/rpm/
+
+          # WHC may reject direct executable downloads. Provide a ZIP that
+          # contains the Windows installers while keeping the native files.
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+
+          windows_files = list(Path("native-artifacts/gestionflow-windows").rglob("*.exe"))
+          windows_files += list(Path("native-artifacts/gestionflow-windows").rglob("*.msi"))
+          with ZipFile("dist/downloads/GestionFlow_0.1.1_windows.zip", "w", ZIP_DEFLATED) as archive:
+              for file in windows_files:
+                  archive.write(file, file.name)
+          PY
+
           find dist/downloads dist/rpm -type f | sort
 
       - name: Upload complete web files for WHC
