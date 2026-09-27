@@ -361,7 +361,9 @@ export const useInvoices = () => {
       console.error("Error updating invoice:", error);
       toast({
         title: "Error",
-        description: "Failed to update invoice",
+        description: error instanceof Error && error.message
+          ? `Failed to update invoice: ${error.message}`
+          : "Failed to update invoice",
         variant: "destructive"
       });
     }
