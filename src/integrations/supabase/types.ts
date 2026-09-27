@@ -90,6 +90,8 @@ export type Database = {
           name_fr: string | null
           updated_at: string
           user_id: string
+          written_off_at: string | null
+          written_off_reason: string | null
         }
         Insert: {
           color?: string | null
@@ -107,6 +109,8 @@ export type Database = {
           name_fr?: string | null
           updated_at?: string
           user_id: string
+          written_off_at?: string | null
+          written_off_reason?: string | null
         }
         Update: {
           color?: string | null
@@ -124,6 +128,8 @@ export type Database = {
           name_fr?: string | null
           updated_at?: string
           user_id?: string
+          written_off_at?: string | null
+          written_off_reason?: string | null
         }
         Relationships: []
       }

@@ -8690,6 +8690,19 @@ const Reports = () => {
                                 {t("reports.invoices.overdue")}
                               </label>
                             </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="status-written-off"
+                                checked={invoiceStatusFilters.includes('written_off')}
+                                onCheckedChange={() => handleStatusToggle('written_off')}
+                              />
+                              <label
+                                htmlFor="status-written-off"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {t("reports.invoices.written_off")}
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </PopoverContent>
@@ -8760,6 +8773,7 @@ const Reports = () => {
                         paid: 'bg-green-100 text-green-800',
                         sent: 'bg-yellow-100 text-yellow-800',
                         overdue: 'bg-red-100 text-red-800',
+                        written_off: 'bg-red-200 text-red-900',
                         draft: 'bg-gray-100 text-gray-800'
                       };
                       

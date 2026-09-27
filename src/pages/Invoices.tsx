@@ -207,6 +207,8 @@ const Invoices = () => {
   const [isReportEmailDialogOpen, setIsReportEmailDialogOpen] = useState(false);
   const [finalReminderInvoice, setFinalReminderInvoice] = useState<Invoice | null>(null);
   const [formalNoticeInvoice, setFormalNoticeInvoice] = useState<Invoice | null>(null);
+  const [writeOffInvoice, setWriteOffInvoice] = useState<Invoice | null>(null);
+  const [writeOffReason, setWriteOffReason] = useState("");
   const [showFeatureUpsell, setShowFeatureUpsell] = useState<'final_reminder' | 'formal_notice' | null>(null);
 
   // Bulk selection state
@@ -728,6 +730,12 @@ const Invoices = () => {
       if (invoice?.status === "paid" && bulkStatus !== "paid") {
         updates.paid_at = null;
       }
+      if (bulkStatus === "written_off") {
+        updates.written_off_at = new Date().toISOString();
+      } else if (invoice?.status === "written_off") {
+        updates.written_off_at = null;
+        updates.written_off_reason = null;
+      }
       await updateInvoice(invoiceId, updates);
     }
     
@@ -741,6 +749,19 @@ const Invoices = () => {
     setSelectedInvoices(new Set());
     setBulkStatusDialogOpen(false);
     setBulkStatus("");
+  };
+
+  const markInvoiceAsWrittenOff = async () => {
+    if (!writeOffInvoice) return;
+
+    await updateInvoice(writeOffInvoice.id, {
+      status: "written_off",
+      written_off_at: new Date().toISOString(),
+      written_off_reason: writeOffReason.trim() || null,
+      paid_at: null,
+    });
+    setWriteOffInvoice(null);
+    setWriteOffReason("");
   };
 
   const handleBulkArchive = async () => {
@@ -794,15 +815,31 @@ const Invoices = () => {
   const paidAmount = filteredInvoices
     .filter(invoice => invoice.status === "paid")
     .reduce((sum, invoice) => sum + invoice.total, 0);
+  const writtenOffAmount = filteredInvoices
+    .filter(invoice => invoice.status === "written_off")
+    .reduce((sum, invoice) => sum + invoice.total, 0);
+  const outstandingAmount = totalAmount - paidAmount - writtenOffAmount;
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid": return "default";
       case "sent": return "outline";
       case "overdue": return "destructive";
+      case "written_off": return "destructive";
       case "draft": return "secondary";
       default: return "secondary";
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      draft: language === "fr" ? "Brouillon" : "Draft",
+      sent: language === "fr" ? "Envoyé" : "Sent",
+      paid: language === "fr" ? "Payé" : "Paid",
+      overdue: language === "fr" ? "En retard" : "Overdue",
+      written_off: language === "fr" ? "Irrécouvrable" : "Written off",
+    };
+    return labels[status] || status;
   };
 
   const downloadInvoicePDF = async (invoice: Invoice) => {
@@ -2147,6 +2184,25 @@ Best regards,
                   </div>
                 )}
 
+                {viewingInvoice && viewingInvoice.status === "written_off" && (
+                  <div className="p-4 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <span className="font-medium text-red-800 dark:text-red-300">
+                        {language === "fr" ? "Facture irrécouvrable" : "Written-off invoice"}
+                      </span>
+                    </div>
+                    <div className="text-sm text-red-700 dark:text-red-400 space-y-1">
+                      {(viewingInvoice as any).written_off_at && (
+                        <p>{language === "fr" ? "Marquée le" : "Marked on"}: {new Date((viewingInvoice as any).written_off_at).toLocaleDateString(language === "fr" ? "fr-CA" : "en-CA")}</p>
+                      )}
+                      {(viewingInvoice as any).written_off_reason && (
+                        <p>{language === "fr" ? "Raison" : "Reason"}: {(viewingInvoice as any).written_off_reason}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Late Fee Info in View Dialog */}
                 {viewingInvoice && (viewingInvoice as any).late_fee_applied_total > 0 && (
                   <div className="p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
@@ -2174,7 +2230,7 @@ Best regards,
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">{t("invoices.totalInvoices")}</CardTitle>
@@ -2204,7 +2260,15 @@ Best regards,
             <CardTitle className="text-xs md:text-sm font-medium">{t("invoices.outstanding")}</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-lg md:text-2xl font-bold text-orange-600">${(totalAmount - paidAmount).toLocaleString()}</div>
+            <div className="text-lg md:text-2xl font-bold text-orange-600">${outstandingAmount.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">{language === "fr" ? "Irrécouvrable" : "Written off"}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold text-red-600">${writtenOffAmount.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
@@ -2281,6 +2345,7 @@ Best regards,
                 <SelectItem value="sent">Envoyé</SelectItem>
                 <SelectItem value="paid">Payé</SelectItem>
                 <SelectItem value="overdue">En retard</SelectItem>
+                <SelectItem value="written_off">Irrécouvrable</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -2346,7 +2411,7 @@ Best regards,
           {/* Mobile Card View */}
           <div className="md:hidden space-y-3">
             {filteredInvoices.map((invoice) => {
-              const isOverdueOrSent = invoice.status !== 'paid' && invoice.status !== 'draft';
+              const isOverdueOrSent = invoice.status === 'sent' || invoice.status === 'overdue';
               const hasPaymentLink = !!invoice.payment_link;
               
               return (
@@ -2363,6 +2428,7 @@ Best regards,
                     {invoice.status === 'sent' && t("invoices.statusSent")}
                     {invoice.status === 'paid' && t("invoices.statusPaid")}
                     {invoice.status === 'overdue' && t("invoices.statusOverdue")}
+                    {invoice.status === 'written_off' && getStatusLabel(invoice.status)}
                   </Badge>
                   {(invoice as any).final_reminder_sent && (
                     <Badge variant="outline" className="shrink-0 border-amber-500 text-amber-700 dark:text-amber-400 text-[10px]">
@@ -2460,7 +2526,7 @@ Best regards,
                       )}
 
                       {/* Payment Link - Copy */}
-                      {stripeAccountId && invoice.status !== "paid" && hasPaymentLink && (
+                      {stripeAccountId && invoice.status !== "paid" && invoice.status !== "written_off" && hasPaymentLink && (
                         <DropdownMenuItem onClick={() => copyPaymentLink(invoice.payment_link!, invoice.invoice_number)}>
                           {copiedLink === invoice.invoice_number ? (
                             <Check className="h-4 w-4 mr-2 text-green-600" />
@@ -2472,7 +2538,7 @@ Best regards,
                       )}
 
                       {/* Payment Link - Generate/Regenerate */}
-                      {stripeAccountId && invoice.status !== "paid" && (
+                      {stripeAccountId && invoice.status !== "paid" && invoice.status !== "written_off" && (
                         <DropdownMenuItem 
                           onClick={() => handleGeneratePaymentLink(invoice)}
                           disabled={isStripeLoading}
@@ -2486,6 +2552,19 @@ Best regards,
                             ? (language === "fr" ? "Régénérer le lien de paiement" : "Regenerate payment link")
                             : (language === "fr" ? "Générer un lien de paiement" : "Generate payment link")
                           }
+                        </DropdownMenuItem>
+                      )}
+
+                      {canEditInvoices && invoice.status !== "paid" && invoice.status !== "written_off" && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => {
+                            setWriteOffInvoice(invoice);
+                            setWriteOffReason("");
+                          }}
+                        >
+                          <AlertTriangle className="h-4 w-4 mr-2" />
+                          {language === "fr" ? "Marquer irrécouvrable" : "Mark as written off"}
                         </DropdownMenuItem>
                       )}
 
@@ -2595,6 +2674,12 @@ Best regards,
                               if (invoice.status === "paid" && value !== "paid") {
                                 updates.paid_at = null;
                               }
+                              if (value === "written_off") {
+                                updates.written_off_at = new Date().toISOString();
+                              } else if (invoice.status === "written_off") {
+                                updates.written_off_at = null;
+                                updates.written_off_reason = null;
+                              }
                               updateInvoice(invoice.id, updates);
                             }}
                           >
@@ -2606,6 +2691,7 @@ Best regards,
                               <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
                               <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
                               <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                              <SelectItem value="written_off">{getStatusLabel("written_off")}</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
@@ -2613,10 +2699,7 @@ Best regards,
                             variant={invoice.status === "paid" ? "default" : "secondary"}
                             className={invoice.status === "paid" ? "bg-green-600 text-white" : ""}
                           >
-                            {invoice.status === "draft" ? t("invoices.statusDraft") :
-                             invoice.status === "sent" ? t("invoices.statusSent") :
-                             invoice.status === "paid" ? t("invoices.statusPaid") :
-                             invoice.status === "overdue" ? t("invoices.statusOverdue") : invoice.status}
+                            {getStatusLabel(invoice.status)}
                           </Badge>
                         )}
                         {(invoice as any).final_reminder_sent && (
@@ -2747,7 +2830,7 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
-                          {invoice.status !== 'paid' && invoice.status !== 'draft' && canSendInvoices && (
+                          {(invoice.status === 'sent' || invoice.status === 'overdue') && canSendInvoices && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
@@ -2769,7 +2852,7 @@ Best regards,
                               </TooltipContent>
                             </Tooltip>
                           )}
-                          {invoice.status !== 'paid' && invoice.status !== 'draft' && canSendInvoices && (
+                          {(invoice.status === 'sent' || invoice.status === 'overdue') && canSendInvoices && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
@@ -2788,6 +2871,26 @@ Best regards,
                                   ? (language === 'fr' ? 'Mise en demeure' : 'Formal notice')
                                   : (language === 'fr' ? 'Disponible avec le plan Pro' : 'Available with Pro plan')
                                 }</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {canEditInvoices && invoice.status !== 'paid' && invoice.status !== 'written_off' && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-destructive text-destructive hover:bg-destructive/10"
+                                  onClick={() => {
+                                    setWriteOffInvoice(invoice);
+                                    setWriteOffReason("");
+                                  }}
+                                >
+                                  <AlertTriangle className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{language === 'fr' ? 'Marquer comme irrécouvrable' : 'Mark as written off'}</p>
                               </TooltipContent>
                             </Tooltip>
                           )}
@@ -2835,7 +2938,7 @@ Best regards,
                             }
                             return null;
                           })()}
-                          {stripeAccountId && invoice.status !== "paid" && (
+                          {stripeAccountId && invoice.status !== "paid" && invoice.status !== "written_off" && (
                             invoice.payment_link ? (
                               <>
                                 <Tooltip>
@@ -3203,7 +3306,8 @@ Best regards,
                   <SelectItem value="draft">{t("invoices.statusDraft")}</SelectItem>
                   <SelectItem value="sent">{t("invoices.statusSent")}</SelectItem>
                   <SelectItem value="paid">{t("invoices.statusPaid")}</SelectItem>
-                  <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                          <SelectItem value="overdue">{t("invoices.statusOverdue")}</SelectItem>
+                          <SelectItem value="written_off">{getStatusLabel("written_off")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -3214,6 +3318,50 @@ Best regards,
             </Button>
             <Button onClick={handleBulkStatusChange} disabled={!bulkStatus}>
               {language === "fr" ? "Appliquer" : "Apply"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Write-off dialog */}
+      <Dialog
+        open={!!writeOffInvoice}
+        onOpenChange={(open) => {
+          if (!open) {
+            setWriteOffInvoice(null);
+            setWriteOffReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === "fr" ? "Marquer la facture comme irrécouvrable" : "Mark invoice as written off"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "fr"
+                ? `La facture ${writeOffInvoice?.invoice_number || ""} sera conservée, mais son montant sera séparé du solde à recevoir.`
+                : `Invoice ${writeOffInvoice?.invoice_number || ""} will be preserved, but its amount will be separated from outstanding receivables.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            <Label htmlFor="write-off-reason">
+              {language === "fr" ? "Raison (facultatif)" : "Reason (optional)"}
+            </Label>
+            <Textarea
+              id="write-off-reason"
+              value={writeOffReason}
+              onChange={(event) => setWriteOffReason(event.target.value)}
+              placeholder={language === "fr" ? "Ex. Client insolvable, aucune réponse après les rappels…" : "e.g. Client insolvent, no response after reminders…"}
+              rows={4}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setWriteOffInvoice(null)}>
+              {language === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button variant="destructive" onClick={markInvoiceAsWrittenOff}>
+              {language === "fr" ? "Confirmer la perte" : "Confirm write-off"}
             </Button>
           </div>
         </DialogContent>
