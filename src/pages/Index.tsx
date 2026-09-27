@@ -1079,7 +1079,10 @@ const Index = () => {
             </div>
             <div className="flex flex-wrap justify-center gap-3 mb-10">
               <Button asChild size="lg" className="gap-2">
-                <a href={DESKTOP_DOWNLOADS.windowsSetup} target="_blank" rel="noreferrer">
+                <a
+                  href={DESKTOP_DOWNLOADS.windowsSetup}
+                  download={DESKTOP_DOWNLOAD_FILES.windowsSetup}
+                >
                   <Download className="h-5 w-5" />
                   Windows
                 </a>
