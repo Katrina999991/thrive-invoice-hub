@@ -730,12 +730,6 @@ const Invoices = () => {
       if (invoice?.status === "paid" && bulkStatus !== "paid") {
         updates.paid_at = null;
       }
-      if (bulkStatus === "written_off") {
-        updates.written_off_at = new Date().toISOString();
-      } else if (invoice?.status === "written_off") {
-        updates.written_off_at = null;
-        updates.written_off_reason = null;
-      }
       await updateInvoice(invoiceId, updates);
     }
     
@@ -754,12 +748,22 @@ const Invoices = () => {
   const markInvoiceAsWrittenOff = async () => {
     if (!writeOffInvoice) return;
 
+    // Update the long-standing status column first. Optional write-off
+    // metadata is saved separately so it can never block the status change.
     await updateInvoice(writeOffInvoice.id, {
       status: "written_off",
-      written_off_at: new Date().toISOString(),
-      written_off_reason: writeOffReason.trim() || null,
       paid_at: null,
     });
+    const { error: metadataError } = await supabase
+      .from("invoices")
+      .update({
+        written_off_at: new Date().toISOString(),
+        written_off_reason: writeOffReason.trim() || null,
+      })
+      .eq("id", writeOffInvoice.id);
+    if (metadataError) {
+      console.warn("Write-off metadata could not be saved:", metadataError);
+    }
     setWriteOffInvoice(null);
     setWriteOffReason("");
   };
@@ -2673,12 +2677,6 @@ Best regards,
                               const updates: any = { status: value };
                               if (invoice.status === "paid" && value !== "paid") {
                                 updates.paid_at = null;
-                              }
-                              if (value === "written_off") {
-                                updates.written_off_at = new Date().toISOString();
-                              } else if (invoice.status === "written_off") {
-                                updates.written_off_at = null;
-                                updates.written_off_reason = null;
                               }
                               updateInvoice(invoice.id, updates);
                             }}
