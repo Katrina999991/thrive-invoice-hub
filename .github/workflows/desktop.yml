@@ -184,6 +184,8 @@ jobs:
           script: |
             set -e
             mkdir -p "$DEPLOY_TARGET"
+            # Remove the nested directory created by the previous SCP layout.
+            rm -rf "$DEPLOY_TARGET/dist"
             # Remove only stale RPM metadata; do not remove the website root.
             rm -rf "$DEPLOY_TARGET/rpm/x86_64/repodata"
 
@@ -197,8 +199,9 @@ jobs:
           passphrase: ${{ secrets.WHC_SSH_PASSPHRASE }}
           # Copy the contents of dist into the domain root, including the
           # hidden Apache fallback file, rather than creating a nested dist/.
-          source: "dist/*,dist/.htaccess"
+          source: "dist"
           target: ${{ secrets.WHC_SSH_TARGET }}/
+          strip_components: 1
           overwrite: true
 
       - name: Verify WHC web root
