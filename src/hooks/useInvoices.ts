@@ -316,10 +316,24 @@ export const useInvoices = () => {
       // Get the current invoice for logging
       const currentInvoice = invoices.find(inv => inv.id === id);
       
-      const { error } = await supabase
+      let { error } = await supabase
         .from("invoices")
         .update(updates)
         .eq("id", id);
+
+      // Older PostgREST schema caches may temporarily reject the new write-off
+      // metadata columns. Preserve the important status change while the cache
+      // catches up, instead of failing the whole action.
+      if (error && ("written_off_at" in updates || "written_off_reason" in updates)) {
+        const fallbackUpdates: InvoiceUpdate = { status: updates.status };
+        if (updates.paid_at !== undefined) fallbackUpdates.paid_at = updates.paid_at;
+
+        const fallbackResult = await supabase
+          .from("invoices")
+          .update(fallbackUpdates)
+          .eq("id", id);
+        error = fallbackResult.error;
+      }
 
       if (error) throw error;
 
