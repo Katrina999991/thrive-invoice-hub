@@ -156,6 +156,11 @@ jobs:
 
           find dist/downloads dist/rpm -type f | sort
 
+      - name: Record web bundle entry file
+        id: web-bundle
+        shell: bash
+        run: echo "asset=$(grep -Eo 'assets/[^\" ]+\.js' dist/index.html | head -1)" >> "$GITHUB_OUTPUT"
+
       - name: Upload complete web files for WHC
         uses: actions/upload-artifact@v5
         with:
@@ -195,3 +200,23 @@ jobs:
           source: "dist/*,dist/.htaccess"
           target: ${{ secrets.WHC_SSH_TARGET }}/
           overwrite: true
+
+      - name: Verify WHC web root
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_TARGET: ${{ secrets.WHC_SSH_TARGET }}
+          EXPECTED_ASSET: ${{ steps.web-bundle.outputs.asset }}
+        with:
+          host: ${{ secrets.WHC_SSH_HOST }}
+          username: ${{ secrets.WHC_SSH_USER }}
+          port: ${{ secrets.WHC_SSH_PORT }}
+          key: ${{ secrets.WHC_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.WHC_SSH_PASSPHRASE }}
+          envs: DEPLOY_TARGET,EXPECTED_ASSET
+          script: |
+            set -e
+            test -f "$DEPLOY_TARGET/index.html"
+            ACTUAL_ASSET=$(grep -Eo 'assets/[^" ]+\.js' "$DEPLOY_TARGET/index.html" | head -1)
+            echo "Expected asset: $EXPECTED_ASSET"
+            echo "WHC target asset: $ACTUAL_ASSET"
+            test "$ACTUAL_ASSET" = "$EXPECTED_ASSET"
