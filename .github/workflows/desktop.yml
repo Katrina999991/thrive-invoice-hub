@@ -164,3 +164,32 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 14
+
+      - name: Prepare WHC deployment directory
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_TARGET: ${{ secrets.WHC_SSH_TARGET }}
+        with:
+          host: ${{ secrets.WHC_SSH_HOST }}
+          username: ${{ secrets.WHC_SSH_USER }}
+          port: ${{ secrets.WHC_SSH_PORT }}
+          key: ${{ secrets.WHC_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.WHC_SSH_PASSPHRASE }}
+          envs: DEPLOY_TARGET
+          script: |
+            set -e
+            mkdir -p "$DEPLOY_TARGET"
+            # Remove only stale RPM metadata; do not remove the website root.
+            rm -rf "$DEPLOY_TARGET/rpm/x86_64/repodata"
+
+      - name: Deploy complete web files to WHC
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.WHC_SSH_HOST }}
+          username: ${{ secrets.WHC_SSH_USER }}
+          port: ${{ secrets.WHC_SSH_PORT }}
+          key: ${{ secrets.WHC_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.WHC_SSH_PASSPHRASE }}
+          source: "dist/."
+          target: ${{ secrets.WHC_SSH_TARGET }}/
+          overwrite: true
