@@ -373,11 +373,19 @@ export const useInvoices = () => {
       });
     } catch (error) {
       console.error("Error updating invoice:", error);
+      const errorDetails = error && typeof error === "object"
+        ? [
+            (error as any).message,
+            (error as any).details,
+            (error as any).hint,
+            (error as any).code ? `Code: ${(error as any).code}` : null,
+          ].filter(Boolean).join(" | ")
+        : error instanceof Error ? error.message : String(error);
       toast({
         title: "Error",
-        description: error instanceof Error && error.message
-          ? `Failed to update invoice: ${error.message}`
-          : "Failed to update invoice",
+        description: errorDetails
+          ? `Failed to update invoice: ${errorDetails}`
+          : "Failed to update invoice (unknown error)",
         variant: "destructive"
       });
     }
