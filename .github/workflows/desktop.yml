@@ -190,6 +190,8 @@ jobs:
           port: ${{ secrets.WHC_SSH_PORT }}
           key: ${{ secrets.WHC_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.WHC_SSH_PASSPHRASE }}
-          source: "dist/."
+          # Copy the contents of dist into the domain root, including the
+          # hidden Apache fallback file, rather than creating a nested dist/.
+          source: "dist/*,dist/.htaccess"
           target: ${{ secrets.WHC_SSH_TARGET }}/
           overwrite: true
