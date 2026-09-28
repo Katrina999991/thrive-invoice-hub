@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useUserCompanies } from "./useUserCompanies";
+import { useSelectedCompany } from "./useSelectedCompany";
 import { useMemo } from "react";
 
 export type PlanType = 'free' | 'premium' | 'pro';
@@ -56,17 +56,16 @@ export interface SubscriptionPlan {
 export const useSubscription = (companyId?: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { memberships, loading: companiesLoading } = useUserCompanies();
+  const { selectedCompanyId, loading: companiesLoading } = useSelectedCompany();
 
   // Determine which company to use for plan limits
   const effectiveCompanyId = useMemo(() => {
     if (companyId) return companyId;
-    // If no companyId provided, use the first company the user has access to
-    if (memberships && memberships.length > 0) {
-      return memberships[0].company_id;
-    }
-    return null;
-  }, [companyId, memberships]);
+    // Use the company selected by the user throughout the app. Falling back to
+    // the first company caused the dashboard usage card to show another
+    // company's invoice count when users owned multiple companies.
+    return selectedCompanyId || null;
+  }, [companyId, selectedCompanyId]);
 
   // Fetch company plan limits (not user plan limits)
   const { data: planLimits, isLoading: isLoadingLimits } = useQuery({

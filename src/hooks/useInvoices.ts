@@ -279,6 +279,7 @@ export const useInvoices = () => {
       // Invalidate dashboard and plan limits cache
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["companyPlanLimits"] });
       
       // Log audit event
       logAuditEvent({
@@ -430,6 +431,7 @@ export const useInvoices = () => {
       // Invalidate dashboard and plan limits cache
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       queryClient.invalidateQueries({ queryKey: ["planLimits", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["companyPlanLimits"] });
       
       // Log audit event
       logAuditEvent({
@@ -533,6 +535,7 @@ export const useInvoices = () => {
 
       // Invalidate dashboard cache
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["companyPlanLimits"] });
 
       // Log audit event
       logAuditEvent({
