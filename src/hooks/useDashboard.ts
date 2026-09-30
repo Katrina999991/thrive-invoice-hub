@@ -42,7 +42,7 @@ export const useDashboard = (t?: TranslationFunction) => {
           clientIds.length > 0
             ? supabase
                 .from("invoices")
-                .select("id, total, status, created_at, updated_at, invoice_number, clients(name)")
+                .select("id, total, status, issue_date, created_at, updated_at, invoice_number, clients(name)")
                 .in("client_id", clientIds)
                 .eq("is_archived", false)
                 .order("updated_at", { ascending: false })
@@ -63,7 +63,7 @@ export const useDashboard = (t?: TranslationFunction) => {
         [invoicesResult, clientsResult, productsResult] = await Promise.all([
           supabase
             .from("invoices")
-            .select("id, total, status, created_at, updated_at, invoice_number, clients(name)")
+            .select("id, total, status, issue_date, created_at, updated_at, invoice_number, clients(name)")
             .eq("user_id", userId)
             .eq("is_archived", false)
             .order("updated_at", { ascending: false }),
@@ -87,6 +87,17 @@ export const useDashboard = (t?: TranslationFunction) => {
       const invoices = invoicesResult.data || [];
       const clients = clientsResult.data || [];
       const products = productsResult.data || [];
+
+      // The dashboard aggregates invoices from all companies accessible to the
+      // user, so the monthly usage card must use the same scope.
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const invoicesThisMonth = invoices.filter(invoice => {
+        if (!invoice.issue_date) return false;
+        const [year, month] = invoice.issue_date.split("-").map(Number);
+        return year === currentYear && month === currentMonth + 1;
+      }).length;
 
       // Calculate statistics
       const totalRevenue = invoices
@@ -124,8 +135,6 @@ export const useDashboard = (t?: TranslationFunction) => {
       }));
 
       // Calculate new clients this month
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
       const newClientsThisMonth = clients.filter(client => {
         const createdDate = new Date(client.created_at);
         return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
@@ -204,6 +213,7 @@ export const useDashboard = (t?: TranslationFunction) => {
         newClientsThisMonth,
         openInvoicesCount: openInvoices.length,
         openInvoicesTotal,
+        invoicesThisMonth,
         activeProducts: products.length,
         monthlyRevenue,
         invoiceStatusCounts,

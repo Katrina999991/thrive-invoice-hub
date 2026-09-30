@@ -64,7 +64,7 @@ function getFeatureAccessList(planType: string): FeatureDisplay[] {
   ];
 }
 
-export const SubscriptionLimitsCard = () => {
+export const SubscriptionLimitsCard = ({ invoicesThisMonth }: { invoicesThisMonth?: number }) => {
   const { planLimits, currentSubscription, isLoading } = useSubscription();
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -161,13 +161,13 @@ export const SubscriptionLimitsCard = () => {
           <div className="flex justify-between text-sm">
             <span className="font-medium">{t.invoices}</span>
             <span className="text-muted-foreground">
-              {planLimits.invoices_used} / {planLimits.max_invoices_per_month ?? t.unlimited}
+              {invoicesThisMonth ?? planLimits.invoices_used} / {planLimits.max_invoices_per_month ?? t.unlimited}
             </span>
           </div>
           {planLimits.max_invoices_per_month !== null && (
             <Progress 
-              value={calculatePercentage(planLimits.invoices_used, planLimits.max_invoices_per_month)}
-              indicatorClassName={getProgressColor(calculatePercentage(planLimits.invoices_used, planLimits.max_invoices_per_month))}
+              value={calculatePercentage(invoicesThisMonth ?? planLimits.invoices_used, planLimits.max_invoices_per_month)}
+              indicatorClassName={getProgressColor(calculatePercentage(invoicesThisMonth ?? planLimits.invoices_used, planLimits.max_invoices_per_month))}
             />
           )}
         </div>
