@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 type TranslationFunction = (key: string, replacements?: Record<string, string | number>) => string;
 
-export const useDashboard = (t?: TranslationFunction) => {
+export const useDashboard = (t?: TranslationFunction, companyId?: string | null) => {
   return useQuery({
-    queryKey: ["dashboard-stats", t ? "translated" : "default"],
+    queryKey: ["dashboard-stats", t ? "translated" : "default", companyId || "all"],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
@@ -21,7 +21,10 @@ export const useDashboard = (t?: TranslationFunction) => {
 
       if (memberError) throw memberError;
 
-      const companyIds = memberCompanyIds?.map(m => m.company_id) || [];
+      const allCompanyIds = memberCompanyIds?.map(m => m.company_id) || [];
+      const companyIds = companyId
+        ? (allCompanyIds.includes(companyId) ? [companyId] : [])
+        : allCompanyIds;
 
       // Fetch all data in parallel
       let invoicesResult, clientsResult, productsResult;

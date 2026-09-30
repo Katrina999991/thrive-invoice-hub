@@ -40,6 +40,7 @@ const translations = {
     // Dashboard
     "dashboard.title": "Dashboard",
     "dashboard.subtitle": "Overview of your business performance",
+    "dashboard.allCompanies": "All companies",
     "dashboard.totalRevenue": "Total Revenue",
     "dashboard.totalRevenue.desc": "From paid invoices",
     "dashboard.activeClients": "Active Clients",
@@ -914,6 +915,7 @@ const translations = {
     // Dashboard
     "dashboard.title": "Tableau de bord",
     "dashboard.subtitle": "Aperçu des performances de votre entreprise",
+    "dashboard.allCompanies": "Toutes les compagnies",
     "dashboard.totalRevenue": "Revenu total",
     "dashboard.totalRevenue.desc": "Provenant des factures payées",
     "dashboard.activeClients": "Clients actifs",

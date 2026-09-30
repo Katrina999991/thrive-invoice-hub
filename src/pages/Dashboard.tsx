@@ -1,18 +1,24 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, Package, FileText, DollarSign, TrendingUp } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useCompanies } from "@/hooks/useCompanies";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { SubscriptionLimitsCard } from "@/components/SubscriptionLimitsCard";
 import { GestionFlowFeeBanner } from "@/components/GestionFlowFeeBanner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, PieChart, Pie, Cell, Legend } from "recharts";
 
 const STATUS_COLORS = ["#94a3b8", "#3b82f6", "#22c55e", "#f97316"];
 
 const Dashboard = () => {
   const { t } = useLanguage();
-  const { data: dashboardData, isLoading } = useDashboard(t);
+  const { companies, loading: companiesLoading } = useCompanies();
+  const [dashboardTab, setDashboardTab] = useState("all");
+  const selectedCompanyId = dashboardTab === "all" ? null : dashboardTab;
+  const { data: dashboardData, isLoading } = useDashboard(t, selectedCompanyId);
   const navigate = useNavigate();
   const invoiceStatusChartData = (dashboardData?.invoiceStatusCounts || []).map((entry) => ({
     ...entry,
@@ -60,6 +66,21 @@ const Dashboard = () => {
       </div>
       <GestionFlowFeeBanner />
 
+      <Tabs value={dashboardTab} onValueChange={setDashboardTab} className="space-y-6">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="all" className="gap-2 whitespace-nowrap">
+            <Building2 className="h-4 w-4" />
+            {t("dashboard.allCompanies")}
+          </TabsTrigger>
+          {!companiesLoading && companies.map((company) => (
+            <TabsTrigger key={company.id} value={company.id} className="gap-2 whitespace-nowrap">
+              <Building2 className="h-4 w-4" />
+              {company.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value={dashboardTab} className="space-y-6 mt-0">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.titleKey}>
@@ -218,6 +239,8 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
