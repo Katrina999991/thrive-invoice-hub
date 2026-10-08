@@ -44,6 +44,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AcceptInvite from "./pages/AcceptInvite";
 import Onboarding from "./pages/Onboarding";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,11 @@ const App = () => {
                 } />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout />
